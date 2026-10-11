@@ -1,0 +1,22 @@
+{
+  "name": "erp",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build:shared": "pnpm --filter @erp/shared build",
+    "dev": "pnpm build:shared && pnpm -r --parallel --filter \"!@erp/shared\" dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test:foundation": "pnpm --filter @erp/api test",
+    "db:up": "docker compose up -d postgres",
+    "db:migrate": "pnpm --filter @erp/api migrate",
+    "db:seed": "pnpm --filter @erp/api seed"
+  },
+  "dependencies": {
+    "docker": "^1.0.0",
+    "pnpm": "^12.11.2"
+  }
+}

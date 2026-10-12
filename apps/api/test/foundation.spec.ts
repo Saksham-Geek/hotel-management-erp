@@ -2,9 +2,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import test from 'node:test';
-import { createReservationSchema, createRoomSchema, createRoomTypeSchema, updateRoomSchema, updateRoomTypeSchema } from '@erp/shared';
+import { createGuestSchema, createReservationSchema, createRoomSchema, createRoomTypeSchema, updateGuestSchema, updateRoomSchema, updateRoomTypeSchema } from '@erp/shared';
 import { AllExceptionsFilter } from '../src/common/pg-exception.filter';
 import { parseApiEnv } from '../src/env-validation';
+import { decodeGuestDocument, guestDocumentUploadSchema } from '../src/hotel/guest-document-validation';
 
 const validEnv = (overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv => ({
   DATABASE_URL: 'postgres://erp_app:secret@localhost:5433/erp',
@@ -87,10 +88,81 @@ test('room type and room updates allow clearing optional hourly overrides', () =
   assert.equal(updateRoomSchema.safeParse({ floor: 201 }).success, false);
 });
 
+test('guest identity data only stores the last four Aadhaar digits', () => {
+  assert.equal(createGuestSchema.safeParse({ fullName: 'Guest', phone: '+91 9000000000', idType: 'aadhaar', idNumber: '1234' }).success, true);
+  assert.equal(createGuestSchema.safeParse({ fullName: 'Guest', phone: '+91 9000000000', idType: 'aadhaar', idNumber: '123456789012' }).success, false);
+  assert.equal(updateGuestSchema.safeParse({ idType: 'aadhaar', idNumber: '123456789012' }).success, false);
+});
+
+test('new guest reservations require a valid phone and validate email when supplied', () => {
+  const valid = { fullName: 'New guest', phone: '+91 9000000000', email: 'guest@example.test' };
+  assert.equal(createGuestSchema.safeParse(valid).success, true);
+  assert.equal(createGuestSchema.safeParse({ fullName: 'New guest' }).success, false);
+  assert.equal(createGuestSchema.safeParse({ ...valid, phone: 'call me' }).success, false);
+  assert.equal(createGuestSchema.safeParse({ ...valid, email: 'invalid-email' }).success, false);
+});
+
+test('identity document upload requires consent and confirmation for masked Aadhaar', () => {
+  const document = { fileName: 'id.png', mimeType: 'image/png', base64: 'iVBORw0KGgo=', documentType: 'aadhaar_masked' };
+  assert.equal(guestDocumentUploadSchema.safeParse({ documents: [document], consentGiven: true, consentMethod: 'verbal' }).success, false);
+  assert.equal(guestDocumentUploadSchema.safeParse({ documents: [document], consentGiven: true, consentMethod: 'verbal', aadhaarMasked: true }).success, true);
+  assert.equal(guestDocumentUploadSchema.safeParse({ documents: [document], consentGiven: false, consentMethod: 'verbal', aadhaarMasked: true }).success, false);
+});
+
+test('reservation guest identity requires ID details, consent, and an image attachment', () => {
+  const base = {
+    roomId: '22222222-2222-4222-8222-222222222222',
+    checkIn: '2032-05-10',
+    checkOut: '2032-05-11',
+  };
+  const validGuest = {
+    fullName: 'New guest',
+    phone: '+91 9000000000',
+    idType: 'passport',
+    idNumber: 'P1234567',
+    identityDocument: {
+      fileName: 'passport.png',
+      mimeType: 'image/png',
+      base64: 'iVBORw0KGgo=',
+      documentType: 'passport',
+      consentGiven: true,
+      consentMethod: 'verbal',
+      aadhaarMasked: false,
+    },
+  };
+  assert.equal(createReservationSchema.safeParse({ ...base, newGuest: validGuest }).success, true);
+  assert.equal(createReservationSchema.safeParse({ ...base, newGuest: { ...validGuest, identityDocument: undefined } }).success, false);
+  assert.equal(createReservationSchema.safeParse({ ...base, newGuest: { ...validGuest, idNumber: '' } }).success, false);
+  assert.equal(createReservationSchema.safeParse({ ...base, newGuest: { ...validGuest, identityDocument: { ...validGuest.identityDocument, consentGiven: false } } }).success, false);
+  assert.equal(createReservationSchema.safeParse({
+    ...base,
+    guestId: '11111111-1111-4111-8111-111111111111',
+    existingGuestDocuments: [{ guestId: '11111111-1111-4111-8111-111111111111', attachment: validGuest.identityDocument }],
+  }).success, true);
+});
+
+test('document bytes must match the declared image MIME type', () => {
+  const pngHeader = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString('base64');
+  assert.equal(decodeGuestDocument(pngHeader, 'image/png').length, 8);
+  assert.throws(() => decodeGuestDocument(pngHeader, 'image/jpeg'), /contents do not match/);
+  assert.throws(() => decodeGuestDocument('not base64!', 'image/png'), /valid base64/);
+});
+
+test('guest identity migration adds nullable consent audit fields for legacy records', () => {
+  const migration = readFileSync(resolve(__dirname, '../../../db/migrations/007_guest_identity_consent.sql'), 'utf8');
+  assert.match(migration, /add column if not exists consent_method/i);
+  assert.match(migration, /foreign key \(consent_recorded_by\) references users/i);
+  assert.match(migration, /where consent_method is not null/i);
+});
+
 test('reservations accept a new companion alongside an existing primary guest', () => {
+  const attachment = {
+    fileName: 'passport.png', mimeType: 'image/png', base64: 'iVBORw0KGgo=',
+    documentType: 'passport', consentGiven: true, consentMethod: 'verbal', aadhaarMasked: false,
+  };
   const parsed = createReservationSchema.safeParse({
     guestId: '11111111-1111-4111-8111-111111111111',
-    newCompanions: [{ fullName: 'New arrival', phone: '+91 9000000000', email: 'arrival@example.test' }],
+    newCompanions: [{ fullName: 'New arrival', phone: '+91 9000000000', email: 'arrival@example.test', idType: 'passport', idNumber: 'P1234567', identityDocument: attachment }],
     roomId: '22222222-2222-4222-8222-222222222222',
     checkIn: '2032-05-10',
     checkOut: '2032-05-11',
@@ -100,10 +172,14 @@ test('reservations accept a new companion alongside an existing primary guest', 
 });
 
 test('reservations reject more than 20 total guests including the primary guest', () => {
+  const attachment = {
+    fileName: 'passport.png', mimeType: 'image/png', base64: 'iVBORw0KGgo=',
+    documentType: 'passport', consentGiven: true, consentMethod: 'verbal', aadhaarMasked: false,
+  };
   const parsed = createReservationSchema.safeParse({
     guestId: '11111111-1111-4111-8111-111111111111',
     guestIds: Array.from({ length: 19 }, (_, i) => `00000000-0000-4000-8000-${String(i + 1).padStart(12, '0')}`),
-    newCompanions: [{ fullName: 'One too many' }],
+    newCompanions: [{ fullName: 'One too many', phone: '+91 9000000000', idType: 'passport', idNumber: 'P1234567', identityDocument: attachment }],
     roomId: '22222222-2222-4222-8222-222222222222',
     checkIn: '2032-05-10',
     checkOut: '2032-05-11',

@@ -15,6 +15,7 @@ import {
   CreateGuestInput,
   FEATURES,
   createGuestSchema,
+  updateGuestSchema,
 } from '@erp/shared';
 
 import { AuditService } from '../audit/audit.service';
@@ -53,6 +54,7 @@ export class GuestsController {
            p.phone,
            p.email,
            g.vip,
+           EXISTS (SELECT 1 FROM guest_documents gd WHERE gd.guest_id = g.id) AS "hasIdentityDocument",
            g.nationality,
            g.notes,
            p.custom_fields AS "customFields",
@@ -60,8 +62,10 @@ export class GuestsController {
              SELECT json_agg(
                json_build_object(
                  'id', d.id,
+                 'documentType', d.document_type,
                  'fileName', d.original_name,
                  'mimeType', d.mime_type,
+                 'consentMethod', d.consent_method,
                  'createdAt', d.created_at
                )
                ORDER BY d.created_at DESC
@@ -107,6 +111,19 @@ export class GuestsController {
         [term],
       );
 
+      for (const row of result.rows) {
+        const documentCount = Array.isArray(row.documents) ? row.documents.length : 0;
+        if (documentCount) {
+          await this.audit.log(c, {
+            tenantId: user.tenantId,
+            userId: user.id,
+            action: 'guest.document.metadata_list',
+            entity: 'guest',
+            entityId: row.id,
+            meta: { count: documentCount },
+          });
+        }
+      }
       return result.rows;
     });
   }
@@ -118,8 +135,7 @@ export class GuestsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() body: unknown,
   ) {
-    const schema = createGuestSchema.partial();
-    const parsed = schema.safeParse(body);
+    const parsed = updateGuestSchema.safeParse(body);
 
     if (!parsed.success || !Object.keys(parsed.data ?? {}).length) {
       throw new NotFoundException({

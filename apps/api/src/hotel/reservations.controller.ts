@@ -7,6 +7,7 @@ import { ZodPipe } from '../common/zod.pipe';
 import { DbService } from '../db/db.service';
 import { encryptSensitiveField } from '../common/field-encryption';
 import { RequireFeature } from '../entitlements/require-feature';
+import { persistGuestIdentityDocument } from './guest-document-validation';
 
 /** Allowed status changes. Anything else is rejected, so records can't jump around. */
 const TRANSITIONS: Record<ReservationStatus, ReservationStatus[]> = {
@@ -48,6 +49,7 @@ export class ReservationsController {
   create(@CurrentUser() user: AuthUser, @Body(new ZodPipe(createReservationSchema)) b: CreateReservationInput) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       let guestId = b.guestId;
+      let createdPrimaryGuestId: string | null = null;
       if (b.newGuest) {
         const g = createGuestSchema.parse(b.newGuest);
         const duplicate = (await c.query(
@@ -62,6 +64,8 @@ export class ReservationsController {
         const party = (await c.query(`insert into parties (tenant_id, full_name, phone, email, custom_fields) values ($1,$2,$3,$4,$5) returning id`, [user.tenantId, g.fullName, g.phone ?? null, g.email ?? null, JSON.stringify(g.customFields ?? {})])).rows[0];
         const guest = (await c.query(`insert into guests (tenant_id, party_id, nationality, id_type, id_number, id_number_ciphertext, id_number_iv, id_number_auth_tag, vip, notes) values ($1,$2,$3,$4,null,$5,$6,$7,$8,$9) returning id`, [user.tenantId, party.id, g.nationality ?? null, g.idType ?? null, identity.ciphertext, identity.iv, identity.authTag, g.vip ?? false, g.notes ?? null])).rows[0];
         guestId = guest.id;
+        createdPrimaryGuestId = guest.id;
+        await persistGuestIdentityDocument(c, user, guest.id, b.newGuest.identityDocument, this.audit);
       }
       if (!guestId) throw new BadRequestException({ code: 'INVALID_GUEST', message: 'Select or create a guest.' });
       const checkInTime = b.checkInTime ?? '12:00';
@@ -142,6 +146,7 @@ export class ReservationsController {
             identity.ciphertext, identity.iv, identity.authTag, companion.vip, companion.notes ?? null],
         )).rows[0];
         newCompanionIds.push(guest.id);
+        await persistGuestIdentityDocument(c, user, guest.id, input.identityDocument, this.audit);
         await this.audit.log(c, {
           tenantId: user.tenantId, userId: user.id, action: 'guest.create',
           entity: 'guest', entityId: guest.id, meta: { source: 'reservation_companion' },
@@ -151,6 +156,18 @@ export class ReservationsController {
       const guestIds = [...new Set([guestId, ...(b.guestIds ?? []), ...newCompanionIds])];
       const guestCheck = await c.query(`select id from guests where id = any($1::uuid[])`, [guestIds]);
       if (guestCheck.rowCount !== guestIds.length) throw new BadRequestException({ code: 'INVALID_GUEST', message: 'One or more selected guests were not found in this hotel.' });
+      const selectedIds = new Set(guestIds);
+      for (const item of b.existingGuestDocuments) {
+        if (!selectedIds.has(item.guestId)) throw new BadRequestException({ code: 'INVALID_GUEST_DOCUMENT', message: 'Identity uploads must belong to a guest on this reservation.' });
+        await persistGuestIdentityDocument(c, user, item.guestId, item.attachment, this.audit);
+      }
+      const documentCheck = await c.query(
+        `select guest_id from guest_documents where guest_id = any($1::uuid[]) group by guest_id`,
+        [guestIds],
+      );
+      if (documentCheck.rowCount !== guestIds.length) {
+        throw new BadRequestException({ code: 'GUEST_ID_REQUIRED', message: 'An identity image is required for every guest on the reservation.' });
+      }
       for (const linkedGuestId of guestIds) {
         await c.query(`insert into reservation_guests (tenant_id, reservation_id, guest_id, is_primary) values ($1,$2,$3,$4) on conflict do nothing`, [user.tenantId, row.id, linkedGuestId, linkedGuestId === guestId]);
       }
@@ -164,7 +181,7 @@ export class ReservationsController {
                      from reservation_folios f where f.tenant_id = $1 and f.reservation_id = $2`,
         [user.tenantId, row.id, b.rateMode, row.totalAmount]);
       await this.audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'reservation.create', entity: 'reservation', entityId: row.id, meta: { roomId: b.roomId, guestIds, checkIn: b.checkIn, checkOut: b.checkOut, rateMode: b.rateMode, priceOverride: b.priceOverride ?? null, hourlyRateOverride: b.hourlyRateOverride ?? null, unitRateOverride: b.unitRateOverride ?? null, overrideReason: b.overrideReason ?? null } });
-      return { ...row, guestIds };
+      return { ...row, guestIds, newGuestId: createdPrimaryGuestId, newCompanionIds };
     });
   }
 

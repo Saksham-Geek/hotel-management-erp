@@ -6,15 +6,41 @@ export default {
   theme: {
     extend: {
       colors: {
-        ground: '#EDF0F2',
-        surface: '#FFFFFF',
-        ink: '#1C2B36',
-        muted: '#5D6E7B',
-        line: '#D5DCE1',
-        lagoon: { DEFAULT: '#0E6A73', dark: '#0A545B', tint: '#E2F1F2' },
-        brass: '#9C6B1F',
-        status: { ready: '#2F7D5C', occupied: '#2B5DA8', cleaning: '#B98312', out: '#6B7885' },
-        danger: '#A63A2B',
+        ground: 'hsl(var(--background) / <alpha-value>)',
+        surface: 'hsl(var(--card) / <alpha-value>)',
+        popover: {
+          DEFAULT: 'hsl(var(--popover) / <alpha-value>)',
+          foreground: 'hsl(var(--popover-foreground) / <alpha-value>)',
+        },
+        ink: 'hsl(var(--foreground) / <alpha-value>)',
+        muted: 'hsl(var(--muted-foreground) / <alpha-value>)',
+        line: 'hsl(var(--border) / <alpha-value>)',
+        secondary: {
+          DEFAULT: 'hsl(var(--secondary) / <alpha-value>)',
+          foreground: 'hsl(var(--secondary-foreground) / <alpha-value>)',
+        },
+        sidebar: {
+          DEFAULT: 'hsl(var(--sidebar) / <alpha-value>)',
+          foreground: 'hsl(var(--sidebar-foreground) / <alpha-value>)',
+          accent: 'hsl(var(--sidebar-accent) / <alpha-value>)',
+        },
+        primary: {
+          DEFAULT: 'hsl(var(--primary) / <alpha-value>)',
+          foreground: 'hsl(var(--primary-foreground) / <alpha-value>)',
+        },
+        lagoon: {
+          DEFAULT: 'hsl(var(--accent) / <alpha-value>)',
+          dark: 'hsl(var(--accent-strong) / <alpha-value>)',
+          tint: 'hsl(var(--accent-soft) / <alpha-value>)',
+        },
+        brass: 'hsl(var(--warning) / <alpha-value>)',
+        status: {
+          ready: 'hsl(var(--success) / <alpha-value>)',
+          occupied: 'hsl(var(--info) / <alpha-value>)',
+          cleaning: 'hsl(var(--warning) / <alpha-value>)',
+          out: 'hsl(var(--status-muted) / <alpha-value>)',
+        },
+        danger: 'hsl(var(--destructive) / <alpha-value>)',
       },
       fontFamily: {
         display: ['var(--font-display)', 'ui-sans-serif', 'system-ui', 'sans-serif'],

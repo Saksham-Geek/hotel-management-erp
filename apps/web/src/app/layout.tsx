@@ -5,7 +5,7 @@ import './globals.css';
 const display = Bricolage_Grotesque({ subsets: ['latin'], variable: '--font-display', weight: ['500', '700'] });
 const body = Figtree({ subsets: ['latin'], variable: '--font-body' });
 
-export const metadata: Metadata = { title: 'Front desk', description: 'Hotel operations' };
+export const metadata: Metadata = { title: 'Hotel Operations', description: 'Hotel management workspace' };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

@@ -57,9 +57,11 @@ export const ROOM_STATUSES = ['available', 'occupied', 'cleaning', 'maintenance'
 export type RoomStatus = (typeof ROOM_STATUSES)[number];
 export const updateRoomStatusSchema = z.object({ status: z.enum(ROOM_STATUSES) });
 
-export const createGuestSchema = z.object({
-  fullName: z.string().min(1).max(120),
-  phone: z.string().max(30).optional(),
+const guestProfileSchema = z.object({
+  fullName: z.string().trim().min(1, 'Full name is required').max(120),
+  phone: z.string().trim().min(7, 'Phone number is required and must contain at least 7 digits').max(30)
+    .regex(/^\+?[0-9 ().-]+$/, 'Enter a valid phone number')
+    .refine((phone) => phone.replace(/\D/g, '').length >= 7 && phone.replace(/\D/g, '').length <= 15, 'Phone number must contain 7 to 15 digits'),
   email: z.string().email().max(200).optional().or(z.literal('').transform(() => undefined)),
   nationality: z.string().max(60).optional(),
   idType: z.string().max(40).optional(),
@@ -69,12 +71,48 @@ export const createGuestSchema = z.object({
   customFields: z.record(z.unknown()).default({}),
 });
 
+const validateGuestIdentity = (guest: { idType?: string; idNumber?: string }, ctx: z.RefinementCtx) => {
+  if (guest.idType?.toLocaleLowerCase() === 'aadhaar' && guest.idNumber && !/^\d{4}$/.test(guest.idNumber.trim())) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['idNumber'], message: 'For Aadhaar, store only the last four digits.' });
+  }
+};
+
+export const createGuestSchema = guestProfileSchema.superRefine(validateGuestIdentity);
+export const updateGuestSchema = guestProfileSchema.partial().superRefine(validateGuestIdentity);
+
+export const guestIdentityAttachmentSchema = z.object({
+  fileName: z.string().min(1).max(180),
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  base64: z.string().min(1),
+  documentType: z.enum(['aadhaar_masked', 'passport', 'driving_license', 'voter_id', 'other']),
+  consentGiven: z.literal(true),
+  consentMethod: z.enum(['written', 'verbal', 'digital']),
+  aadhaarMasked: z.boolean().default(false),
+}).superRefine((attachment, ctx) => {
+  if (attachment.documentType === 'aadhaar_masked' && !attachment.aadhaarMasked) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['aadhaarMasked'], message: 'Confirm the Aadhaar image has the first eight digits masked.' });
+  }
+});
+
+const reservationGuestSchema = guestProfileSchema.extend({
+  idType: z.enum(['aadhaar', 'passport', 'driving_license', 'voter_id', 'other']),
+  idNumber: z.string().trim().min(1, 'Identity number is required').max(60),
+  identityDocument: guestIdentityAttachmentSchema,
+}).superRefine((guest, ctx) => {
+  validateGuestIdentity(guest, ctx);
+  const expectedType = guest.idType === 'aadhaar' ? 'aadhaar_masked' : guest.idType;
+  if (guest.identityDocument.documentType !== expectedType) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['identityDocument', 'documentType'], message: 'Uploaded document category must match the identity type.' });
+  }
+});
+
 export const createReservationSchema = z
   .object({
     guestId: z.string().uuid().optional(),
-    newGuest: createGuestSchema.optional(),
+    newGuest: reservationGuestSchema.optional(),
     guestIds: z.array(z.string().uuid()).max(19).optional().default([]),
-    newCompanions: z.array(createGuestSchema).max(19).optional().default([]),
+    newCompanions: z.array(reservationGuestSchema).max(19).optional().default([]),
+    existingGuestDocuments: z.array(z.object({ guestId: z.string().uuid(), attachment: guestIdentityAttachmentSchema })).max(20).optional().default([]),
     roomId: z.string().uuid(),
     checkIn: isoDate,
     checkOut: isoDate,
@@ -87,6 +125,7 @@ export const createReservationSchema = z
     overrideReason: z.string().max(300).optional(),
   })
   .refine((v) => v.guestIds.length + v.newCompanions.length <= 19, { path: ['newCompanions'], message: 'A reservation can include up to 20 guests including the primary guest.' })
+  .refine((v) => new Set(v.existingGuestDocuments.map((item) => item.guestId)).size === v.existingGuestDocuments.length, { path: ['existingGuestDocuments'], message: 'Only one identity upload per selected guest is allowed.' })
   .refine((v) => (!!v.guestId !== !!v.newGuest), { path: ['guestId'], message: 'Select an existing guest or enter a new guest profile.' })
   .refine((v) => v.checkOut > v.checkIn || (v.checkOut === v.checkIn && v.rateMode === 'hourly' && !!v.checkInTime && !!v.checkOutTime && v.checkOutTime > v.checkInTime), { path: ['checkOut'], message: 'Check-out must be after check-in' })
   .refine((v) => v.rateMode !== 'hourly' || (!!v.checkInTime && !!v.checkOutTime), { path: ['checkInTime'], message: 'Hourly bookings require check-in and check-out times' })
@@ -112,6 +151,7 @@ export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type UpdateRoomTypeInput = z.infer<typeof updateRoomTypeSchema>;
 export type UpdateRoomInput = z.infer<typeof updateRoomSchema>;
 export type CreateGuestInput = z.infer<typeof createGuestSchema>;
+export type GuestIdentityAttachment = z.infer<typeof guestIdentityAttachmentSchema>;
 export type CreateReservationInput = z.infer<typeof createReservationSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
 export type CustomFieldDefinitionInput = z.infer<typeof customFieldDefinitionSchema>;

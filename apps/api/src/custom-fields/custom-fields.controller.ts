@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { CustomFieldDefinitionInput, FEATURES, customFieldDefinitionSchema } from '@erp/shared';
+import { CustomFieldDefinitionInput, FEATURES, PERMISSIONS, customFieldDefinitionSchema } from '@erp/shared';
 import { AuthUser, CurrentUser } from '../common/current-user';
-import { Roles } from '../common/roles';
+import { RequirePermission } from '../common/permission-guard';
 import { ZodPipe } from '../common/zod.pipe';
 import { DbService } from '../db/db.service';
 import { RequireFeature } from '../entitlements/require-feature';
@@ -25,7 +25,7 @@ export class CustomFieldsController {
   }
 
   @Post()
-  @Roles('owner', 'manager')
+  @RequirePermission(PERMISSIONS.CUSTOM_FIELDS_WRITE)
   create(@CurrentUser() user: AuthUser, @Body(new ZodPipe(customFieldDefinitionSchema)) b: CustomFieldDefinitionInput) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
       (

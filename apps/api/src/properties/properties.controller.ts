@@ -2,7 +2,8 @@ import { Body, ConflictException, Controller, Get, HttpException, Post } from '@
 import { z } from 'zod';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser, CurrentUser } from '../common/current-user';
-import { Roles } from '../common/roles';
+import { RequirePermission } from '../common/permission-guard';
+import { PERMISSIONS } from '@erp/shared';
 import { ZodPipe } from '../common/zod.pipe';
 import { DbService } from '../db/db.service';
 import { EntitlementsService } from '../entitlements/entitlements.service';
@@ -30,7 +31,7 @@ export class PropertiesController {
   }
 
   @Post()
-  @Roles('owner')
+  @RequirePermission(PERMISSIONS.PROPERTY_CREATE)
   async create(@CurrentUser() user: AuthUser, @Body(new ZodPipe(createPropertySchema)) body: { name: string }) {
     const subscription = await this.entitlements.resolve(user.tenantId, user.propertyId);
     if (subscription.readOnly) {

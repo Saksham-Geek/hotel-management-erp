@@ -1,10 +1,11 @@
 import { BadRequestException, Body, Controller, ForbiddenException, Get, NotFoundException, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import {
-  CreateRoomInput, CreateRoomTypeInput, FEATURES, createRoomSchema, createRoomTypeSchema, updateRoomSchema, updateRoomTypeSchema, updateRoomStatusSchema, RoomStatus, UpdateRoomInput, UpdateRoomTypeInput,
+  CreateRoomInput, CreateRoomTypeInput, FEATURES, PERMISSIONS, createRoomSchema, createRoomTypeSchema, updateRoomSchema, updateRoomTypeSchema, updateRoomStatusSchema, RoomStatus, UpdateRoomInput, UpdateRoomTypeInput,
 } from '@erp/shared';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser, CurrentUser } from '../common/current-user';
-import { Roles } from '../common/roles';
+import { RequirePermission } from '../common/permission-guard';
+import { hasPermission } from '../common/permissions';
 import { ZodPipe } from '../common/zod.pipe';
 import { DbService } from '../db/db.service';
 import { RequireFeature } from '../entitlements/require-feature';
@@ -22,7 +23,7 @@ export class RoomsController {
   }
 
   @Post('room-types')
-  @Roles('owner', 'manager')
+  @RequirePermission(PERMISSIONS.ROOM_CONFIGURATION_WRITE)
   createRoomType(@CurrentUser() user: AuthUser, @Body(new ZodPipe(createRoomTypeSchema)) b: CreateRoomTypeInput) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const row = (
@@ -38,7 +39,7 @@ export class RoomsController {
   }
 
   @Patch('room-types/:id')
-  @Roles('owner', 'manager')
+  @RequirePermission(PERMISSIONS.ROOM_CONFIGURATION_WRITE)
   updateRoomType(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body(new ZodPipe(updateRoomTypeSchema)) b: UpdateRoomTypeInput) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const row = (await c.query(
@@ -73,7 +74,7 @@ export class RoomsController {
   }
 
   @Post('rooms')
-  @Roles('owner', 'manager')
+  @RequirePermission(PERMISSIONS.ROOM_CONFIGURATION_WRITE)
   createRoom(@CurrentUser() user: AuthUser, @Body(new ZodPipe(createRoomSchema)) b: CreateRoomInput) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const row = (
@@ -88,7 +89,7 @@ export class RoomsController {
   }
 
   @Patch('rooms/:id')
-  @Roles('owner', 'manager')
+  @RequirePermission(PERMISSIONS.ROOM_CONFIGURATION_WRITE)
   updateRoom(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body(new ZodPipe(updateRoomSchema)) b: UpdateRoomInput) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const row = (await c.query(
@@ -111,13 +112,13 @@ export class RoomsController {
   }
 
   @Patch('rooms/:id/status')
-  @Roles('owner', 'manager', 'frontdesk', 'housekeeping')
+  @RequirePermission(PERMISSIONS.ROOM_STATUS_UPDATE)
   setStatus(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,
     @Body(new ZodPipe(updateRoomStatusSchema)) b: { status: RoomStatus },
   ) {
-    const canManageRooms = user.role === 'owner' || user.role === 'manager';
+    const canManageRooms = hasPermission(user.role, PERMISSIONS.ROOM_MAINTENANCE_MANAGE);
     if (b.status === 'occupied') throw new BadRequestException({ code: 'LIFECYCLE_MANAGED', message: 'Room occupancy is controlled by reservation check-in/check-out.' });
     if (user.role === 'housekeeping' && !['available', 'cleaning'].includes(b.status)) throw new ForbiddenException({ code: 'ROLE_FORBIDDEN', message: 'Housekeeping can only mark rooms as cleaning or ready.' });
     if (b.status === 'maintenance' && !canManageRooms) throw new ForbiddenException({ code: 'ROLE_FORBIDDEN', message: 'Only an owner or manager can mark a room for maintenance.' });

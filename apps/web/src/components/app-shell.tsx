@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Nav, type NavItem } from './nav';
@@ -15,6 +16,7 @@ const pageNames: Record<string, string> = {
   '/guests': 'Guests',
   '/housekeeping': 'Housekeeping',
   '/upgrade': 'Plan and access',
+  '/profile': 'My profile',
 };
 
 export function AppShell({
@@ -127,13 +129,16 @@ export function AppShell({
         )}
 
         <div className={`mt-3 flex items-center gap-3 border-t border-white/10 px-2 pt-4 ${collapsed ? 'md:justify-center md:px-0' : ''}`}>
-          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-xs font-semibold text-white/90" aria-hidden>
-            {fullName.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()}
-          </div>
-          <div className={`${collapsed ? 'md:hidden' : ''} min-w-0 flex-1`}>
-            <p className="truncate text-xs font-semibold text-white/90">{fullName}</p>
-            <p className="mt-0.5 capitalize text-[10px] text-white/45">{role.replaceAll('_', ' ')}{plan ? ` · ${plan} plan` : ''}</p>
-          </div>
+          <Link href="/profile" title="My profile and contact details" className={`flex min-w-0 flex-1 items-center gap-3 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-teal-300 ${collapsed ? 'md:flex-none md:justify-center' : ''}`}>
+            <div className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/10 text-xs font-semibold text-white/90" aria-hidden>
+              {fullName.split(/\s+/).map((part) => part[0]).slice(0, 2).join('').toUpperCase()}
+            </div>
+            <div className={`${collapsed ? 'md:hidden' : ''} min-w-0 flex-1`}>
+              <p className="truncate text-xs font-semibold text-white/90">{fullName}</p>
+              <p className="mt-0.5 text-[10px] font-medium text-[#20b7a8]">My profile</p>
+              <p className="capitalize text-[10px] text-white/45">{role.replaceAll('_', ' ')}{plan ? ` · ${plan} plan` : ''}</p>
+            </div>
+          </Link>
           <form action={logout} className={collapsed ? 'md:hidden' : ''}>
             <button aria-label="Sign out" title="Sign out" className="rounded-lg p-2 text-white/50 hover:bg-white/10 hover:text-white">
               <SignOutIcon />

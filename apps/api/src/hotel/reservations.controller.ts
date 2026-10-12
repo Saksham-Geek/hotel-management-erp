@@ -1,8 +1,9 @@
 import { BadRequestException, Body, ConflictException, Controller, ForbiddenException, Get, NotFoundException, Param, ParseUUIDPipe, Post, Query } from '@nestjs/common';
-import { CreateReservationInput, FEATURES, ReservationStatus, createGuestSchema, createReservationSchema } from '@erp/shared';
+import { CreateReservationInput, FEATURES, PERMISSIONS, ReservationStatus, createGuestSchema, createReservationSchema } from '@erp/shared';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser, CurrentUser } from '../common/current-user';
-import { Roles } from '../common/roles';
+import { RequirePermission } from '../common/permission-guard';
+import { hasPermission } from '../common/permissions';
 import { ZodPipe } from '../common/zod.pipe';
 import { DbService } from '../db/db.service';
 import { encryptSensitiveField } from '../common/field-encryption';
@@ -24,7 +25,7 @@ export class ReservationsController {
   constructor(private readonly db: DbService, private readonly audit: AuditService) {}
 
   @Get()
-  @Roles('owner','manager','frontdesk')
+  @RequirePermission(PERMISSIONS.RESERVATION_READ)
   list(@CurrentUser() user: AuthUser, @Query('status') status?: string) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
       (
@@ -45,7 +46,7 @@ export class ReservationsController {
   }
 
   @Post()
-  @Roles('owner','manager','frontdesk')
+  @RequirePermission(PERMISSIONS.RESERVATION_WRITE)
   create(@CurrentUser() user: AuthUser, @Body(new ZodPipe(createReservationSchema)) b: CreateReservationInput) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       let guestId = b.guestId;
@@ -73,7 +74,7 @@ export class ReservationsController {
       if (b.rateMode === 'hourly' && b.checkOut === b.checkIn && checkOutTime <= checkInTime) {
         throw new BadRequestException({ code: 'INVALID_TIME_RANGE', message: 'Hourly check-out must be after check-in.' });
       }
-      if ((b.priceOverride !== undefined || b.hourlyRateOverride !== undefined || b.unitRateOverride !== undefined) && !['owner', 'manager'].includes(user.role)) {
+      if ((b.priceOverride !== undefined || b.hourlyRateOverride !== undefined || b.unitRateOverride !== undefined) && !hasPermission(user.role, PERMISSIONS.RESERVATION_PRICE_OVERRIDE)) {
         throw new ForbiddenException({ code: 'PRICE_OVERRIDE_FORBIDDEN', message: 'Only an owner or manager can override reservation pricing.' });
       }
       const row = (await c.query(
@@ -186,7 +187,7 @@ export class ReservationsController {
   }
 
   @Post(':id/:action')
-  @Roles('owner','manager','frontdesk')
+  @RequirePermission(PERMISSIONS.RESERVATION_WRITE)
   transition(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,

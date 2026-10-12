@@ -2,10 +2,11 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import test from 'node:test';
-import { createGuestSchema, createReservationSchema, createRoomSchema, createRoomTypeSchema, updateGuestSchema, updateRoomSchema, updateRoomTypeSchema } from '@erp/shared';
+import { changePasswordSchema, createGuestSchema, createReservationSchema, createRoomSchema, createRoomTypeSchema, requestEmailChangeSchema, requestPasswordResetSchema, resetPasswordSchema, updateGuestSchema, updateOwnProfileSchema, updateRoomSchema, updateRoomTypeSchema, verifyEmailChangeSchema } from '@erp/shared';
 import { AllExceptionsFilter } from '../src/common/pg-exception.filter';
 import { parseApiEnv } from '../src/env-validation';
 import { decodeGuestDocument, guestDocumentUploadSchema } from '../src/hotel/guest-document-validation';
+import { createEmailChangeToken, emailVerificationUrl, hashEmailChangeToken } from '../src/auth/email-verification';
 
 const validEnv = (overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv => ({
   DATABASE_URL: 'postgres://erp_app:secret@localhost:5433/erp',
@@ -18,6 +19,54 @@ test('accepts configured PostgreSQL URL and default port', () => {
   assert.equal(env.port, 4000);
   assert.equal(env.jwtExpiresIn, '8h');
   assert.equal(env.databaseUrl, 'postgres://erp_app:secret@localhost:5433/erp');
+  assert.equal(env.appBaseUrl, 'http://localhost:3000');
+  assert.equal(env.resendApiKey, '');
+});
+
+test('email verification configuration accepts optional mail credentials and validates the app URL', () => {
+  const configured = parseApiEnv(validEnv({ RESEND_API_KEY: 're_test', EMAIL_FROM: 'Hotel <auth@example.test>', APP_BASE_URL: 'https://hotel.example.test/path' }));
+  assert.equal(configured.resendApiKey, 're_test');
+  assert.equal(configured.emailFrom, 'Hotel <auth@example.test>');
+  assert.equal(configured.appBaseUrl, 'https://hotel.example.test');
+  assert.throws(() => parseApiEnv(validEnv({ APP_BASE_URL: 'not a URL' })), /APP_BASE_URL/);
+  assert.throws(() => parseApiEnv(validEnv({ NODE_ENV: 'production', APP_BASE_URL: 'http://hotel.example.test' })), /HTTPS/);
+});
+
+test('email change input is normalized and requires a valid email and current password', () => {
+  assert.deepEqual(requestEmailChangeSchema.parse({ newEmail: '  New.Owner@example.test ', currentPassword: 'current-password' }), {
+    newEmail: 'new.owner@example.test', currentPassword: 'current-password',
+  });
+  assert.equal(requestEmailChangeSchema.safeParse({ newEmail: 'bad', currentPassword: 'pw' }).success, false);
+  assert.equal(requestEmailChangeSchema.safeParse({ newEmail: 'new@example.test', currentPassword: '' }).success, false);
+});
+
+test('password change and reset schemas enforce current password, minimum length, confirmation, and normalized account lookup', () => {
+  const password = 'strong-password-123';
+  assert.equal(changePasswordSchema.safeParse({ currentPassword: 'old-password', newPassword: password, confirmPassword: password }).success, true);
+  assert.equal(changePasswordSchema.safeParse({ currentPassword: '', newPassword: password, confirmPassword: password }).success, false);
+  assert.equal(changePasswordSchema.safeParse({ currentPassword: 'old-password', newPassword: 'short', confirmPassword: 'short' }).success, false);
+  assert.equal(changePasswordSchema.safeParse({ currentPassword: 'old-password', newPassword: password, confirmPassword: 'different-password' }).success, false);
+  assert.deepEqual(requestPasswordResetSchema.parse({ tenant: ' grand-azure ', email: ' Owner@Example.test ' }), { tenant: 'grand-azure', email: 'owner@example.test' });
+  assert.equal(resetPasswordSchema.safeParse({ token: createEmailChangeToken().token, newPassword: password, confirmPassword: password }).success, true);
+  assert.equal(resetPasswordSchema.safeParse({ token: createEmailChangeToken().token, newPassword: password, confirmPassword: 'different-password' }).success, false);
+});
+
+test('email verification token is random, URL safe, hashed for storage, and expires through migration schema', () => {
+  const first = createEmailChangeToken();
+  const second = createEmailChangeToken();
+  assert.match(first.token, /^[A-Za-z0-9_-]{40,60}$/);
+  assert.equal(first.tokenHash, hashEmailChangeToken(first.token));
+  assert.notEqual(first.tokenHash, first.token);
+  assert.notEqual(first.token, second.token);
+  assert.equal(verifyEmailChangeSchema.safeParse({ token: first.token }).success, true);
+  assert.equal(verifyEmailChangeSchema.safeParse({ token: 'short' }).success, false);
+  assert.equal(emailVerificationUrl('https://hotel.example.test/base', first.token), `https://hotel.example.test/verify-email?token=${first.token}`);
+
+  const migration = readFileSync(resolve(__dirname, '../../../db/migrations/009_user_email_change_verification.sql'), 'utf8');
+  assert.match(migration, /token_hash text primary key/i);
+  assert.match(migration, /expires_at timestamptz not null/i);
+  assert.match(readFileSync(resolve(__dirname, '../src/auth/auth.service.ts'), 'utf8'), /now\(\) \+ interval '30 minutes'/i);
+  assert.match(migration, /references users\(tenant_id, id\) on delete cascade/i);
 });
 
 test('rejects missing or non-PostgreSQL database URLs', () => {
@@ -60,6 +109,21 @@ test('the multi-property migration backfills a default property and scopes busin
   assert.match(migration, /reservations_property_room_fkey[\s\S]*foreign key \(tenant_id, property_id, room_id\)/i);
 });
 
+test('profile migration adds a nullable contact number to users', () => {
+  const migration = readFileSync(resolve(__dirname, '../../../db/migrations/008_user_contact_profile.sql'), 'utf8');
+  assert.match(migration, /alter table users add column if not exists phone text/i);
+});
+
+test('password reset migration supports revoking issued sessions and stores only hashed, expiring reset tokens', () => {
+  const migration = readFileSync(resolve(__dirname, '../../../db/migrations/010_password_reset.sql'), 'utf8');
+  assert.match(migration, /add column if not exists auth_version integer not null default 0/i);
+  assert.match(migration, /create table user_password_reset_tokens/i);
+  assert.match(migration, /token_hash text primary key/i);
+  assert.match(migration, /expires_at timestamptz not null/i);
+  assert.match(migration, /grant select, insert, update, delete on user_password_reset_tokens to erp_app/i);
+  assert.match(readFileSync(resolve(__dirname, '../src/auth/jwt-auth.guard.ts'), 'utf8'), /p\.ver \?\? 0/);
+});
+
 test('room configuration schemas validate nightly and hourly rates and allow clearing overrides', () => {
   assert.equal(createRoomTypeSchema.safeParse({ name: 'Deluxe', baseRate: 3000, hourlyRate: 250, capacity: 2 }).success, true);
   assert.equal(createRoomSchema.safeParse({ roomTypeId: '22222222-2222-4222-8222-222222222222', number: '201', baseRate: 1800, hourlyRate: 200 }).success, true);
@@ -100,6 +164,13 @@ test('new guest reservations require a valid phone and validate email when suppl
   assert.equal(createGuestSchema.safeParse({ fullName: 'New guest' }).success, false);
   assert.equal(createGuestSchema.safeParse({ ...valid, phone: 'call me' }).success, false);
   assert.equal(createGuestSchema.safeParse({ ...valid, email: 'invalid-email' }).success, false);
+});
+
+test('own profile updates validate a required name and optional phone number', () => {
+  assert.deepEqual(updateOwnProfileSchema.parse({ fullName: '  Asha Verma  ', phone: '+91 9876543210' }), { fullName: 'Asha Verma', phone: '+91 9876543210' });
+  assert.deepEqual(updateOwnProfileSchema.parse({ fullName: 'Asha Verma', phone: '' }), { fullName: 'Asha Verma', phone: null });
+  assert.equal(updateOwnProfileSchema.safeParse({ fullName: '  ' }).success, false);
+  assert.equal(updateOwnProfileSchema.safeParse({ fullName: 'Asha Verma', phone: 'not a phone' }).success, false);
 });
 
 test('identity document upload requires consent and confirmation for masked Aadhaar', () => {

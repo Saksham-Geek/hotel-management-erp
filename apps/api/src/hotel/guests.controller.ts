@@ -14,6 +14,7 @@ import {
 import {
   CreateGuestInput,
   FEATURES,
+  PERMISSIONS,
   createGuestSchema,
   updateGuestSchema,
 } from '@erp/shared';
@@ -23,7 +24,7 @@ import { AuthUser, CurrentUser } from '../common/current-user';
 import { ZodPipe } from '../common/zod.pipe';
 import { CustomFieldsService } from '../custom-fields/custom-fields.service';
 import { encryptSensitiveField } from '../common/field-encryption';
-import { Roles } from '../common/roles';
+import { RequirePermission } from '../common/permission-guard';
 import { DbService } from '../db/db.service';
 import { RequireFeature } from '../entitlements/require-feature';
 
@@ -37,7 +38,7 @@ export class GuestsController {
   ) {}
 
   @Get()
-  @Roles('owner', 'manager', 'frontdesk')
+  @RequirePermission(PERMISSIONS.GUEST_READ)
   list(
     @CurrentUser() user: AuthUser,
     @Query('q') q?: string,
@@ -129,7 +130,7 @@ export class GuestsController {
   }
 
   @Patch(':id')
-  @Roles('owner', 'manager', 'frontdesk')
+  @RequirePermission(PERMISSIONS.GUEST_WRITE)
   update(
     @CurrentUser() user: AuthUser,
     @Param('id', ParseUUIDPipe) id: string,
@@ -267,7 +268,7 @@ export class GuestsController {
 
   /** Creates the shared party record and hotel-specific guest record together. */
   @Post()
-  @Roles('owner', 'manager', 'frontdesk')
+  @RequirePermission(PERMISSIONS.GUEST_WRITE)
   create(
     @CurrentUser() user: AuthUser,
     @Body(new ZodPipe(createGuestSchema)) b: CreateGuestInput,

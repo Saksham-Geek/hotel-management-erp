@@ -5,6 +5,7 @@ import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { AllExceptionsFilter } from './common/pg-exception.filter';
+import { PermissionGuard } from './common/permission-guard';
 import { RolesGuard } from './common/roles';
 import { DbModule } from './db/db.module';
 import { EntitlementsModule } from './entitlements/entitlements.module';
@@ -28,6 +29,7 @@ import { PropertiesModule } from './properties/properties.module';
     // Order matters: rate limit -> who are you -> is it in your plan -> is your role allowed.
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
+    { provide: APP_GUARD, useClass: PermissionGuard },
     { provide: APP_GUARD, useClass: FeatureGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },

@@ -16,6 +16,42 @@ export const createUserSchema = z.object({
   password: z.string().min(10, 'Use at least 10 characters').max(200),
 });
 
+export const updateOwnProfileSchema = z.object({
+  fullName: z.string().trim().min(1, 'Name is required').max(120),
+  phone: z.string().trim().max(30).transform((value) => value || null)
+    .refine((value) => value === null || (/^\+?[0-9 ().-]+$/.test(value) && value.replace(/\D/g, '').length >= 7 && value.replace(/\D/g, '').length <= 15), 'Enter a valid phone number with 7 to 15 digits.'),
+});
+
+export const requestEmailChangeSchema = z.object({
+  newEmail: z.string().trim().email('Enter a valid email address').max(200).transform((value) => value.toLowerCase()),
+  currentPassword: z.string().min(1, 'Enter your current password').max(200),
+});
+
+export const verifyEmailChangeSchema = z.object({
+  token: z.string().regex(/^[A-Za-z0-9_-]{40,60}$/, 'This verification link is invalid or expired.'),
+});
+
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Enter your current password').max(200),
+  newPassword: z.string().min(10, 'Use at least 10 characters').max(200),
+  confirmPassword: z.string().min(10).max(200),
+}).refine((value) => value.newPassword === value.confirmPassword, {
+  path: ['confirmPassword'], message: 'The new passwords do not match.',
+});
+
+export const requestPasswordResetSchema = z.object({
+  tenant: z.string().trim().min(2).max(41),
+  email: z.string().trim().email('Enter a valid email address').max(200).transform((value) => value.toLowerCase()),
+});
+
+export const resetPasswordSchema = z.object({
+  token: z.string().regex(/^[A-Za-z0-9_-]{40,60}$/, 'This reset link is invalid or expired.'),
+  newPassword: z.string().min(10, 'Use at least 10 characters').max(200),
+  confirmPassword: z.string().min(10).max(200),
+}).refine((value) => value.newPassword === value.confirmPassword, {
+  path: ['confirmPassword'], message: 'The new passwords do not match.',
+});
+
 export const createRoomTypeSchema = z.object({
   name: z.string().min(1).max(80),
   baseRate: z.coerce.number().min(0).max(10_000_000),
@@ -154,4 +190,9 @@ export type CreateGuestInput = z.infer<typeof createGuestSchema>;
 export type GuestIdentityAttachment = z.infer<typeof guestIdentityAttachmentSchema>;
 export type CreateReservationInput = z.infer<typeof createReservationSchema>;
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+export type UpdateOwnProfileInput = z.infer<typeof updateOwnProfileSchema>;
+export type RequestEmailChangeInput = z.infer<typeof requestEmailChangeSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>;
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type CustomFieldDefinitionInput = z.infer<typeof customFieldDefinitionSchema>;

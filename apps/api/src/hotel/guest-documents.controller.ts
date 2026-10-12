@@ -2,10 +2,10 @@ import { BadRequestException, Body, Controller, Get, NotFoundException, Param, P
 import type { Response } from 'express';
 import { createDecipheriv } from 'node:crypto';
 import { AuthUser, CurrentUser } from '../common/current-user';
-import { Roles } from '../common/roles';
+import { RequirePermission } from '../common/permission-guard';
 import { DbService } from '../db/db.service';
 import { AuditService } from '../audit/audit.service';
-import { FEATURES } from '@erp/shared';
+import { FEATURES, PERMISSIONS } from '@erp/shared';
 import { RequireFeature } from '../entitlements/require-feature';
 import { env } from '../config';
 import { guestDocumentUploadSchema, persistGuestIdentityDocument } from './guest-document-validation';
@@ -16,7 +16,7 @@ export class GuestDocumentsController {
   constructor(private readonly db: DbService, private readonly audit: AuditService) {}
 
   @Get()
-  @Roles('owner','manager','frontdesk')
+  @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_METADATA_READ)
   async list(@CurrentUser() user: AuthUser, @Param('guestId', ParseUUIDPipe) guestId: string) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const result = await c.query(
@@ -28,7 +28,7 @@ export class GuestDocumentsController {
   }
 
   @Post()
-  @Roles('owner','manager','frontdesk')
+  @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_WRITE)
   upload(@CurrentUser() user: AuthUser, @Param('guestId', ParseUUIDPipe) guestId: string, @Body() body: unknown) {
     const parsed = guestDocumentUploadSchema.safeParse(body);
     if (!parsed.success) throw new BadRequestException({ code: 'INVALID_DOCUMENT', message: parsed.error.issues[0]?.message ?? 'Provide consent and 1–8 valid identity images.' });
@@ -50,7 +50,7 @@ export class GuestDocumentsController {
   }
 
   @Get(':documentId/download')
-  @Roles('owner','manager','frontdesk')
+  @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_IMAGE_READ)
   async download(@CurrentUser() user: AuthUser, @Param('guestId', ParseUUIDPipe) guestId: string, @Param('documentId', ParseUUIDPipe) documentId: string, @Res() res: Response) {
     const row = await this.db.withTenant(user.tenantId, user.propertyId, async (c) => (await c.query(
       `select original_name, mime_type, ciphertext, iv, auth_tag from guest_documents where id = $1 and guest_id = $2`, [documentId, guestId],

@@ -1,8 +1,9 @@
+import Link from 'next/link';
 import { Banner, btnCls, inputCls } from '@/components/ui';
 import { login } from './actions';
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const { error } = await searchParams;
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
+  const { error, ok } = await searchParams;
   return (
     <main className="grid min-h-dvh place-items-center bg-ground px-4 py-8 sm:px-6">
       <div className="grid w-full max-w-5xl overflow-hidden rounded-2xl border border-line bg-surface shadow-xl shadow-slate-900/[.06] lg:min-h-[570px] lg:grid-cols-[.9fr_1.1fr]">
@@ -34,7 +35,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             <h2 className="mt-2 font-display text-3xl font-bold tracking-tight text-ink">Welcome back</h2>
             <p className="mt-2 text-sm leading-5 text-muted">Use your hotel code and work account to continue.</p>
 
-            <div className="mt-6"><Banner error={error} /></div>
+            <div className="mt-6"><Banner error={error} ok={ok} /></div>
 
             <form action={login} className="mt-6 space-y-4">
               <label className="block text-sm font-medium text-ink">
@@ -49,6 +50,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 Password
                 <input name="password" type="password" required autoComplete="current-password" className={`${inputCls} mt-1.5`} />
               </label>
+              <div className="-mt-2 text-right">
+                <Link href="/forgot-password" className="text-xs font-medium text-lagoon-dark underline">Forgot password?</Link>
+              </div>
               <button className={`${btnCls} mt-2 w-full`}>
                 Sign in
                 <ArrowIcon />

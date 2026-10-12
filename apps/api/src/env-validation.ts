@@ -5,6 +5,9 @@ export interface ApiEnv {
   port: number;
   isProd: boolean;
   guestDocumentEncryptionKey: string;
+  resendApiKey: string;
+  emailFrom: string;
+  appBaseUrl: string;
 }
 
 function required(source: NodeJS.ProcessEnv, name: string): string {
@@ -37,6 +40,17 @@ export function parseApiEnv(source: NodeJS.ProcessEnv): ApiEnv {
     throw new Error('PORT must be an integer between 1 and 65535');
   }
 
+  const appBaseUrl = source.APP_BASE_URL?.trim() || 'http://localhost:3000';
+  let parsedAppBaseUrl: URL;
+  try {
+    parsedAppBaseUrl = new URL(appBaseUrl);
+  } catch {
+    throw new Error('APP_BASE_URL must be a valid absolute URL');
+  }
+  if (!['http:', 'https:'].includes(parsedAppBaseUrl.protocol) || (isProd && parsedAppBaseUrl.protocol !== 'https:')) {
+    throw new Error('APP_BASE_URL must use HTTPS in production');
+  }
+
   return {
     databaseUrl,
     jwtSecret,
@@ -44,5 +58,8 @@ export function parseApiEnv(source: NodeJS.ProcessEnv): ApiEnv {
     port,
     isProd,
     guestDocumentEncryptionKey: source.GUEST_DOCUMENT_ENCRYPTION_KEY ?? '',
+    resendApiKey: source.RESEND_API_KEY?.trim() ?? '',
+    emailFrom: source.EMAIL_FROM?.trim() ?? '',
+    appBaseUrl: parsedAppBaseUrl.origin,
   };
 }

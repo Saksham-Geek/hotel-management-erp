@@ -2,7 +2,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { API_URL, api, TOKEN_COOKIE } from '@/lib/api';
+import { API_URL, api, errorMessage, TOKEN_COOKIE } from '@/lib/api';
 
 async function storeToken(token: string) {
   (await cookies()).set(TOKEN_COOKIE, token, {
@@ -70,4 +70,58 @@ export async function createProperty(fd: FormData) {
 export async function logout() {
   (await cookies()).delete(TOKEN_COOKIE);
   redirect('/login');
+}
+
+export async function saveMyProfile(fd: FormData) {
+  let error: string | null = null;
+  try {
+    await api('/auth/me', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        fullName: String(fd.get('fullName') ?? '').trim(),
+        phone: String(fd.get('phone') ?? '').trim(),
+      }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/', 'layout');
+  revalidatePath('/profile');
+  redirect('/profile?' + (error ? `error=${encodeURIComponent(error)}` : `ok=${encodeURIComponent('Profile updated')}`));
+}
+
+export async function requestEmailChange(fd: FormData) {
+  let error: string | null = null;
+  try {
+    await api('/auth/me/email-change', {
+      method: 'POST',
+      body: JSON.stringify({
+        newEmail: String(fd.get('newEmail') ?? '').trim(),
+        currentPassword: String(fd.get('currentPassword') ?? ''),
+      }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/profile');
+  redirect('/profile?' + (error ? `error=${encodeURIComponent(error)}` : `ok=${encodeURIComponent('Verification email sent. Your current sign-in email remains active until you verify the new address.')}`));
+}
+
+export async function changeMyPassword(fd: FormData) {
+  let error: string | null = null;
+  try {
+    await api('/auth/me/password', {
+      method: 'PATCH',
+      body: JSON.stringify({
+        currentPassword: String(fd.get('currentPassword') ?? ''),
+        newPassword: String(fd.get('newPassword') ?? ''),
+        confirmPassword: String(fd.get('confirmPassword') ?? ''),
+      }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  if (error) redirect('/profile?' + `error=${encodeURIComponent(error)}`);
+  (await cookies()).delete(TOKEN_COOKIE);
+  redirect('/login?ok=' + encodeURIComponent('Password changed. Sign in again with your new password.'));
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Banner, btnGhostCls, EmptyState, inputCls, StatusBadge } from '@/components/ui';
@@ -138,8 +139,31 @@ export function ReservationTable({
 
 function Actions({ reservation, readOnly }: { reservation: ReservationRow; readOnly: boolean }) {
   const actions = readOnly ? [] : transitions[reservation.status];
-  if (!actions.length) return <span className="block text-right text-xs text-muted">No actions</span>;
-  return <div className="flex flex-wrap justify-end gap-2">{actions.map((item) => <form key={item.action} action={changeReservation} onSubmit={(event) => { if (item.action === 'cancel' && !window.confirm(`Cancel the reservation for ${reservation.guestName}?`)) event.preventDefault(); }}><input type="hidden" name="id" value={reservation.id} /><input type="hidden" name="action" value={item.action} /><ActionButton action={item.action}>{item.label}</ActionButton></form>)}</div>;
+  return (
+    <div className="flex flex-wrap justify-end items-center gap-2">
+      <Link
+        href={`/billing?reservationId=${reservation.id}`}
+        className="inline-flex min-h-9 items-center justify-center rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-lagoon-dark hover:bg-ground transition-colors"
+      >
+        Folio / Bill
+      </Link>
+      {actions.map((item) => (
+        <form
+          key={item.action}
+          action={changeReservation}
+          onSubmit={(event) => {
+            if (item.action === 'cancel' && !window.confirm(`Cancel the reservation for ${reservation.guestName}?`)) {
+              event.preventDefault();
+            }
+          }}
+        >
+          <input type="hidden" name="id" value={reservation.id} />
+          <input type="hidden" name="action" value={item.action} />
+          <ActionButton action={item.action}>{item.label}</ActionButton>
+        </form>
+      ))}
+    </div>
+  );
 }
 
 function ActionButton({ action, children }: { action: string; children: string }) {

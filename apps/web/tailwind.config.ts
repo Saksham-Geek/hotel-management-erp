@@ -2,6 +2,7 @@ import type { Config } from 'tailwindcss';
 
 // Design tokens. Hotel operations tool: cool, quiet surfaces so the room status colours do the talking.
 export default {
+  darkMode: 'class',
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {

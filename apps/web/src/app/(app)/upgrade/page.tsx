@@ -1,26 +1,58 @@
-import Link from 'next/link';
-import type { FeatureKey } from '@erp/shared';
-import { btnCls, PageHeader } from '@/components/ui';
-import { getEntitlements } from '@/lib/api';
+import { HOSPITALITY_PLAN_TIERS, type FeatureKey } from '@erp/shared';
+import { PageHeader } from '@/components/ui';
+import { getEntitlements, getMe, getPlans } from '@/lib/api';
 import { FEATURE_LABELS } from '@/lib/features';
+import { PlanCards } from './plan-cards';
 
-export default async function UpgradePage({ searchParams }: { searchParams: Promise<{ feature?: string }> }) {
-  const [{ feature }, ent] = await Promise.all([searchParams, getEntitlements()]);
-  const name = FEATURE_LABELS[feature as FeatureKey] ?? 'This feature';
+export default async function UpgradePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ feature?: string }>;
+}) {
+  const [{ feature }, me, ent, plansData] = await Promise.all([
+    searchParams,
+    getMe(),
+    getEntitlements(),
+    getPlans().catch(() => ({ currentPlan: null, tiers: HOSPITALITY_PLAN_TIERS })),
+  ]);
+
+  const activeTiers = plansData.tiers && plansData.tiers.length > 0 ? plansData.tiers : HOSPITALITY_PLAN_TIERS;
+  const lockedFeatureName = feature ? FEATURE_LABELS[feature as FeatureKey] ?? feature : null;
+
   return (
-    <div className="mx-auto max-w-2xl">
-      <PageHeader title="Plan access" eyebrow="Subscription" description="Feature access follows the subscription assigned to this property." />
-      <section className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
-        <div className="border-b border-line bg-ground/45 px-5 py-5 sm:px-7">
-          <span className="inline-flex rounded-full border border-warning/25 bg-warning/10 px-2.5 py-1 text-[11px] font-semibold capitalize text-warning">{ent.plan ?? 'No active'} plan</span>
-          <h2 className="mt-4 font-display text-2xl font-bold tracking-tight text-ink">{name} isn’t included in this plan</h2>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-muted">Ask your account owner to review the subscription for this property. Once its entitlements change, access updates automatically.</p>
+    <div className="mx-auto max-w-6xl space-y-8">
+      <PageHeader
+        title="Subscription Plans & Editions"
+        eyebrow="Tier Management"
+        description="Choose the right edition for your property: from small homestays & boutique B&Bs to luxury hotel chains like Taj, Oberoi, and ITC."
+      />
+
+      {lockedFeatureName && (
+        <div className="rounded-2xl border border-amber-300/80 bg-amber-500/10 p-5 backdrop-blur-sm dark:border-amber-500/40 dark:bg-amber-950/30">
+          <div className="flex items-start gap-3.5">
+            <div className="rounded-xl bg-amber-500/20 p-2 text-amber-700 dark:text-amber-300">
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <div>
+              <h3 className="font-semibold text-ink">
+                Unlock {lockedFeatureName}
+              </h3>
+              <p className="mt-1 text-xs text-muted">
+                Your current plan (<strong>{ent.plan ?? 'Basic'}</strong>) does not include access to <em>{lockedFeatureName}</em>. Switch to <strong>Growth</strong> or <strong>Enterprise Chain</strong> below to activate this capability immediately.
+              </p>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-7">
-          <p className="text-xs text-muted">Current property access is verified by the server.</p>
-          <Link href="/dashboard" className={`${btnCls} w-full sm:w-auto`}>Return to today</Link>
-        </div>
-      </section>
+      )}
+
+      <PlanCards
+        tiers={activeTiers}
+        currentPlan={ent.plan}
+        isOwner={me.role === 'owner'}
+        highlightFeature={feature}
+      />
     </div>
   );
 }

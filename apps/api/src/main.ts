@@ -12,7 +12,7 @@ async function bootstrap() {
   app.use(helmet());
   app.getHttpAdapter().getInstance().set('trust proxy', 1); // behind Caddy / Cloudflare: real client IPs for rate limiting
   app.enableShutdownHooks();
-  await app.listen(env.port);
+  await app.listen(env.port, '0.0.0.0');
   new Logger('API').log(`Listening on :${env.port}`);
 }
 bootstrap();

@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import type { EntitlementsDto, FeatureKey, MeDto } from '@erp/shared';
+import type { EntitlementsDto, FeatureKey, MeDto, PlanKey, PlanTierConfig } from '@erp/shared';
 
 export const API_URL = process.env.API_URL ?? 'http://localhost:4000';
 export const TOKEN_COOKIE = 'erp_token';
@@ -28,6 +28,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 export const getMe = cache(() => api<MeDto>('/auth/me'));
 export const getEntitlements = cache(() => api<EntitlementsDto>('/entitlements/me'));
+export const getPlans = cache(() => api<{ currentPlan: PlanKey; tiers: PlanTierConfig[] }>('/entitlements/plans'));
 
 /** Page-level gate. The API enforces the same rule; this just sends people somewhere helpful. */
 export async function requireFeature(feature: FeatureKey) {
@@ -52,6 +53,7 @@ export function errorMessage(e: unknown): string {
   return 'Could not reach the server. Try again in a moment';
 }
 
-export function money(amount: number, currency: string) {
-  return new Intl.NumberFormat('en-IN', { style: 'currency', currency, maximumFractionDigits: 0 }).format(amount);
+export function money(amount: number | null | undefined, currency = 'INR') {
+  const safe = typeof amount === 'number' && Number.isFinite(amount) ? amount : 0;
+  return new Intl.NumberFormat('en-IN', { style: 'currency', currency: currency || 'INR', maximumFractionDigits: 0 }).format(safe);
 }

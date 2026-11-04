@@ -8,12 +8,17 @@ import { RequirePermission } from '../common/permission-guard';
 import { hasPermission } from '../common/permissions';
 import { ZodPipe } from '../common/zod.pipe';
 import { DbService } from '../db/db.service';
+import { EntitlementsService } from '../entitlements/entitlements.service';
 import { RequireFeature } from '../entitlements/require-feature';
 
 @Controller('hotel')
 @RequireFeature(FEATURES.HOTEL_ROOMS)
 export class RoomsController {
-  constructor(private readonly db: DbService, private readonly audit: AuditService) {}
+  constructor(
+    private readonly db: DbService,
+    private readonly audit: AuditService,
+    private readonly entitlements: EntitlementsService,
+  ) {}
 
   @Get('room-types')
   roomTypes(@CurrentUser() user: AuthUser) {
@@ -77,10 +82,14 @@ export class RoomsController {
   @RequirePermission(PERMISSIONS.ROOM_CONFIGURATION_WRITE)
   createRoom(@CurrentUser() user: AuthUser, @Body(new ZodPipe(createRoomSchema)) b: CreateRoomInput) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const countRes = await c.query(`select count(*)::int as count from rooms where tenant_id = $1 and property_id = $2`, [user.tenantId, user.propertyId]);
+      const currentRooms = Number(countRes.rows[0]?.count ?? 0);
+      await this.entitlements.assertWithinLimit(user.tenantId, user.propertyId, FEATURES.HOTEL_ROOMS, currentRooms);
+
       const row = (
         await c.query(
-          `insert into rooms (tenant_id, room_type_id, number, floor, base_rate, hourly_rate) values ($1,$2,$3,$4,$5,$6) returning id, number, floor, status`,
-          [user.tenantId, b.roomTypeId, b.number, b.floor, b.baseRate ?? null, b.hourlyRate ?? null],
+          `insert into rooms (tenant_id, property_id, room_type_id, number, floor, base_rate, hourly_rate) values ($1,$2,$3,$4,$5,$6,$7) returning id, number, floor, status`,
+          [user.tenantId, user.propertyId, b.roomTypeId, b.number, b.floor, b.baseRate ?? null, b.hourlyRate ?? null],
         )
       ).rows[0];
       await this.audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'room.create', entity: 'room', entityId: row.id });

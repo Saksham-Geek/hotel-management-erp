@@ -13,6 +13,7 @@ import { FeatureGuard } from './entitlements/require-feature';
 import { HotelModule } from './hotel/hotel.module';
 import { UsersModule } from './users/users.module';
 import { PropertiesModule } from './properties/properties.module';
+import { SuperAdminModule } from './super-admin/super-admin.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { PropertiesModule } from './properties/properties.module';
     EntitlementsModule,
     UsersModule,
     PropertiesModule,
+    SuperAdminModule,
     HotelModule,
   ],
   providers: [

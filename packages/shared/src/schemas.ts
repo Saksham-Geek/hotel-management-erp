@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ROLES } from './features';
+import { PLAN_KEYS, ROLES } from './features';
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Use the format YYYY-MM-DD');
 
@@ -51,6 +51,12 @@ export const resetPasswordSchema = z.object({
 }).refine((value) => value.newPassword === value.confirmPassword, {
   path: ['confirmPassword'], message: 'The new passwords do not match.',
 });
+
+export const switchPlanSchema = z.object({
+  planKey: z.enum(PLAN_KEYS),
+});
+
+export type SwitchPlanInput = z.infer<typeof switchPlanSchema>;
 
 export const createRoomTypeSchema = z.object({
   name: z.string().min(1).max(80),
@@ -182,6 +188,119 @@ export const customFieldDefinitionSchema = z.object({
   sortOrder: z.coerce.number().int().default(0),
 });
 
+export const postFolioChargeSchema = z.object({
+  category: z.enum(['ACCOMMODATION', 'FNB_REST', 'FNB_ROOM_SERVICE', 'LAUNDRY', 'SPA', 'OTHER']).default('ACCOMMODATION'),
+  description: z.string().trim().min(1, 'Description is required').max(120),
+  quantity: z.coerce.number().finite('Quantity must be a valid number').min(0.01).max(1000).default(1),
+  unitPrice: z.coerce.number().finite('Unit price must be a valid number').min(0).max(10_000_000),
+  isInterstate: z.boolean().default(false),
+});
+
+export const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+export const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+
+export const collectFolioPaymentSchema = z.object({
+  method: z.enum(['cash', 'card', 'upi', 'bank_transfer', 'corporate_ledger', 'other']),
+  amount: z.coerce.number().finite('Amount must be a valid number').min(0.01).max(100_000_000),
+  reference: z.string().trim().max(100).optional(),
+  payerGuestId: z.string().uuid().optional(),
+  corporateAccountId: z.string().uuid().optional(),
+  panNumber: z.string().trim().toUpperCase().optional().transform((v) => v || undefined),
+  notes: z.string().trim().max(300).optional(),
+}).superRefine((data, ctx) => {
+  if (data.method === 'cash') {
+    if (data.amount >= 200_000) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['amount'],
+        message: 'Under Section 269ST, cash payments of ₹2,00,000 or more are prohibited. Settle via Card/UPI/Bank Transfer.',
+      });
+    }
+    if (data.amount > 50_000 && (!data.panNumber || !panRegex.test(data.panNumber))) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['panNumber'],
+        message: 'Under Rule 114B of the Income Tax Act, cash payments exceeding ₹50,000 require a valid PAN card number.',
+      });
+    }
+  }
+  if (data.method === 'corporate_ledger' && !data.corporateAccountId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['corporateAccountId'],
+      message: 'Select a corporate company account for direct ledger billing.',
+    });
+  }
+});
+
+export const issueTaxInvoiceSchema = z.object({
+  invoiceType: z.enum(['B2C', 'B2B', 'CREDIT_NOTE', 'DEBIT_NOTE']).default('B2C'),
+  guestGstin: z.string().trim().toUpperCase().optional().transform((v) => v || undefined),
+  guestCompanyName: z.string().trim().max(120).optional().transform((v) => v || undefined),
+  placeOfSupplyStateCode: z.string().regex(/^[0-9]{2}$/, 'Enter a 2-digit Indian State code (e.g. 27 for Maharashtra)').default('27'),
+  isInterstate: z.boolean().default(false),
+}).superRefine((data, ctx) => {
+  if (data.invoiceType === 'B2B') {
+    if (!data.guestGstin || !gstinRegex.test(data.guestGstin)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['guestGstin'],
+        message: 'A valid 15-character GSTIN is required for B2B tax invoices.',
+      });
+    }
+    if (!data.guestCompanyName) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['guestCompanyName'],
+        message: 'Company name is required for B2B invoices.',
+      });
+    }
+  }
+});
+
+export const createFormCSchema = z.object({
+  reservationId: z.string().uuid(),
+  guestId: z.string().uuid(),
+  passportNumber: z.string().trim().min(3).max(30),
+  passportCountry: z.string().trim().min(2).max(60),
+  passportIssueDate: isoDate,
+  passportExpiryDate: isoDate,
+  visaNumber: z.string().trim().min(3).max(30),
+  visaType: z.string().trim().min(1).max(30),
+  visaValidUntil: isoDate,
+  visaIssuePlace: z.string().trim().min(2).max(60),
+  arrivalDateInIndia: isoDate,
+  arrivedFromCityCountry: z.string().trim().min(2).max(100),
+  nextDestinationCityCountry: z.string().trim().min(2).max(100),
+  purposeOfVisit: z.enum(['tourism', 'business', 'medical', 'conference', 'employment', 'other']).default('tourism'),
+  employedInIndia: z.boolean().default(false),
+});
+
+export const createCorporateAccountSchema = z.object({
+  companyName: z.string().trim().min(2, 'Company name is required').max(120),
+  gstin: z.string().trim().toUpperCase().optional().transform((v) => v || undefined),
+  panNumber: z.string().trim().toUpperCase().optional().transform((v) => v || undefined),
+  contactPerson: z.string().trim().max(100).optional(),
+  contactEmail: z.string().trim().email().max(200).optional().or(z.literal('').transform(() => undefined)),
+  contactPhone: z.string().trim().max(30).optional(),
+  creditLimit: z.coerce.number().finite('Credit limit must be a valid number').min(0).max(100_000_000).default(0),
+  creditPeriodDays: z.coerce.number().int().min(0).max(180).default(30),
+  billingAddress: z.record(z.unknown()).default({}),
+}).superRefine((data, ctx) => {
+  if (data.gstin && !gstinRegex.test(data.gstin)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['gstin'], message: 'Enter a valid 15-character GSTIN' });
+  }
+  if (data.panNumber && !panRegex.test(data.panNumber)) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['panNumber'], message: 'Enter a valid 10-character PAN' });
+  }
+});
+
+export type PostFolioChargeInput = z.infer<typeof postFolioChargeSchema>;
+export type CollectFolioPaymentInput = z.infer<typeof collectFolioPaymentSchema>;
+export type IssueTaxInvoiceInput = z.infer<typeof issueTaxInvoiceSchema>;
+export type CreateFormCInput = z.infer<typeof createFormCSchema>;
+export type CreateCorporateAccountInput = z.infer<typeof createCorporateAccountSchema>;
+
 export type CreateRoomTypeInput = z.infer<typeof createRoomTypeSchema>;
 export type CreateRoomInput = z.infer<typeof createRoomSchema>;
 export type UpdateRoomTypeInput = z.infer<typeof updateRoomTypeSchema>;
@@ -196,3 +315,34 @@ export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type RequestPasswordResetInput = z.infer<typeof requestPasswordResetSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type CustomFieldDefinitionInput = z.infer<typeof customFieldDefinitionSchema>;
+
+// --- OTA Channel Manager Schemas ---
+
+export const otaChannelKeys = ['makemytrip', 'booking_com', 'agoda', 'expedia', 'airbnb'] as const;
+export type OtaChannelKey = (typeof otaChannelKeys)[number];
+
+export const saveOtaConnectionSchema = z.object({
+  channelKey: z.enum(otaChannelKeys),
+  channelName: z.string().trim().min(2).max(100),
+  hotelCode: z.string().trim().min(1, 'Property/Hotel ID on channel is required').max(100),
+  apiKey: z.string().trim().optional(),
+  apiSecret: z.string().trim().optional(),
+  isActive: z.boolean().default(true),
+  syncMode: z.enum(['two_way', 'inbound_only', 'outbound_only']).default('two_way'),
+  commissionRate: z.coerce.number().finite().min(0).max(100).default(15),
+});
+
+export const simulateOtaBookingSchema = z.object({
+  channelKey: z.enum(otaChannelKeys),
+  guestName: z.string().trim().min(2, 'Guest name is required'),
+  guestPhone: z.string().trim().optional(),
+  guestEmail: z.string().trim().email().optional().or(z.literal('')),
+  checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Valid YYYY-MM-DD required'),
+  checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Valid YYYY-MM-DD required'),
+  roomTypeId: z.string().uuid().optional(),
+  totalAmount: z.coerce.number().finite().min(1, 'Amount must be greater than zero'),
+  commissionRate: z.coerce.number().finite().min(0).max(100).default(15),
+});
+
+export type SaveOtaConnectionInput = z.infer<typeof saveOtaConnectionSchema>;
+export type SimulateOtaBookingInput = z.infer<typeof simulateOtaBookingSchema>;

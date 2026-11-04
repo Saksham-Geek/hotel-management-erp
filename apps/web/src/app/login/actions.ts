@@ -31,8 +31,9 @@ export async function login(formData: FormData) {
     const body = await res.json().catch(() => null);
     if (res.ok && body?.token) token = body.token;
     else if (body?.message) error = body.message;
-  } catch {
-    /* API unreachable: keep the default message */
+  } catch (err) {
+    console.error('[Login] Error connecting to API:', err);
+    error = 'API server (:4000) is unreachable. Check that API and database are running.';
   }
   if (!token) redirect('/login?error=' + encodeURIComponent(error));
 

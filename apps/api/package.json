@@ -9,7 +9,8 @@
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "tsx --test test/foundation.spec.ts",
     "migrate": "tsx src/db/migrate.ts",
-    "seed": "tsx src/db/seed.ts"
+    "seed": "tsx src/db/seed.ts",
+    "seed:variations": "tsx src/db/seed-comprehensive-variations.ts"
   },
   "dependencies": {
     "@erp/shared": "workspace:*",

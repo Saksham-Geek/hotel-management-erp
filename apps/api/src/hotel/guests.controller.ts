@@ -23,7 +23,7 @@ import { AuditService } from '../audit/audit.service';
 import { AuthUser, CurrentUser } from '../common/current-user';
 import { ZodPipe } from '../common/zod.pipe';
 import { CustomFieldsService } from '../custom-fields/custom-fields.service';
-import { encryptSensitiveField } from '../common/field-encryption';
+import { decryptSensitiveField, encryptSensitiveField } from '../common/field-encryption';
 import { RequirePermission } from '../common/permission-guard';
 import { DbService } from '../db/db.service';
 import { RequireFeature } from '../entitlements/require-feature';
@@ -126,6 +126,52 @@ export class GuestsController {
         }
       }
       return result.rows;
+    });
+  }
+
+  @Get(':id/identity')
+  @RequirePermission(PERMISSIONS.GUEST_IDENTITY_DECRYPT)
+  async getIdentity(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const row = (
+        await c.query(
+          `SELECT g.id, g.id_type AS "idType", g.id_number AS "legacyIdNumber",
+                  g.id_number_ciphertext AS "ciphertext", g.id_number_iv AS "iv", g.id_number_auth_tag AS "authTag",
+                  p.full_name AS "fullName"
+           FROM guests g
+           JOIN parties p ON p.id = g.party_id
+           WHERE g.id = $1`,
+          [id],
+        )
+      ).rows[0];
+
+      if (!row) {
+        throw new NotFoundException({ code: 'NOT_FOUND', message: 'Guest not found' });
+      }
+
+      let decryptedNumber: string | null = row.legacyIdNumber ?? null;
+      if (row.ciphertext && row.iv && row.authTag) {
+        decryptedNumber = decryptSensitiveField(row.ciphertext, row.iv, row.authTag);
+      }
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'guest.identity.decrypt',
+        entity: 'guest',
+        entityId: id,
+        meta: { idType: row.idType },
+      });
+
+      return {
+        id: row.id,
+        fullName: row.fullName,
+        idType: row.idType,
+        idNumber: decryptedNumber,
+      };
     });
   }
 

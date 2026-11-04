@@ -2,11 +2,37 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import test from 'node:test';
-import { changePasswordSchema, createGuestSchema, createReservationSchema, createRoomSchema, createRoomTypeSchema, requestEmailChangeSchema, requestPasswordResetSchema, resetPasswordSchema, updateGuestSchema, updateOwnProfileSchema, updateRoomSchema, updateRoomTypeSchema, verifyEmailChangeSchema } from '@erp/shared';
+import {
+  changePasswordSchema,
+  collectFolioPaymentSchema,
+  createCorporateAccountSchema,
+  createFormCSchema,
+  createGuestSchema,
+  createReservationSchema,
+  createRoomSchema,
+  createRoomTypeSchema,
+  issueTaxInvoiceSchema,
+  postFolioChargeSchema,
+  requestEmailChangeSchema,
+  requestPasswordResetSchema,
+  resetPasswordSchema,
+  updateGuestSchema,
+  updateOwnProfileSchema,
+  updateRoomSchema,
+  updateRoomTypeSchema,
+  verifyEmailChangeSchema,
+  switchPlanSchema,
+  saveOtaConnectionSchema,
+  simulateOtaBookingSchema,
+  FEATURES,
+  HOSPITALITY_PLAN_TIERS,
+} from '@erp/shared';
 import { AllExceptionsFilter } from '../src/common/pg-exception.filter';
 import { parseApiEnv } from '../src/env-validation';
 import { decodeGuestDocument, guestDocumentUploadSchema } from '../src/hotel/guest-document-validation';
 import { createEmailChangeToken, emailVerificationUrl, hashEmailChangeToken } from '../src/auth/email-verification';
+import { calculateGstTax } from '../src/hotel/tax-calculator';
+import { decryptSensitiveField, encryptSensitiveField } from '../src/common/field-encryption';
 
 const validEnv = (overrides: NodeJS.ProcessEnv = {}): NodeJS.ProcessEnv => ({
   DATABASE_URL: 'postgres://erp_app:secret@localhost:5433/erp',
@@ -328,3 +354,314 @@ test('hourly room overlap constraints return a conflict response', () => {
     message: 'That room is already booked for these dates',
   });
 });
+
+test('Indian GST statutory calculation correctly applies 12% and 18% accommodation slabs and 5% F&B', () => {
+  // Slab 1: Tariff <= 7,500 INR -> 12% total (6% CGST + 6% SGST, SAC 996311)
+  const roomUnderThreshold = calculateGstTax('ACCOMMODATION', 5000, 1, false);
+  assert.equal(roomUnderThreshold.hsnSac, '996311');
+  assert.equal(roomUnderThreshold.cgstRate, 6);
+  assert.equal(roomUnderThreshold.sgstRate, 6);
+  assert.equal(roomUnderThreshold.cgstAmount, 300);
+  assert.equal(roomUnderThreshold.sgstAmount, 300);
+  assert.equal(roomUnderThreshold.taxTotal, 600);
+  assert.equal(roomUnderThreshold.lineTotal, 5600);
+
+  // Slab 2: Tariff > 7,500 INR -> 18% total (9% CGST + 9% SGST, SAC 996311)
+  const roomOverThreshold = calculateGstTax('ACCOMMODATION', 10000, 1, false);
+  assert.equal(roomOverThreshold.cgstRate, 9);
+  assert.equal(roomOverThreshold.sgstRate, 9);
+  assert.equal(roomOverThreshold.cgstAmount, 900);
+  assert.equal(roomOverThreshold.sgstAmount, 900);
+  assert.equal(roomOverThreshold.taxTotal, 1800);
+  assert.equal(roomOverThreshold.lineTotal, 11800);
+
+  // Inter-state Accommodation -> 18% IGST (0% CGST, 0% SGST)
+  const roomInterstate = calculateGstTax('ACCOMMODATION', 10000, 1, true);
+  assert.equal(roomInterstate.cgstAmount, 0);
+  assert.equal(roomInterstate.sgstAmount, 0);
+  assert.equal(roomInterstate.igstAmount, 1800);
+  assert.equal(roomInterstate.lineTotal, 11800);
+
+  // F&B Room Service -> 5% total (2.5% CGST + 2.5% SGST, SAC 996331)
+  const fnbItem = calculateGstTax('FNB_ROOM_SERVICE', 800, 2, false);
+  assert.equal(fnbItem.hsnSac, '996331');
+  assert.equal(fnbItem.taxableAmount, 1600);
+  assert.equal(fnbItem.cgstRate, 2.5);
+  assert.equal(fnbItem.sgstRate, 2.5);
+  assert.equal(fnbItem.taxTotal, 80);
+  assert.equal(fnbItem.lineTotal, 1680);
+});
+
+test('Section 269ST cash limit and Rule 114B PAN card requirements are enforced', () => {
+  // Prohibit single cash payment >= Rs 2,00,000 under Section 269ST
+  const cash2Lakh = collectFolioPaymentSchema.safeParse({
+    method: 'cash',
+    amount: 200000,
+  });
+  assert.equal(cash2Lakh.success, false);
+
+  // Cash payment <= 50,000 does not strictly require PAN
+  const cashSmall = collectFolioPaymentSchema.safeParse({
+    method: 'cash',
+    amount: 45000,
+  });
+  assert.equal(cashSmall.success, true);
+
+  // Cash payment > 50,000 requires PAN under Rule 114B
+  const cashOver50kNoPan = collectFolioPaymentSchema.safeParse({
+    method: 'cash',
+    amount: 60000,
+  });
+  assert.equal(cashOver50kNoPan.success, false);
+
+  const cashOver50kValidPan = collectFolioPaymentSchema.safeParse({
+    method: 'cash',
+    amount: 60000,
+    panNumber: 'ABCDE1234F',
+  });
+  assert.equal(cashOver50kValidPan.success, true);
+
+  // Card or UPI allows payments >= 200,000
+  const upiLarge = collectFolioPaymentSchema.safeParse({
+    method: 'upi',
+    amount: 350000,
+    reference: 'UPI1234567890',
+  });
+  assert.equal(upiLarge.success, true);
+});
+
+test('Statutory GST Tax Invoice schema enforces 15-char GSTIN on B2B invoices', () => {
+  const b2c = issueTaxInvoiceSchema.safeParse({
+    invoiceType: 'B2C',
+    placeOfSupplyStateCode: '27',
+  });
+  assert.equal(b2c.success, true);
+
+  const b2bMissingGstin = issueTaxInvoiceSchema.safeParse({
+    invoiceType: 'B2B',
+  });
+  assert.equal(b2bMissingGstin.success, false);
+
+  const b2bValid = issueTaxInvoiceSchema.safeParse({
+    invoiceType: 'B2B',
+    guestGstin: '27AAAAA0000A1Z5',
+    guestCompanyName: 'Tata Consultancy Services',
+    placeOfSupplyStateCode: '27',
+  });
+  assert.equal(b2bValid.success, true);
+});
+
+test('Form C foreign guest schema validates passport, visa, and arrival details', () => {
+  const formC = createFormCSchema.safeParse({
+    reservationId: '00000000-0000-0000-0000-000000000001',
+    guestId: '00000000-0000-0000-0000-000000000002',
+    passportNumber: 'P12345678',
+    passportCountry: 'United Kingdom',
+    passportIssueDate: '2020-01-01',
+    passportExpiryDate: '2030-01-01',
+    visaNumber: 'V98765432',
+    visaType: 'Tourist',
+    visaValidUntil: '2027-01-01',
+    visaIssuePlace: 'London',
+    arrivalDateInIndia: '2026-11-01',
+    arrivedFromCityCountry: 'London, UK',
+    nextDestinationCityCountry: 'Goa, India',
+    purposeOfVisit: 'tourism',
+  });
+  assert.equal(formC.success, true);
+});
+
+test('Sensitive guest identity numbers can be decrypted by authorized staff with AES-256-GCM', () => {
+  process.env.GUEST_DOCUMENT_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+  const plainText = '9876';
+  const encrypted = encryptSensitiveField(plainText);
+  assert.ok(encrypted.ciphertext);
+  assert.ok(encrypted.iv);
+  assert.ok(encrypted.authTag);
+
+  const decrypted = decryptSensitiveField(encrypted.ciphertext, encrypted.iv, encrypted.authTag);
+  assert.equal(decrypted, plainText);
+});
+
+test('Statutory billing migration creates tax categories, corporate accounts, invoices, and Form C', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/011_statutory_and_billing.sql'),
+    'utf8',
+  );
+  assert.match(migration, /create table if not exists tax_categories/i);
+  assert.match(migration, /create table if not exists tax_slabs/i);
+  assert.match(migration, /create table if not exists corporate_accounts/i);
+  assert.match(migration, /create table if not exists tax_invoices/i);
+  assert.match(migration, /create table if not exists guest_form_c/i);
+  assert.match(migration, /create table if not exists hotel_business_dates/i);
+  assert.match(migration, /folio_payments_cash_limit_check/i);
+});
+
+test('Subscription tier catalogue defines Starter, Growth, and Enterprise with exact hospitality limits', () => {
+  assert.equal(HOSPITALITY_PLAN_TIERS.length, 3);
+  const [starter, growth, enterprise] = HOSPITALITY_PLAN_TIERS;
+
+  // Starter Edition (Small hotel / Homestay / B&B)
+  assert.equal(starter.key, 'starter');
+  assert.equal(starter.maxRooms, 25);
+  assert.equal(starter.maxStaff, 3);
+  assert.ok(starter.features.includes(FEATURES.HOTEL_ROOMS));
+  assert.ok(starter.features.includes(FEATURES.HOTEL_TAPE_CHART));
+  assert.ok(starter.features.includes(FEATURES.HOTEL_BILLING));
+  assert.ok(starter.features.includes(FEATURES.HOTEL_COMPLIANCE));
+  // Excluded from Starter
+  assert.equal(starter.features.includes(FEATURES.HOTEL_NIGHT_AUDIT), false);
+  assert.equal(starter.features.includes(FEATURES.HOTEL_HOUSEKEEPING), false);
+  assert.equal(starter.features.includes(FEATURES.HOTEL_CORPORATE_LEDGER), false);
+
+  // Growth Edition (Mid-Scale / Resort)
+  assert.equal(growth.key, 'growth');
+  assert.equal(growth.maxRooms, 80);
+  assert.equal(growth.maxStaff, 15);
+  assert.ok(growth.features.includes(FEATURES.HOTEL_NIGHT_AUDIT));
+  assert.ok(growth.features.includes(FEATURES.HOTEL_HOUSEKEEPING));
+  assert.ok(growth.features.includes(FEATURES.HOTEL_REPORTS_BASIC));
+
+  // Enterprise Chain Edition (Taj / Oberoi / ITC Luxury)
+  assert.equal(enterprise.key, 'enterprise');
+  assert.equal(enterprise.maxRooms, null); // Unlimited
+  assert.equal(enterprise.maxStaff, null); // Unlimited
+  assert.ok(enterprise.features.includes(FEATURES.HOTEL_CORPORATE_LEDGER));
+  assert.ok(enterprise.features.includes(FEATURES.HOTEL_CRS));
+  assert.ok(enterprise.features.includes(FEATURES.HOTEL_KEYCARDS));
+  assert.ok(enterprise.features.includes(FEATURES.HOTEL_LOYALTY));
+  assert.ok(enterprise.features.includes(FEATURES.HOTEL_CHANNEL_MANAGER));
+  assert.ok(enterprise.features.includes(FEATURES.HOTEL_POS));
+  assert.ok(enterprise.features.includes(FEATURES.CORE_SSO));
+});
+
+test('SwitchPlanSchema accepts valid tier keys and rejects unknown plans', () => {
+  assert.equal(switchPlanSchema.safeParse({ planKey: 'starter' }).success, true);
+  assert.equal(switchPlanSchema.safeParse({ planKey: 'growth' }).success, true);
+  assert.equal(switchPlanSchema.safeParse({ planKey: 'enterprise' }).success, true);
+  assert.equal(switchPlanSchema.safeParse({ planKey: 'basic' }).success, true);
+  assert.equal(switchPlanSchema.safeParse({ planKey: 'invalid-tier' }).success, false);
+});
+
+test('Tier catalog migration 013 seeds hospitality features and enforces room/user limits', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/013_tier_subscription_catalog.sql'),
+    'utf8',
+  );
+  assert.match(migration, /hotel\.corporate_ledger/);
+  assert.match(migration, /hotel\.crs/);
+  assert.match(migration, /hotel\.keycards/);
+  assert.match(migration, /hotel\.loyalty/);
+  assert.match(migration, /Starter \(Homestay & Small Hotel\)/);
+  assert.match(migration, /Growth \(Mid-Scale & Resort\)/);
+  assert.match(migration, /Enterprise Chain \(Taj & Luxury Edition\)/);
+  // Verify Starter 25 room cap and Growth 80 room cap
+  assert.match(migration, /\('starter',\s*'hotel\.rooms',\s*25\)/);
+  assert.match(migration, /\('growth',\s*'hotel\.rooms',\s*80\)/);
+});
+
+test('calculateGstTax safely handles non-finite, negative, and edge-case quantities and prices', () => {
+  const resultNaN = calculateGstTax('ACCOMMODATION', NaN, 1);
+  assert.equal(resultNaN.taxableAmount, 0);
+  assert.equal(resultNaN.taxTotal, 0);
+  assert.equal(resultNaN.lineTotal, 0);
+
+  const resultNegative = calculateGstTax('FNB_REST', -500, -2);
+  assert.equal(resultNegative.taxableAmount, 0);
+  assert.equal(resultNegative.taxTotal, 0);
+
+  const resultZero = calculateGstTax('ACCOMMODATION', 0, 1);
+  assert.equal(resultZero.taxableAmount, 0);
+  assert.equal(resultZero.taxTotal, 0);
+  assert.equal(resultZero.cgstRate, 6);
+  assert.equal(resultZero.sgstRate, 6);
+});
+
+test('decryptSensitiveField returns null gracefully on tampered ciphertext or wrong auth tag', () => {
+  process.env.GUEST_DOCUMENT_ENCRYPTION_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+  const encrypted = encryptSensitiveField('1234');
+  assert.ok(encrypted.authTag);
+  assert.ok(encrypted.ciphertext);
+  assert.ok(encrypted.iv);
+
+  // Tamper with the authentication tag
+  const tamperedTag = Buffer.from(encrypted.authTag);
+  tamperedTag[0] = tamperedTag[0] ^ 0xff;
+
+  const result = decryptSensitiveField(encrypted.ciphertext, encrypted.iv, tamperedTag);
+  assert.equal(result, null);
+});
+
+test('Zod schemas reject non-finite numbers and zero payments', () => {
+  assert.equal(postFolioChargeSchema.safeParse({ description: 'Test', unitPrice: NaN }).success, false);
+  assert.equal(postFolioChargeSchema.safeParse({ description: 'Test', unitPrice: Infinity }).success, false);
+  assert.equal(collectFolioPaymentSchema.safeParse({ method: 'cash', amount: 0 }).success, false);
+  assert.equal(collectFolioPaymentSchema.safeParse({ method: 'cash', amount: -100 }).success, false);
+  assert.equal(collectFolioPaymentSchema.safeParse({ method: 'cash', amount: NaN }).success, false);
+});
+
+test('Migration 014 creates composite performance indexes and single-invoice constraint', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/014_performance_indexes_and_integrity.sql'),
+    'utf8',
+  );
+  assert.match(migration, /folio_items_folio_idx/);
+  assert.match(migration, /folio_payments_folio_status_idx/);
+  assert.match(migration, /reservations_tape_chart_idx/);
+  assert.match(migration, /tax_invoices_single_per_folio_idx/);
+});
+
+test('Migration 015 creates OTA channels, sync logs, and reservation source columns', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/015_channel_manager_and_ota_integrations.sql'),
+    'utf8',
+  );
+  assert.match(migration, /booking_source/);
+  assert.match(migration, /ota_booking_id/);
+  assert.match(migration, /create table if not exists ota_channels/);
+  assert.match(migration, /create table if not exists ota_sync_logs/);
+  assert.match(migration, /hotel\.channel_manager/);
+});
+
+test('OTA connection and simulation schemas validate channel keys and positive amounts', () => {
+  assert.equal(
+    saveOtaConnectionSchema.safeParse({
+      channelKey: 'makemytrip',
+      channelName: 'MakeMyTrip & Goibibo',
+      hotelCode: 'MMT-DEL-101',
+      commissionRate: 18,
+    }).success,
+    true,
+  );
+  assert.equal(
+    saveOtaConnectionSchema.safeParse({
+      channelKey: 'invalid_ota',
+      channelName: 'Unknown',
+      hotelCode: 'TEST',
+    }).success,
+    false,
+  );
+
+  assert.equal(
+    simulateOtaBookingSchema.safeParse({
+      channelKey: 'booking_com',
+      guestName: 'Pooja Sharma',
+      checkIn: '2026-11-05',
+      checkOut: '2026-11-07',
+      totalAmount: 6400,
+    }).success,
+    true,
+  );
+  assert.equal(
+    simulateOtaBookingSchema.safeParse({
+      channelKey: 'booking_com',
+      guestName: '',
+      checkIn: 'invalid-date',
+      checkOut: '2026-11-07',
+      totalAmount: 0,
+    }).success,
+    false,
+  );
+});
+
+

@@ -3,8 +3,27 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export type NavIconName = 'today' | 'rooms' | 'reservations' | 'guests' | 'housekeeping';
-export interface NavItem { href: string; label: string; icon: NavIconName; locked?: boolean }
+export type NavIconName =
+  | 'today'
+  | 'tape-chart'
+  | 'rooms'
+  | 'reservations'
+  | 'guests'
+  | 'billing'
+  | 'housekeeping'
+  | 'night-audit'
+  | 'compliance'
+  | 'channels'
+  | 'plans'
+  | 'admin';
+
+export interface NavItem {
+  href: string;
+  label: string;
+  icon: NavIconName;
+  group?: string;
+  locked?: boolean;
+}
 
 export function Nav({
   items,
@@ -16,34 +35,67 @@ export function Nav({
   onNavigate?: () => void;
 }) {
   const path = usePathname();
+
+  // Group items by their defined group name
+  const groups: { name: string; items: NavItem[] }[] = [];
+  for (const item of items) {
+    const groupName = item.group ?? 'Workspace';
+    let g = groups.find((x) => x.name === groupName);
+    if (!g) {
+      g = { name: groupName, items: [] };
+      groups.push(g);
+    }
+    g.items.push(item);
+  }
+
   return (
-    <nav aria-label="Main" className="flex flex-col gap-1">
-      <p className={`mb-1 px-3 text-[10px] font-semibold uppercase tracking-[.16em] text-white/40 ${collapsed ? 'md:sr-only' : ''}`}>
-        Workspace
-      </p>
-      {items.map((item) => {
-        const active = path === item.href || path.startsWith(item.href + '/');
-        return (
-          <Link
-            key={item.label}
-            href={item.href}
-            onClick={onNavigate}
-            aria-current={active ? 'page' : undefined}
-            title={collapsed ? item.label : undefined}
-            className={`group flex min-h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-colors ${
-              active
-                ? 'bg-white/10 text-white shadow-[inset_2px_0_0_hsl(var(--accent))]'
-                : 'text-white/65 hover:bg-white/[.07] hover:text-white'
+    <nav aria-label="Main navigation" className="flex flex-col gap-5">
+      {groups.map((group) => (
+        <div key={group.name} className="flex flex-col gap-1">
+          <p
+            className={`px-3 text-[10px] font-bold uppercase tracking-[.18em] text-white/35 ${
+              collapsed ? 'md:sr-only' : ''
             }`}
           >
-            <NavIcon name={item.icon} active={active} />
-            <span className={collapsed ? 'md:sr-only' : ''}>{item.label}</span>
-            {item.locked && !collapsed && (
-              <span className="ml-auto rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-semibold text-white/70">Plan</span>
-            )}
-          </Link>
-        );
-      })}
+            {group.name}
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {group.items.map((item) => {
+              const active = path === item.href || (item.href !== '/dashboard' && path.startsWith(item.href + '/'));
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={onNavigate}
+                  aria-current={active ? 'page' : undefined}
+                  title={collapsed ? item.label : undefined}
+                  className={`group relative flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 ${
+                    active
+                      ? 'bg-teal-500/15 text-white shadow-sm ring-1 ring-teal-500/30'
+                      : 'text-white/70 hover:bg-white/[.07] hover:text-white'
+                  }`}
+                >
+                  {active && (
+                    <span
+                      aria-hidden
+                      className="absolute inset-y-1.5 left-0 w-1 rounded-r-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]"
+                    />
+                  )}
+                  <NavIcon name={item.icon} active={active} />
+                  <span className={`truncate ${collapsed ? 'md:sr-only' : ''}`}>
+                    {item.label}
+                  </span>
+                  {item.locked && !collapsed && (
+                    <span className="ml-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300 ring-1 ring-amber-500/30">
+                      Tier
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </nav>
   );
 }
@@ -51,10 +103,12 @@ export function Nav({
 function NavIcon({ name, active }: { name: NavIconName; active: boolean }) {
   const common = {
     'aria-hidden': true as const,
-    className: `h-[18px] w-[18px] shrink-0 ${active ? 'text-teal-200' : 'text-white/55 group-hover:text-white/80'}`,
+    className: `h-[18px] w-[18px] shrink-0 transition-colors duration-150 ${
+      active ? 'text-teal-300' : 'text-white/50 group-hover:text-white/85'
+    }`,
     fill: 'none',
     stroke: 'currentColor',
-    strokeWidth: 1.7,
+    strokeWidth: 1.8,
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
     viewBox: '0 0 24 24',
@@ -62,14 +116,88 @@ function NavIcon({ name, active }: { name: NavIconName; active: boolean }) {
 
   switch (name) {
     case 'today':
-      return <svg {...common}><rect x="3.5" y="3.5" width="7" height="7" rx="1.4" /><rect x="13.5" y="3.5" width="7" height="7" rx="1.4" /><rect x="3.5" y="13.5" width="7" height="7" rx="1.4" /><rect x="13.5" y="13.5" width="7" height="7" rx="1.4" /></svg>;
+      return (
+        <svg {...common}>
+          <rect x="3.5" y="3.5" width="7" height="7" rx="1.5" />
+          <rect x="13.5" y="3.5" width="7" height="7" rx="1.5" />
+          <rect x="3.5" y="13.5" width="7" height="7" rx="1.5" />
+          <rect x="13.5" y="13.5" width="7" height="7" rx="1.5" />
+        </svg>
+      );
+    case 'tape-chart':
+      return (
+        <svg {...common}>
+          <rect x="3" y="4" width="18" height="16" rx="2" />
+          <path d="M3 10h18M8 4v16M13 10v10M18 10v10" />
+        </svg>
+      );
     case 'rooms':
-      return <svg {...common}><path d="M4 19V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v11M4 13h16v6M12 10h6a2 2 0 0 1 2 2v1M2.5 19h19" /><path d="M7 9h2" /></svg>;
+      return (
+        <svg {...common}>
+          <path d="M4 19V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v11M4 13h16v6M12 10h6a2 2 0 0 1 2 2v1M2.5 19h19" />
+          <path d="M7 9h2" />
+        </svg>
+      );
     case 'reservations':
-      return <svg {...common}><rect x="3.5" y="5" width="17" height="15.5" rx="2" /><path d="M7.5 3.5v3M16.5 3.5v3M3.5 9h17M8 13h3M8 16h6" /></svg>;
+      return (
+        <svg {...common}>
+          <rect x="3.5" y="5" width="17" height="15.5" rx="2" />
+          <path d="M7.5 3.5v3M16.5 3.5v3M3.5 9h17M8 13h3M8 16h6" />
+        </svg>
+      );
     case 'guests':
-      return <svg {...common}><circle cx="9" cy="8" r="3.2" /><path d="M3.5 19c.5-3 2.3-4.5 5.5-4.5s5 1.5 5.5 4.5M16 5.2a3.2 3.2 0 0 1 0 6.1M17 14.7c2.1.5 3.2 1.9 3.5 4.3" /></svg>;
+      return (
+        <svg {...common}>
+          <circle cx="9" cy="8" r="3.2" />
+          <path d="M3.5 19c.5-3 2.3-4.5 5.5-4.5s5 1.5 5.5 4.5M16 5.2a3.2 3.2 0 0 1 0 6.1M17 14.7c2.1.5 3.2 1.9 3.5 4.3" />
+        </svg>
+      );
+    case 'billing':
+      return (
+        <svg {...common}>
+          <rect x="2" y="5" width="20" height="14" rx="2" />
+          <line x1="2" y1="10" x2="22" y2="10" />
+          <path d="M7 15h2M12 15h5" />
+        </svg>
+      );
     case 'housekeeping':
-      return <svg {...common}><path d="m4 20 9-9M10 4l10 10M8 6l2-2 10 10-2 2M3 21h6M14 18l3 3" /></svg>;
+      return (
+        <svg {...common}>
+          <path d="m4 20 9-9M10 4l10 10M8 6l2-2 10 10-2 2M3 21h6M14 18l3 3" />
+        </svg>
+      );
+    case 'night-audit':
+      return (
+        <svg {...common}>
+          <path d="M12 3a9 9 0 1 0 9 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 0 1-4.4 2.26 5.403 5.403 0 0 1-3.14-9.8c-.44-.06-.9-.1-1.36-.1z" />
+          <circle cx="12" cy="12" r="1" />
+        </svg>
+      );
+    case 'compliance':
+      return (
+        <svg {...common}>
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          <path d="m9 12 2 2 4-4" />
+        </svg>
+      );
+    case 'channels':
+      return (
+        <svg {...common}>
+          <path d="M4 11a9 9 0 0 1 9 9M4 4a16 16 0 0 1 16 16M4 20h.01" />
+          <circle cx="12" cy="12" r="3" />
+        </svg>
+      );
+    case 'plans':
+      return (
+        <svg {...common}>
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+        </svg>
+      );
+    case 'admin':
+      return (
+        <svg {...common}>
+          <path d="M3 21h18M5 21V7l8-4v18M13 7l6 3v11M9 9v1M9 13v1M9 17v1M17 13v1M17 17v1" />
+        </svg>
+      );
   }
 }

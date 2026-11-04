@@ -84,7 +84,12 @@ export function RoomInventory({
                 <div className="flex items-start justify-between gap-3 p-4">
                   <div className="min-w-0">
                     <p className="text-[10px] font-semibold uppercase tracking-[.13em] text-muted">Floor {room.floor}</p>
-                    <h3 className="mt-1 font-display text-2xl font-bold leading-7 text-ink">Room {room.number}</h3>
+                    <h3
+                      className="mt-1 font-display text-2xl font-black font-mono leading-7 text-slate-950 select-all"
+                      style={{ color: '#020617' }}
+                    >
+                      Room {room.number}
+                    </h3>
                     <p className="mt-1 truncate text-xs text-muted">{room.roomType}</p>
                   </div>
                   <StatusBadge status={room.status} />

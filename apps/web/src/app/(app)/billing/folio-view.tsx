@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Banner, btnCls, btnGhostCls, EmptyState, inputCls, StatCard, StatusBadge } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
+import { formatStayDates, formatDate } from '@/lib/format';
 import { addFolioCharge, collectFolioPayment, issueInvoice } from './actions';
 
 export interface FolioData {
@@ -85,36 +86,38 @@ export function FolioView({
   return (
     <div className="space-y-6">
       {/* Reservation & Guest Summary */}
-      <div className="rounded-xl border border-line bg-surface p-5 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-4">
+      <div className="rounded-3xl border border-line bg-surface p-6 sm:p-7 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 pb-5">
           <div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-lagoon-dark">Room {reservation.roomNumber}</span>
+            <div className="flex items-center gap-2.5">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-900 bg-slate-100 border border-slate-200/80 px-2.5 py-1 rounded-lg">
+                Room {reservation.roomNumber}
+              </span>
               <StatusBadge status={reservation.status as any} />
             </div>
-            <h2 className="mt-1 font-display text-xl font-bold text-ink">{reservation.guestName}</h2>
-            <p className="text-xs text-muted">
-              {reservation.checkIn} → {reservation.checkOut} {reservation.guestPhone ? `· ${reservation.guestPhone}` : ''}
+            <h2 className="mt-2 font-display text-2xl sm:text-3xl font-black text-slate-950">{reservation.guestName}</h2>
+            <p className="mt-1 text-sm font-medium text-slate-500">
+              {formatStayDates(reservation.checkIn, reservation.checkOut)} {reservation.guestPhone ? `· ${reservation.guestPhone}` : ''}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="rounded-full border border-slate-300 bg-slate-100 px-3.5 py-1 text-xs font-black text-slate-950 shadow-2xs">
-              Folio #{folio.id.slice(0, 8).toUpperCase()} · Status: <span className="uppercase text-teal-900 font-black">{folio.status}</span>
+            <span className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs sm:text-sm font-semibold text-slate-800 shadow-2xs">
+              Folio #{folio.id.slice(0, 8).toUpperCase()} · Status: <span className="uppercase text-slate-900 font-bold">{folio.status}</span>
             </span>
           </div>
         </div>
 
         {/* Financial KPI Summary */}
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
           <StatCard label="Subtotal (Taxable)" value={money(folio.subtotal, currency)} detail="Tariff & Services" />
           <StatCard label="GST Total" value={money(folio.taxTotal, currency)} detail="CGST + SGST / IGST" />
           <StatCard label="Total Billed" value={money(folio.total, currency)} detail="Inclusive of Taxes" />
-          <div className={`rounded-xl border p-4 shadow-sm ${folio.balanceDue > 0 ? 'border-danger/30 bg-danger/5' : 'border-success/30 bg-success/5'}`}>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Balance Due</p>
-            <p className={`mt-1 font-display text-2xl font-bold ${folio.balanceDue > 0 ? 'text-danger' : 'text-emerald-700'}`}>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Balance Due</p>
+            <p className={`mt-2 font-display text-2xl sm:text-3xl font-black ${folio.balanceDue > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
               {money(folio.balanceDue, currency)}
             </p>
-            <p className="mt-1 text-xs text-muted">
+            <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500">
               {folio.paidTotal > 0 ? `Paid: ${money(folio.paidTotal, currency)}` : 'No payments yet'}
             </p>
           </div>
@@ -122,42 +125,46 @@ export function FolioView({
       </div>
 
       {/* Folio Items Table */}
-      <section aria-labelledby="folio-items-title" className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
-        <div className="flex items-center justify-between border-b border-line px-5 py-4">
+      <section aria-labelledby="folio-items-title" className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
+        <div className="flex items-center justify-between border-b border-line px-6 py-5 bg-slate-50">
           <div>
-            <h3 id="folio-items-title" className="text-sm font-semibold text-ink">Itemized Charges &amp; Indian GST Breakdown</h3>
-            <p className="text-xs text-muted">Includes statutory SAC codes (996311 accommodation, 996331 F&amp;B)</p>
+            <h3 id="folio-items-title" className="font-display text-lg font-black text-slate-950">
+              Itemized Charges &amp; Indian GST Breakdown
+            </h3>
+            <p className="mt-0.5 text-sm text-slate-600 font-medium">Includes statutory SAC codes (996311 accommodation, 996331 F&amp;B)</p>
           </div>
-          <span className="text-xs font-medium text-muted">{folio.items.length} items</span>
+          <span className="rounded-full bg-white border border-slate-300 px-3.5 py-1 text-xs sm:text-sm font-bold text-slate-900">
+            {folio.items.length} items
+          </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[700px] text-left text-xs">
-            <thead className="border-b border-line bg-ground/60 font-semibold uppercase tracking-wider text-muted text-[10px]">
+          <table className="w-full min-w-[760px] text-left">
+            <thead className="border-b border-line bg-slate-100/90 font-black uppercase tracking-wider text-slate-800 text-xs">
               <tr>
-                <th className="px-4 py-3">Description</th>
-                <th className="px-4 py-3">SAC / Category</th>
-                <th className="px-4 py-3">Qty</th>
-                <th className="px-4 py-3">Rate</th>
-                <th className="px-4 py-3">CGST</th>
-                <th className="px-4 py-3">SGST</th>
-                <th className="px-4 py-3">IGST</th>
-                <th className="px-4 py-3 text-right">Line Total</th>
+                <th className="px-5 py-4">Description</th>
+                <th className="px-5 py-4">SAC / Category</th>
+                <th className="px-5 py-4">Qty</th>
+                <th className="px-5 py-4">Rate</th>
+                <th className="px-5 py-4">CGST</th>
+                <th className="px-5 py-4">SGST</th>
+                <th className="px-5 py-4">IGST</th>
+                <th className="px-5 py-4 text-right">Line Total</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-line">
+            <tbody className="divide-y divide-line text-sm sm:text-[15px]">
               {folio.items.map((item) => (
-                <tr key={item.id} className="hover:bg-ground/40">
-                  <td className="px-4 py-3 font-medium text-ink">{item.description}</td>
-                  <td className="px-4 py-3 text-muted">
-                    <span className="font-mono text-[11px] text-ink">{item.hsnSac}</span> · {item.taxCategoryCode}
+                <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
+                  <td className="px-5 py-4 font-bold text-slate-950">{item.description}</td>
+                  <td className="px-5 py-4 text-slate-700">
+                    <span className="font-mono font-bold text-slate-950">{item.hsnSac}</span> · {item.taxCategoryCode}
                   </td>
-                  <td className="px-4 py-3">{item.quantity}</td>
-                  <td className="px-4 py-3">{money(item.unitPrice, currency)}</td>
-                  <td className="px-4 py-3 text-muted">{item.cgstAmount > 0 ? money(item.cgstAmount, currency) : '—'}</td>
-                  <td className="px-4 py-3 text-muted">{item.sgstAmount > 0 ? money(item.sgstAmount, currency) : '—'}</td>
-                  <td className="px-4 py-3 text-muted">{item.igstAmount > 0 ? money(item.igstAmount, currency) : '—'}</td>
-                  <td className="px-4 py-3 text-right font-semibold text-ink">{money(item.lineTotal, currency)}</td>
+                  <td className="px-5 py-4 font-semibold text-slate-900">{item.quantity}</td>
+                  <td className="px-5 py-4 font-semibold text-slate-900">{money(item.unitPrice, currency)}</td>
+                  <td className="px-5 py-4 text-slate-700 font-medium">{item.cgstAmount > 0 ? money(item.cgstAmount, currency) : '—'}</td>
+                  <td className="px-5 py-4 text-slate-700 font-medium">{item.sgstAmount > 0 ? money(item.sgstAmount, currency) : '—'}</td>
+                  <td className="px-5 py-4 text-slate-700 font-medium">{item.igstAmount > 0 ? money(item.igstAmount, currency) : '—'}</td>
+                  <td className="px-5 py-4 text-right font-black text-slate-950">{money(item.lineTotal, currency)}</td>
                 </tr>
               ))}
             </tbody>

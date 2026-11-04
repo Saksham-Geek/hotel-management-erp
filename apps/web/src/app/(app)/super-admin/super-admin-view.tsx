@@ -117,21 +117,21 @@ export function SuperAdminView({
       <Banner error={error} ok={ok} />
 
       {/* Header Section */}
-      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line/60 pb-5">
+      <div className="flex flex-wrap items-end justify-between gap-4 border-b border-slate-200/80 pb-6">
         <div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-black uppercase tracking-widest text-amber-900 shadow-2xs">
-            <span className="flex h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
+          <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 shadow-2xs">
+            <span className="flex h-1.5 w-1.5 rounded-full bg-slate-900" />
             Super Admin · Chain HQ Console
           </div>
-          <h1 className="mt-2 font-display text-2xl sm:text-3xl font-black tracking-tight text-ink">
+          <h1 className="mt-2 font-display text-2xl sm:text-3xl font-black tracking-tight text-slate-950">
             {tenant.name} Hotel Portfolio
           </h1>
-          <p className="mt-1 text-xs font-medium text-muted max-w-2xl">
+          <p className="mt-1 text-sm font-normal text-slate-500 max-w-2xl">
             Organization Code:{' '}
-            <strong className="font-mono text-teal-800 bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200">
+            <strong className="font-mono text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200/80 font-bold">
               {tenant.slug}
             </strong>{' '}
-            · Multi-property governance, hotel provisioning, manager delegation & centralized room rack.
+            · Multi-property governance, hotel provisioning, manager delegation &amp; centralized room rack.
           </p>
         </div>
 
@@ -139,7 +139,7 @@ export function SuperAdminView({
           <button
             type="button"
             onClick={() => setShowOnboardModal(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-black text-white shadow-md hover:bg-teal-500 active:scale-95 transition-all"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 active:scale-95 transition-all"
           >
             <span className="text-base leading-none">+</span> Onboard New Hotel Property
           </button>
@@ -147,71 +147,71 @@ export function SuperAdminView({
       </div>
 
       {/* Chain-Wide Portfolio Metric Cards */}
-      <section aria-label="Portfolio KPIs" className="grid grid-cols-2 gap-3.5 sm:grid-cols-4">
-        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Hotels In Chain</p>
+      <section aria-label="Portfolio KPIs" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hotels In Chain</p>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="font-display text-2xl sm:text-3xl font-black text-slate-950">
               {metrics.totalHotels}
             </span>
-            <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-black text-emerald-950">
+            <span className="rounded-full bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
               {metrics.activeHotels} Active
             </span>
           </div>
-          <p className="mt-1 text-[11px] font-medium text-muted">Across organization</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium">Across organization</p>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Total Chain Rooms</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Chain Rooms</p>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="font-display text-2xl sm:text-3xl font-black text-slate-950">
               {metrics.totalRooms}
             </span>
-            <span className="rounded-full bg-blue-100 border border-blue-300 px-2 py-0.5 text-[10px] font-black text-blue-950">
+            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
               {metrics.totalReady} Ready
             </span>
           </div>
-          <p className="mt-1 text-[11px] font-medium text-muted">Live room inventory</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium">Live room inventory</p>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Portfolio Occupancy</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Portfolio Occupancy</p>
           <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-display text-2xl sm:text-3xl font-black text-teal-900">
+            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950">
               {metrics.occupancyRate}%
             </span>
-            <span className="text-xs font-bold text-muted">({metrics.totalOccupied} In-House)</span>
+            <span className="text-xs font-medium text-slate-500">({metrics.totalOccupied} In-House)</span>
           </div>
-          <div className="mt-2 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+          <div className="mt-2.5 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-500"
+              className="h-full rounded-full bg-slate-900 transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(3, metrics.occupancyRate))}%` }}
             />
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-line bg-surface p-4 shadow-sm">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-muted">Hospitality Team</p>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hospitality Team</p>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="font-display text-2xl sm:text-3xl font-black text-slate-950">
               {metrics.totalStaff}
             </span>
-            <span className="text-xs font-bold text-muted">Staff & Managers</span>
+            <span className="text-xs font-medium text-slate-500">Staff &amp; Managers</span>
           </div>
-          <p className="mt-1 text-[11px] font-medium text-muted">Authorized user accounts</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium">Authorized user accounts</p>
         </div>
       </section>
 
       {/* Tab Navigation */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line/70 pt-2 pb-1">
-        <div className="flex items-center gap-1">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line/70 pt-2 pb-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
             onClick={() => setActiveTab('portfolio')}
-            className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all ${
+            className={`px-5 py-3 text-sm sm:text-[14.5px] font-bold rounded-xl transition-all ${
               activeTab === 'portfolio'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-slate-950 text-white shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
             }`}
           >
             🏨 Hotel Portfolio ({properties.length})
@@ -219,10 +219,10 @@ export function SuperAdminView({
           <button
             type="button"
             onClick={() => setActiveTab('staff')}
-            className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all ${
+            className={`px-5 py-3 text-sm sm:text-[14.5px] font-bold rounded-xl transition-all ${
               activeTab === 'staff'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-slate-950 text-white shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
             }`}
           >
             👥 Staff & Manager Directory ({users.length})
@@ -230,10 +230,10 @@ export function SuperAdminView({
           <button
             type="button"
             onClick={() => setActiveTab('guide')}
-            className={`px-4 py-2 text-xs font-extrabold rounded-xl transition-all ${
+            className={`px-5 py-3 text-sm sm:text-[14.5px] font-bold rounded-xl transition-all ${
               activeTab === 'guide'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100'
+                ? 'bg-slate-950 text-white shadow-sm'
+                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-950'
             }`}
           >
             📖 ERP Roles &amp; Workflow Standard
@@ -241,18 +241,18 @@ export function SuperAdminView({
         </div>
 
         {activeTab === 'portfolio' && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <input
               type="search"
               placeholder="Filter hotels or managers..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-8 w-56 rounded-xl border border-line bg-surface px-3 text-xs text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+              className="min-h-[42px] w-64 rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="h-8 rounded-xl border border-line bg-surface px-2.5 text-xs font-semibold text-ink focus:outline-none"
+              className="min-h-[42px] rounded-xl border border-line bg-surface px-3 text-sm font-semibold text-ink focus:outline-none"
             >
               <option value="all">All Statuses</option>
               <option value="active">Active Only</option>

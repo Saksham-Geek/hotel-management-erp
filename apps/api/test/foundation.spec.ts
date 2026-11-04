@@ -24,6 +24,10 @@ import {
   switchPlanSchema,
   saveOtaConnectionSchema,
   simulateOtaBookingSchema,
+  createStaffSchema,
+  sendReviewRequestSchema,
+  createMarketingCampaignSchema,
+  updateGuestLoyaltySchema,
   FEATURES,
   HOSPITALITY_PLAN_TIERS,
 } from '@erp/shared';
@@ -663,5 +667,79 @@ test('OTA connection and simulation schemas validate channel keys and positive a
     false,
   );
 });
+
+test('createStaffSchema validates hierarchy roles, shifts, and credentials', () => {
+  const valid = createStaffSchema.safeParse({
+    email: 'gm.shekhawat@tajhotel.com',
+    fullName: 'Ranveer Singh Shekhawat',
+    role: 'manager',
+    department: 'Executive Office',
+    shift: 'General',
+    password: 'SecurePassword123!',
+  });
+  assert.equal(valid.success, true);
+
+  const invalidRole = createStaffSchema.safeParse({
+    email: 'staff@hotel.com',
+    fullName: 'Test Staff',
+    role: 'super_admin_invalid',
+  });
+  assert.equal(invalidRole.success, false);
+});
+
+test('Marketing & Loyalty schemas validate post-checkout outreach, tiers, and campaigns', () => {
+  // Review request schema
+  assert.equal(
+    sendReviewRequestSchema.safeParse({
+      guestId: '7b78d648-f8ee-419a-877e-506b524fede3',
+      channel: 'whatsapp',
+      platform: 'google',
+      recipientPhone: '+91 98201 11223',
+    }).success,
+    true,
+  );
+
+  // Marketing campaign schema
+  assert.equal(
+    createMarketingCampaignSchema.safeParse({
+      title: 'Monsoon Palace Weekend Escape',
+      campaignType: 'repeat_booking',
+      channel: 'whatsapp',
+      audienceSegment: 'all_guests',
+      templateMessage: 'Enjoy 25% savings on all suites with code MONSOON25.',
+      discountCode: 'MONSOON25',
+    }).success,
+    true,
+  );
+
+  // Guest loyalty schema
+  assert.equal(
+    updateGuestLoyaltySchema.safeParse({
+      tier: 'kohinoor',
+      preferences: { pillow_type: 'Goose Feather', dietary: 'Jain' },
+      anniversaryDate: '2026-12-14',
+    }).success,
+    true,
+  );
+  assert.equal(
+    updateGuestLoyaltySchema.safeParse({
+      tier: 'invalid_tier_name',
+    }).success,
+    false,
+  );
+});
+
+test('Migration 016 creates enterprise hierarchy, loyalty profiles, and marketing tables', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/016_enterprise_hierarchy_and_loyalty_marketing.sql'),
+    'utf8',
+  );
+  assert.match(migration, /guest_loyalty_profiles/);
+  assert.match(migration, /guest_followup_logs/);
+  assert.match(migration, /marketing_campaigns/);
+  assert.match(migration, /post_checkout_review/);
+  assert.match(migration, /kohinoor/);
+});
+
 
 

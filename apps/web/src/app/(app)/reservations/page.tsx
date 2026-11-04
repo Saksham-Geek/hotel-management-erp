@@ -19,9 +19,15 @@ interface Room {
 export default async function ReservationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; ok?: string }>;
+  searchParams: Promise<{
+    error?: string;
+    ok?: string;
+    roomId?: string;
+    checkIn?: string;
+    checkOut?: string;
+  }>;
 }) {
-  const [{ error, ok }, ent, me] = await Promise.all([
+  const [{ error, ok, roomId, checkIn, checkOut }, ent, me] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_RESERVATIONS),
     getMe(),
@@ -40,39 +46,42 @@ export default async function ReservationsPage({
       <Banner error={error} ok={ok} />
 
       {!ent.readOnly ? (
-        <form id="new-reservation" action={createReservation} className="scroll-mt-20 overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
-          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-4 py-4 sm:px-6">
+        <form id="new-reservation" action={createReservation} className="scroll-mt-20 overflow-hidden rounded-3xl border border-slate-200/90 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 px-6 py-5 bg-slate-50/60">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-[.16em] text-lagoon-dark">New stay</p>
-              <h2 className="mt-1 font-display text-lg font-bold text-ink">Create reservation</h2>
-              <p className="mt-1 text-sm text-muted">Select each guest sharing the room. They’ll share one consolidated bill.</p>
+              <div className="flex items-center gap-2">
+                <span className="h-1.5 w-6 rounded-full bg-slate-900" />
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">New stay</p>
+              </div>
+              <h2 className="mt-1 font-display text-xl font-bold text-slate-950">Create reservation</h2>
+              <p className="mt-0.5 text-xs text-slate-500 font-normal">Select each guest sharing the room. They’ll share one consolidated bill.</p>
             </div>
-            <span className="rounded-full bg-accent-soft px-2.5 py-1 text-[10px] font-semibold text-lagoon-dark">Front desk</span>
+            <span className="rounded-full bg-white border border-slate-200 px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs">Front desk</span>
           </div>
 
-          <div className="grid gap-5 p-4 sm:p-6 xl:grid-cols-[1.05fr_.95fr]">
-            <section aria-labelledby="reservation-guests-title" className="min-w-0 rounded-xl border border-line bg-ground/55 p-4 sm:p-5">
+          <div className="grid gap-6 p-6 sm:p-7 xl:grid-cols-[1.05fr_.95fr]">
+            <section aria-labelledby="reservation-guests-title" className="min-w-0 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
               <div className="mb-4 flex items-center gap-3">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">1</span>
-                <div><h3 id="reservation-guests-title" className="text-sm font-semibold text-ink">Guests</h3><p className="text-xs text-muted">Search existing profiles or register new guests.</p></div>
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white shadow-2xs">1</span>
+                <div><h3 id="reservation-guests-title" className="text-sm font-bold text-slate-950">Guests</h3><p className="text-xs text-slate-500 font-normal">Search existing profiles or register new guests.</p></div>
               </div>
               <GuestPicker />
             </section>
 
-            <section aria-labelledby="reservation-stay-title" className="min-w-0 rounded-xl border border-line bg-ground/55 p-4 sm:p-5">
+            <section aria-labelledby="reservation-stay-title" className="min-w-0 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
               <div className="mb-4 flex items-center gap-3">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">2</span>
-                <div><h3 id="reservation-stay-title" className="text-sm font-semibold text-ink">Stay and pricing</h3><p className="text-xs text-muted">Choose the room, dates and rate basis.</p></div>
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white shadow-2xs">2</span>
+                <div><h3 id="reservation-stay-title" className="text-sm font-bold text-slate-950">Stay and pricing</h3><p className="text-xs text-slate-500 font-normal">Choose the room, dates and rate basis.</p></div>
               </div>
               <div className="space-y-4">
-                <ReservationPricingFields rooms={rooms} currency={currency} />
+                <ReservationPricingFields rooms={rooms} currency={currency} defaultRoomId={roomId} />
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block text-xs font-medium text-ink">Check-in date<input name="checkIn" type="date" required className={`${inputCls} mt-1.5`} /></label>
-                  <label className="block text-xs font-medium text-ink">Check-out date<input name="checkOut" type="date" required className={`${inputCls} mt-1.5`} /></label>
-                  <label className="block text-xs font-medium text-ink">Check-in time<input name="checkInTime" type="time" defaultValue="12:00" className={`${inputCls} mt-1.5`} /></label>
-                  <label className="block text-xs font-medium text-ink">Check-out time<input name="checkOutTime" type="time" defaultValue="11:00" className={`${inputCls} mt-1.5`} /></label>
+                  <label className="block text-xs font-semibold text-slate-700">Check-in date<input name="checkIn" type="date" defaultValue={checkIn} required className={`${inputCls} mt-1.5`} /></label>
+                  <label className="block text-xs font-semibold text-slate-700">Check-out date<input name="checkOut" type="date" defaultValue={checkOut} required className={`${inputCls} mt-1.5`} /></label>
+                  <label className="block text-xs font-semibold text-slate-700">Check-in time<input name="checkInTime" type="time" defaultValue="12:00" className={`${inputCls} mt-1.5`} /></label>
+                  <label className="block text-xs font-semibold text-slate-700">Check-out time<input name="checkOutTime" type="time" defaultValue="11:00" className={`${inputCls} mt-1.5`} /></label>
                 </div>
-                <div className="rounded-lg border border-line bg-surface px-3 py-2.5 text-xs leading-5 text-muted">
+                <div className="rounded-xl border border-slate-200/80 bg-white p-3.5 text-xs leading-relaxed text-slate-500 shadow-2xs">
                   The configured room rate is the default. A manual rate replaces it and is multiplied by nights or billable hours. Hourly stays have a two-hour minimum; the first 30 minutes after each completed hour are free. Manual rates require a reason and are audit logged.
                 </div>
               </div>

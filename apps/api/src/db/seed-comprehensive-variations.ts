@@ -1052,6 +1052,244 @@ async function main() {
       );
     }
 
+    // ==========================================
+    // 16. SEED ENTERPRISE HIERARCHY & STAFF DELEGATION
+    // ==========================================
+    console.log('Seeding enterprise staff hierarchy and shifts...');
+    await client.query(
+      `UPDATE property_users
+       SET department = 'Executive Management', shift = 'General'
+       WHERE tenant_id = $1 AND role = 'owner'`,
+      [tenantId],
+    );
+
+    // Ensure staff with explicit roles exist
+    const staffMembers = [
+      { email: 'frontdesk@grandazure.com', name: 'Aarav Mehta', role: 'frontdesk', dept: 'Front Office', shift: 'Morning (07:00 - 15:30)' },
+      { email: 'reception.night@grandazure.com', name: 'Kavita Deshmukh', role: 'frontdesk', dept: 'Front Office (Night Audit)', shift: 'Night (23:00 - 07:30)' },
+      { email: 'housekeeping@grandazure.com', name: 'Sunita Rao', role: 'housekeeping', dept: 'Housekeeping & Laundry', shift: 'Morning (08:00 - 16:30)' },
+      { email: 'hk.supervisor@grandazure.com', name: 'Ramesh Patel', role: 'housekeeping', dept: 'Housekeeping Floor Supervisor', shift: 'Evening (15:00 - 23:30)' },
+    ];
+
+    const passHash = '$2a$10$w3q.l9tV3Y29M0Q0oM0mbe7x3Z4v5w9f7p1K.i6h8u.u4h5q0r5a2'; // dummy hash for quick seed
+    for (const sm of staffMembers) {
+      const uRes = await client.query(
+        `INSERT INTO users (tenant_id, email, password_hash, full_name, role)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (tenant_id, email) DO UPDATE SET full_name = excluded.full_name
+         RETURNING id`,
+        [tenantId, sm.email, passHash, sm.name, sm.role],
+      );
+      const uid = uRes.rows[0].id;
+      await client.query(
+        `INSERT INTO property_users (tenant_id, property_id, user_id, role, department, shift)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         ON CONFLICT (tenant_id, property_id, user_id)
+         DO UPDATE SET role = excluded.role, department = excluded.department, shift = excluded.shift`,
+        [tenantId, propertyId, uid, sm.role, sm.dept, sm.shift],
+      );
+    }
+
+    // ==========================================
+    // 17. SEED GUEST LOYALTY CRM PROFILES (Taj InnerCircle Style)
+    // ==========================================
+    console.log('Seeding Taj-grade guest loyalty profiles and preferences...');
+    const allGuests = (await client.query(`SELECT id, party_id, vip FROM guests WHERE tenant_id = $1`, [tenantId])).rows;
+
+    const loyaltyTemplates = [
+      {
+        tier: 'kohinoor',
+        nights: 24,
+        spend: 285400.00,
+        points: 4800,
+        prefs: { pillow_type: 'Goose Feather Soft', floor_preference: 'Highest Floor Penthouse', dietary: 'Strict Jain (No root vegetables)', newspaper: 'Financial Times', beverage: 'Darjeeling First Flush Tea' },
+        anniversary: '2026-12-14',
+        bday: '1982-05-18',
+      },
+      {
+        tier: 'platinum',
+        nights: 16,
+        spend: 142800.00,
+        points: 2450,
+        prefs: { pillow_type: 'Memory Foam Contour', floor_preference: 'Corner Suite Away From Elevators', dietary: 'Gluten-Free Vegetarian', newspaper: 'The Economic Times', airport_pickup: 'Mercedes S-Class' },
+        anniversary: '2026-11-20',
+        bday: '1987-08-25',
+      },
+      {
+        tier: 'gold',
+        nights: 8,
+        spend: 78500.00,
+        points: 1200,
+        prefs: { pillow_type: 'Hypoallergenic Firm', floor_preference: 'Garden Facing Balcony', dietary: 'Non-Vegetarian Halal', newspaper: 'Mint' },
+        anniversary: '2026-12-28',
+        bday: '1991-03-11',
+      },
+      {
+        tier: 'silver',
+        nights: 3,
+        spend: 26400.00,
+        points: 450,
+        prefs: { pillow_type: 'Standard Soft', floor_preference: 'Non-Smoking Floor', dietary: 'Vegetarian', newspaper: 'The Hindu' },
+        anniversary: '2027-02-14',
+        bday: '1995-10-09',
+      },
+    ];
+
+    let tIdx = 0;
+    for (const g of allGuests) {
+      const template = loyaltyTemplates[tIdx % loyaltyTemplates.length];
+      tIdx++;
+      await client.query(
+        `INSERT INTO guest_loyalty_profiles (
+           tenant_id, property_id, guest_id, tier, total_nights, total_spend, points_balance,
+           preferences, anniversary_date, birthday_date, last_stay_date
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, '2026-11-02')
+         ON CONFLICT (tenant_id, guest_id)
+         DO UPDATE SET
+           tier = excluded.tier,
+           total_nights = excluded.total_nights,
+           total_spend = excluded.total_spend,
+           points_balance = excluded.points_balance,
+           preferences = excluded.preferences`,
+        [tenantId, propertyId, g.id, template.tier, template.nights, template.spend, template.points, JSON.stringify(template.prefs), template.anniversary, template.bday],
+      );
+    }
+
+    // ==========================================
+    // 18. SEED AUTOMATED POST-CHECKOUT FOLLOW-UP LOGS
+    // ==========================================
+    console.log('Seeding automated review follow-ups & NPS logs...');
+    const followupSeeds = [
+      {
+        name: 'Rajesh Singhania',
+        phone: '+91 98201 11223',
+        email: 'rajesh.singhania@indosteel.com',
+        channel: 'whatsapp',
+        platform: 'google',
+        status: 'reviewed',
+        rating: 5,
+        feedback: 'Magnificent heritage hospitality! The suite was pristine and the private butler service was impeccable.',
+        body: 'Namaste Rajesh! Thank you for staying at Grand Azure Hotel. Could you take 30 seconds to rate us on Google? https://g.page/r/GrandAzureHotel/review - GM, Grand Azure Hotel',
+      },
+      {
+        name: 'Sarah Jenkins',
+        phone: '+44 7700 900123',
+        email: 'sarah.jenkins@oxfordalumni.org',
+        channel: 'whatsapp',
+        platform: 'tripadvisor',
+        status: 'reviewed',
+        rating: 5,
+        feedback: 'One of the best heritage luxury stays in India. Smooth check-in, spotless bathroom, delicious breakfast.',
+        body: 'Dear Sarah, thank you for choosing Grand Azure Hotel! We hope your stay was memorable. Please share your review on TripAdvisor: https://tripadvisor.in/GrandAzureHotel - GM, Grand Azure Hotel',
+      },
+      {
+        name: 'Amitabh Sen',
+        phone: '+91 98300 44556',
+        email: 'amitabh.sen@bengaltech.in',
+        channel: 'whatsapp',
+        platform: 'google',
+        status: 'sent',
+        rating: null,
+        feedback: null,
+        body: 'Namaste Amitabh! Thank you for staying with us. How was your experience in Deluxe Room 104? Leave us a Google Review: https://g.page/r/GrandAzureHotel/review',
+      },
+      {
+        name: 'Pooja Sharma',
+        phone: '+91 98111 88990',
+        email: 'pooja.sharma@gurgaoncorp.com',
+        channel: 'email',
+        platform: 'direct_nps',
+        status: 'reviewed',
+        rating: 4,
+        feedback: 'Very comfortable room and prompt room service. Wifi was fast for my video calls.',
+        body: 'Dear Pooja, thank you for staying at Grand Azure Hotel. Please rate your stay on our official NPS portal: https://stay.azurehotels.com/nps',
+      },
+    ];
+
+    if (allGuests.length > 0) {
+      for (let i = 0; i < followupSeeds.length; i++) {
+        const fs = followupSeeds[i];
+        const gId = allGuests[i % allGuests.length].id;
+        await client.query(
+          `INSERT INTO guest_followup_logs (
+             tenant_id, property_id, guest_id, trigger_type, channel, recipient_name,
+             recipient_phone, recipient_email, message_body, status, review_platform,
+             rating_received, guest_feedback, sent_at
+           )
+           VALUES ($1, $2, $3, 'post_checkout_review', $4, $5, $6, $7, $8, $9, $10, $11, $12, now() - interval '${i * 4} hours')`,
+          [tenantId, propertyId, gId, fs.channel, fs.name, fs.phone, fs.email, fs.body, fs.status, fs.platform, fs.rating, fs.feedback],
+        );
+      }
+    }
+
+    // ==========================================
+    // 19. SEED TARGETED MARKETING CAMPAIGNS
+    // ==========================================
+    console.log('Seeding targeted marketing campaigns...');
+    const campaigns = [
+      {
+        title: 'Monsoon Royal Palace Weekend Getaway',
+        type: 'repeat_booking',
+        channel: 'whatsapp',
+        segment: 'all_guests',
+        discount: 'MONSOON25',
+        sent: 48,
+        delivered: 47,
+        conv: 12,
+        rev: 168000.00,
+        msg: 'Experience royal monsoon tranquility at Grand Azure Hotel. Enjoy 25% savings on all suites, complimentary high tea, and late checkout. Use code MONSOON25 on your next direct booking.',
+      },
+      {
+        title: 'We Miss You - Exclusive Inactive Guest Privilege',
+        type: 'inactive_reengagement',
+        channel: 'whatsapp',
+        segment: 'inactive_90_days',
+        discount: 'WELCOMEBACK',
+        sent: 32,
+        delivered: 31,
+        conv: 7,
+        rev: 94500.00,
+        msg: 'Namaste from Grand Azure Hotel! We would love to welcome you back. Enjoy ₹3,000 complimentary dining credit with any 2-night stay this month. Book direct with code WELCOMEBACK.',
+      },
+      {
+        title: 'Kohinoor & Platinum VIP Annual Privilege Renewal',
+        type: 'vip_loyalty',
+        channel: 'email',
+        segment: 'vip_platinum',
+        discount: 'VIPPLATINUM',
+        sent: 14,
+        delivered: 14,
+        conv: 6,
+        rev: 198000.00,
+        msg: 'As an esteemed Taj-tier guest at Grand Azure Hotel, your suite upgrade voucher and private chef dining credit have been activated for the upcoming holiday quarter.',
+      },
+      {
+        title: 'Corporate Year-End Direct Billing & Event Rates',
+        type: 'corporate_renewal',
+        channel: 'email',
+        segment: 'corporate',
+        discount: 'CORP2027',
+        sent: 26,
+        delivered: 26,
+        conv: 9,
+        rev: 345000.00,
+        msg: 'Plan your executive offsites and corporate conferences at Grand Azure Hotel. Exclusive GST credit invoicing, dedicated relationship manager, and preferential delegate room tariffs.',
+      },
+    ];
+
+    for (const c of campaigns) {
+      await client.query(
+        `INSERT INTO marketing_campaigns (
+           tenant_id, property_id, title, campaign_type, channel, audience_segment,
+           template_message, discount_code, status, sent_count, delivered_count,
+           converted_count, revenue_generated
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'sent', $9, $10, $11, $12)`,
+        [tenantId, propertyId, c.title, c.type, c.channel, c.segment, c.msg, c.discount, c.sent, c.delivered, c.conv, c.rev],
+      );
+    }
+
     await client.query('commit');
     console.log('✅ COMPREHENSIVE SEED COMPLETED SUCCESSFULLY!');
     console.log('All 10 hospitality variations, folios, tax invoices, corporate ledger, and OTA channels populated.');

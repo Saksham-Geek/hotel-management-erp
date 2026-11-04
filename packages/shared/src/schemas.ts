@@ -346,3 +346,53 @@ export const simulateOtaBookingSchema = z.object({
 
 export type SaveOtaConnectionInput = z.infer<typeof saveOtaConnectionSchema>;
 export type SimulateOtaBookingInput = z.infer<typeof simulateOtaBookingSchema>;
+
+// --- Enterprise Delegation & Staff Provisioning Schemas ---
+
+export const createStaffSchema = z.object({
+  email: z.string().trim().toLowerCase().email().max(200),
+  fullName: z.string().trim().min(2, 'Full name is required').max(120),
+  role: z.enum(['owner', 'manager', 'frontdesk', 'housekeeping']),
+  department: z.string().trim().min(2).max(80).default('Front Office'),
+  shift: z.string().trim().min(2).max(80).default('General'),
+  password: z.string().min(8, 'Use at least 8 characters').max(200).default('HotelStaff123!'),
+});
+
+export type CreateStaffInput = z.infer<typeof createStaffSchema>;
+
+// --- Guest Loyalty & Marketing Schemas ---
+
+export const loyaltyTiers = ['bronze', 'silver', 'gold', 'platinum', 'kohinoor'] as const;
+export type LoyaltyTier = (typeof loyaltyTiers)[number];
+
+export const sendReviewRequestSchema = z.object({
+  guestId: z.string().uuid(),
+  reservationId: z.string().uuid().optional(),
+  channel: z.enum(['whatsapp', 'email', 'sms']).default('whatsapp'),
+  recipientPhone: z.string().trim().optional(),
+  recipientEmail: z.string().trim().email().optional().or(z.literal('')),
+  customMessage: z.string().trim().max(1000).optional(),
+  platform: z.enum(['google', 'tripadvisor', 'direct_nps']).default('google'),
+});
+
+export const createMarketingCampaignSchema = z.object({
+  title: z.string().trim().min(3, 'Campaign title must be at least 3 characters').max(120),
+  campaignType: z.enum(['repeat_booking', 'inactive_reengagement', 'festive_offer', 'vip_loyalty', 'corporate_renewal']),
+  channel: z.enum(['whatsapp', 'email']).default('whatsapp'),
+  audienceSegment: z.enum(['all_guests', 'recent_checkouts', 'inactive_90_days', 'vip_platinum', 'corporate']),
+  templateMessage: z.string().trim().min(10, 'Message must be at least 10 characters').max(2000),
+  discountCode: z.string().trim().max(30).optional(),
+});
+
+export const updateGuestLoyaltySchema = z.object({
+  tier: z.enum(loyaltyTiers).optional(),
+  preferences: z.record(z.any()).optional(),
+  anniversaryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  birthdayDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  pointsAdjustment: z.number().int().optional(),
+});
+
+export type SendReviewRequestInput = z.infer<typeof sendReviewRequestSchema>;
+export type CreateMarketingCampaignInput = z.infer<typeof createMarketingCampaignSchema>;
+export type UpdateGuestLoyaltyInput = z.infer<typeof updateGuestLoyaltySchema>;
+

@@ -1,39 +1,40 @@
 import type { ReactNode } from 'react';
 import type { RoomStatus } from '@erp/shared';
+import { getRoomTypeTheme } from '@/lib/room-types';
 
 export const inputCls =
-  'min-h-10 w-full rounded-xl border border-line/80 bg-surface px-3.5 py-2 text-xs text-ink shadow-sm placeholder:text-muted/60 transition duration-150 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 disabled:cursor-not-allowed disabled:bg-ground disabled:text-muted';
+  'min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-2xs placeholder:text-slate-400 transition duration-150 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-950/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
 
 export const btnCls =
-  'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
 export const btnGhostCls =
-  'inline-flex min-h-9 items-center justify-center gap-2 rounded-xl border border-line/80 bg-surface px-3 py-2 text-xs font-semibold text-ink shadow-sm hover:bg-ground hover:border-slate-300 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 hover:border-slate-300 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50';
 
 export const btnDangerCls =
-  'inline-flex min-h-9 items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-semibold text-rose-700 shadow-sm hover:bg-rose-100/80 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
+  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 shadow-2xs hover:bg-rose-100 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
 
 export function Banner({ error, ok }: { error?: string; ok?: string }) {
   if (!error && !ok) return null;
   return (
     <div
       role={error ? 'alert' : 'status'}
-      className={`mb-6 flex items-start gap-3 rounded-2xl border p-4 text-xs font-medium shadow-sm transition-all animate-in fade-in-50 duration-200 ${
+      className={`mb-6 flex items-start gap-3.5 rounded-2xl border p-5 text-sm font-medium shadow-xs transition-all animate-in fade-in-50 duration-200 ${
         error
-          ? 'border-rose-300 bg-rose-100 text-rose-950'
-          : 'border-emerald-300 bg-emerald-100 text-emerald-950'
+          ? 'border-rose-200 bg-rose-50/90 text-rose-950'
+          : 'border-emerald-200 bg-emerald-50/90 text-emerald-950'
       }`}
     >
       <span
         aria-hidden
-        className={`grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-black ${
+        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-black ${
           error ? 'bg-rose-200 text-rose-950' : 'bg-emerald-200 text-emerald-950'
         }`}
       >
         {error ? '!' : '✓'}
       </span>
-      <div className="flex-1 leading-5">
-        <span className="font-extrabold">{error ? 'Error: ' : 'Success: '}</span>
+      <div className="flex-1 leading-6">
+        <strong className="font-bold">{error ? 'Error: ' : 'Success: '}</strong>
         {error ?? ok}
       </div>
     </div>
@@ -52,24 +53,24 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <div className="mb-7 flex flex-wrap items-end justify-between gap-4 border-b border-line/60 pb-5">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-5 border-b border-slate-200/80 pb-6">
       <div className="min-w-0">
         {eyebrow && (
-          <p className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-teal-300 bg-teal-100 px-3 py-0.5 text-[11px] font-extrabold uppercase tracking-[.18em] text-teal-950 shadow-2xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-teal-600 animate-pulse" />
+          <p className="mb-2.5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 shadow-2xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
             {eyebrow}
           </p>
         )}
-        <h1 className="font-display text-2xl font-extrabold tracking-tight text-ink sm:text-3xl">
+        <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
           {title}
         </h1>
         {description && (
-          <p className="mt-1.5 max-w-2xl text-xs sm:text-sm leading-relaxed text-muted">
+          <p className="mt-1.5 max-w-3xl text-sm sm:text-base leading-relaxed text-slate-500 font-normal">
             {description}
           </p>
         )}
       </div>
-      {children && <div className="flex flex-wrap items-center gap-2.5">{children}</div>}
+      {children && <div className="flex flex-wrap items-center gap-3">{children}</div>}
     </div>
   );
 }
@@ -86,9 +87,9 @@ export function StatusBadge({
   const pulseColor = STATUS_PULSE[status];
   return (
     <span
-      className={`inline-flex min-h-6 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-black tracking-wider uppercase shadow-2xs ${color}`}
+      className={`inline-flex min-h-7 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-bold ${color}`}
     >
-      <span aria-hidden className={`h-2 w-2 rounded-full shrink-0 ${pulseColor}`} />
+      <span aria-hidden className={`h-1.5 w-1.5 rounded-full shrink-0 ${pulseColor}`} />
       <span>{content}</span>
     </span>
   );
@@ -105,27 +106,27 @@ const STATUS_LABELS: Record<RoomStatus | 'reserved' | 'checked_in' | 'checked_ou
   cancelled: 'Cancelled',
 };
 
-// Ultra-readable, high-contrast, accessible status colors
+// Refined, accessible, modern luxury status colors
 const STATUS_COLORS: Record<RoomStatus | 'reserved' | 'checked_in' | 'checked_out' | 'cancelled', string> = {
-  available: 'border-emerald-300 bg-emerald-100 text-emerald-950 font-extrabold',
-  occupied: 'border-blue-300 bg-blue-100 text-blue-950 font-extrabold',
-  cleaning: 'border-amber-300 bg-amber-100 text-amber-950 font-extrabold',
-  maintenance: 'border-slate-300 bg-slate-200 text-slate-900 font-extrabold',
-  reserved: 'border-indigo-300 bg-indigo-100 text-indigo-950 font-extrabold',
-  checked_in: 'border-teal-300 bg-teal-100 text-teal-950 font-extrabold',
-  checked_out: 'border-slate-300 bg-slate-100 text-slate-800 font-extrabold',
-  cancelled: 'border-rose-300 bg-rose-100 text-rose-950 font-extrabold',
+  available: 'border-emerald-200/80 bg-emerald-50/80 text-emerald-900',
+  occupied: 'border-blue-200/80 bg-blue-50/80 text-blue-900',
+  cleaning: 'border-amber-200/80 bg-amber-50/80 text-amber-900',
+  maintenance: 'border-slate-200/80 bg-slate-100/80 text-slate-800',
+  reserved: 'border-indigo-200/80 bg-indigo-50/80 text-indigo-900',
+  checked_in: 'border-blue-200/80 bg-blue-50/80 text-blue-900',
+  checked_out: 'border-slate-200/80 bg-slate-100/80 text-slate-700',
+  cancelled: 'border-rose-200/80 bg-rose-50/80 text-rose-900',
 };
 
 const STATUS_PULSE: Record<RoomStatus | 'reserved' | 'checked_in' | 'checked_out' | 'cancelled', string> = {
-  available: 'bg-emerald-600 shadow-[0_0_6px_rgba(5,150,105,0.8)]',
-  occupied: 'bg-blue-600 shadow-[0_0_6px_rgba(37,99,235,0.8)]',
-  cleaning: 'bg-amber-600 shadow-[0_0_6px_rgba(217,119,6,0.8)]',
-  maintenance: 'bg-slate-500',
-  reserved: 'bg-indigo-600 shadow-[0_0_6px_rgba(79,70,229,0.8)]',
-  checked_in: 'bg-teal-600 shadow-[0_0_6px_rgba(13,148,136,0.8)]',
-  checked_out: 'bg-slate-500',
-  cancelled: 'bg-rose-600 shadow-[0_0_6px_rgba(225,29,72,0.8)]',
+  available: 'bg-emerald-500',
+  occupied: 'bg-blue-500',
+  cleaning: 'bg-amber-500',
+  maintenance: 'bg-slate-400',
+  reserved: 'bg-indigo-500',
+  checked_in: 'bg-blue-500',
+  checked_out: 'bg-slate-400',
+  cancelled: 'bg-rose-500',
 };
 
 export const STATUS_META: Record<RoomStatus, { label: string; bar: string; text: string }> = {
@@ -152,9 +153,16 @@ export function RoomTile({
   const isOccupied = status === 'occupied';
   const isReady = status === 'available';
   const isCleaning = status === 'cleaning';
+  const roomTheme = getRoomTypeTheme(type);
 
   return (
-    <article className="group relative min-w-0 rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-slate-300">
+    <article className={`group relative min-w-0 rounded-2xl border border-slate-200/90 ${roomTheme.lightBg} p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all duration-200 hover:-translate-y-1 hover:shadow-lg hover:border-slate-300`}>
+      {/* Bundled Notes Signature Horizontal Accent Dash */}
+      <span
+        aria-hidden
+        className={`mb-3 h-1.5 w-6 rounded-full ${roomTheme.dash} block shadow-2xs`}
+      />
+
       <div className="flex items-start gap-4">
         {/* Left vertical status pillar */}
         <span
@@ -175,17 +183,21 @@ export function RoomTile({
             <StatusBadge status={status} />
           </div>
 
-          {/* Subtitle: Room Type and Floor specs */}
-          <p
-            className="mt-1 truncate text-xs font-bold text-slate-700"
-            style={{ color: '#334155' }}
-            title={type}
-          >
-            {type} {floor !== undefined ? `· Floor ${floor}` : ''}
-          </p>
+          {/* Subtitle: Bundled Notes Material 3 Room Type Pill & Floor */}
+          <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold border ${roomTheme.badge}`}>
+              <span>{roomTheme.icon}</span>
+              <span className="truncate">{type}</span>
+            </span>
+            {floor !== undefined && (
+              <span className="text-xs font-semibold text-slate-500">
+                · Floor {floor}
+              </span>
+            )}
+          </div>
 
           {/* Bottom Context Pill */}
-          <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 text-[11px] font-bold">
+          <div className="mt-4 flex items-center justify-between border-t border-slate-200/60 pt-3 text-xs font-bold">
             <span
               className={`inline-flex items-center gap-1.5 ${
                 isReady
@@ -237,19 +249,21 @@ export function StatCard({
   icon?: ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-line/80 bg-surface p-5 shadow-sm transition-all duration-200 hover:border-slate-300">
-      <div className="flex items-center justify-between gap-2">
-        <p className="text-xs font-bold uppercase tracking-wider text-muted">{label}</p>
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-600">
+          {label}
+        </p>
         {icon && (
-          <span className="grid h-8 w-8 place-items-center rounded-xl bg-ground text-slate-800">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-800">
             {icon}
           </span>
         )}
       </div>
-      <p className="mt-3 font-display text-2xl font-black tracking-tight text-ink sm:text-3xl">
+      <p className="mt-3 font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-950">
         {value}
       </p>
-      {detail && <p className="mt-1 text-xs font-medium text-muted">{detail}</p>}
+      {detail && <p className="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600">{detail}</p>}
     </div>
   );
 }

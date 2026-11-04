@@ -11,6 +11,7 @@ import { NightAuditController } from './night-audit.controller';
 import { ReservationsController } from './reservations.controller';
 import { RoomsController } from './rooms.controller';
 import { TapeChartController } from './tape-chart.controller';
+import { MarketingController } from './marketing.controller';
 
 @Module({
   imports: [EntitlementsModule],
@@ -25,6 +26,7 @@ import { TapeChartController } from './tape-chart.controller';
     ComplianceController,
     TapeChartController,
     ChannelManagerController,
+    MarketingController,
   ],
   providers: [CustomFieldsService],
 })

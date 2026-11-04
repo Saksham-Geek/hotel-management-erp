@@ -1,6 +1,7 @@
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, EmptyState, PageHeader, StatCard } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
+import { formatDate } from '@/lib/format';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { runNightAudit } from './actions';
 
@@ -66,14 +67,14 @@ export default async function NightAuditPage({
       <Banner error={error} ok={ok} />
 
       {/* Operational Business Date Banner */}
-      <section className="mb-6 overflow-hidden rounded-xl border border-lagoon/30 bg-surface shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-line bg-lagoon/10 px-5 py-4">
+      <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-slate-50/80 px-6 py-5">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-lagoon-dark">Hotel Operations Date</p>
-            <h2 className="text-xl font-bold font-display text-ink">
-              Current Business Date: <span className="text-lagoon-dark">{status.currentBusinessDate}</span>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hotel Operations Date</p>
+            <h2 className="text-xl font-bold font-display text-slate-950 mt-1">
+              Current Business Date: <span className="text-slate-900 font-mono font-bold">{status.currentBusinessDate}</span>
             </h2>
-            <p className="text-xs text-muted">
+            <p className="text-xs text-slate-500 mt-0.5">
               {status.lastAuditedAt
                 ? `Last audited: ${new Date(status.lastAuditedAt).toLocaleString('en-IN')}`
                 : 'Night audit has not been run today'}
@@ -83,7 +84,7 @@ export default async function NightAuditPage({
           {!ent.readOnly && (
             <form action={runNightAudit}>
               <FormSubmit
-                className={`${btnCls} bg-lagoon-dark hover:bg-lagoon`}
+                className={btnCls}
                 pendingLabel="Executing Night Audit…"
               >
                 Execute Night Audit &amp; Advance Day →
@@ -118,19 +119,21 @@ export default async function NightAuditPage({
       </section>
 
       {/* Audit History & Manager Flash Reports */}
-      <section aria-labelledby="night-audit-history-title" className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
-        <div className="border-b border-line px-5 py-4 flex items-center justify-between">
+      <section aria-labelledby="night-audit-history-title" className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
+        <div className="border-b border-line px-6 sm:px-7 py-5 bg-slate-50 flex items-center justify-between">
           <div>
-            <h3 id="night-audit-history-title" className="text-sm font-semibold text-ink">
+            <h3 id="night-audit-history-title" className="font-display text-lg font-black text-slate-950">
               Manager Flash Reports &amp; Daily Hospitality KPIs
             </h3>
-            <p className="text-xs text-muted">Historical ADR (Average Daily Rate) and RevPAR (Revenue Per Available Room)</p>
+            <p className="mt-0.5 text-sm text-slate-600 font-medium">Historical ADR (Average Daily Rate) and RevPAR (Revenue Per Available Room)</p>
           </div>
-          <span className="text-xs font-medium text-muted">{history.length} records</span>
+          <span className="rounded-full bg-white border border-slate-300 px-4 py-1.5 text-xs sm:text-sm font-bold text-slate-900 shadow-xs">
+            {history.length} records
+          </span>
         </div>
 
         {history.length === 0 ? (
-          <div className="p-8">
+          <div className="p-10">
             <EmptyState
               title="No audit records yet"
               description="Executing your first night audit will record daily ADR, RevPAR, and tax breakdown."
@@ -138,30 +141,30 @@ export default async function NightAuditPage({
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-left text-xs">
-              <thead className="border-b border-line bg-ground/60 font-semibold uppercase tracking-wider text-muted text-[10px]">
+            <table className="w-full min-w-[760px] text-left">
+              <thead className="border-b border-line bg-slate-100/90 font-black uppercase tracking-wider text-slate-800 text-xs">
                 <tr>
-                  <th className="px-4 py-3">Business Date</th>
-                  <th className="px-4 py-3">Rooms Occupied</th>
-                  <th className="px-4 py-3">Occupancy %</th>
-                  <th className="px-4 py-3">Room Revenue</th>
-                  <th className="px-4 py-3">GST Tax Collected</th>
-                  <th className="px-4 py-3">ADR</th>
-                  <th className="px-4 py-3">RevPAR</th>
-                  <th className="px-4 py-3">Auditor</th>
+                  <th className="px-5 py-4">Business Date</th>
+                  <th className="px-5 py-4">Rooms Occupied</th>
+                  <th className="px-5 py-4">Occupancy %</th>
+                  <th className="px-5 py-4">Room Revenue</th>
+                  <th className="px-5 py-4">GST Tax Collected</th>
+                  <th className="px-5 py-4">ADR</th>
+                  <th className="px-5 py-4">RevPAR</th>
+                  <th className="px-5 py-4">Auditor</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody className="divide-y divide-line text-sm sm:text-[15px]">
                 {history.map((h) => (
-                  <tr key={h.id} className="hover:bg-ground/40">
-                    <td className="px-4 py-3 font-semibold text-ink">{h.businessDate}</td>
-                    <td className="px-4 py-3 font-mono">{h.roomsOccupied} / {h.roomsTotal}</td>
-                    <td className="px-4 py-3 font-semibold">{h.occupancyRate}%</td>
-                    <td className="px-4 py-3 font-semibold text-ink">{money(h.totalRoomRevenue, currency)}</td>
-                    <td className="px-4 py-3 text-muted">{money(h.totalTaxCollected, currency)}</td>
-                    <td className="px-4 py-3 font-mono font-bold text-lagoon-dark">{money(h.adr, currency)}</td>
-                    <td className="px-4 py-3 font-mono font-bold text-ink">{money(h.revpar, currency)}</td>
-                    <td className="px-4 py-3 text-muted">{h.auditorName ?? 'System Cron'}</td>
+                  <tr key={h.id} className="hover:bg-slate-50/70 transition-colors">
+                    <td className="px-5 py-4 font-bold text-slate-950 whitespace-nowrap">{formatDate(h.businessDate)}</td>
+                    <td className="px-5 py-4 font-mono font-semibold text-slate-900">{h.roomsOccupied} / {h.roomsTotal}</td>
+                    <td className="px-5 py-4 font-bold text-slate-950">{h.occupancyRate}%</td>
+                    <td className="px-5 py-4 font-black text-slate-950">{money(h.totalRoomRevenue, currency)}</td>
+                    <td className="px-5 py-4 text-slate-700 font-medium">{money(h.totalTaxCollected, currency)}</td>
+                    <td className="px-5 py-4 font-mono font-black text-teal-900">{money(h.adr, currency)}</td>
+                    <td className="px-5 py-4 font-mono font-black text-slate-950">{money(h.revpar, currency)}</td>
+                    <td className="px-5 py-4 text-slate-600 font-medium">{h.auditorName ?? 'System Cron'}</td>
                   </tr>
                 ))}
               </tbody>

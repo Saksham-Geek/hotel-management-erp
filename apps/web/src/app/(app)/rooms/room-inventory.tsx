@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { ROOM_STATUSES, type RoomStatus } from '@erp/shared';
 import { btnGhostCls, EmptyState, inputCls, STATUS_META, StatusBadge } from '@/components/ui';
+import { getRoomTypeTheme } from '@/lib/room-types';
 import { setRoomStatus, updateRoom } from './actions';
 
 export interface RoomRecord {
@@ -79,24 +80,32 @@ export function RoomInventory({
               (canManage || status !== 'maintenance') &&
               (role !== 'housekeeping' || ['available', 'cleaning'].includes(status)));
             const statusLocked = room.status === 'maintenance' && !canManage;
+            const roomTheme = getRoomTypeTheme(room.roomType);
             return (
-              <article key={room.id} className="min-w-0 overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
-                <div className="flex items-start justify-between gap-3 p-4">
+              <article key={room.id} className={`min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 ${roomTheme.lightBg} shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:border-slate-300 transition-all`}>
+                <div className="flex items-start justify-between gap-3 p-5">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-[.13em] text-muted">Floor {room.floor}</p>
+                    {/* Bundled Notes Signature Accent Dash */}
+                    <span className={`h-1.5 w-6 rounded-full ${roomTheme.dash} block mb-2 shadow-2xs`} />
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Floor {room.floor}</p>
                     <h3
                       className="mt-1 font-display text-2xl font-black font-mono leading-7 text-slate-950 select-all"
                       style={{ color: '#020617' }}
                     >
                       Room {room.number}
                     </h3>
-                    <p className="mt-1 truncate text-xs text-muted">{room.roomType}</p>
+                    <div className="mt-1.5">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-bold border ${roomTheme.badge}`}>
+                        <span>{roomTheme.icon}</span>
+                        <span className="truncate">{room.roomType}</span>
+                      </span>
+                    </div>
                   </div>
                   <StatusBadge status={room.status} />
                 </div>
-                <div className="grid grid-cols-2 gap-2 border-y border-line bg-ground/45 px-4 py-2.5 text-xs">
-                  <div><p className="text-muted">Nightly</p><p className="mt-0.5 font-semibold text-ink">{money(room.baseRate, currency)}</p></div>
-                  <div><p className="text-muted">Hourly</p><p className="mt-0.5 font-semibold text-ink">{room.hourlyRate == null ? 'Default ÷ 24' : money(room.hourlyRate, currency)}</p></div>
+                <div className="grid grid-cols-2 gap-2 border-y border-slate-200/80 bg-white/70 px-5 py-3 text-xs sm:text-[13px]">
+                  <div><p className="font-medium text-slate-500">Nightly Rate</p><p className="mt-0.5 text-sm font-bold text-slate-900">{money(room.baseRate, currency)}</p></div>
+                  <div><p className="font-medium text-slate-500">Hourly Rate</p><p className="mt-0.5 text-sm font-bold text-slate-900">{room.hourlyRate == null ? 'Default ÷ 24' : money(room.hourlyRate, currency)}</p></div>
                 </div>
                 <div className="space-y-3 p-4">
                   {canManage && !readOnly && (

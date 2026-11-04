@@ -20,6 +20,10 @@ const pageNames: Record<string, string> = {
   '/night-audit': 'Night Audit & Manager KPIs',
   '/compliance': 'Police Beat & BoI Form C',
   '/channel-manager': 'OTA Channel Manager & Distribution',
+  '/marketing': 'Guest Follow-Up & Loyalty CRM',
+  '/staff': 'Staff Hierarchy & Delegation',
+  '/guide': 'Hotel ERP SOP & User Journeys',
+  '/super-admin': 'Super Admin (HQ Console)',
   '/upgrade': 'Subscription Plans & Tiers',
   '/profile': 'My Staff Profile',
 };
@@ -97,23 +101,23 @@ export function AppShell({
       {/* Main Sidebar Navigation */}
       <aside
         id="app-navigation"
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(84vw,300px)] flex-col border-r border-white/[.08] bg-[#0c1427] px-3.5 py-4 text-white shadow-2xl transition-all duration-200 md:sticky md:top-0 md:z-20 md:h-dvh md:translate-x-0 md:px-4 md:py-5 ${
-          collapsed ? 'md:w-[78px]' : 'md:w-[270px]'
+        className={`fixed inset-y-0 left-0 z-50 flex w-[min(88vw,330px)] flex-col border-r border-white/[.08] bg-[#080d1a] px-4 py-5 text-white shadow-2xl transition-all duration-200 md:sticky md:top-0 md:z-20 md:h-dvh md:translate-x-0 ${
+          collapsed ? 'md:w-[84px] md:px-3' : 'md:w-[310px] lg:w-[320px] md:px-5'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
         {/* Brand / Property Header */}
-        <div className={`flex min-h-12 items-center gap-3 px-1.5 ${collapsed ? 'md:justify-center md:px-0' : ''}`}>
+        <div className={`flex min-h-12 items-center gap-3.5 px-1 ${collapsed ? 'md:justify-center md:px-0' : ''}`}>
           <div
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-teal-400/25 to-teal-600/10 text-teal-400 ring-1 ring-teal-400/30 shadow-inner"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 text-white ring-1 ring-white/15 shadow-sm"
             aria-hidden
           >
             <HotelMark />
           </div>
           <div className={`${collapsed ? 'md:hidden' : ''} min-w-0 flex-1`}>
-            <p className="truncate font-display text-sm font-bold tracking-tight text-white">
+            <p className="truncate font-display text-[15px] font-bold tracking-tight text-white leading-tight">
               {property.name}
             </p>
-            <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[.18em] text-teal-400/80">
+            <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
               Hotel Operations PMS
             </p>
           </div>
@@ -131,49 +135,49 @@ export function AppShell({
         {properties.length > 1 && (
           <form
             action={selectProperty}
-            className={`mt-4 rounded-xl border border-white/[.08] bg-white/[.04] p-2.5 ${
+            className={`mt-4 rounded-xl border border-white/10 bg-white/[.04] p-2.5 backdrop-blur-xs ${
               collapsed ? 'md:hidden' : ''
             }`}
           >
-            <label
-              htmlFor="sidebar-property"
-              className="mb-1 block text-[9px] font-bold uppercase tracking-[.18em] text-white/40"
-            >
-              Active Property
-            </label>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label
+                htmlFor="sidebar-property"
+                className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400"
+              >
+                Active Property
+              </label>
+            </div>
             <select
               id="sidebar-property"
               name="propertyId"
               defaultValue={property.id}
-              className="h-8 w-full rounded-lg border border-white/10 bg-white/5 px-2 text-xs font-medium text-white focus:border-teal-400 focus:outline-none"
+              onChange={(e) => e.target.form?.requestSubmit()}
+              className="h-8.5 w-full rounded-lg border border-white/15 bg-slate-900/90 px-2.5 text-xs font-semibold text-white focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30 transition-colors cursor-pointer"
             >
               {properties.map((item) => (
-                <option className="text-ink" key={item.id} value={item.id}>
+                <option className="text-ink bg-white font-medium" key={item.id} value={item.id}>
                   {item.name}
                 </option>
               ))}
             </select>
-            <button className="mt-1.5 w-full rounded-md py-1 text-center text-[11px] font-semibold text-teal-300 hover:bg-white/5">
-              Switch property
-            </button>
           </form>
         )}
 
         {/* Navigation Items (Grouped) */}
-        <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1">
+        <div className="mt-5 min-h-0 flex-1 overflow-y-auto pr-1.5 custom-scrollbar">
           <Nav items={items} collapsed={collapsed} onNavigate={() => setMobileOpen(false)} />
         </div>
 
         {/* Add Property Action for Owners */}
         {role === 'owner' && (
-          <div className={`border-t border-white/[.08] pt-3 ${collapsed ? 'md:hidden' : ''}`}>
+          <div className={`border-t border-white/[.08] pt-3.5 ${collapsed ? 'md:hidden' : ''}`}>
             <button
               type="button"
               onClick={() => setAddPropertyOpen((open) => !open)}
               aria-expanded={addPropertyOpen}
-              className="w-full rounded-xl px-3 py-2 text-left text-xs font-semibold text-white/60 hover:bg-white/[.06] hover:text-white transition-colors"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-bold text-slate-300 hover:bg-white/[.08] hover:text-white transition-colors"
             >
-              {addPropertyOpen ? '✕ Cancel' : '+ Add hotel property'}
+              <span>{addPropertyOpen ? '✕ Cancel' : '+ Add hotel property'}</span>
             </button>
             {addPropertyOpen && (
               <form action={createProperty} className="mt-2 space-y-2 px-1">
@@ -199,33 +203,33 @@ export function AppShell({
 
         {/* User Profile Bar */}
         <div
-          className={`mt-3 flex items-center gap-3 border-t border-white/[.08] px-1.5 pt-3.5 ${
+          className={`mt-3 flex items-center gap-3 border-t border-white/[.08] px-1 pt-3.5 ${
             collapsed ? 'md:justify-center md:px-0' : ''
           }`}
         >
           <Link
             href="/profile"
             title="My profile and contact details"
-            className={`group flex min-w-0 flex-1 items-center gap-3 rounded-xl p-1.5 outline-none transition-colors hover:bg-white/[.06] focus-visible:ring-2 focus-visible:ring-teal-400 ${
+            className={`group flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-1.5 outline-none transition-all hover:bg-white/[.08] focus-visible:ring-2 focus-visible:ring-white/20 ${
               collapsed ? 'md:flex-none md:justify-center' : ''
             }`}
           >
             <div
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-xs font-extrabold text-slate-950 shadow-sm"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-800 text-xs font-bold text-white ring-1 ring-white/15 shadow-sm"
               aria-hidden
             >
               {initials}
             </div>
-            <div className={`${collapsed ? 'md:hidden' : ''} min-w-0 flex-1`}>
-              <p className="truncate text-xs font-bold text-white/95 group-hover:text-white">
+            <div className={`${collapsed ? 'md:hidden' : ''} min-w-0 flex-1 text-left`}>
+              <p className="truncate text-[13.5px] font-semibold text-white group-hover:text-slate-200 transition-colors">
                 {fullName}
               </p>
-              <div className="mt-0.5 flex items-center gap-1.5">
-                <span className="capitalize text-[10px] font-semibold text-white/50">
+              <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
+                <span className="capitalize text-[11px] font-medium text-slate-400">
                   {role.replaceAll('_', ' ')}
                 </span>
                 <span
-                  className={`inline-flex rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${tierBadge.color}`}
+                  className="inline-flex rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-300"
                 >
                   {tierBadge.label}
                 </span>
@@ -233,21 +237,13 @@ export function AppShell({
             </div>
           </Link>
 
-          <form action={logout} className={collapsed ? 'md:hidden' : ''}>
-            <button
-              aria-label="Sign out"
-              title="Sign out"
-              className="rounded-xl p-2 text-white/40 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              <SignOutIcon />
-            </button>
-          </form>
-          {collapsed && (
-            <form action={logout} className="hidden md:block">
+          {!collapsed && (
+            <form action={logout}>
               <button
+                type="submit"
                 aria-label="Sign out"
-                title="Sign out"
-                className="rounded-xl p-2 text-white/40 hover:bg-white/10 hover:text-white transition-colors"
+                title="Sign out of this session"
+                className="rounded-xl p-2.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
               >
                 <SignOutIcon />
               </button>
@@ -259,7 +255,7 @@ export function AppShell({
       {/* Main Content Area */}
       <div className="min-w-0 flex-1">
         {/* Sticky Top Header */}
-        <header className="sticky top-0 z-30 flex min-h-[64px] items-center justify-between gap-4 border-b border-line/80 bg-surface/85 px-4 backdrop-blur-md sm:px-6 lg:px-8 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+        <header className="sticky top-0 z-30 flex min-h-[60px] items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-md sm:px-6 lg:px-8 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -267,7 +263,7 @@ export function AppShell({
               aria-expanded={mobileOpen}
               aria-controls="app-navigation"
               onClick={() => setMobileOpen(true)}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-surface text-ink shadow-sm hover:bg-ground md:hidden transition-colors"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-800 shadow-2xs hover:bg-slate-50 md:hidden transition-colors"
             >
               <MenuIcon />
             </button>
@@ -276,26 +272,35 @@ export function AppShell({
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               onClick={toggleCollapsed}
-              className="hidden h-9 w-9 shrink-0 place-items-center rounded-xl border border-line bg-surface text-muted shadow-sm hover:bg-ground md:grid transition-colors"
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-2xs hover:bg-slate-50 md:grid transition-colors"
             >
               <CollapseIcon collapsed={collapsed} />
             </button>
 
             {/* Breadcrumb Navigation */}
             <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs font-semibold">
-                <span className="text-muted">{property.name}</span>
-                <span className="text-line" aria-hidden>/</span>
-                <span className="font-bold text-ink">{pageNames[pathname] ?? 'Hotel Operations'}</span>
+              <div className="flex items-center gap-2 text-xs font-medium">
+                <span className="text-slate-500">{property.name}</span>
+                <span className="text-slate-300" aria-hidden>/</span>
+                <span className="font-semibold text-slate-900">{pageNames[pathname] ?? 'Hotel Operations'}</span>
               </div>
             </div>
           </div>
 
           {/* Header Right Actions */}
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+            {/* Quick ERP Guide & Journeys Pill */}
+            <Link
+              href="/guide"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              title="Click to view SOP, Page Directory & Step-by-Step Journeys"
+            >
+              <span>📖 SOP & Journeys</span>
+            </Link>
+
             {/* Live Indian Time & Date Capsule */}
-            <span className="hidden items-center gap-2 rounded-full border border-slate-300 bg-white px-3.5 py-1 text-xs font-bold text-slate-800 shadow-xs lg:inline-flex">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/30 animate-pulse shrink-0" />
+            <span className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-medium text-slate-700 shadow-2xs lg:inline-flex">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
               {new Intl.DateTimeFormat('en-IN', {
                 weekday: 'short',
                 day: 'numeric',
@@ -306,20 +311,12 @@ export function AppShell({
             {/* Tier / Edition Link Capsule */}
             <Link
               href="/upgrade"
-              className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1 text-xs font-black shadow-xs transition-all hover:scale-105 ${
-                plan === 'enterprise'
-                  ? 'border-amber-400 bg-amber-100 text-amber-950'
-                  : plan === 'growth' || plan === 'plus'
-                  ? 'border-teal-400 bg-teal-100 text-teal-950'
-                  : 'border-slate-300 bg-slate-100 text-slate-900'
-              }`}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors"
             >
-              <span className="flex h-1.5 w-1.5 rounded-full bg-teal-600 shrink-0" />
-              <span>{plan === 'enterprise' ? '👑 Taj Chain' : plan === 'growth' || plan === 'plus' ? '⚡ Growth' : '🌱 Starter'}</span>
-              <span className="hidden sm:inline">Edition</span>
+              <span>{plan === 'enterprise' ? '👑 Taj Chain Edition' : plan === 'growth' || plan === 'plus' ? '⚡ Growth Edition' : '🌱 Starter Edition'}</span>
             </Link>
 
-            <span className="hidden rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-bold capitalize text-slate-900 sm:inline-flex">
+            <span className="hidden rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium capitalize text-slate-700 shadow-2xs sm:inline-flex">
               {role.replaceAll('_', ' ')}
             </span>
           </div>

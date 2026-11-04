@@ -103,22 +103,22 @@ export function ChannelView({
 
       {/* Simulator Quick Action Banner */}
       {!readOnly && (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-teal-500/20 bg-gradient-to-r from-teal-500/[0.08] via-emerald-500/[0.05] to-transparent p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-2.5 w-2.5 rounded-full bg-teal-500 animate-pulse" />
-              <h3 className="text-sm font-extrabold text-teal-950">
+              <span className="flex h-2 w-2 rounded-full bg-slate-900" />
+              <h3 className="text-sm font-bold text-slate-950">
                 Live OTA Ingestion Simulator
               </h3>
             </div>
-            <p className="mt-1 text-xs text-muted max-w-xl">
+            <p className="mt-1 text-xs text-slate-500 max-w-xl font-normal">
               Test how live bookings from <strong>MakeMyTrip</strong> or <strong>Booking.com</strong> flow automatically into your Room Rack (Tape Chart), Front Desk occupancy, and Cashiering Folio.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setSimulatorOpen((o) => !o)}
-            className={`${btnCls} bg-teal-600 hover:bg-teal-500 text-white font-black cursor-pointer shadow-md`}
+            className="inline-flex min-h-[42px] items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors shrink-0"
           >
             {simulatorOpen ? '✕ Close Simulator' : '⚡ Simulate Incoming OTA Booking'}
           </button>
@@ -433,66 +433,66 @@ export function ChannelView({
       )}
 
       {/* Sync Activity Stream */}
-      <section aria-labelledby="sync-logs-title" className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
-        <div className="flex items-center justify-between border-b border-line px-6 py-4">
+      <section aria-labelledby="sync-logs-title" className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="flex items-center justify-between border-b border-slate-200/80 px-6 sm:px-7 py-5 bg-slate-50/60">
           <div>
-            <h3 id="sync-logs-title" className="font-display text-base font-extrabold text-ink">
+            <h3 id="sync-logs-title" className="font-display text-lg font-bold text-slate-950">
               Channel Manager Sync Activity Stream
             </h3>
-            <p className="text-xs text-muted">Recent inbound reservations, rate updates, and inventory allocations</p>
+            <p className="mt-0.5 text-xs text-slate-500 font-normal">Recent inbound reservations, rate updates, and inventory allocations</p>
           </div>
-          <span className="rounded-full bg-ground border border-line px-3 py-1 text-xs font-bold text-slate-800 dark:text-slate-200">
+          <span className="rounded-full bg-white border border-slate-200 px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs">
             {logs.length} Recent Events
           </span>
         </div>
 
         {logs.length === 0 ? (
-          <div className="p-8 text-center text-xs text-muted">
+          <div className="p-10 text-center text-sm text-slate-500 font-medium">
             No sync activity recorded yet. Click <strong>Sync Now</strong> or use the <strong>Simulator</strong> above to generate real-time events.
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="border-b border-line bg-ground/60 uppercase tracking-wider text-[10px] font-black text-muted">
+            <table className="w-full text-left">
+              <thead className="border-b border-slate-200 bg-slate-50/80 uppercase tracking-wider text-xs font-bold text-slate-500">
                 <tr>
-                  <th className="px-5 py-3">Timestamp</th>
-                  <th className="px-5 py-3">Channel</th>
-                  <th className="px-5 py-3">Direction</th>
-                  <th className="px-5 py-3">Event Type</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3">Activity Summary</th>
+                  <th className="px-6 py-4">Timestamp</th>
+                  <th className="px-6 py-4">Channel</th>
+                  <th className="px-6 py-4">Direction</th>
+                  <th className="px-6 py-4">Event Type</th>
+                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Activity Summary</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line">
+              <tbody className="divide-y divide-slate-100 text-sm sm:text-[15px]">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-ground/40 transition-colors">
-                    <td className="px-5 py-3.5 font-mono text-[11px] text-muted whitespace-nowrap">
+                  <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                    <td className="px-6 py-4.5 font-mono text-xs text-slate-500 whitespace-nowrap font-medium">
                       {new Date(log.createdAt).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                     </td>
-                    <td className="px-5 py-3.5 font-bold uppercase tracking-wider text-ink">
+                    <td className="px-6 py-4.5 font-semibold uppercase tracking-wider text-slate-900">
                       {log.channelKey.replace('_', '.')}
                     </td>
-                    <td className="px-5 py-3.5">
+                    <td className="px-6 py-4.5">
                       <span
-                        className={`inline-flex rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                        className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider border ${
                           log.direction === 'inbound'
-                            ? 'bg-blue-100 text-blue-950 border border-blue-300'
-                            : 'bg-emerald-100 text-emerald-950 border border-emerald-300'
+                            ? 'bg-blue-50 text-blue-700 border-blue-200/80'
+                            : 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
                         }`}
                       >
                         {log.direction}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 font-mono text-[11px] font-bold text-slate-800">
+                    <td className="px-6 py-4.5 font-mono text-xs font-semibold text-slate-700">
                       {log.eventType}
                     </td>
-                    <td className="px-5 py-3.5">
-                      <span className="inline-flex items-center gap-1 font-extrabold text-emerald-800">
+                    <td className="px-6 py-4.5">
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 text-xs">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                         {log.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 font-medium text-ink">
+                    <td className="px-6 py-4.5 font-normal text-slate-800 leading-relaxed">
                       {log.summary}
                     </td>
                   </tr>

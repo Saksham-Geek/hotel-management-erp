@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Banner, btnGhostCls, EmptyState, inputCls, StatusBadge } from '@/components/ui';
+import { formatStayDates } from '@/lib/format';
 import { changeReservation } from './actions';
 
 export interface ReservationRow {
@@ -90,21 +91,36 @@ export function ReservationTable({
         <EmptyState title={reservations.length === 0 ? 'No reservations yet' : 'No matching reservations'} description={reservations.length === 0 ? 'Create a reservation to add the first stay.' : 'Try a different guest, room, or status filter.'} />
       ) : (
         <>
-          <div className="hidden overflow-hidden rounded-xl border border-line bg-surface shadow-sm md:block">
+          <div className="hidden overflow-hidden rounded-2xl border border-line bg-surface shadow-sm md:block">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[780px] text-left text-sm">
-                <thead className="border-b border-line bg-ground/70 text-[11px] font-semibold uppercase tracking-wide text-muted">
-                  <tr><th scope="col" className="px-4 py-3">Guest</th><th scope="col" className="px-4 py-3">Room</th><th scope="col" className="px-4 py-3">Stay</th><th scope="col" className="px-4 py-3">Total</th><th scope="col" className="px-4 py-3">Status</th><th scope="col" className="px-4 py-3 text-right">Actions</th></tr>
+              <table className="w-full min-w-[800px] text-left">
+                <thead className="border-b border-line bg-slate-100/90 text-xs font-black uppercase tracking-wider text-slate-800">
+                  <tr>
+                    <th scope="col" className="px-5 py-4">Guest</th>
+                    <th scope="col" className="px-5 py-4">Room</th>
+                    <th scope="col" className="px-5 py-4">Stay Duration</th>
+                    <th scope="col" className="px-5 py-4">Total Amount</th>
+                    <th scope="col" className="px-5 py-4">Status</th>
+                    <th scope="col" className="px-5 py-4 text-right">Actions</th>
+                  </tr>
                 </thead>
-                <tbody className="divide-y divide-line">
+                <tbody className="divide-y divide-line text-sm sm:text-[15px]">
                   {visible.map((reservation) => (
-                    <tr key={reservation.id} className="transition-colors hover:bg-ground/40">
-                      <td className="px-4 py-3.5"><p className="font-semibold text-ink">{reservation.guestName}</p>{reservation.guestPhone && <p className="mt-0.5 text-xs text-muted">{reservation.guestPhone}</p>}{(reservation.guests?.length ?? 0) > 1 && <p className="mt-1 text-[11px] text-muted">+ {(reservation.guests?.length ?? 1) - 1} companion{reservation.guests?.length === 2 ? '' : 's'}</p>}</td>
-                      <td className="px-4 py-3.5 font-medium text-ink">{reservation.roomNumber}</td>
-                      <td className="whitespace-nowrap px-4 py-3.5 text-muted">{reservation.checkIn} <span aria-hidden>→</span> {reservation.checkOut}</td>
-                      <td className="whitespace-nowrap px-4 py-3.5 font-semibold text-ink">{money(reservation.totalAmount, currency)}</td>
-                      <td className="px-4 py-3.5"><StatusBadge status={reservation.status} /></td>
-                      <td className="px-4 py-3.5"><Actions reservation={reservation} readOnly={readOnly} /></td>
+                    <tr key={reservation.id} className="transition-colors hover:bg-slate-50/70">
+                      <td className="px-5 py-4">
+                        <p className="font-bold text-slate-950">{reservation.guestName}</p>
+                        {reservation.guestPhone && <p className="mt-0.5 text-xs text-slate-600 font-medium">{reservation.guestPhone}</p>}
+                        {(reservation.guests?.length ?? 0) > 1 && (
+                          <p className="mt-1 text-xs text-slate-500 font-semibold">
+                            + {(reservation.guests?.length ?? 1) - 1} companion{reservation.guests?.length === 2 ? '' : 's'}
+                          </p>
+                        )}
+                      </td>
+                      <td className="px-5 py-4 font-black font-mono text-slate-950">Room {reservation.roomNumber}</td>
+                      <td className="whitespace-nowrap px-5 py-4 font-semibold text-slate-800">{formatStayDates(reservation.checkIn, reservation.checkOut)}</td>
+                      <td className="whitespace-nowrap px-5 py-4 font-black text-slate-950">{money(reservation.totalAmount, currency)}</td>
+                      <td className="px-5 py-4"><StatusBadge status={reservation.status} /></td>
+                      <td className="px-5 py-4"><Actions reservation={reservation} readOnly={readOnly} /></td>
                     </tr>
                   ))}
                 </tbody>
@@ -112,11 +128,20 @@ export function ReservationTable({
             </div>
           </div>
 
-          <div className="space-y-3 md:hidden">
+          <div className="space-y-4 md:hidden">
             {visible.map((reservation) => (
-              <article key={reservation.id} className="rounded-xl border border-line bg-surface p-4 shadow-sm">
-                <div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-semibold text-ink">{reservation.guestName}</p><p className="mt-0.5 text-xs text-muted">Room {reservation.roomNumber}{reservation.guestPhone ? ` · ${reservation.guestPhone}` : ''}</p></div><StatusBadge status={reservation.status} /></div>
-                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3"><p className="text-xs text-muted">{reservation.checkIn} <span aria-hidden>→</span> {reservation.checkOut}</p><p className="text-sm font-semibold text-ink">{money(reservation.totalAmount, currency)}</p></div>
+              <article key={reservation.id} className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="truncate text-base font-bold text-slate-950">{reservation.guestName}</p>
+                    <p className="mt-0.5 text-xs font-semibold text-slate-600">Room {reservation.roomNumber}{reservation.guestPhone ? ` · ${reservation.guestPhone}` : ''}</p>
+                  </div>
+                  <StatusBadge status={reservation.status} />
+                </div>
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-700">{formatStayDates(reservation.checkIn, reservation.checkOut)}</p>
+                  <p className="text-sm sm:text-base font-black text-slate-950">{money(reservation.totalAmount, currency)}</p>
+                </div>
                 {!readOnly && <div className="mt-3"><Actions reservation={reservation} readOnly={readOnly} /></div>}
               </article>
             ))}

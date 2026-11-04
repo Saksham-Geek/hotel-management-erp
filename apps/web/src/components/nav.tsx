@@ -15,7 +15,10 @@ export type NavIconName =
   | 'compliance'
   | 'channels'
   | 'plans'
-  | 'admin';
+  | 'admin'
+  | 'marketing'
+  | 'staff'
+  | 'guide';
 
 export interface NavItem {
   href: string;
@@ -52,13 +55,11 @@ export function Nav({
     <nav aria-label="Main navigation" className="flex flex-col gap-5">
       {groups.map((group) => (
         <div key={group.name} className="flex flex-col gap-1">
-          <p
-            className={`px-3 text-[10px] font-bold uppercase tracking-[.18em] text-white/35 ${
-              collapsed ? 'md:sr-only' : ''
-            }`}
-          >
-            {group.name}
-          </p>
+          <div className={`px-3.5 pt-2 pb-1 ${collapsed ? 'md:sr-only' : ''}`}>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              {group.name}
+            </p>
+          </div>
           <div className="flex flex-col gap-0.5">
             {group.items.map((item) => {
               const active = path === item.href || (item.href !== '/dashboard' && path.startsWith(item.href + '/'));
@@ -69,24 +70,24 @@ export function Nav({
                   onClick={onNavigate}
                   aria-current={active ? 'page' : undefined}
                   title={collapsed ? item.label : undefined}
-                  className={`group relative flex min-h-10 items-center gap-3 rounded-xl px-3 py-2 text-xs font-semibold transition-all duration-150 ${
+                  className={`group relative flex min-h-[42px] items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-[13.5px] transition-all duration-150 ${
                     active
-                      ? 'bg-teal-500/15 text-white shadow-sm ring-1 ring-teal-500/30'
-                      : 'text-white/70 hover:bg-white/[.07] hover:text-white'
+                      ? 'bg-white/[0.12] text-white font-bold shadow-xs'
+                      : 'text-slate-300 font-medium hover:bg-white/[0.06] hover:text-white'
                   }`}
                 >
                   {active && (
                     <span
                       aria-hidden
-                      className="absolute inset-y-1.5 left-0 w-1 rounded-r-full bg-teal-400 shadow-[0_0_8px_rgba(45,212,191,0.8)]"
+                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-white shadow-xs"
                     />
                   )}
                   <NavIcon name={item.icon} active={active} />
-                  <span className={`truncate ${collapsed ? 'md:sr-only' : ''}`}>
+                  <span className={`truncate leading-snug ${collapsed ? 'md:sr-only' : ''}`}>
                     {item.label}
                   </span>
                   {item.locked && !collapsed && (
-                    <span className="ml-auto rounded-full bg-amber-500/20 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-300 ring-1 ring-amber-500/30">
+                    <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-300 border border-white/20">
                       Tier
                     </span>
                   )}
@@ -103,12 +104,14 @@ export function Nav({
 function NavIcon({ name, active }: { name: NavIconName; active: boolean }) {
   const common = {
     'aria-hidden': true as const,
-    className: `h-[18px] w-[18px] shrink-0 transition-colors duration-150 ${
-      active ? 'text-teal-300' : 'text-white/50 group-hover:text-white/85'
+    className: `h-5 w-5 shrink-0 transition-colors duration-150 ${
+      active
+        ? 'text-white'
+        : 'text-slate-400 group-hover:text-slate-200'
     }`,
     fill: 'none',
     stroke: 'currentColor',
-    strokeWidth: 1.8,
+    strokeWidth: 2,
     strokeLinecap: 'round' as const,
     strokeLinejoin: 'round' as const,
     viewBox: '0 0 24 24',
@@ -197,6 +200,28 @@ function NavIcon({ name, active }: { name: NavIconName; active: boolean }) {
       return (
         <svg {...common}>
           <path d="M3 21h18M5 21V7l8-4v18M13 7l6 3v11M9 9v1M9 13v1M9 17v1M17 13v1M17 17v1" />
+        </svg>
+      );
+    case 'marketing':
+      return (
+        <svg {...common}>
+          <path d="m3 11 18-5v12L3 14v-3zM11.6 16.8a3 3 0 1 1-5.8-1.6" />
+          <path d="M12 5l7-3v14l-7-3" />
+        </svg>
+      );
+    case 'staff':
+      return (
+        <svg {...common}>
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      );
+    case 'guide':
+      return (
+        <svg {...common}>
+          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
         </svg>
       );
   }

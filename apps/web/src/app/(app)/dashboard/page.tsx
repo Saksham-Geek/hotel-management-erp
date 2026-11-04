@@ -52,7 +52,7 @@ export default async function Dashboard() {
       >
         <Link
           href="/reservations#new-reservation"
-          className={`${btnCls} bg-teal-600 hover:bg-teal-500`}
+          className={btnCls}
         >
           <span aria-hidden className="text-sm font-bold">+</span>
           New Reservation
@@ -67,21 +67,21 @@ export default async function Dashboard() {
 
       {/* KPI Overview Cards */}
       <section aria-label="Today's hotel metrics" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="relative overflow-hidden rounded-2xl border border-line/80 bg-surface p-5 shadow-sm">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-bold uppercase tracking-wider text-muted">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
               Live Occupancy
             </p>
-            <span className="rounded-full border border-teal-300 bg-teal-100 px-2.5 py-0.5 text-xs font-black text-teal-950 shadow-2xs">
+            <span className="rounded-full border border-blue-200/80 bg-blue-50/80 px-2.5 py-0.5 text-xs font-semibold text-blue-800 shadow-2xs">
               {occupancy}% Full
             </span>
           </div>
-          <p className="mt-3 font-display text-2xl font-black tracking-tight text-ink sm:text-3xl">
-            {occupied} <span className="text-sm font-normal text-muted">/ {dash.totalRooms} Rooms</span>
+          <p className="mt-2 font-display text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+            {occupied} <span className="text-sm font-medium text-slate-500">/ {dash.totalRooms} Rooms</span>
           </p>
-          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-ground">
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-teal-500 to-emerald-400 transition-all duration-500"
+              className="h-full rounded-full bg-slate-900 transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(4, occupancy))}%` }}
             />
           </div>
@@ -168,18 +168,18 @@ export default async function Dashboard() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs font-bold">
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 text-emerald-950 font-black">
-                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-600" />
+                  <div className="flex items-center gap-2 text-xs font-semibold">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 text-emerald-900 font-bold">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                       {floorReady} Ready
                     </span>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-blue-100 border border-blue-300 px-2.5 py-0.5 text-blue-950 font-black">
-                      <span className="h-1.5 w-1.5 rounded-full bg-blue-600" />
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-blue-900 font-bold">
+                      <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                       {floorOccupied} Occupied
                     </span>
                     {floorCleaning > 0 && (
-                      <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 border border-amber-300 px-2.5 py-0.5 text-amber-950 font-black">
-                        <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 text-amber-900 font-bold">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                         {floorCleaning} Cleaning
                       </span>
                     )}
@@ -217,18 +217,18 @@ function Legend({
   count?: number;
 }) {
   const styles: Record<RoomStatus, { dot: string; bg: string; text: string; border: string }> = {
-    available: { dot: 'bg-emerald-600', bg: 'bg-emerald-100', text: 'text-emerald-950 font-extrabold', border: 'border-emerald-300' },
-    occupied: { dot: 'bg-blue-600', bg: 'bg-blue-100', text: 'text-blue-950 font-extrabold', border: 'border-blue-300' },
-    cleaning: { dot: 'bg-amber-600', bg: 'bg-amber-100', text: 'text-amber-950 font-extrabold', border: 'border-amber-300' },
-    maintenance: { dot: 'bg-slate-600', bg: 'bg-slate-200', text: 'text-slate-900 font-extrabold', border: 'border-slate-300' },
+    available: { dot: 'bg-emerald-500', bg: 'bg-emerald-50/80', text: 'text-emerald-900 font-bold', border: 'border-emerald-200/80' },
+    occupied: { dot: 'bg-blue-500', bg: 'bg-blue-50/80', text: 'text-blue-900 font-bold', border: 'border-blue-200/80' },
+    cleaning: { dot: 'bg-amber-500', bg: 'bg-amber-50/80', text: 'text-amber-900 font-bold', border: 'border-amber-200/80' },
+    maintenance: { dot: 'bg-slate-400', bg: 'bg-slate-100/80', text: 'text-slate-800 font-bold', border: 'border-slate-200/80' },
   };
   const s = styles[status];
 
   return (
     <span className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-bold ${s.bg} ${s.border} ${s.text} shadow-2xs`}>
-      <span aria-hidden className={`h-2.5 w-2.5 rounded-full shrink-0 ${s.dot}`} />
+      <span aria-hidden className={`h-2 w-2 rounded-full shrink-0 ${s.dot}`} />
       <span>{label}</span>
-      {count !== undefined && <span className="font-mono text-[11px] font-black opacity-80">({count})</span>}
+      {count !== undefined && <span className="font-mono text-[11px] font-semibold opacity-70">({count})</span>}
     </span>
   );
 }

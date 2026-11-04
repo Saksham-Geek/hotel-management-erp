@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { inputCls } from '@/components/ui';
 
 interface RoomOption {
@@ -14,14 +14,20 @@ interface RoomOption {
 export function ReservationPricingFields({
   rooms,
   currency,
+  defaultRoomId = '',
 }: {
   rooms: RoomOption[];
   currency: string;
+  defaultRoomId?: string;
 }) {
-  const [roomId, setRoomId] = useState('');
+  const [roomId, setRoomId] = useState(defaultRoomId || (rooms[0]?.id ?? ''));
   const [rateMode, setRateMode] = useState<'nightly' | 'hourly'>('nightly');
   const [unitRate, setUnitRate] = useState('');
   const [reason, setReason] = useState('');
+
+  useEffect(() => {
+    if (defaultRoomId) setRoomId(defaultRoomId);
+  }, [defaultRoomId]);
   const selectedRoom = rooms.find((room) => room.id === roomId);
   const defaultRate = selectedRoom
     ? rateMode === 'hourly'

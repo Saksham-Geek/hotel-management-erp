@@ -1,5 +1,6 @@
+import Link from 'next/link';
 import { FEATURES } from '@erp/shared';
-import { Banner, PageHeader } from '@/components/ui';
+import { Banner, btnCls, btnGhostCls, PageHeader } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { TapeChartView, type ReservationTape, type RoomTape } from './tape-chart-view';
 
@@ -35,10 +36,24 @@ export default async function TapeChartPage({
   return (
     <>
       <PageHeader
-        title="Room Rack / Tape Chart"
-        eyebrow="Front Desk Timeline"
-        description="Interactive visual Gantt chart of room inventory, active stays, and room statuses across properties."
-      />
+        title="Room Rack &amp; Tape Chart"
+        eyebrow="Front Desk Gantt Timeline"
+        description="Multi-day visual room allocation, continuous reservation ribbons, and 1-click cashiering folios."
+      >
+        <Link
+          href="/reservations#new-reservation"
+          className={btnCls}
+        >
+          <span aria-hidden className="text-sm font-bold">+</span>
+          New Reservation
+        </Link>
+        <Link href="/billing" className={btnGhostCls}>
+          🧾 Cashiering &amp; Folios
+        </Link>
+        <Link href="/dashboard" className={btnGhostCls}>
+          📋 Today's Desk
+        </Link>
+      </PageHeader>
       <Banner error={error} ok={ok} />
 
       <TapeChartView

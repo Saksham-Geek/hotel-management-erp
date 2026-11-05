@@ -27,6 +27,10 @@ import {
   createMenuCategorySchema,
   createMenuItemSchema,
   createRestaurantOutletSchema,
+  updateAggregatorOrderStatusSchema,
+  toggleMenuItemStockSchema,
+  closeShiftSchema,
+  simulateAggregatorOrderSchema,
   type CreateKotOrderInput,
   type UpdateKotStatusInput,
   type ChargeKotToRoomInput,
@@ -41,6 +45,10 @@ import {
   type CreateMenuCategoryInput,
   type CreateMenuItemInput,
   type CreateRestaurantOutletInput,
+  type UpdateAggregatorOrderStatusInput,
+  type ToggleMenuItemStockInput,
+  type CloseShiftInput,
+  type SimulateAggregatorOrderInput,
 } from '@erp/shared';
 import { AuthUser, CurrentUser } from '../common/current-user';
 import { RequirePermission } from '../common/permission-guard';
@@ -113,7 +121,10 @@ export class RestaurantController {
       const itemRes = await c.query(
         `select id, category_id as "categoryId", name, item_code as "itemCode",
                 description, price, food_type as "foodType", sac_code as "sacCode",
-                gst_rate as "gstRate", is_available as "isAvailable"
+                gst_rate as "gstRate", is_available as "isAvailable",
+                is_out_of_stock as "isOutOfStock",
+                kitchen_station as "kitchenStation",
+                channel_availability as "channelAvailability"
          from menu_items
          where property_id = $1 and is_available = true
          order by item_code asc`,
@@ -140,6 +151,13 @@ export class RestaurantController {
                 k.special_instructions as "specialInstructions",
                 k.guest_name as "guestName", k.customer_phone as "customerPhone",
                 k.server_name as "serverName",
+                k.aggregator_brand as "aggregatorBrand",
+                k.aggregator_order_id as "aggregatorOrderId",
+                k.rider_name as "riderName",
+                k.rider_phone as "riderPhone",
+                k.rider_status as "riderStatus",
+                k.preparation_time_minutes as "preparationTimeMinutes",
+                k.aggregator_status as "aggregatorStatus",
                 k.created_at as "createdAt", k.prepared_at as "preparedAt", k.served_at as "servedAt",
                 o.name as "outletName",
                 t.table_number as "tableNumber",
@@ -151,7 +169,7 @@ export class RestaurantController {
          left join rooms r on r.id = k.room_id
          where k.property_id = $1 and k.status not in ('settled', 'cancelled')
          order by k.created_at desc
-         limit 60`,
+         limit 80`,
         [user.propertyId]
       );
 
@@ -162,8 +180,10 @@ export class RestaurantController {
         `select i.id, i.order_id as "orderId", i.menu_item_id as "menuItemId",
                 i.item_name as "itemName", i.quantity, i.unit_price as "unitPrice",
                 i.gst_rate as "gstRate", i.food_type as "foodType",
-                i.special_notes as "specialNotes", i.status
+                i.special_notes as "specialNotes", i.status,
+                coalesce(m.kitchen_station, 'main_kitchen') as "kitchenStation"
          from kot_order_items i
+         left join menu_items m on m.id = i.menu_item_id
          where i.order_id = any($1::uuid[])`,
         [orderIds]
       );
@@ -1140,6 +1160,404 @@ export class RestaurantController {
         success: true,
         outlet: res.rows[0],
         message: `Dining outlet "${input.name}" created successfully.`,
+      };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Live Item 86'ing & Stock Availability
+  // -------------------------------------------------------------
+
+  @Patch('menu/items/:id/toggle-stock')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async toggleItemStock(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() body: unknown
+  ) {
+    const parsed = toggleMenuItemStockSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: ToggleMenuItemStockInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `update menu_items
+         set is_out_of_stock = $1,
+             kitchen_station = coalesce($2, kitchen_station),
+             updated_at = now()
+         where id = $3 and property_id = $4
+         returning id, name, is_out_of_stock as "isOutOfStock", kitchen_station as "kitchenStation"`,
+        [input.isOutOfStock, input.kitchenStation || null, id, user.propertyId]
+      );
+      if (res.rows.length === 0) throw new NotFoundException('Menu item not found');
+
+      return {
+        success: true,
+        item: res.rows[0],
+        message: `${res.rows[0].name} marked as ${input.isOutOfStock ? '86 (Out of Stock)' : 'In Stock'}.`,
+      };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Online Delivery Aggregators Hub (Swiggy & Zomato)
+  // -------------------------------------------------------------
+
+  @Get('aggregators/orders')
+  @RequirePermission(PERMISSIONS.RESTAURANT_VIEW)
+  async getAggregatorOrders(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const ordersRes = await c.query(
+        `select k.id, k.kot_number as "kotNumber", k.aggregator_brand as "aggregatorBrand",
+                k.aggregator_order_id as "aggregatorOrderId", k.aggregator_status as "aggregatorStatus",
+                k.preparation_time_minutes as "preparationTimeMinutes",
+                k.rider_name as "riderName", k.rider_phone as "riderPhone", k.rider_status as "riderStatus",
+                k.guest_name as "customerName", k.customer_phone as "customerPhone",
+                k.subtotal, k.tax_amount as "taxAmount", k.total_amount as "totalAmount",
+                k.special_instructions as "specialInstructions",
+                k.created_at as "createdAt", k.status,
+                o.name as "outletName"
+         from kot_orders k
+         join restaurant_outlets o on o.id = k.outlet_id
+         where k.property_id = $1 and k.aggregator_brand in ('swiggy', 'zomato', 'direct_web')
+         order by k.created_at desc
+         limit 60`,
+        [user.propertyId]
+      );
+
+      if (ordersRes.rows.length === 0) return [];
+
+      const orderIds = ordersRes.rows.map((o: any) => o.id);
+      const itemsRes = await c.query(
+        `select i.id, i.order_id as "orderId", i.item_name as "itemName",
+                i.quantity, i.unit_price as "unitPrice", i.food_type as "foodType",
+                i.special_notes as "specialNotes"
+         from kot_order_items i
+         where i.order_id = any($1::uuid[])`,
+        [orderIds]
+      );
+
+      return ordersRes.rows.map((o: any) => ({
+        ...o,
+        items: itemsRes.rows.filter((it: any) => it.orderId === o.id),
+      }));
+    });
+  }
+
+  @Patch('aggregators/orders/:id/status')
+  @RequirePermission(PERMISSIONS.RESTAURANT_ORDER)
+  async updateAggregatorOrderStatus(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() body: unknown
+  ) {
+    const parsed = updateAggregatorOrderStatusSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: UpdateAggregatorOrderStatusInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      let kotStatus = 'pending';
+      if (input.aggregatorStatus === 'accepted') kotStatus = 'preparing';
+      if (input.aggregatorStatus === 'food_ready') kotStatus = 'ready';
+      if (input.aggregatorStatus === 'dispatched') kotStatus = 'served';
+      if (input.aggregatorStatus === 'cancelled') kotStatus = 'cancelled';
+
+      const res = await c.query(
+        `update kot_orders
+         set aggregator_status = $1,
+             status = $2,
+             preparation_time_minutes = coalesce($3, preparation_time_minutes),
+             rider_name = coalesce($4, rider_name),
+             rider_phone = coalesce($5, rider_phone),
+             rider_status = coalesce($6, rider_status),
+             prepared_at = (case when $1 = 'accepted' then now() else prepared_at end),
+             served_at = (case when $1 = 'dispatched' then now() else served_at end),
+             updated_at = now()
+         where id = $7 and property_id = $8
+         returning id, kot_number as "kotNumber", aggregator_brand as "aggregatorBrand",
+                   aggregator_order_id as "aggregatorOrderId", aggregator_status as "aggregatorStatus",
+                   status`,
+        [
+          input.aggregatorStatus,
+          kotStatus,
+          input.preparationTimeMinutes ?? null,
+          input.riderName ?? null,
+          input.riderPhone ?? null,
+          input.riderStatus ?? null,
+          id,
+          user.propertyId,
+        ]
+      );
+
+      if (res.rows.length === 0) throw new NotFoundException('Aggregator order not found');
+
+      return {
+        success: true,
+        order: res.rows[0],
+        message: `Order ${res.rows[0].aggregatorOrderId || res.rows[0].kotNumber} updated to ${input.aggregatorStatus.toUpperCase()}.`,
+      };
+    });
+  }
+
+  @Post('aggregators/simulate')
+  @RequirePermission(PERMISSIONS.RESTAURANT_ORDER)
+  async simulateAggregatorOrder(
+    @CurrentUser() user: AuthUser,
+    @Body() body: unknown
+  ) {
+    const parsed = simulateAggregatorOrderSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: SimulateAggregatorOrderInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const countRes = await c.query(
+        `select count(*)::int as count from kot_orders where property_id = $1`,
+        [user.propertyId]
+      );
+      const seq = countRes.rows[0].count + 1;
+      const kotNumber = `KOT-DEL-${seq.toString().padStart(4, '0')}`;
+      const randomId = Math.floor(10000 + Math.random() * 90000);
+      const aggregatorOrderId = `${input.brand.toUpperCase()}-${randomId}`;
+
+      let subtotal = 0;
+      for (const item of input.items) {
+        subtotal += Number(item.unitPrice) * item.quantity;
+      }
+      const taxAmount = Math.round((subtotal * 0.05) * 100) / 100;
+      const totalAmount = subtotal + taxAmount;
+
+      const orderRes = await c.query(
+        `insert into kot_orders (
+           tenant_id, property_id, outlet_id, kot_number, order_type,
+           aggregator_brand, aggregator_order_id, aggregator_status,
+           rider_name, rider_phone, rider_status, preparation_time_minutes,
+           guest_name, customer_phone, subtotal, tax_amount, total_amount,
+           status, payment_status, payment_method, special_instructions
+         ) values (
+           $1, $2, $3, $4, 'delivery',
+           $5, $6, 'incoming',
+           'Rahul Sharma (Delivery Captain)', '+91 98200 88712', 'assigning', 20,
+           $7, $8, $9, $10, $11,
+           'pending', 'paid_direct', $5, $12
+         ) returning id, kot_number as "kotNumber", aggregator_order_id as "aggregatorOrderId"`,
+        [
+          user.tenantId,
+          user.propertyId,
+          input.outletId,
+          kotNumber,
+          input.brand,
+          aggregatorOrderId,
+          input.customerName,
+          input.customerPhone,
+          subtotal,
+          taxAmount,
+          totalAmount,
+          `Delivery to: ${input.deliveryAddress}`,
+        ]
+      );
+
+      const orderId = orderRes.rows[0].id;
+      for (const item of input.items) {
+        await c.query(
+          `insert into kot_order_items (
+             tenant_id, property_id, order_id, menu_item_id, item_name,
+             quantity, unit_price, gst_rate, food_type, special_notes, status
+           ) values ($1, $2, $3, $4, $5, $6, $7, 5.00, $8, $9, 'pending')`,
+          [
+            user.tenantId,
+            user.propertyId,
+            orderId,
+            item.menuItemId || null,
+            item.itemName,
+            item.quantity,
+            item.unitPrice,
+            item.foodType,
+            item.specialNotes || null,
+          ]
+        );
+      }
+
+      return {
+        success: true,
+        orderId,
+        kotNumber,
+        aggregatorOrderId,
+        totalAmount,
+        message: `Incoming ${input.brand.toUpperCase()} Order ${aggregatorOrderId} (₹${totalAmount}) received! Kitchen alert triggered.`,
+      };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Shift Management & Cashier Day-End Z-Report
+  // -------------------------------------------------------------
+
+  @Get('shifts/active')
+  @RequirePermission(PERMISSIONS.RESTAURANT_VIEW)
+  async getActiveShift(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select s.id, s.outlet_id as "outletId", s.shift_name as "shiftName",
+                s.opened_by as "openedBy", s.opening_cash as "openingCash",
+                s.status, s.opened_at as "openedAt",
+                o.name as "outletName"
+         from restaurant_shifts s
+         join restaurant_outlets o on o.id = s.outlet_id
+         where s.property_id = $1 and s.status = 'open'
+         order by s.opened_at desc
+         limit 1`,
+        [user.propertyId]
+      );
+      return res.rows[0] ?? null;
+    });
+  }
+
+  @Post('shifts/open')
+  @RequirePermission(PERMISSIONS.BILLING_PAYMENT_COLLECT)
+  async openShift(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { outletId: string; shiftName?: string; openingCash?: number }
+  ) {
+    const openingCash = Number(body?.openingCash) || 0;
+    const shiftName = body?.shiftName || 'Day Shift';
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const existing = await c.query(
+        `select id from restaurant_shifts where property_id = $1 and outlet_id = $2 and status = 'open'`,
+        [user.propertyId, body.outletId]
+      );
+      if (existing.rows.length > 0) {
+        throw new BadRequestException('A cashier shift is already active for this outlet. Close the current shift first.');
+      }
+
+      const res = await c.query(
+        `insert into restaurant_shifts (
+           tenant_id, property_id, outlet_id, shift_name, opened_by, opening_cash, status
+         ) values ($1, $2, $3, $4, $5, $6, 'open')
+         returning id, shift_name as "shiftName", opening_cash as "openingCash", status, opened_at as "openedAt"`,
+        [user.tenantId, user.propertyId, body.outletId, shiftName, user.id, openingCash]
+      );
+
+      return {
+        success: true,
+        shift: res.rows[0],
+        message: `Cashier shift "${shiftName}" opened with ₹${openingCash} opening float.`,
+      };
+    });
+  }
+
+  @Post('shifts/close')
+  @RequirePermission(PERMISSIONS.BILLING_PAYMENT_COLLECT)
+  async closeShift(
+    @CurrentUser() user: AuthUser,
+    @Body() body: unknown
+  ) {
+    const parsed = closeShiftSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: CloseShiftInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const shiftRes = await c.query(
+        `select s.id, s.outlet_id, s.opening_cash, s.opened_at, s.shift_name, o.name as outlet_name
+         from restaurant_shifts s
+         join restaurant_outlets o on o.id = s.outlet_id
+         where s.id = $1 and s.property_id = $2 and s.status = 'open'`,
+        [input.shiftId, user.propertyId]
+      );
+      if (shiftRes.rows.length === 0) {
+        throw new NotFoundException('Active shift not found or already closed');
+      }
+      const shift = shiftRes.rows[0];
+
+      // Aggregate all settled orders during this shift window
+      const totalsRes = await c.query(
+        `select
+           count(*)::int as kots_count,
+           coalesce(sum(case when payment_method = 'cash' then total_amount else 0 end), 0) as cash_total,
+           coalesce(sum(case when payment_method = 'upi' then total_amount else 0 end), 0) as upi_total,
+           coalesce(sum(case when payment_method = 'pos_machine' then total_amount else 0 end), 0) as card_total,
+           coalesce(sum(case when payment_method = 'swiggy' then total_amount else 0 end), 0) as swiggy_total,
+           coalesce(sum(case when payment_method = 'zomato' then total_amount else 0 end), 0) as zomato_total,
+           coalesce(sum(case when payment_method = 'room_charge' then total_amount else 0 end), 0) as room_total,
+           coalesce(sum(total_amount), 0) as net_sales
+         from kot_orders
+         where property_id = $1 and outlet_id = $2
+           and settled_at >= $3 and status = 'settled'`,
+        [user.propertyId, shift.outlet_id, shift.opened_at]
+      );
+
+      const t = totalsRes.rows[0];
+      const openingCash = Number(shift.opening_cash);
+      const cashSales = Number(t.cash_total);
+      const expectedCash = openingCash + cashSales;
+      const closingCash = Number(input.closingCash);
+      const cashVariance = closingCash - expectedCash;
+
+      await c.query(
+        `update restaurant_shifts
+         set status = 'closed',
+             closed_by = $1,
+             closed_at = now(),
+             closing_cash = $2,
+             expected_cash = $3,
+             cash_variance = $4,
+             total_upi = $5,
+             total_card = $6,
+             total_swiggy = $7,
+             total_zomato = $8,
+             total_room_charges = $9,
+             total_sales = $10,
+             total_kots_count = $11,
+             notes = $12
+         where id = $13`,
+        [
+          user.id,
+          closingCash,
+          expectedCash,
+          cashVariance,
+          Number(t.upi_total),
+          Number(t.card_total),
+          Number(t.swiggy_total),
+          Number(t.zomato_total),
+          Number(t.room_total),
+          Number(t.net_sales),
+          Number(t.kots_count),
+          input.notes || null,
+          input.shiftId,
+        ]
+      );
+
+      return {
+        success: true,
+        zReport: {
+          shiftId: shift.id,
+          outletName: shift.outlet_name,
+          shiftName: shift.shift_name,
+          closedBy: user.id,
+          openedAt: shift.opened_at,
+          closedAt: new Date().toISOString(),
+          openingCash,
+          cashSales,
+          closingCash,
+          expectedCash,
+          cashVariance,
+          totalUpi: Number(t.upi_total),
+          totalCard: Number(t.card_total),
+          totalSwiggy: Number(t.swiggy_total),
+          totalZomato: Number(t.zomato_total),
+          totalRoomCharges: Number(t.room_total),
+          totalSales: Number(t.net_sales),
+          kotsCount: Number(t.kots_count),
+        },
+        message: `Shift closed. Z-Report generated with variance of ₹${cashVariance.toFixed(2)}.`,
       };
     });
   }

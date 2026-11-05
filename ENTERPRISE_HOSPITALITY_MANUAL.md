@@ -284,6 +284,40 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
   - **80mm Customer Tax Bill (`BillPrintModal`)**:
     - Prints official Aura Dine 80mm ESC/POS customer receipt with FSSAI license, GSTIN, SAC 996331 breakdown, 2.5% CGST, 2.5% SGST, discounts, and payment mode.
 
+#### 7. Online Delivery Hub (Swiggy & Zomato Connected)
+- Navigate to the **"🛵 Online Delivery Hub"** tab on `/restaurant`.
+- **Live Ingestion Feed**: Orders from Swiggy, Zomato, and direct web appear in real-time with brand badges and auto-updating prep timers.
+- **1-Click Accept with Prep Timers**:
+  - Accept incoming orders with 1 tap choosing estimated preparation time: **15 Min**, **25 Min**, or **40 Min**.
+  - Automatically transmits ETA to the aggregator rider and dispatches items to kitchen KDS.
+- **Rider OTP & Lifecycle Tracking**:
+  - Displays assigned rider name, phone number, and status (`Assigning Rider`, `At Restaurant`, `Picked Up & Dispatched`).
+  - Click **"📦 Food Ready & Packed"** when dishes are ready, notifying the delivery rider to proceed to the pickup counter.
+  - Click **"🛵 Hand to Rider & Dispatch"** upon parcel handover.
+- **Live Order Simulation**:
+  - Features **"⚡ Simulate Swiggy Order"** and **"⚡ Simulate Zomato Order"** buttons for instant end-to-end demonstrations with zero API key dependencies.
+
+#### 8. Live Item 86'ing & Multi-Station Kitchen Routing
+- **Item 86 Out-of-Stock Toggle**:
+  - When ingredients run out during service, click the **"🟢 Stock / 🔴 86"** toggle on any dish card in the Touch POS catalog.
+  - Dishes marked 86 are instantly greyed out and prevented from being punched across Dine-In POS, Swiggy, and Zomato.
+- **Multi-Station Kitchen Routing**:
+  - Every dish is mapped to its specialized culinary department:
+    - 🔥 **Tandoor & Clay Oven Station**: Naans, rotis, kebabs, tikkas.
+    - 🍳 **Main Curry & Gravy Station**: Dal makhani, butter chicken, biryanis.
+    - 🍸 **Bar Counter**: Cocktails, mocktails, fresh juices, sodas.
+    - 🥗 **Pantry & Bakery**: Salads, cold cuts, desserts, breads.
+  - Chefs on the **👨‍🍳 Kitchen KDS** filter tickets by their specific station, ensuring tandoor chefs only view tandoor items while beverage bartenders only view beverage tickets.
+
+#### 9. Cashier Shift Management & Day-End Z-Report
+- Navigate to the **"📊 Cashier Shifts & Z-Report"** tab:
+  - **Open Shift Float**: Declare drawer starting cash balance (e.g. ₹2,000.00). The session tracks active sales across Cash, UPI, Card POS, Swiggy, Zomato, and Room Folios.
+  - **Shift Closing & Reconciliation**:
+    - At shift end, cashier enters the physical counted drawer cash.
+    - The ERP automatically computes **Expected Drawer Cash** (`Opening Float + Cash Sales`) and audits **Cash Variance** (`Counted Cash - Expected Cash`).
+  - **Official 80mm Z-Report Slip**:
+    - Click **"Print 80mm Z-Report"** to print formatted thermal cashier reconciliation with shift timestamps, KOT count, multi-tender breakdowns, and variance signoff.
+
 ---
 
 ### G. 🔑 Enterprise Key Management & Door Lock Journey (Brass Rack & RFID)

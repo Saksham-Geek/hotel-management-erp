@@ -12,12 +12,13 @@ import {
 export default async function RestaurantPage() {
   await requireFeature(FEATURES.HOTEL_RESTAURANT_POS);
 
-  const [outlets, tables, categories, kots, reservations] = await Promise.all([
+  const [outlets, tables, categories, kots, reservations, activeShift] = await Promise.all([
     api<OutletDto[]>('/hotel/restaurant/outlets').catch(() => []),
     api<TableDto[]>('/hotel/restaurant/tables').catch(() => []),
     api<MenuCategoryDto[]>('/hotel/restaurant/menu').catch(() => []),
     api<KotOrderDto[]>('/hotel/restaurant/kots').catch(() => []),
     api<any[]>('/hotel/reservations').catch(() => []),
+    api<any>('/hotel/restaurant/shifts/active').catch(() => null),
   ]);
 
   const checkedInRooms: CheckedInRoomDto[] = reservations
@@ -37,6 +38,7 @@ export default async function RestaurantPage() {
         categories={categories}
         kots={kots}
         checkedInRooms={checkedInRooms}
+        initialShift={activeShift}
       />
     </div>
   );

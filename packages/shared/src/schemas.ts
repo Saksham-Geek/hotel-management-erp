@@ -660,6 +660,53 @@ export const createRestaurantOutletSchema = z.object({
 });
 export type CreateRestaurantOutletInput = z.infer<typeof createRestaurantOutletSchema>;
 
+// -------------------------------------------------------------
+// Aura Dine: Swiggy/Zomato Aggregators, Item 86 & Shifts Schemas
+// -------------------------------------------------------------
+
+export const updateAggregatorOrderStatusSchema = z.object({
+  aggregatorStatus: z.enum(['incoming', 'accepted', 'food_ready', 'dispatched', 'cancelled']),
+  preparationTimeMinutes: z.coerce.number().int().min(5).max(120).optional(),
+  riderName: z.string().trim().max(100).optional(),
+  riderPhone: z.string().trim().max(20).optional(),
+  riderStatus: z.enum(['assigning', 'at_restaurant', 'picked_up', 'delivered']).optional(),
+});
+export type UpdateAggregatorOrderStatusInput = z.infer<typeof updateAggregatorOrderStatusSchema>;
+
+export const toggleMenuItemStockSchema = z.object({
+  isOutOfStock: z.boolean(),
+  kitchenStation: z.enum(['tandoor', 'main_kitchen', 'bar', 'pantry', 'bakery']).optional(),
+});
+export type ToggleMenuItemStockInput = z.infer<typeof toggleMenuItemStockSchema>;
+
+export const closeShiftSchema = z.object({
+  shiftId: z.string().uuid(),
+  closingCash: z.coerce.number().finite().min(0),
+  notes: z.string().trim().max(500).optional(),
+});
+export type CloseShiftInput = z.infer<typeof closeShiftSchema>;
+
+export const aggregatorItemSchema = z.object({
+  menuItemId: z.string().uuid().optional(),
+  itemName: z.string().trim().min(1).max(120),
+  quantity: z.coerce.number().int().min(1).max(50),
+  unitPrice: z.coerce.number().finite().min(0).max(1_000_000),
+  foodType: z.enum(['veg', 'non_veg', 'egg']).default('veg'),
+  specialNotes: z.string().trim().max(200).optional(),
+});
+export type AggregatorItemInput = z.infer<typeof aggregatorItemSchema>;
+
+export const simulateAggregatorOrderSchema = z.object({
+  outletId: z.string().uuid(),
+  brand: z.enum(['swiggy', 'zomato']),
+  customerName: z.string().trim().min(1).default('Rohan Sharma'),
+  customerPhone: z.string().trim().default('9820011223'),
+  deliveryAddress: z.string().trim().default('Apt 402, Sunshine Heights, Marine Drive'),
+  items: z.array(aggregatorItemSchema).min(1, 'Order must contain at least 1 dish'),
+});
+export type SimulateAggregatorOrderInput = z.infer<typeof simulateAggregatorOrderSchema>;
+
+
 
 
 

@@ -71,6 +71,9 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 - **80mm ESC/POS Printing**:
   - `KotPrintModal`: Thermal kitchen tickets with prep instructions (*"No Onion Garlic"*, *"Mild"*, *"Crispy"*).
   - `BillPrintModal`: Official 80mm customer tax receipts with FSSAI license, GSTIN, SAC 996331 tax breakdown, CGST, SGST, discounts, and payment mode.
+- **Online Delivery Hub (Swiggy & Zomato Connected)**: Live incoming delivery orders feed, 1-click acceptance with prep time selection (15m, 25m, 40m), food ready packing alerts, rider status tracking, and 1-click live demo simulation.
+- **Live Item 86'ing & Multi-Station Kitchen Routing**: Instant out-of-stock toggle (Item 86) syncing across dine-in and delivery channels; automated KDS department routing (*🔥 Tandoor, 🍳 Main Curry, 🍸 Bar, 🥗 Pantry*).
+- **Cashier Shifts & Day-End Z-Report**: Shift opening float management, multi-tender revenue aggregation, cash drawer variance auditing, and official 80mm Day-End Z-Reports.
 - **1-Click "Charge to Room Folio"**: Directly transfers restaurant dining bills to active checked-in hotel guest folios under **SAC 996331 at 5% GST**, keeping accommodation and dining taxes strictly isolated.
 
 ### 9. 🔑 Enterprise Key Management & Hardware Bridge (`/keycards`)

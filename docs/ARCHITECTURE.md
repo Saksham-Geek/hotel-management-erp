@@ -154,23 +154,39 @@ The SaaS revenue architecture tracks recurring income through:
 
 ## 8. Integrated Aura Dine F&B Restaurant POS & KOT Architecture
 
-### A. Data Schema & Isolation (Migrations 021 & 022)
+### A. Data Schema & Isolation (Migrations 021, 022 & 023)
 - `restaurant_outlets`: Multiple dining venues per hotel (Fine Dining, Roof-Top Lounge, In-Room Dining, Poolside Bar, Standalone Bistros). Stores FSSAI license, GSTIN, service charge %, contact phone, and standalone flags.
 - `restaurant_tables`: Physical table master with table numbers, capacity (covers), floor zones/sections (*Main AC Hall*, *Open Terrace Garden*, *Poolside Deck*, *Bar & Lounge*), and occupancy statuses (`vacant`, `occupied`, `billed`). Supports `is_merged` and `merged_with_table_id`.
-- `menu_categories` & `menu_items`: Hierarchical digital menu with dietary badges (`is_veg`, `is_vegan`, `contains_egg`), preparation time, spice levels, and prices.
-- `kot_orders` & `kot_order_items`: Kitchen Order Tickets tracking chronological order states (`pending` ➔ `preparing` ➔ `ready` ➔ `served` ➔ `settled` ➔ `cancelled`). Supports subsequent KOT rounds (`round_number`), discounts, service charge, and split flags.
+- `menu_categories` & `menu_items`: Hierarchical digital menu with dietary badges (`veg`, `non_veg`, `egg`), preparation time, `kitchen_station` (`tandoor`, `main_kitchen`, `bar`, `pantry`, `bakery`), and `is_out_of_stock` (live Item 86 multi-channel toggle).
+- `kot_orders` & `kot_order_items`: Kitchen Order Tickets tracking chronological order states (`pending` ➔ `preparing` ➔ `ready` ➔ `served` ➔ `settled` ➔ `cancelled`). Supports subsequent KOT rounds (`round_number`), delivery tracking (`aggregator_brand`, `aggregator_order_id`, `rider_status`, `rider_name`, `rider_phone`, `preparation_time_minutes`), discounts, service charge, and split flags.
 - `kot_order_splits`: Split billing ledger enabling equal 2-5 way splits or itemized custom splits with independent tenders (Cash, UPI QR, EDC POS Card, Room Charge).
 - `restaurant_customers`: Standalone restaurant CRM tracking diner phone, name, email, dietary preferences (Veg, Non-Veg, Jain), visit count, and total spend.
+- `restaurant_shifts`: Cashier shift drawers auditing `opening_cash`, `closing_cash`, `expected_cash`, and `cash_variance` with multi-tender totals (Cash, UPI, Card, Swiggy, Zomato, Room charges) and Day-End Z-Reports.
 
 ### B. Table & Menu Management APIs
 - **Table Operations (`POST /hotel/restaurant/tables`, `PATCH /hotel/restaurant/tables/:id`, `DELETE /hotel/restaurant/tables/:id`)**:
   - Full CRUD management of tables per outlet.
   - Interactive "+ Add Table" modal with covers, floor zones (*Main AC Hall*, *Open Terrace*, *Poolside Deck*, *Bar & Lounge*), and outlet selector.
   - Safe deletion guard preventing deletion of tables with active dining sessions or pending KOTs.
-- **Menu Management (`POST /hotel/restaurant/menu/categories`, `POST /hotel/restaurant/menu/items`)**:
+- **Menu Management (`POST /hotel/restaurant/menu/categories`, `POST /hotel/restaurant/menu/items`, `PATCH /hotel/restaurant/menu/items/:id/toggle-stock`)**:
   - Digital menu authoring with category sorting, dietary classification (Veg, Non-Veg, Egg), SAC 996331, and 5% GST.
+  - Live Item 86 stock toggle syncing out-of-stock items across Dine-in POS, Swiggy, and Zomato.
 - **Table Shifting (`transferTable`)**: Atomically shifts active order from Table A to Table B and vacates Table A.
 - **Table Merging (`mergeTables`)**: Combines line items from two adjacent tables into a single consolidated master order, linking both tables.
+
+### C. Swiggy & Zomato Aggregator Delivery Hub
+- **Order Lifecycle (`GET /hotel/restaurant/aggregators/orders`, `PATCH /hotel/restaurant/aggregators/orders/:id/status`, `POST /hotel/restaurant/aggregators/simulate`)**:
+  - Real-time ingestion of online orders with brand badges (Swiggy Orange / Zomato Red).
+  - 1-Click order acceptance with prep time selection (15m, 25m, 40m).
+  - Live rider OTP tracking (Assigning ➔ At Restaurant ➔ Picked Up ➔ Dispatched).
+  - Zero-dependency demo order simulator generating realistic Swiggy & Zomato delivery checks.
+
+### D. Cashier Shift Reconciliation & Day-End Z-Reports
+- **Shift Engine (`GET /hotel/restaurant/shifts/active`, `POST /hotel/restaurant/shifts/open`, `POST /hotel/restaurant/shifts/close`)**:
+  - Starting drawer float registration.
+  - Multi-tender shift aggregation across Cash, UPI, EDC Card, Swiggy, Zomato, and Room folios.
+  - Automated variance auditing (`Counted Cash - Expected Cash`).
+  - 80mm ESC/POS Day-End Z-Report generation.
 
 ### C. Tax Isolation & Folio Posting Engine
 - **SAC 996331**: Food & Beverage charges are tagged strictly with SAC `996331` at 5% GST (2.5% CGST + 2.5% SGST without ITC).

@@ -31,6 +31,10 @@ import {
   updateUpiSettingsSchema,
   createPosTerminalSchema,
   initiatePosChargeSchema,
+  updateAggregatorOrderStatusSchema,
+  toggleMenuItemStockSchema,
+  closeShiftSchema,
+  simulateAggregatorOrderSchema,
   FEATURES,
   HOSPITALITY_PLAN_TIERS,
   PERMISSIONS,
@@ -1068,6 +1072,70 @@ test('Migration 022 expands restaurant schema with sections, split billing, and 
   assert.match(migration, /create table if not exists restaurant_customers/);
   assert.match(migration, /Main AC Hall/);
   assert.match(migration, /The Spice Route Bistro/);
+});
+
+test('Aura Dine Aggregator Hub and Shift Z-Report schemas validate delivery, stock toggle and cash drawer closing', () => {
+  assert.equal(
+    updateAggregatorOrderStatusSchema.safeParse({
+      aggregatorStatus: 'accepted',
+      preparationTimeMinutes: 25,
+      riderName: 'Vikram Singh',
+      riderPhone: '9820099881',
+      riderStatus: 'at_restaurant',
+    }).success,
+    true,
+  );
+
+  assert.equal(
+    toggleMenuItemStockSchema.safeParse({
+      isOutOfStock: true,
+      kitchenStation: 'tandoor',
+    }).success,
+    true,
+  );
+
+  assert.equal(
+    closeShiftSchema.safeParse({
+      shiftId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      closingCash: 12500,
+      notes: 'Evening shift cash tallied cleanly with ₹0 variance.',
+    }).success,
+    true,
+  );
+
+  assert.equal(
+    simulateAggregatorOrderSchema.safeParse({
+      outletId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      brand: 'swiggy',
+      customerName: 'Ananya Roy',
+      customerPhone: '9820011223',
+      deliveryAddress: 'Flat 6B, Palm Beach Road, Vashi',
+      items: [
+        {
+          itemName: 'Paneer Tikka Angare',
+          quantity: 2,
+          unitPrice: 320,
+          foodType: 'veg',
+        },
+      ],
+    }).success,
+    true,
+  );
+});
+
+test('Migration 023 creates aggregator tracking, item stock toggles, and cashier shift reconciliation', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/023_restaurant_aggregator_and_kitchen_hub.sql'),
+    'utf8',
+  );
+  assert.match(migration, /aggregator_brand/);
+  assert.match(migration, /rider_status/);
+  assert.match(migration, /is_out_of_stock/);
+  assert.match(migration, /kitchen_station/);
+  assert.match(migration, /create table if not exists restaurant_shifts/);
+  assert.match(migration, /cash_variance/);
+  assert.match(migration, /total_swiggy/);
+  assert.match(migration, /total_zomato/);
 });
 
 

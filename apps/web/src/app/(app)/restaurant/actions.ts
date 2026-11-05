@@ -17,6 +17,10 @@ import type {
   CreateMenuCategoryInput,
   CreateMenuItemInput,
   CreateRestaurantOutletInput,
+  UpdateAggregatorOrderStatusInput,
+  ToggleMenuItemStockInput,
+  CloseShiftInput,
+  SimulateAggregatorOrderInput,
 } from '@erp/shared';
 
 export async function createKotOrderAction(input: CreateKotOrderInput) {
@@ -232,6 +236,71 @@ export async function createMenuItemAction(input: CreateMenuItemInput) {
 export async function createRestaurantOutletAction(input: CreateRestaurantOutletInput) {
   try {
     const res = await api<any>('/hotel/restaurant/outlets', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+    revalidatePath('/restaurant');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function toggleMenuItemStockAction(id: string, input: ToggleMenuItemStockInput) {
+  try {
+    const res = await api<any>(`/hotel/restaurant/menu/items/${id}/toggle-stock`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    });
+    revalidatePath('/restaurant');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function updateAggregatorOrderStatusAction(id: string, input: UpdateAggregatorOrderStatusInput) {
+  try {
+    const res = await api<any>(`/hotel/restaurant/aggregators/orders/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    });
+    revalidatePath('/restaurant');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function simulateAggregatorOrderAction(input: SimulateAggregatorOrderInput) {
+  try {
+    const res = await api<any>('/hotel/restaurant/aggregators/simulate', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+    revalidatePath('/restaurant');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function openShiftAction(outletId: string, shiftName: string, openingCash: number) {
+  try {
+    const res = await api<any>('/hotel/restaurant/shifts/open', {
+      method: 'POST',
+      body: JSON.stringify({ outletId, shiftName, openingCash }),
+    });
+    revalidatePath('/restaurant');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function closeShiftAction(input: CloseShiftInput) {
+  try {
+    const res = await api<any>('/hotel/restaurant/shifts/close', {
       method: 'POST',
       body: JSON.stringify(input),
     });

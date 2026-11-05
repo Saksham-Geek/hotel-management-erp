@@ -178,6 +178,7 @@ export const PERMISSIONS = {
   CORPORATE_ACCOUNT_MANAGE: 'corporate_account.manage',
   REPORTS_READ: 'reports.read',
   CUSTOM_FIELDS_WRITE: 'custom_fields.write',
+  PROPERTY_BANKING_MANAGE: 'property.banking.manage',
 } as const;
 
 export type Permission = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

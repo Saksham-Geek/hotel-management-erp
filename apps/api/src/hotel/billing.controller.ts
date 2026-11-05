@@ -17,10 +17,12 @@ import {
   IssueTaxInvoiceInput,
   PERMISSIONS,
   PostFolioChargeInput,
+  UpdateUpiSettingsInput,
   collectFolioPaymentSchema,
   createCorporateAccountSchema,
   issueTaxInvoiceSchema,
   postFolioChargeSchema,
+  updateUpiSettingsSchema,
 } from '@erp/shared';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser, CurrentUser } from '../common/current-user';
@@ -122,6 +124,14 @@ export class BillingController {
         )
       ).rows;
 
+      const property = (
+        await c.query(
+          `SELECT name, upi_id AS "upiId", upi_merchant_name AS "upiMerchantName"
+           FROM properties WHERE id = $1`,
+          [user.propertyId],
+        )
+      ).rows[0];
+
       const paidTotal = payments
         .filter((p) => p.status === 'captured')
         .reduce((sum, p) => sum + Number(p.amount), 0);
@@ -137,6 +147,98 @@ export class BillingController {
           paidTotal,
           balanceDue,
         },
+        property: {
+          name: property?.name ?? 'Hotel',
+          upiId: property?.upiId ?? null,
+          upiMerchantName: property?.upiMerchantName ?? property?.name ?? 'Hotel',
+        },
+      };
+    });
+  }
+
+  @Get('upi-settings')
+  @RequirePermission(PERMISSIONS.BILLING_READ)
+  async getUpiSettings(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const property = (
+        await c.query(
+          `SELECT id, name, upi_id AS "upiId", upi_merchant_name AS "upiMerchantName"
+           FROM properties WHERE id = $1`,
+          [user.propertyId],
+        )
+      ).rows[0];
+
+      if (!property) {
+        throw new NotFoundException({ code: 'NOT_FOUND', message: 'Property not found' });
+      }
+
+      return {
+        propertyId: property.id,
+        propertyName: property.name,
+        upiId: property.upiId ?? '',
+        upiMerchantName: property.upiMerchantName || property.name,
+        isOwner: user.role === 'owner',
+      };
+    });
+  }
+
+  @Patch('upi-settings')
+  @RequirePermission(PERMISSIONS.PROPERTY_BANKING_MANAGE)
+  async updateUpiSettings(
+    @CurrentUser() user: AuthUser,
+    @Body(new ZodPipe(updateUpiSettingsSchema)) body: UpdateUpiSettingsInput,
+  ) {
+    // Hard role enforcement: ONLY the hotel owner can modify the receiver UPI ID.
+    // Managers, receptionists, frontdesk, housekeeping are strictly prohibited.
+    if (user.role !== 'owner') {
+      throw new ForbiddenException({
+        code: 'OWNER_ONLY_BANKING',
+        message: 'Only the property owner has the authority to configure or change the receiver UPI ID. Managers, receptionists, and front desk staff are strictly restricted to prevent unauthorized diversion of funds.',
+      });
+    }
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const existing = (
+        await c.query(
+          `SELECT id, name, upi_id AS "upiId", upi_merchant_name AS "upiMerchantName"
+           FROM properties WHERE id = $1`,
+          [user.propertyId],
+        )
+      ).rows[0];
+
+      if (!existing) {
+        throw new NotFoundException({ code: 'NOT_FOUND', message: 'Property not found' });
+      }
+
+      const cleanUpi = body.upiId.toLowerCase().trim();
+      const merchantName = body.upiMerchantName?.trim() || existing.name;
+
+      await c.query(
+        `UPDATE properties
+         SET upi_id = $1, upi_merchant_name = $2
+         WHERE id = $3 AND tenant_id = $4`,
+        [cleanUpi, merchantName, user.propertyId, user.tenantId],
+      );
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'property.upi_receiver.update',
+        entity: 'property',
+        entityId: user.propertyId ?? '',
+        meta: {
+          previousUpiId: existing.upiId,
+          newUpiId: cleanUpi,
+          merchantName,
+        },
+      });
+
+      return {
+        propertyId: existing.id,
+        propertyName: existing.name,
+        upiId: cleanUpi,
+        upiMerchantName: merchantName,
+        message: `Receiver UPI ID updated to ${cleanUpi}. All guest QR cashiering will now settle directly into this account.`,
       };
     });
   }

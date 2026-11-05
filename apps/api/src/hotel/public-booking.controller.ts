@@ -31,7 +31,8 @@ export class PublicBookingController {
     // 2. Use withTenant so RLS permits access to tenant's properties and room types
     return this.db.withTenant(tenant.id, null, async (c) => {
       const propRes = await c.query(
-        `SELECT id, name, timezone, currency, is_default, status
+        `SELECT id, name, timezone, currency, is_default, status,
+                upi_id AS "upiId", upi_merchant_name AS "upiMerchantName"
          FROM properties WHERE tenant_id = $1 AND status = 'active' ORDER BY is_default DESC, name ASC`,
         [tenant.id],
       );

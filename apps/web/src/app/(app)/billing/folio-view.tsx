@@ -6,9 +6,15 @@ import { FormSubmit } from '@/components/form-submit';
 import { formatStayDates, formatDate } from '@/lib/format';
 import { addFolioCharge, collectFolioPayment, issueInvoice } from './actions';
 import { UpiQrCard } from './upi-qr-card';
+import { UpiSettingsModal } from './upi-settings-modal';
 import { WhatsAppInvoiceModal } from './whatsapp-invoice-modal';
 
 export interface FolioData {
+  property?: {
+    name: string;
+    upiId: string | null;
+    upiMerchantName: string | null;
+  };
   reservation: {
     id: string;
     status: string;
@@ -75,10 +81,18 @@ export function FolioView({
   folioData,
   currency,
   readOnly,
+  userRole,
+  propertyUpi,
 }: {
   folioData: FolioData;
   currency: string;
   readOnly: boolean;
+  userRole?: string;
+  propertyUpi?: {
+    upiId: string | null;
+    upiMerchantName: string | null;
+    propertyName: string;
+  };
 }) {
   const { reservation, folio } = folioData;
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -87,6 +101,7 @@ export function FolioView({
   const [invoiceType, setInvoiceType] = useState('B2C');
   const [selectedInvoiceForWhatsApp, setSelectedInvoiceForWhatsApp] = useState<any | null>(null);
   const [showPreCheckinModal, setShowPreCheckinModal] = useState(false);
+  const [showUpiModal, setShowUpiModal] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -280,10 +295,14 @@ export function FolioView({
               <UpiQrCard
                 amount={paymentAmount}
                 currency={currency}
-                hotelName="Hotel Operations"
+                hotelName={propertyUpi?.propertyName || folioData.property?.name || 'Hotel Operations'}
                 roomNumber={reservation.roomNumber}
                 guestName={reservation.guestName}
                 folioId={folio.id}
+                upiId={propertyUpi?.upiId ?? folioData.property?.upiId}
+                upiMerchantName={propertyUpi?.upiMerchantName ?? folioData.property?.upiMerchantName}
+                isOwner={userRole === 'owner'}
+                onOpenUpiSettings={() => setShowUpiModal(true)}
                 onSimulatePaid={(utr) => {
                   setReference(utr);
                 }}
@@ -500,6 +519,17 @@ export function FolioView({
           amount={folio.total}
         />
       )}
+
+      {/* Owner-Only UPI Receiver Settings Modal */}
+      <UpiSettingsModal
+        isOpen={showUpiModal}
+        onClose={() => setShowUpiModal(false)}
+        currentUpiId={propertyUpi?.upiId ?? folioData.property?.upiId ?? ''}
+        currentMerchantName={propertyUpi?.upiMerchantName ?? folioData.property?.upiMerchantName ?? propertyUpi?.propertyName ?? ''}
+        propertyName={propertyUpi?.propertyName || folioData.property?.name || 'Hotel'}
+        reservationId={reservation.id}
+        isOwner={userRole === 'owner'}
+      />
     </div>
   );
 }

@@ -28,8 +28,11 @@ import {
   sendReviewRequestSchema,
   createMarketingCampaignSchema,
   updateGuestLoyaltySchema,
+  updateUpiSettingsSchema,
   FEATURES,
   HOSPITALITY_PLAN_TIERS,
+  PERMISSIONS,
+  roleHasPermission,
 } from '@erp/shared';
 import { AllExceptionsFilter } from '../src/common/pg-exception.filter';
 import { parseApiEnv } from '../src/env-validation';
@@ -740,6 +743,60 @@ test('Migration 016 creates enterprise hierarchy, loyalty profiles, and marketin
   assert.match(migration, /post_checkout_review/);
   assert.match(migration, /kohinoor/);
 });
+
+test('Receiver UPI ID settings schema validates VPA format and restricts banking management strictly to owner role', () => {
+  // 1. Zod schema validation
+  assert.equal(
+    updateUpiSettingsSchema.safeParse({
+      upiId: 'tajmumbai@hdfcbank',
+      upiMerchantName: 'The Taj Mahal Palace Mumbai',
+    }).success,
+    true,
+  );
+
+  assert.equal(
+    updateUpiSettingsSchema.safeParse({
+      upiId: '9876543210@paytm',
+    }).success,
+    true,
+  );
+
+  // Reject missing @ or invalid syntax
+  assert.equal(
+    updateUpiSettingsSchema.safeParse({
+      upiId: 'not-a-valid-vpa',
+    }).success,
+    false,
+  );
+
+  assert.equal(
+    updateUpiSettingsSchema.safeParse({
+      upiId: '@bank',
+    }).success,
+    false,
+  );
+
+  // 2. Strict Role Permissions Check:
+  // ONLY 'owner' has PROPERTY_BANKING_MANAGE permission.
+  // Manager, Front Desk, Housekeeping are strictly restricted.
+  assert.equal(roleHasPermission('owner', PERMISSIONS.PROPERTY_BANKING_MANAGE), true);
+  assert.equal(roleHasPermission('manager', PERMISSIONS.PROPERTY_BANKING_MANAGE), false);
+  assert.equal(roleHasPermission('frontdesk', PERMISSIONS.PROPERTY_BANKING_MANAGE), false);
+  assert.equal(roleHasPermission('housekeeping', PERMISSIONS.PROPERTY_BANKING_MANAGE), false);
+});
+
+test('Migration 019 creates property UPI receiver columns and seeds verified hotel VPAs', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/019_property_upi_receiver.sql'),
+    'utf8',
+  );
+  assert.match(migration, /upi_id/);
+  assert.match(migration, /upi_merchant_name/);
+  assert.match(migration, /tajmumbai@hdfcbank/);
+  assert.match(migration, /itcmaurya@icici/);
+  assert.match(migration, /grandazure@icici/);
+});
+
 
 
 

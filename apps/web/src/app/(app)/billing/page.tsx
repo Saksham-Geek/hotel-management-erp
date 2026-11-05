@@ -3,6 +3,7 @@ import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, EmptyState, inputCls, PageHeader } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { FolioView, type FolioData } from './folio-view';
+import { UpiReceiverBanner } from './upi-receiver-banner';
 
 interface ReservationQuickPick {
   id: string;
@@ -18,10 +19,11 @@ export default async function BillingPage({
 }: {
   searchParams: Promise<{ reservationId?: string; error?: string; ok?: string }>;
 }) {
-  const [{ reservationId, error, ok }, ent, me] = await Promise.all([
+  const [{ reservationId, error, ok }, ent, me, upiSettings] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_BILLING),
     getMe(),
+    api<{ upiId: string; upiMerchantName: string; propertyName: string; isOwner: boolean }>('/hotel/upi-settings').catch(() => null),
   ]);
 
   let folioData: FolioData | null = null;
@@ -45,6 +47,14 @@ export default async function BillingPage({
         description="Indian GST invoicing, multi-folio management, payment collection, and cashier settlements."
       />
       <Banner error={error} ok={ok} />
+
+      {/* Receiver UPI Configuration Bar */}
+      <UpiReceiverBanner
+        upiSettings={upiSettings}
+        isOwner={me.role === 'owner'}
+        propertyName={me.property?.name ?? 'Hotel'}
+        reservationId={reservationId}
+      />
 
       {/* Reservation Picker Bar */}
       <section className="mb-6 rounded-xl border border-line bg-surface p-4 shadow-sm">
@@ -74,7 +84,21 @@ export default async function BillingPage({
       </section>
 
       {folioData ? (
-        <FolioView folioData={folioData} currency={currency} readOnly={ent.readOnly} />
+        <FolioView
+          folioData={folioData}
+          currency={currency}
+          readOnly={ent.readOnly}
+          userRole={me.role}
+          propertyUpi={
+            upiSettings
+              ? {
+                  upiId: upiSettings.upiId,
+                  upiMerchantName: upiSettings.upiMerchantName,
+                  propertyName: me.property?.name ?? 'Hotel',
+                }
+              : undefined
+          }
+        />
       ) : (
         <EmptyState
           title="Select a reservation to view its folio"

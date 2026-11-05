@@ -10,6 +10,10 @@ interface UpiQrCardProps {
   roomNumber: string;
   guestName: string;
   folioId: string;
+  upiId?: string | null;
+  upiMerchantName?: string | null;
+  isOwner?: boolean;
+  onOpenUpiSettings?: () => void;
   onSimulatePaid: (utr: string) => void;
 }
 
@@ -20,19 +24,24 @@ export function UpiQrCard({
   roomNumber,
   guestName,
   folioId,
+  upiId,
+  upiMerchantName,
+  isOwner,
+  onOpenUpiSettings,
   onSimulatePaid,
 }: UpiQrCardProps) {
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(600); // 10 minutes expiry countdown
 
-  // UPI VPA merchant configuration
-  const vpa = `pay.${hotelName.toLowerCase().replace(/[^a-z0-9]/g, '')}@icici`;
+  // Verified receiver UPI VPA & Payee Name
+  const vpa = upiId?.trim() || `pay.${hotelName.toLowerCase().replace(/[^a-z0-9]/g, '')}@icici`;
+  const merchant = upiMerchantName?.trim() || hotelName;
   const transactionNote = `Rm ${roomNumber} Stay - ${guestName.split(' ')[0]}`;
   
   // Standard NPCI UPI URI Scheme
   const upiUri = `upi://pay?pa=${encodeURIComponent(vpa)}&pn=${encodeURIComponent(
-    hotelName,
+    merchant,
   )}&am=${amount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(transactionNote)}`;
 
   useEffect(() => {
@@ -138,8 +147,37 @@ export function UpiQrCard({
             </p>
           </div>
 
-          <div className="text-[11px] text-slate-500 font-mono">
-            VPA: <strong className="text-slate-800">{vpa}</strong>
+          <div className="space-y-1 pt-1 border-t border-slate-100">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
+                Receiver UPI VPA
+              </span>
+              {isOwner ? (
+                <button
+                  type="button"
+                  onClick={onOpenUpiSettings}
+                  className="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer flex items-center gap-0.5"
+                  title="Update the receiving UPI ID for this property"
+                >
+                  <span>⚙️ Edit</span>
+                </button>
+              ) : (
+                <span
+                  title="Only the property owner can modify the receiving bank UPI ID"
+                  className="text-[9px] font-semibold text-slate-400 flex items-center gap-0.5"
+                >
+                  <span>🔒 Owner Only</span>
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5">
+              <span className="font-mono text-xs font-bold text-indigo-950 bg-indigo-50 border border-indigo-200/80 px-2 py-0.5 rounded-md">
+                {vpa}
+              </span>
+              <span className="text-[10px] text-emerald-600 font-bold" title="NPCI Verified Merchant Account">
+                ✓
+              </span>
+            </div>
           </div>
         </div>
       </div>

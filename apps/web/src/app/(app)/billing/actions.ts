@@ -81,3 +81,24 @@ export async function issueInvoice(formData: FormData) {
   revalidatePath('/billing');
   redirect(`/billing?reservationId=${reservationId}&ok=Official+GST+Tax+Invoice+issued+with+IRN`);
 }
+
+export async function updateUpiSettingsAction(formData: FormData) {
+  const upiId = String(formData.get('upiId') ?? '').trim().toLowerCase();
+  const upiMerchantName = String(formData.get('upiMerchantName') ?? '').trim() || undefined;
+  const reservationId = String(formData.get('reservationId') ?? '');
+
+  const redirectBase = reservationId ? `/billing?reservationId=${reservationId}` : '/billing';
+
+  try {
+    const res = await api<{ message: string }>('/hotel/upi-settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ upiId, upiMerchantName }),
+    });
+    revalidatePath('/billing');
+    redirect(`${redirectBase}${redirectBase.includes('?') ? '&' : '?'}ok=${encodeURIComponent(res.message || 'Receiver UPI ID updated successfully')}`);
+  } catch (err: any) {
+    if ((err as any)?.digest?.startsWith('NEXT_REDIRECT')) throw err;
+    const message = err instanceof Error ? err.message : 'Failed to update receiver UPI ID';
+    redirect(`${redirectBase}${redirectBase.includes('?') ? '&' : '?'}error=${encodeURIComponent(message)}`);
+  }
+}

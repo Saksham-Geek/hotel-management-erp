@@ -396,3 +396,18 @@ export type SendReviewRequestInput = z.infer<typeof sendReviewRequestSchema>;
 export type CreateMarketingCampaignInput = z.infer<typeof createMarketingCampaignSchema>;
 export type UpdateGuestLoyaltyInput = z.infer<typeof updateGuestLoyaltySchema>;
 
+export const updateUpiSettingsSchema = z.object({
+  upiId: z
+    .string()
+    .trim()
+    .min(3, 'UPI ID must be at least 3 characters')
+    .max(120, 'UPI ID cannot exceed 120 characters')
+    .regex(
+      /^[a-zA-Z0-9.\-_]{2,64}@[a-zA-Z0-9.\-_]{2,64}$/,
+      'Enter a valid UPI ID (e.g. hotel@hdfcbank or 9876543210@paytm)',
+    ),
+  upiMerchantName: z.string().trim().min(2, 'Merchant name must be at least 2 characters').max(120).optional(),
+});
+export type UpdateUpiSettingsInput = z.infer<typeof updateUpiSettingsSchema>;
+
+

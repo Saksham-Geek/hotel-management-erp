@@ -4,6 +4,41 @@ This document tracks all schema migrations, architectural enhancements, and feat
 
 ---
 
+## Release v2.6.0: UPI Receiver Settings, Dynamic Scan-to-Pay QR, WhatsApp Invoicing & Direct Booking Engine
+
+### 1. Owner-Exclusive UPI Receiver Settings
+- **Migration 019 (`019_property_upi_receiver.sql`)**:
+  - Added `upi_id` (VPA) and `upi_merchant_name` to the `properties` table.
+  - Seeded verified VPAs for demonstration portfolios: Taj (`tajhotels@icici`), ITC (`itchotels@hdfcbank`), Sayaji (`sayaji@icici`), Radisson (`radissonhotels@axisbank`), Singhania (`singhania@kotak`), and Grand Azure (`grandazure@icici`).
+- **Security & Authorization**:
+  - Added `PROPERTY_BANKING_MANAGE` permission in `@erp/shared` mapped strictly to the `owner` role.
+  - Implemented `GET /hotel/upi-settings` and `PATCH /hotel/upi-settings` in `BillingController`.
+  - Added strict backend role verification returning `403 Forbidden` if non-owners attempt to modify the receiving VPA.
+- **Frontend Banking UI**:
+  - Added `UpiReceiverBanner` displaying active VPA status on `/billing`.
+  - Added `UpiSettingsModal` enabling hotel owners to update their receiving VPA and legal merchant name with live validation.
+
+### 2. Dynamic NPCI Scan-to-Pay QR Generator
+- Added `UpiQrCard` component inside folio cashiering modal on `/billing`.
+- Formulates real-time NPCI-compliant payment strings: `upi://pay?pa=...&pn=...&am=...&cu=INR&tr=...`.
+- Embedded 10-minute security countdown timer to prevent stale payment authorizations.
+- Front desk cashier records the 12-digit Indian bank UTR transaction reference number for audit reconciliation.
+
+### 3. Automated WhatsApp GST Tax Invoice & Folio Dispatch
+- Added 1-click **"WhatsApp Invoice"** button on guest folios and settled tax invoices.
+- Prepares a formatted WhatsApp Web/app message addressed directly to the guest's mobile phone number with property details, stay breakdown, and tax invoice download URL.
+
+### 4. Commission-Free Direct Guest Booking Engine
+- **Backend**:
+  - Added `PublicBookingController` with `@Public()` endpoints `GET /public/hotels/:slug` and `POST /public/direct-booking`.
+  - Full input validation via `directGuestBookingSchema` in `@erp/shared`.
+- **Frontend Portal**:
+  - Built mobile-responsive public booking portal at **`/book/[slug]`** (`/book/taj-hotels`, `/book/itc-hotels`, etc.).
+  - Real-time room availability inspection, amenity chips, guest count selectors, and instant advance UPI QR deposit flow.
+  - Automatically provisions guest profiles and allocates reservations directly into the Front Desk room rack.
+
+---
+
 ## Release v2.5.0: Production Multi-Tenant SaaS Cloud & Showcase Hub
 
 ### 1. SaaS Founder Command Center & Revenue Ledger

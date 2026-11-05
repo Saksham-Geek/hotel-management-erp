@@ -60,7 +60,8 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 | **`/reservations`** | **Reservations & Stays** | Front Desk | Central booking ledger for direct walk-ins, phone bookings, day-use hourly stays, modifications, and cancellations. |
 | **`/rooms`** | **Rooms & Inventory** | Owner / GM | Physical room and floor configuration, room categories (Deluxe, Executive Suite, Palace Suite), base tariffs, and hourly rates. |
 | **`/guests`** | **Guests Master & CRM** | Front Desk / GM | Centralized identity directory, companion linking, photo ID uploads, masked Aadhaar (UIDAI last-4 digits rule), VIP indicators. |
-| **`/billing`** | **Cashiering & GST Folios** | Front Desk / Cashier | Multi-item cashiering with dual-slab Indian GST (12% &le; ₹7.5k; 18% &gt; ₹7.5k), Section 269ST ₹2L cash limit check, Rule 114B PAN validation, SAC 996311 tax invoices. |
+| **`/billing`** | **Cashiering & GST Folios** | Front Desk / Cashier / Owner | Multi-item cashiering with dual-slab Indian GST (12% &le; ₹7.5k; 18% &gt; ₹7.5k), dynamic NPCI Scan-to-Pay UPI QR codes with countdown timer, 1-click WhatsApp tax invoice dispatch, Owner-exclusive receiver UPI ID bank configuration, Section 269ST ₹2L cash limit check, Rule 114B PAN validation, SAC 996311 tax invoices. |
+| **`/book/[slug]`** | **Direct Guest Booking Engine**| Public Guests / Direct | Commission-free, mobile-first public booking portal. Bypasses 18-25% OTA fees, displays live inventory, collects guest particulars, issues instant advance UPI QR deposit requests, and books directly into Front Desk room rack. |
 | **`/night-audit`** | **Night Audit & Day Close** | Night Auditor / GM | Automated business date rollover, room posting, cashier drawer reconciliation, RevPAR/ADR manager revenue flash reports. |
 | **`/compliance`** | **Statutory Compliance & BoI**| Front Desk / GM | Bureau of Immigration (BoI) Form C filing for foreign national guests within 24 hours of arrival; daily local police station beat register export. |
 | **`/channel-manager`**| **OTA Channel Manager** | GM / Revenue Mgr | Two-way ARI distribution with MakeMyTrip, Booking.com, Agoda, Expedia; live OTA booking simulator and webhook audit logs. |
@@ -109,6 +110,10 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 5. **Configure Tariffs & Subscription**:
    - Set base room tariffs and hourly rates on `/rooms`.
    - Manage your software subscription tier on `/upgrade`.
+6. **Configure Bank Settlement & Receiver UPI ID (Owner Exclusive)**:
+   - Open `/billing` ➔ Click **"Configure Receiving Account"** on the verified UPI banner.
+   - Enter your official hotel bank UPI ID (e.g. `tajhotels@icici`) and registered trade merchant name.
+   - **Owner-Exclusive Security Constraint**: Only the authenticated **Owner** possesses `PROPERTY_BANKING_MANAGE` authority. General Managers, Front Desk Receptionists, and Housekeeping staff have strictly read-only visibility and receive a `403 Forbidden` response if attempting modification. This guarantees that operational staff can never alter where cashiering or direct booking settlements flow.
 
 ---
 
@@ -127,6 +132,10 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 5. **Night Audit Close-Out (23:59 hrs)**:
    - Supervise the 1-click Night Audit rollover on `/night-audit`.
    - Reconcile room rate postings, cash drawer balances, and review the Daily Manager Flash Report.
+6. **Direct Booking Distribution & 0% Commission Yield**:
+   - Deploy property's public direct booking URL (`/book/[slug]`) across Google My Business, guest communication channels, and print collateral.
+   - Guests book directly with 0% OTA commissions, saving 18-25% in commissions.
+   - Direct reservations instantly inject into the Front Desk Room Rack (`/tape-chart`), blocking double bookings automatically.
 
 ---
 
@@ -152,12 +161,17 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
   - Open `/billing` ➔ Click **"+ Add Charge"**.
   - Charges are posted immediately to the guest's consolidated room folio.
 
-#### 4. Departure & Dual-Slab Indian GST Invoicing
+#### 4. Departure, Dynamic UPI QR Settlement & Indian GST Invoicing
 - Open the reservation folio on `/billing`.
 - System automatically applies Indian GST:
   - **12% GST** if room tariff &le; ₹7,500/night.
   - **18% GST** if room tariff &gt; ₹7,500/night.
   - SAC Code: `996311` (Hotel Accommodation).
+- **Dynamic NPCI Scan-to-Pay UPI Settlement**:
+  - In the settlement dialog, select **UPI / QR Code**.
+  - System generates a real-time, tamper-proof **NPCI-compliant UPI QR code** containing the hotel's verified VPA (`upi_id`), trade merchant name, exact rupee amount, transaction reference, and a 10-minute countdown security timer.
+  - Guest scans with PhonePe, Google Pay, Paytm, CRED, or BHIM.
+  - Front desk verifies transaction and records the 12-digit bank UTR reference number.
 - **Statutory Cash Guards**:
   - **Section 269ST**: Automatically blocks cash payments &ge; ₹2,00,000 per guest per stay.
   - **Rule 114B**: Requires mandatory PAN recording for cash payments &gt; ₹50,000.
@@ -165,7 +179,11 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 - Click **"Issue GST Tax Invoice"** and mark **"Check-Out"**.
 - Room status automatically transitions to `Cleaning`, notifying housekeeping.
 
-#### 5. Post-Stay Marketing Review Outreach
+#### 5. Instant WhatsApp GST Tax Invoice & Folio Dispatch
+- On any settled folio or issued invoice, click the **"WhatsApp Invoice"** button.
+- The ERP launches a direct WhatsApp message to the guest's mobile number with property branding, folio breakdown, invoice number, and paperless tax invoice link.
+
+#### 6. Post-Stay Marketing Review Outreach
 - Open `/marketing` under *Pending Review Outreach*.
 - Click **"Send WhatsApp"** to dispatch a personalized thank-you message with a direct Google Reviews link.
 - Update Taj InnerCircle loyalty tier points and record guest room preferences.
@@ -205,3 +223,8 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 - Mandatory under the Foreigners Act for every foreign national guest.
 - Form C capture includes: Passport Number, Nationality, Visa Type, Expiry Date, City of Arrival, Next Destination, and Indian Contact Phone.
 - Must be filed within 24 hours of check-in.
+
+### NPCI Unified Payments Interface (UPI) Standards & Banking Governance
+- **URI Payload Format**: `upi://pay?pa={vpa}&pn={merchant_name}&am={amount}&cu=INR&tr={folio_ref}` compliant with National Payments Corporation of India (NPCI) merchant specifications.
+- **Dynamic Render**: Generates high-density vector QR code with 10-minute expiry countdown to prevent stale or duplicate cashiering settlements.
+- **Banking Settlement Governance**: Hotel receiving VPA (`upi_id`) and legal merchant entity name (`upi_merchant_name`) are stored on the `properties` table. Access is cryptographically guarded by the `PROPERTY_BANKING_MANAGE` permission and enforced on the NestJS backend via role check (`user.role === 'owner'`). General Managers, Front Desk Receptionists, and Floor Attendants cannot alter the settlement account, mitigating revenue diversion risks.

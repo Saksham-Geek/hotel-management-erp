@@ -17,6 +17,8 @@ This document defines the architectural decisions, database models, security bou
 | **Session Security** | HTTP-only JWT cookies (`erp_token`) | JWTs never reach browser client-side JavaScript (mitigating XSS extraction). Stored in secure, same-site cookies managed by Next.js Server Actions. |
 | **Sensitive Data Security** | AES-256-GCM encryption | Foreign passport documents, Aadhaar details, and government IDs are encrypted at rest with server-side keys. Indian Aadhaar numbers are masked to last 4 digits per UIDAI compliance. |
 | **Monetary Precision** | `numeric(12,2)` | Eliminates floating-point rounding errors across folios, invoices, taxes, and platform MRR ledger. |
+| **Banking Settlement Security** | Owner-Exclusive `PROPERTY_BANKING_MANAGE` RBAC | Direct hotel receiving UPI ID (`upi_id`) and merchant name are restricted to `user.role === 'owner'`. General Managers, Front Desk Receptionists, and Floor Staff receive 403 Forbidden on writes, preventing unauthorized bank redirect. |
+| **Direct Guest Booking** | Public Zero-Commission Booking Engine (`/book/[slug]`) | Public unauthenticated API endpoints decorated with `@Public()` with input validation and rate limiting. Allocates live rooms directly to the tape chart and bypasses 18-25% OTA commissions. |
 
 ---
 
@@ -37,6 +39,13 @@ erDiagram
     FOLIOS ||--o{ FOLIO_PAYMENTS : "settles"
     FOLIOS ||--o{ STATUTORY_INVOICES : "issues"
     TENANTS ||--o{ PLATFORM_SUBSCRIPTION_INVOICES : "pays software MRR"
+    PROPERTIES {
+        uuid id PK
+        uuid tenant_id FK
+        text name
+        text upi_id
+        text upi_merchant_name
+    }
 ```
 
 ---
@@ -87,3 +96,30 @@ The SaaS revenue architecture tracks recurring income through:
 ### Access Boundary
 - **SaaS Founder Access**: Strictly gated by `ensurePlatformAuthorized()`. Only users with `slug === 'platform-hq'` or founder email credentials can query `/platform/overview` or perform platform updates.
 - **Client Isolation**: Client hotel owners (such as Taj, ITC, or independent boutiques) have zero access to platform revenue endpoints and are isolated within their own property scope.
+
+---
+
+## 6. Banking Settlement Security & Public Direct Booking Engine Architecture
+
+### A. Owner-Exclusive Banking Settlement Authority
+- **Migration 019 (`019_property_upi_receiver.sql`)**: Added `upi_id` (VPA) and `upi_merchant_name` to the `properties` table.
+- **Access Control Rule**: Added `PROPERTY_BANKING_MANAGE` feature permission. The API controller (`BillingController.updateUpiSettings`) explicitly checks:
+  ```typescript
+  if (user.role !== 'owner') {
+    throw new ForbiddenException('Only property owners are authorized to modify bank receiving UPI settings.');
+  }
+  ```
+- **Security Justification**: Front desk agents and general managers handle daily operational check-in/out and cashiering settlements, but must never have the authority to alter the bank account where customer funds settle. Gating VPA modification behind the Owner role eliminates internal theft and unauthorized fund diversion.
+
+### B. Dynamic NPCI Scan-to-Pay QR Generator
+- **Payload Generation**: Follows NPCI specifications:
+  `upi://pay?pa={upi_id}&pn={encodeURIComponent(upi_merchant_name)}&am={amount}&cu=INR&tr={folio_number}`
+- **Security Countdown**: Client component (`UpiQrCard`) incorporates a 10-minute session expiry countdown timer, preventing stale payments or race conditions during cashier shift handover.
+- **Reconciliation**: Front desk cashier validates the payment on their banking terminal/app and records the 12-digit Indian bank UTR (Unique Transaction Reference) number into the folio audit trail.
+
+### C. Public Direct Guest Booking Engine
+- **Controller**: `PublicBookingController` provides public `@Public()` endpoints:
+  - `GET /public/hotels/:slug`: Fetches hotel profile, available room categories, base tariffs, and verified receiving UPI ID.
+  - `POST /public/direct-booking`: Validates guest details, stay dates, and room selection via `directGuestBookingSchema`.
+- **Automatic Allocation**: Executes an atomic transaction that creates or retrieves the guest profile, allocates the room via the GiST double-booking guard, generates an initial reservation record (`status = confirmed`, `source = direct`), and provisions an active folio with room charges and taxes.
+- **0% Commission Advantage**: Allows hoteliers to capture direct bookings without surrendering 18–25% in OTA commissions to MakeMyTrip, Agoda, or Booking.com.

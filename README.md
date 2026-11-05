@@ -51,54 +51,64 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 - Real-time OTA channel ribbons: Walk-In, MakeMyTrip, Booking.com, Agoda, Corporate.
 - Live floor-by-floor turnover board (`Available`, `Occupied`, `Cleaning`, `Maintenance`).
 
-### 7. 💳 Cashiering & Statutory Indian GST Billing (`/billing`)
+### 7. 💳 Cashiering, Folios & Statutory Indian GST Billing (`/billing`)
 - Dual-slab Indian GST calculation (12% for tariff &le; ₹7,500; 18% for tariff &gt; ₹7,500) under SAC Code `996311`.
+- **Dynamic NPCI Scan-to-Pay UPI QR Generator**: Generates real-time, tamper-proof QR codes with embedded property VPA, amount, transaction reference, and a 10-minute security countdown timer for instant settlement via PhonePe, GPay, Paytm, CRED, or BHIM.
+- **1-Click WhatsApp GST Invoice Dispatch**: Instantly compiles and launches pre-filled WhatsApp tax invoice messages to guest mobile numbers with PDF download links and breakdown details.
+- **Owner-Exclusive Receiver UPI ID Configuration**: Property owners exclusively configure and update the receiving bank VPA (`upi_id`) and merchant name. General Managers and Front Desk staff are locked to read-only access (403 Forbidden on write) to safeguard hotel funds.
 - **Income Tax Act Section 269ST Guard**: Automatically refuses cash transactions &ge; ₹2,00,000 per guest per stay.
 - **Rule 114B PAN Validation**: Mandatory PAN record for cash payments &gt; ₹50,000.
 - B2B Corporate Ledgers with 15-character GSTIN validation and multi-item cashiering (Accommodation, In-Room Dining, Minibar, Spa).
 
-### 8. ⚖️ Statutory Compliance & BoI Form C (`/compliance`)
+### 8. 🏨 Commission-Free Direct Guest Booking Engine (`/book/[slug]`)
+- **Direct Distribution Channel**: Public-facing, mobile-first guest booking portal allowing travelers to reserve directly with **0% OTA commissions**, eliminating the 18% to 25% fees extracted by MakeMyTrip, Agoda, and Booking.com.
+- **Live Inventory Inspection**: Real-time room type availability, tariffs, amenities, and guest count selection.
+- **Direct Advance UPI Settlement**: Displays property's verified NPCI UPI QR code for direct guest deposit confirmation.
+- **Instant Allocation**: Automatically creates guest profile, confirms reservation, and renders directly into the Front Desk Room Rack (`/tape-chart`).
+
+### 9. ⚖️ Statutory Compliance & BoI Form C (`/compliance`)
 - Mandatory **Bureau of Immigration (BoI) Form C** filing for foreign national guests within 24 hours of arrival.
 - Daily local police station beat register export formatted for local law enforcement submission.
 
-### 9. 🌙 Automated Night Audit Rollover (`/night-audit`)
+### 10. 🌙 Automated Night Audit Rollover (`/night-audit`)
 - 1-click midnight business date rollover and daily room rate posting.
 - Daily Manager Flash Revenue Report with live ADR, RevPAR, and occupancy calculations.
 
-### 10. 🌐 Two-Way OTA Channel Manager (`/channel-manager`)
+### 11. 🌐 Two-Way OTA Channel Manager (`/channel-manager`)
 - Real-time ARI (Availability, Rates & Inventory) synchronization with MakeMyTrip, Booking.com, Agoda, and Expedia.
 - Inbound booking simulation and webhook audit logging.
 
-### 11. 💬 Guest Loyalty CRM & Marketing Automation (`/marketing`)
+### 12. 💬 Guest Loyalty CRM & Marketing Automation (`/marketing`)
 - Taj InnerCircle VIP loyalty tiers (Kohinoor, Platinum, Gold, Silver).
 - Automated 1-click post-checkout WhatsApp Google Review and TripAdvisor outreach.
 - Guest stay history, lifetime spend (LTV), and guest preferences logging.
 
-### 12. 👥 Staff Hierarchy & Delegation Governance (`/staff`)
+### 13. 👥 Staff Hierarchy & Delegation Governance (`/staff`)
 - Strict hierarchy enforcement: Super Admin ➔ Property Owner ➔ General Manager ➔ Front Desk / Housekeeping.
 - General Managers are restricted to recruiting Front Desk and Housekeeping staff.
 - Shift assignments (Morning, Evening, Night Audit, General).
 
-### 13. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
+### 14. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
 - In-site operational handbook that dynamically detects the user's role and displays the exact procedures authorized for their access level.
 - Role-Based Access Control (RBAC) permissions matrix comparing all 5 tiers.
+- Front desk cashiering procedures with dynamic NPCI UPI QR code generation and owner banking security rules.
 
 ---
 
 ## 🔑 Demonstration Accounts Matrix
 
-The system includes pre-configured client portfolios with 1-click pre-fills on the **[`/login`](http://localhost:3000/login)** page:
+The system includes pre-configured client portfolios with 1-click pre-fills on the **[`/login`](http://localhost:3000/login)** page, along with public direct booking portals:
 
-| Portfolio Category | Organization Slug | Properties Included | Login Credentials | Demonstration Highlights |
+| Portfolio Category | Organization Slug | Properties Included | Login Credentials | Direct Booking Portal & Banking |
 |---|---|---|---|---|
-| **🧪 Testing Sandbox** | `grand-azure` | Grand Azure Hotel (18 keys) | `owner@grandazure.test`<br/>`ChangeMe-123!` | Full 365-day historical booking records; test anything freely without altering client presentation accounts. |
-| **👑 Luxury Palace Chain 1** | `taj-hotels` | 1. **The Taj Mahal Palace**, Mumbai (35 keys)<br/>2. **Taj Ganges**, Varanasi (25 keys) | `director@tajhotels.com`<br/>`TajPalace2026!` | 5-Star palace luxury: Tata Presidential suites, VIP protocols, high ADR corporate folios, multi-property switcher. |
-| **🏛️ Luxury Business Chain 2** | `itc-hotels` | 1. **ITC Maurya**, New Delhi (32 keys)<br/>2. **ITC Mughal**, Agra (28 keys) | `owner@itchotels.com`<br/>`ItcLuxury2026!` | Diplomatic delegations, embassy folios, Bukhara & Dum Pukht F&B dining billing, corporate AR aging. |
-| **🏢 Mid-Market Chain 1** | `sayaji-hotels` | 1. **Sayaji Hotel Indore** (24 keys)<br/>2. **Sayaji Hotel Pune** (20 keys) | `owner@sayajihotels.com`<br/>`SayajiGrowth2026!` | Premier business hotel chain, corporate executives, banquet management. |
-| **🏢 Mid-Market Chain 2** | `radisson-india` | 1. **Radisson Blu Mumbai Airport** (26 keys)<br/>2. **Radisson Blu Udaipur Palace** (24 keys) | `franchise@radissonhotels.com`<br/>`Radisson2026!` | Franchise chains, OTA sync (MakeMyTrip, Agoda, Booking.com), housekeeping room rack. |
-| **🏰 Independent Multi-Hotel** | `city-boutique` | 1. **Heritage Haveli**, Jaipur (16 keys)<br/>2. **Lakeview Boutique Resort**, Udaipur (14 keys) | `owner@singhaniahotels.com`<br/>`Boutique2026!` | **Single owner with differently named hotels**: Vikram Singhania manages two distinct properties under one login. |
-| **📉 Churned Hotel (Exited)** | `coastal-haven` | Coastal Haven Retreat, Goa (12 keys) | `owner@coastalhaven.test` | Subscription canceled due to *"Seasonal monsoon closure & lease expired"* (Lifetime LTV: ₹15,992). |
-| **⚠️ Past Due (Overdue)** | `alpine-manali` | Alpine Pines Resort, Manali (18 keys) | `owner@alpinepines.test` | Overdue invoice tracking & automated grace period warning. |
+| **🧪 Testing Sandbox** | `grand-azure` | Grand Azure Hotel (18 keys) | `owner@grandazure.test`<br/>`ChangeMe-123!` | [`/book/grand-azure`](http://localhost:3000/book/grand-azure)<br/>VPA: `grandazure@icici` (Owner-managed) |
+| **👑 Luxury Palace Chain 1** | `taj-hotels` | 1. **The Taj Mahal Palace**, Mumbai (35 keys)<br/>2. **Taj Ganges**, Varanasi (25 keys) | `director@tajhotels.com`<br/>`TajPalace2026!` | [`/book/taj-hotels`](http://localhost:3000/book/taj-hotels)<br/>VPA: `tajhotels@icici` (Owner-managed) |
+| **🏛️ Luxury Business Chain 2** | `itc-hotels` | 1. **ITC Maurya**, New Delhi (32 keys)<br/>2. **ITC Mughal**, Agra (28 keys) | `owner@itchotels.com`<br/>`ItcLuxury2026!` | [`/book/itc-hotels`](http://localhost:3000/book/itc-hotels)<br/>VPA: `itchotels@hdfcbank` (Owner-managed) |
+| **🏢 Mid-Market Chain 1** | `sayaji-hotels` | 1. **Sayaji Hotel Indore** (24 keys)<br/>2. **Sayaji Hotel Pune** (20 keys) | `owner@sayajihotels.com`<br/>`SayajiGrowth2026!` | [`/book/sayaji-hotels`](http://localhost:3000/book/sayaji-hotels)<br/>VPA: `sayaji@icici` (Owner-managed) |
+| **🏢 Mid-Market Chain 2** | `radisson-india` | 1. **Radisson Blu Mumbai Airport** (26 keys)<br/>2. **Radisson Blu Udaipur Palace** (24 keys) | `franchise@radissonhotels.com`<br/>`Radisson2026!` | [`/book/radisson-india`](http://localhost:3000/book/radisson-india)<br/>VPA: `radissonhotels@axisbank` (Owner-managed) |
+| **🏰 Independent Multi-Hotel** | `city-boutique` | 1. **Heritage Haveli**, Jaipur (16 keys)<br/>2. **Lakeview Boutique Resort**, Udaipur (14 keys) | `owner@singhaniahotels.com`<br/>`Boutique2026!` | [`/book/city-boutique`](http://localhost:3000/book/city-boutique)<br/>VPA: `singhania@kotak` (Owner-managed) |
+| **📉 Churned Hotel (Exited)** | `coastal-haven` | Coastal Haven Retreat, Goa (12 keys) | `owner@coastalhaven.test` | Suspended account (Monsoon closure audit) |
+| **⚠️ Past Due (Overdue)** | `alpine-manali` | Alpine Pines Resort, Manali (18 keys) | `owner@alpinepines.test` | Overdue invoice recovery workflow |
 | **⚡ SaaS Founder HQ** | `platform-hq` | Cloud Operations HQ | `founder@antigravity-erp.com`<br/>`FounderCloud2026!` | Software Founder command center: platform MRR (₹83k+/mo), ARR (₹10L+/yr), client directory, churn retention ledger. |
 
 ---

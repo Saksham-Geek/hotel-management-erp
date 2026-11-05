@@ -30,7 +30,10 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 | `grand-azure` | **Front Desk Supervisor** | Aarav Mehta / Meera Nair | `frontdesk@grandazure.com` / `desk@grandazure.test` | `HotelStaff123!` | [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing) |
 | `grand-azure` | **Housekeeping Attendant** | Sunita Rao / Ramesh Patel | `housekeeping@grandazure.com` | `HotelStaff123!` | [`/housekeeping`](http://localhost:3000/housekeeping) |
 
-**Hotel Keys**: 18 Keys (Standard Deluxe, Executive Suites, Presidential Suites).
+**Hotel Keys**: 18 Keys (Standard Deluxe, Executive Suites, Presidential Suites).  
+**Public Direct Booking Portal**: [`http://localhost:3000/book/grand-azure`](http://localhost:3000/book/grand-azure)  
+**Receiver UPI ID (Bank VPA)**: `grandazure@icici` (Grand Azure Luxury Hotel)  
+*Banking Authority: Strictly Owner-only (`owner@grandazure.test`). GMs & Receptionists are locked to read-only.*
 
 ---
 
@@ -44,7 +47,10 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 | `taj-hotels` | **General Manager (Ganges)** | Nandeesh R. | `ganges.gm@tajhotels.com` | `HotelStaff123!` | Taj Ganges, Varanasi |
 
 **Subscription Plan**: Enterprise Chain (₹19,999/mo).  
-**Properties & Keys**: 2 Physical Hotels · 60 Total Keys (Mumbai: 35 keys, Varanasi: 25 keys).
+**Properties & Keys**: 2 Physical Hotels · 60 Total Keys (Mumbai: 35 keys, Varanasi: 25 keys).  
+**Public Direct Booking Portal**: [`http://localhost:3000/book/taj-hotels`](http://localhost:3000/book/taj-hotels)  
+**Receiver UPI ID (Bank VPA)**: `tajhotels@icici` (The Indian Hotels Company Limited)  
+*Banking Authority: Strictly Owner-only (`director@tajhotels.com`). GMs & Receptionists are locked to read-only.*
 
 ---
 
@@ -58,7 +64,10 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 | `itc-hotels` | **General Manager (Mughal)** | Deepak Menezes | `mughal.gm@itchotels.com` | `HotelStaff123!` | ITC Mughal, Agra |
 
 **Subscription Plan**: Enterprise Chain (₹19,999/mo).  
-**Properties & Keys**: 2 Physical Hotels · 60 Total Keys (Maurya: 32 keys, Mughal: 28 keys).
+**Properties & Keys**: 2 Physical Hotels · 60 Total Keys (Maurya: 32 keys, Mughal: 28 keys).  
+**Public Direct Booking Portal**: [`http://localhost:3000/book/itc-hotels`](http://localhost:3000/book/itc-hotels)  
+**Receiver UPI ID (Bank VPA)**: `itchotels@hdfcbank` (ITC Hotels Limited)  
+*Banking Authority: Strictly Owner-only (`owner@itchotels.com`). GMs & Receptionists are locked to read-only.*
 
 ---
 
@@ -72,7 +81,10 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 | `sayaji-hotels` | **General Manager (Pune)** | Sanjay Verma | `pune.gm@sayajihotels.com` | `HotelStaff123!` | Sayaji Hotel Pune |
 
 **Subscription Plan**: Growth Tier (₹5,999/mo).  
-**Properties & Keys**: 2 Physical Hotels · 44 Total Keys (Indore: 24 keys, Pune: 20 keys).
+**Properties & Keys**: 2 Physical Hotels · 44 Total Keys (Indore: 24 keys, Pune: 20 keys).  
+**Public Direct Booking Portal**: [`http://localhost:3000/book/sayaji-hotels`](http://localhost:3000/book/sayaji-hotels)  
+**Receiver UPI ID (Bank VPA)**: `sayaji@icici` (Sayaji Hotels Ltd)  
+*Banking Authority: Strictly Owner-only (`owner@sayajihotels.com`). GMs & Receptionists are locked to read-only.*
 
 ---
 
@@ -86,7 +98,10 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 | `radisson-india` | **General Manager (Udaipur)** | Anurag Gupta | `udaipur.gm@radissonhotels.com` | `HotelStaff123!` | Radisson Blu Udaipur Palace Resort |
 
 **Subscription Plan**: Growth Tier (₹5,999/mo).  
-**Properties & Keys**: 2 Physical Hotels · 50 Total Keys (Mumbai: 26 keys, Udaipur: 24 keys).
+**Properties & Keys**: 2 Physical Hotels · 50 Total Keys (Mumbai: 26 keys, Udaipur: 24 keys).  
+**Public Direct Booking Portal**: [`http://localhost:3000/book/radisson-india`](http://localhost:3000/book/radisson-india)  
+**Receiver UPI ID (Bank VPA)**: `radissonhotels@axisbank` (Radisson Hotel Group India)  
+*Banking Authority: Strictly Owner-only (`franchise@radissonhotels.com`). GMs & Receptionists are locked to read-only.*
 
 ---
 
@@ -100,7 +115,10 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 | `city-boutique` | **Hotel Manager (Udaipur)** | Devendra Rathore | `udaipur.mgr@singhaniahotels.com` | `HotelStaff123!` | Lakeview Boutique Resort, Udaipur |
 
 **Subscription Plan**: Growth Tier (₹5,999/mo).  
-**Properties & Keys**: 2 Physical Hotels · 30 Total Keys (Jaipur: 16 keys, Udaipur: 14 keys).
+**Properties & Keys**: 2 Physical Hotels · 30 Total Keys (Jaipur: 16 keys, Udaipur: 14 keys).  
+**Public Direct Booking Portal**: [`http://localhost:3000/book/city-boutique`](http://localhost:3000/book/city-boutique)  
+**Receiver UPI ID (Bank VPA)**: `singhania@kotak` (Singhania Heritage Resorts)  
+*Banking Authority: Strictly Owner-only (`owner@singhaniahotels.com`). GMs & Receptionists are locked to read-only.*
 
 ---
 
@@ -135,7 +153,25 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 
 ---
 
-## 11. Quick Summary of Passwords
+## 11. 🏨 Public Direct Guest Booking Portals & Receiver Banking Summary
+
+Every hotel onboarded has its own public-facing direct booking link (`/book/[slug]`). Guests can reserve directly with **0% commission** and settle advance deposits directly to the hotel's verified UPI VPA:
+
+| Hotel Organization | Direct Booking URL | Configured Receiver UPI ID | Merchant Legal Name | Authorized Modifier |
+|---|---|---|---|---|
+| **The Taj Mahal Palace / Taj Ganges** | [`http://localhost:3000/book/taj-hotels`](http://localhost:3000/book/taj-hotels) | `tajhotels@icici` | The Indian Hotels Company Limited | `director@tajhotels.com` (Owner Only) |
+| **ITC Maurya / ITC Mughal** | [`http://localhost:3000/book/itc-hotels`](http://localhost:3000/book/itc-hotels) | `itchotels@hdfcbank` | ITC Hotels Limited | `owner@itchotels.com` (Owner Only) |
+| **Sayaji Hotel Indore & Pune** | [`http://localhost:3000/book/sayaji-hotels`](http://localhost:3000/book/sayaji-hotels) | `sayaji@icici` | Sayaji Hotels Ltd | `owner@sayajihotels.com` (Owner Only) |
+| **Radisson Blu Mumbai & Udaipur** | [`http://localhost:3000/book/radisson-india`](http://localhost:3000/book/radisson-india) | `radissonhotels@axisbank` | Radisson Hotel Group India | `franchise@radissonhotels.com` (Owner Only) |
+| **Singhania Boutique Hotels** | [`http://localhost:3000/book/city-boutique`](http://localhost:3000/book/city-boutique) | `singhania@kotak` | Singhania Heritage Resorts | `owner@singhaniahotels.com` (Owner Only) |
+| **Grand Azure Testing Sandbox** | [`http://localhost:3000/book/grand-azure`](http://localhost:3000/book/grand-azure) | `grandazure@icici` | Grand Azure Luxury Hotel | `owner@grandazure.test` (Owner Only) |
+
+> [!IMPORTANT]
+> **Owner Banking Authority Guard**: The receiver UPI ID and merchant name can **only** be modified by accounts with the `owner` role. General Managers, Front Desk Receptionists, and Housekeeping staff are strictly locked into read-only access and receive a `403 Forbidden` response if attempting updates.
+
+---
+
+## 12. Quick Summary of Passwords
 
 - **SaaS Founder**: `FounderCloud2026!`
 - **Testing Sandbox**: `ChangeMe-123!`

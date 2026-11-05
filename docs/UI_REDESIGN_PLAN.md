@@ -30,7 +30,8 @@ The interface follows a clean, warm-neutral **Material 3 / Bundled Notes** aesth
 | **`/reservations`** | Front Desk | Complete booking ledger for direct reservations, walk-ins, hourly day-use stays, modifications, and cancellations. |
 | **`/rooms`** | Owner / GM | Physical room and floor configuration, room categories, base tariffs, and hourly rates. |
 | **`/guests`** | Front Desk / GM | Centralized identity directory, companion linking, photo ID uploads, masked Aadhaar storage, VIP indicators. |
-| **`/billing`** | Front Desk / Cashier | Multi-item cashiering with dual-slab Indian GST (12% / 18%), Section 269ST ₹2L cash limit check, Rule 114B PAN validation, SAC 996311 tax invoices. |
+| **`/billing`** | Front Desk / Cashier / Owner | Multi-item cashiering with dual-slab Indian GST (12% / 18%), Dynamic NPCI Scan-to-Pay QR generator (`UpiQrCard`), Owner-exclusive receiver UPI settings modal (`UpiSettingsModal`), WhatsApp invoice dispatch button, Section 269ST ₹2L cash limit check, Rule 114B PAN validation, SAC 996311 tax invoices. |
+| **`/book/[slug]`** | Public Direct Guests | Public mobile-first direct booking engine with room category cards, real-time availability, guest details intake, and advance UPI QR settlement. |
 | **`/night-audit`** | Night Auditor / GM | Automated business date rollover, room posting, cashier drawer reconciliation, RevPAR/ADR manager revenue flash reports. |
 | **`/compliance`** | Front Desk / GM | Bureau of Immigration (BoI) Form C filing for foreign national guests within 24 hours of arrival; daily local police station beat register export. |
 | **`/channel-manager`** | GM / Revenue Mgr | Two-way ARI distribution with MakeMyTrip, Booking.com, Agoda, Expedia; live OTA booking simulator and webhook audit logs. |

@@ -7,6 +7,11 @@ import { createProperty, logout, selectProperty } from '../login/actions';
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const [me, ent] = await Promise.all([getMe(), getEntitlements()]);
   const has = (feature: keyof typeof ent.features) => !!ent.features[feature];
+  const isPlatformFounder =
+    me.tenant.slug === 'platform-hq' ||
+    me.email === 'founder@antigravity-erp.com' ||
+    me.email === 'ops@antigravity-erp.com';
+
   const featureItems: (NavItem & { feature?: keyof typeof ent.features })[] = [
     { href: '/dashboard', label: 'Today', icon: 'today', group: 'Front Office' },
     { href: '/tape-chart', label: 'Tape Chart', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Office' },
@@ -26,6 +31,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       ? [
           { href: '/income', label: 'Owner Income & Revenue', icon: 'income' as const, group: 'Executive & Admin' },
           { href: '/super-admin', label: 'Multi-Hotel Console', icon: 'admin' as const, group: 'Executive & Admin' },
+        ]
+      : []),
+    ...(isPlatformFounder
+      ? [
           { href: '/platform-admin', label: 'SaaS Founder HQ (MRR)', icon: 'plans' as const, group: 'Executive & Admin' },
         ]
       : []),

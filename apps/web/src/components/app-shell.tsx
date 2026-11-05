@@ -83,10 +83,10 @@ export function AppShell({
 
   const tierBadge =
     plan === 'enterprise'
-      ? { label: 'Taj Chain', color: 'bg-amber-400/25 text-amber-200 border-amber-400/50' }
+      ? { label: 'Enterprise Edition', color: 'bg-amber-400/25 text-amber-200 border-amber-400/50' }
       : plan === 'growth' || plan === 'plus'
-      ? { label: 'Growth', color: 'bg-teal-400/25 text-teal-200 border-teal-400/50' }
-      : { label: 'Starter', color: 'bg-white/15 text-white border-white/30' };
+      ? { label: 'Growth Edition', color: 'bg-teal-400/25 text-teal-200 border-teal-400/50' }
+      : { label: 'Starter Edition', color: 'bg-white/15 text-white border-white/30' };
 
   return (
     <div className="min-h-dvh md:flex bg-ground">

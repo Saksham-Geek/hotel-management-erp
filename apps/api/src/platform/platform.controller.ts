@@ -95,7 +95,7 @@ export class PlatformController {
     private readonly audit: AuditService,
   ) {}
 
-  /** Verifies that the caller is authorized as SaaS Platform Founder/Staff or testing director */
+  /** Verifies that the caller is authorized as SaaS Platform Founder or Cloud Operations Staff */
   private async ensurePlatformAuthorized(c: any, user: AuthUser) {
     const tenantRes = await c.query('SELECT slug FROM tenants WHERE id = $1', [user.tenantId]);
     const userRes = await c.query('SELECT email FROM users WHERE id = $1', [user.id]);
@@ -104,12 +104,11 @@ export class PlatformController {
 
     const isPlatformHQ = slug === 'platform-hq';
     const isFounderEmail = email === 'founder@antigravity-erp.com' || email === 'ops@antigravity-erp.com';
-    const isDevTestingDirector = email === 'owner@grandazure.test' || email === 'director@tajhotels.com';
 
-    if (!isPlatformHQ && !isFounderEmail && !isDevTestingDirector) {
+    if (!isPlatformHQ && !isFounderEmail) {
       throw new ForbiddenException({
         code: 'PLATFORM_ACCESS_DENIED',
-        message: 'This dashboard is restricted to the SaaS Founder and Platform Operations staff.',
+        message: 'This dashboard is confidential and restricted exclusively to the SaaS Founder and Cloud Operations staff.',
       });
     }
   }

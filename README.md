@@ -168,6 +168,7 @@ pnpm --filter @erp/web typecheck
 ---
 
 ## 📚 Operational Manuals & Architecture References
+- [Master Credentials Directory](./CREDENTIALS.md) — All login credentials, demo personas, testing sandboxes, and passwords.
 - [Enterprise Hospitality Manual](./ENTERPRISE_HOSPITALITY_MANUAL.md) — Exhaustive technical & operational handbook.
 - [System Architecture](./docs/ARCHITECTURE.md) — Monolith architecture, RLS design, and concurrency decisions.
 - [Upgrade Notes](./doc/UPGRADE_NOTES.md) — Patch changelog and migration notes.

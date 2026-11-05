@@ -314,7 +314,7 @@ export function AppShell({
               href="/upgrade"
               className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors"
             >
-              <span>{plan === 'enterprise' ? '👑 Taj Chain Edition' : plan === 'growth' || plan === 'plus' ? '⚡ Growth Edition' : '🌱 Starter Edition'}</span>
+              <span>{plan === 'enterprise' ? '👑 Enterprise Edition' : plan === 'growth' || plan === 'plus' ? '⚡ Growth Edition' : '🌱 Starter Edition'}</span>
             </Link>
 
             <span className="hidden rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium capitalize text-slate-700 shadow-2xs sm:inline-flex">

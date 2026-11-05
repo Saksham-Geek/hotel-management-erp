@@ -5,6 +5,8 @@ import { Banner, btnCls, btnGhostCls, EmptyState, inputCls, StatCard, StatusBadg
 import { FormSubmit } from '@/components/form-submit';
 import { formatStayDates, formatDate } from '@/lib/format';
 import { addFolioCharge, collectFolioPayment, issueInvoice } from './actions';
+import { UpiQrCard } from './upi-qr-card';
+import { WhatsAppInvoiceModal } from './whatsapp-invoice-modal';
 
 export interface FolioData {
   reservation: {
@@ -81,7 +83,10 @@ export function FolioView({
   const { reservation, folio } = folioData;
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [paymentAmount, setPaymentAmount] = useState(folio.balanceDue > 0 ? folio.balanceDue : 0);
+  const [reference, setReference] = useState('');
   const [invoiceType, setInvoiceType] = useState('B2C');
+  const [selectedInvoiceForWhatsApp, setSelectedInvoiceForWhatsApp] = useState<any | null>(null);
+  const [showPreCheckinModal, setShowPreCheckinModal] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -101,6 +106,13 @@ export function FolioView({
             </p>
           </div>
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setShowPreCheckinModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 bg-indigo-50/80 px-3.5 py-1.5 text-xs font-bold text-indigo-950 hover:bg-indigo-100 transition-all cursor-pointer shadow-2xs"
+            >
+              <span>💬 WhatsApp Pre-Check-in</span>
+            </button>
             <span className="rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs sm:text-sm font-semibold text-slate-800 shadow-2xs">
               Folio #{folio.id.slice(0, 8).toUpperCase()} · Status: <span className="uppercase text-slate-900 font-bold">{folio.status}</span>
             </span>
@@ -263,6 +275,21 @@ export function FolioView({
               />
             </label>
 
+            {/* Dynamic UPI Scan-to-Pay QR Card */}
+            {paymentMethod === 'upi' && (
+              <UpiQrCard
+                amount={paymentAmount}
+                currency={currency}
+                hotelName="Hotel Operations"
+                roomNumber={reservation.roomNumber}
+                guestName={reservation.guestName}
+                folioId={folio.id}
+                onSimulatePaid={(utr) => {
+                  setReference(utr);
+                }}
+              />
+            )}
+
             {/* Indian Statutory Cash Warning Banner */}
             {paymentMethod === 'cash' && (
               <div className="rounded-lg border border-warning/30 bg-warning/10 p-3 text-xs leading-5 text-ink space-y-1">
@@ -287,7 +314,13 @@ export function FolioView({
 
             <label className="block text-xs font-medium text-ink">
               Reference / Transaction ID
-              <input name="reference" placeholder="e.g. UPI Ref / Card Last 4 digits" className={`${inputCls} mt-1.5`} />
+              <input
+                name="reference"
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                placeholder="e.g. UPI Ref / Card Last 4 digits"
+                className={`${inputCls} mt-1.5 font-mono text-xs`}
+              />
             </label>
 
             <FormSubmit className={`${btnCls} w-full`} pendingLabel="Recording payment…">
@@ -423,12 +456,50 @@ export function FolioView({
                       <span>✓ E-Invoice Signed QR Ready</span>
                     </div>
                   )}
+
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedInvoiceForWhatsApp(inv)}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-300 px-2.5 py-1 text-[11px] font-bold text-emerald-950 hover:bg-emerald-100 transition-all cursor-pointer shadow-2xs"
+                    >
+                      <span>💬 Dispatch via WhatsApp</span>
+                    </button>
+                    <span className="text-[10px] text-slate-500 font-medium">Automatic Guest PDF Receipt</span>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </section>
       </div>
+
+      {/* WhatsApp Invoice Dispatch Modal */}
+      {selectedInvoiceForWhatsApp && (
+        <WhatsAppInvoiceModal
+          isOpen={true}
+          onClose={() => setSelectedInvoiceForWhatsApp(null)}
+          guestName={reservation.guestName}
+          guestPhone={reservation.guestPhone}
+          hotelName="Hotel Operations"
+          roomNumber={reservation.roomNumber}
+          invoiceNumber={selectedInvoiceForWhatsApp.invoiceNumber}
+          amount={selectedInvoiceForWhatsApp.grandTotal}
+        />
+      )}
+
+      {/* WhatsApp Pre-Check-in Modal */}
+      {showPreCheckinModal && (
+        <WhatsAppInvoiceModal
+          isOpen={true}
+          onClose={() => setShowPreCheckinModal(false)}
+          guestName={reservation.guestName}
+          guestPhone={reservation.guestPhone}
+          hotelName="Hotel Operations"
+          roomNumber={reservation.roomNumber}
+          amount={folio.total}
+        />
+      )}
     </div>
   );
 }

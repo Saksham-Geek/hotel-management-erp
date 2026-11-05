@@ -38,6 +38,19 @@ export async function login(formData: FormData) {
   if (!token) redirect('/login?error=' + encodeURIComponent(error));
 
   await storeToken(token);
+
+  // Platform founder & cloud operations HQ land directly on SaaS Founder HQ (/platform-admin)
+  // All hotel clients (Taj, ITC, Sayaji, Radisson, Grand Azure, etc.) land on Front Desk (/dashboard)
+  const tenantSlug = String(formData.get('tenant') ?? '').trim().toLowerCase();
+  const emailVal = String(formData.get('email') ?? '').trim().toLowerCase();
+  if (
+    tenantSlug === 'platform-hq' ||
+    emailVal === 'founder@antigravity-erp.com' ||
+    emailVal === 'ops@antigravity-erp.com'
+  ) {
+    redirect('/platform-admin');
+  }
+
   redirect('/dashboard');
 }
 

@@ -13,6 +13,7 @@ import { RoomsController } from './rooms.controller';
 import { TapeChartController } from './tape-chart.controller';
 import { MarketingController } from './marketing.controller';
 import { IncomeController } from './income.controller';
+import { PublicBookingController } from './public-booking.controller';
 
 @Module({
   imports: [EntitlementsModule],
@@ -29,6 +30,7 @@ import { IncomeController } from './income.controller';
     ChannelManagerController,
     MarketingController,
     IncomeController,
+    PublicBookingController,
   ],
   providers: [CustomFieldsService],
 })

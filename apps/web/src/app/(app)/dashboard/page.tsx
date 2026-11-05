@@ -19,36 +19,58 @@ interface Dash {
   departuresToday: number;
 }
 
-export default async function Dashboard() {
+export default async function Dashboard({
+  searchParams,
+}: {
+  searchParams?: Promise<{ error?: string; ok?: string }>;
+}) {
   await requireFeature(FEATURES.HOTEL_ROOMS);
-  const [dash, rooms, me] = await Promise.all([
-    api<Dash>('/hotel/dashboard'),
+  const [{ error, ok } = {}, dash, rooms, me] = await Promise.all([
+    searchParams ? searchParams : Promise.resolve({ error: undefined, ok: undefined }),
+    api<Dash>('/hotel/dashboard').catch(() => ({ totalRooms: 0, byStatus: {}, arrivalsToday: 0, departuresToday: 0 })),
     api<Room[]>('/hotel/rooms').catch(() => []),
     getMe(),
   ]);
 
+  const safeDash: Dash = dash ?? { totalRooms: 0, byStatus: {}, arrivalsToday: 0, departuresToday: 0 };
+  const safeByStatus = safeDash.byStatus ?? {};
   const floors = [...new Set((rooms ?? []).map((room) => room.floor))].sort((a, b) => a - b);
-  const occupied = dash.byStatus.occupied ?? 0;
-  const ready = dash.byStatus.available ?? 0;
-  const cleaning = dash.byStatus.cleaning ?? 0;
-  const maintenance = dash.byStatus.maintenance ?? 0;
-  const occupancy = dash.totalRooms ? Math.round((occupied / dash.totalRooms) * 100) : 0;
+  const occupied = safeByStatus.occupied ?? 0;
+  const ready = safeByStatus.available ?? 0;
+  const cleaning = safeByStatus.cleaning ?? 0;
+  const maintenance = safeByStatus.maintenance ?? 0;
+  const totalRooms = safeDash.totalRooms ?? 0;
+  const occupancy = totalRooms ? Math.round((occupied / totalRooms) * 100) : 0;
 
   const hotelDate = new Intl.DateTimeFormat('en-IN', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
     year: 'numeric',
-    timeZone: me.property.timezone,
+    timeZone: me?.property?.timezone ?? 'Asia/Kolkata',
   }).format(new Date());
 
   return (
     <div className="space-y-8">
+      {/* Search Param Alerts */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-2xl border border-amber-300/80 bg-amber-50/90 p-4 text-sm font-medium text-amber-950 shadow-2xs">
+          <span className="text-xl">⚠️</span>
+          <p>{error}</p>
+        </div>
+      )}
+      {ok && (
+        <div className="flex items-center gap-3 rounded-2xl border border-emerald-300/80 bg-emerald-50/90 p-4 text-sm font-medium text-emerald-950 shadow-2xs">
+          <span className="text-xl">✅</span>
+          <p>{ok}</p>
+        </div>
+      )}
+
       {/* Header with Quick Actions */}
       <PageHeader
         title="Today's Front Desk"
         eyebrow="Live Operations"
-        description={`${hotelDate} · ${me.property.name}`}
+        description={`${hotelDate} · ${me?.property?.name ?? 'Hotel Property'}`}
       >
         <Link
           href="/reservations#new-reservation"
@@ -77,7 +99,7 @@ export default async function Dashboard() {
             </span>
           </div>
           <p className="mt-2 font-display text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-            {occupied} <span className="text-sm font-medium text-slate-500">/ {dash.totalRooms} Rooms</span>
+            {occupied} <span className="text-sm font-medium text-slate-500">/ {safeDash.totalRooms} Rooms</span>
           </p>
           <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
             <div
@@ -89,7 +111,7 @@ export default async function Dashboard() {
 
         <StatCard
           label="Expected Arrivals"
-          value={dash.arrivalsToday}
+          value={safeDash.arrivalsToday}
           detail="Today's scheduled check-ins"
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -100,7 +122,7 @@ export default async function Dashboard() {
 
         <StatCard
           label="Expected Departures"
-          value={dash.departuresToday}
+          value={safeDash.departuresToday}
           detail="Due-outs to settle &amp; inspect"
           icon={
             <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

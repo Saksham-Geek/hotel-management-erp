@@ -3,7 +3,10 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import type { EntitlementsDto, FeatureKey, MeDto, PlanKey, PlanTierConfig } from '@erp/shared';
 
-export const API_URL = process.env.API_URL ?? 'http://localhost:4000';
+const rawApiUrl = process.env.API_URL ?? 'http://127.0.0.1:4000';
+// On Windows, 'localhost' resolves to IPv6 [::1] first. If API listens on IPv4 0.0.0.0,
+// this causes a 30s TCP timeout or ECONNREFUSED. Normalize localhost -> 127.0.0.1.
+export const API_URL = rawApiUrl.replace('://localhost:', '://127.0.0.1:');
 export const TOKEN_COOKIE = 'erp_token';
 
 export class ApiError extends Error {
@@ -15,11 +18,28 @@ export class ApiError extends Error {
 /** Server-side only. The JWT lives in an httpOnly cookie and never reaches browser JavaScript. */
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = (await cookies()).get(TOKEN_COOKIE)?.value;
-  const res = await fetch(API_URL + path, {
-    ...init,
-    cache: 'no-store',
-    headers: { 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}), ...init.headers },
-  });
+  const headers = {
+    'content-type': 'application/json',
+    ...(token ? { authorization: `Bearer ${token}` } : {}),
+    ...init.headers,
+  };
+
+  let res: Response;
+  try {
+    res = await fetch(API_URL + path, {
+      ...init,
+      cache: 'no-store',
+      headers,
+    });
+  } catch (err: any) {
+    // Graceful fallback: try 127.0.0.1 if URL was different, or wrap cleanly so SSR doesn't throw raw unhandled TypeError
+    console.error(`[API Network Error] ${init.method ?? 'GET'} ${API_URL + path}:`, err?.message ?? err);
+    throw new ApiError(503, {
+      message: 'API backend (:4000) is unreachable. Check that the backend service and database are running.',
+      details: err?.message,
+    });
+  }
+
   const body = await res.json().catch(() => null);
   if (res.status === 401) redirect('/login?error=' + encodeURIComponent('Your session has ended. Sign in again'));
   if (!res.ok) throw new ApiError(res.status, body);

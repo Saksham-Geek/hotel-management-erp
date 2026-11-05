@@ -152,15 +152,21 @@ The SaaS revenue architecture tracks recurring income through:
 
 ---
 
-## 8. Integrated Petpooja-Grade F&B Restaurant POS & KOT Architecture
+## 8. Integrated Aura Dine F&B Restaurant POS & KOT Architecture
 
-### A. Data Schema & Isolation (Migration 021)
-- `restaurant_outlets`: Multiple dining venues per hotel (e.g. Fine Dining, Roof-Top Lounge, In-Room Dining, Poolside Bar).
-- `restaurant_tables`: Physical table master with table numbers, capacity (covers), floor zones, and occupancy statuses (`available`, `occupied`, `billed`).
+### A. Data Schema & Isolation (Migrations 021 & 022)
+- `restaurant_outlets`: Multiple dining venues per hotel (Fine Dining, Roof-Top Lounge, In-Room Dining, Poolside Bar, Standalone Bistros). Stores FSSAI license, GSTIN, service charge %, contact phone, and standalone flags.
+- `restaurant_tables`: Physical table master with table numbers, capacity (covers), floor zones/sections (*Main AC Hall*, *Open Terrace Garden*, *Poolside Deck*, *Bar & Lounge*), and occupancy statuses (`vacant`, `occupied`, `billed`). Supports `is_merged` and `merged_with_table_id`.
 - `menu_categories` & `menu_items`: Hierarchical digital menu with dietary badges (`is_veg`, `is_vegan`, `contains_egg`), preparation time, spice levels, and prices.
-- `kot_orders` & `kot_order_items`: Kitchen Order Tickets tracking chronological order states (`pending` ➔ `preparing` ➔ `ready` ➔ `served` ➔ `billed` ➔ `cancelled`). Stores waiter/server name, special chef notes, and fulfillment times.
+- `kot_orders` & `kot_order_items`: Kitchen Order Tickets tracking chronological order states (`pending` ➔ `preparing` ➔ `ready` ➔ `served` ➔ `settled` ➔ `cancelled`). Supports subsequent KOT rounds (`round_number`), discounts, service charge, and split flags.
+- `kot_order_splits`: Split billing ledger enabling equal 2-5 way splits or itemized custom splits with independent tenders (Cash, UPI QR, EDC POS Card, Room Charge).
+- `restaurant_customers`: Standalone restaurant CRM tracking diner phone, name, email, dietary preferences (Veg, Non-Veg, Jain), visit count, and total spend.
 
-### B. Tax Isolation & Folio Posting Engine
+### B. Table Operations Engine (Merge & Shift)
+- **Table Shifting (`transferTable`)**: Atomically shifts active order from Table A to Table B and vacates Table A.
+- **Table Merging (`mergeTables`)**: Combines line items from two adjacent tables into a single consolidated master order, linking both tables.
+
+### C. Tax Isolation & Folio Posting Engine
 - **SAC 996331**: Food & Beverage charges are tagged strictly with SAC `996331` at 5% GST (2.5% CGST + 2.5% SGST without ITC).
 - **Atomic Folio Charge Posting**:
   ```typescript
@@ -168,9 +174,11 @@ The SaaS revenue architecture tracks recurring income through:
   // 1. Validates active checked-in reservation folio
   // 2. Inserts folio_item with SAC 996331 and 5% GST
   // 3. Atomically updates folio total and balance
-  // 4. Transitions KOT order status to 'billed' and associated table to 'available'
+  // 4. Transitions KOT order status to 'settled' and associated tables to 'vacant'
   ```
-- **80mm ESC/POS Slip Generation**: `KotPrintModal` renders industry-standard thermal kitchen order tickets with running KOT number, table/room ID, ordered quantities, item notes, and server timestamp.
+- **80mm ESC/POS Slip Generation**:
+  - `KotPrintModal`: Industry-standard kitchen order tickets with running KOT number, table/room ID, ordered quantities, prep notes, and server timestamp.
+  - `BillPrintModal`: Official 80mm customer tax receipt with FSSAI license, GSTIN, SAC 996331 tax breakdown, discounts, service charge, and payment mode.
 
 ---
 

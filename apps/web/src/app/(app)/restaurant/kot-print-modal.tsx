@@ -162,7 +162,7 @@ export function KotPrintModal({
             {/* KOT Footer */}
             <div className="mt-3 text-center text-[10px] font-bold">
               <p>*** END OF ORDER ***</p>
-              <p className="text-[9px] text-slate-500 mt-0.5">Dispatched via Aura PMS Petpooja POS</p>
+              <p className="text-[9px] text-slate-500 mt-0.5">Dispatched via Aura Dine KOT System</p>
             </div>
 
           </div>

@@ -976,6 +976,100 @@ test('Migration 021 creates restaurant outlets, tables, menu items, KOT orders, 
   assert.match(migration, /rfid_mifare/);
 });
 
+test('Aura Dine multi-outlet F&B schemas validate table merge, shift, rounds, and split billing', () => {
+  const {
+    mergeTablesSchema,
+    transferTableSchema,
+    punchKotRoundSchema,
+    adjustKotBillSchema,
+    splitKotBillSchema,
+    settleKotSplitSchema,
+  } = require('@erp/shared');
+
+  // 1. Table merge schema
+  assert.equal(
+    mergeTablesSchema.safeParse({
+      sourceTableId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      targetTableId: 'a1b2c3d4-e5f6-4a1b-8c2d-3e4f5a6b7c8d',
+    }).success,
+    true,
+  );
+
+  // 2. Table transfer/shift schema
+  assert.equal(
+    transferTableSchema.safeParse({
+      fromTableId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      toTableId: 'a1b2c3d4-e5f6-4a1b-8c2d-3e4f5a6b7c8d',
+    }).success,
+    true,
+  );
+
+  // 3. Multi-round KOT punch schema
+  assert.equal(
+    punchKotRoundSchema.safeParse({
+      items: [
+        {
+          menuItemId: 'd2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a',
+          itemName: 'Gulab Jamun (2 pcs)',
+          quantity: 2,
+          unitPrice: 140.0,
+          gstRate: 5.0,
+          foodType: 'veg',
+        },
+      ],
+      serverName: 'Captain Ramesh',
+    }).success,
+    true,
+  );
+
+  // 4. Bill adjust with discount & service charge
+  assert.equal(
+    adjustKotBillSchema.safeParse({
+      discountType: 'percent',
+      discountValue: 10,
+      applyServiceCharge: true,
+      serviceChargePercent: 5,
+      customerName: 'Rahul Sharma',
+      customerPhone: '9820011223',
+    }).success,
+    true,
+  );
+
+  // 5. Split bill schema (equal & custom)
+  assert.equal(
+    splitKotBillSchema.safeParse({
+      splitType: 'equal',
+      splitsCount: 3,
+    }).success,
+    true,
+  );
+
+  // 6. Settle split schema
+  assert.equal(
+    settleKotSplitSchema.safeParse({
+      splitId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      paymentMethod: 'room_charge',
+      reservationId: 'a1b2c3d4-e5f6-4a1b-8c2d-3e4f5a6b7c8d',
+      roomNumber: '201',
+    }).success,
+    true,
+  );
+});
+
+test('Migration 022 expands restaurant schema with sections, split billing, and standalone CRM', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/022_restaurant_pos_expansion.sql'),
+    'utf8',
+  );
+  assert.match(migration, /fssai_number/);
+  assert.match(migration, /service_charge_percent/);
+  assert.match(migration, /is_standalone/);
+  assert.match(migration, /create table if not exists kot_order_splits/);
+  assert.match(migration, /create table if not exists restaurant_customers/);
+  assert.match(migration, /Main AC Hall/);
+  assert.match(migration, /The Spice Route Bistro/);
+});
+
 
 
 

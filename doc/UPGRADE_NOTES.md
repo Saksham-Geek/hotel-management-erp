@@ -4,9 +4,36 @@ This document tracks all schema migrations, architectural enhancements, and feat
 
 ---
 
-## Release v2.8.0: Integrated Petpooja F&B Restaurant POS & KOT + Enterprise Key Management (Brass Rack & RFID Hardware Bridge)
+## Release v2.9.0: Multi-Outlet F&B Expansion (Aura Dine: Standalone & Hotel Integrated POS)
 
-### 1. Integrated Petpooja-Grade Restaurant POS & KOT
+### 1. Dual-Operation Architecture (Hotel Connected & Standalone POS)
+- **Hotel Integrated Mode**: Directly links with active hotel check-ins, allowing 1-click posting to guest folios under **SAC 996331 at 5% GST** without tax commingling.
+- **Standalone Restaurant Mode**: Functions independently for high-street bistros, food courts, cafes, and bars with zero hotel dependency. Supports direct walk-ins, phone-based CRM customer recognition, Swiggy/Zomato takeaway, and direct Cash/UPI/EDC card settlement.
+
+### 2. Aura Dine Floor Plan & Table Management
+- **Floor Zones / Sections**: Organizes tables across custom sections (*Main AC Hall*, *Open Terrace Garden*, *Poolside Deck*, *Bar & Lounge*, *VIP Private Dining*).
+- **Table Shift / Transfer (`/hotel/restaurant/tables/transfer`)**: 1-click transfer of active KOT orders from one table to any vacant table (e.g. T-01 ➔ T-05).
+- **Table Merge (`/hotel/restaurant/tables/merge`)**: Combines two tables into a single consolidated master order for large banquet and family gatherings.
+
+### 3. Multi-Round KOT Punch & Kitchen Ticketing
+- **Subsequent KOT Rounds (`/hotel/restaurant/kots/:id/round`)**: Punch Round 2 (Mains), Round 3 (Desserts) into an active order. Generates distinct sequential tickets (`KOT-101-R2`) for kitchen chefs while consolidating the table bill.
+- **80mm ESC/POS Thermal Printing**: Dual print modal formats:
+  - `KotPrintModal`: 80mm kitchen ticketing format with dish prep tags (*"No Onion Garlic"*, *"Mild"*, *"Crispy"*).
+  - `BillPrintModal`: 80mm customer tax receipt format with FSSAI license, GSTIN, SAC 996331 breakdown, CGST, SGST, discounts, and payment mode.
+
+### 4. Aura Dine Split Billing Engine & Standalone Diner CRM
+- **Split Bill Engine (`/hotel/restaurant/kots/:id/split`)**:
+  - Equal split across 2 to 5 ways with independent tenders per person (e.g., Split 1 via Cash, Split 2 via Dynamic UPI QR, Split 3 via Room Folio).
+  - Individual split settlement tracking in `kot_order_splits`.
+- **Standalone Diner CRM (`/hotel/restaurant/customers/lookup`)**:
+  - Auto-identifies returning diners on mobile number entry.
+  - Tracks visit count, lifetime spend, and dietary preferences (Veg, Non-Veg, Jain).
+
+---
+
+## Release v2.8.0: Integrated Aura Dine F&B Restaurant POS & KOT + Enterprise Key Management (Brass Rack & RFID Hardware Bridge)
+
+### 1. Integrated Aura Dine Restaurant POS & KOT
 - **Migration 021 (`021_restaurant_pos_kot.sql`)**:
   - Created tables: `restaurant_outlets`, `restaurant_tables`, `menu_categories`, `menu_items`, `kot_orders`, `kot_order_items`, `room_keys`.
   - Added feature flags: `hotel.restaurant.pos` and `hotel.keycards` across all subscription plan tiers in `plan_features`.
@@ -24,7 +51,7 @@ This document tracks all schema migrations, architectural enhancements, and feat
     - `POST /hotel/restaurant/kots/:id/charge-to-room` (Atomic line item posting under SAC 996331 at 5% GST directly to checked-in guest room folio)
     - `POST /hotel/restaurant/kots/:id/settle-direct` (Direct cashiering settlement with Cash, UPI QR, or EDC POS card machine)
 - **Frontend Touch POS UI (`/restaurant`)**:
-  - Petpooja-grade touch POS screen with Veg (🟢) / Non-Veg (🔴) culinary badges, spice level indicator, search, and category tabs.
+  - Aura Dine touch POS screen with Veg (🟢) / Non-Veg (🔴) culinary badges, spice level indicator, search, and category tabs.
   - Interactive table floor plan showing real-time occupancy (Available, Occupied, Billed).
   - Multi-type order support: Dine-In, In-Room Dining (Room Service), and Takeaway.
   - Custom prep instructions per dish (*"Less spicy, crispy naan"*).

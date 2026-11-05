@@ -110,8 +110,8 @@ export function GuideView({
       badge: 'Dining & Kitchen',
       minRole: 'frontdesk',
       rolesAllowed: ['frontdesk', 'manager', 'owner', 'founder'],
-      desc: 'Petpooja-grade touch dining POS with floor plan table management. Supports Dine-In, In-Room Dining (Room Service), and Takeaway. Displays Veg/Non-Veg indicators, custom kitchen notes, 80mm ESC/POS thermal KOT slip printing, live Kitchen Display System (KDS), and 1-click "Charge to Room Folio" under SAC 996331 at 5% GST.',
-      actions: ['Touch-screen table floor plan ordering', 'Generate sequential kitchen order tickets (KOT)', '80mm ESC/POS thermal receipt printing', 'Kitchen Display System (KDS) live chef queue', '1-click Charge to Room Folio under SAC 996331 at 5% GST'],
+      desc: 'Aura Dine touch dining POS operating in both Hotel Integrated Mode and Standalone High-Street Restaurant Mode. Features table floor plan with sections, table shifting, table merging, multi-round KOT punching, split billing (2-5 ways), phone CRM diner lookup, 80mm ESC/POS thermal KOT and tax bill printing, live Kitchen Display System (KDS), and 1-click "Charge to Room Folio" under SAC 996331 at 5% GST.',
+      actions: ['Touch-screen table floor plan ordering', 'Table shifting & large party merging', 'Punch subsequent round KOTs (R2, R3)', 'Equal 2-5 way split billing engine', 'Standalone diner CRM lookup by mobile', '80mm ESC/POS thermal receipt & bill printing', 'Kitchen Display System (KDS) live chef queue', '1-click Charge to Room Folio under SAC 996331 at 5% GST'],
       icon: '🍽️',
     },
     {
@@ -1122,7 +1122,7 @@ export function GuideView({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="rounded-full bg-amber-100 text-amber-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
-                      Petpooja F&amp;B POS
+                      Aura Dine POS
                     </span>
                     <h3 className="font-display text-base font-bold text-slate-950">
                       F&amp;B Restaurant KOT &amp; 1-Click &quot;Charge to Room Folio&quot;
@@ -1133,9 +1133,11 @@ export function GuideView({
                   </Link>
                 </div>
                 <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
-                  <p>• When guests dine at the hotel restaurant or order In-Room Dining (Room Service), launch <strong className="text-slate-950">/restaurant</strong>.</p>
-                  <p>• Select table from live floor grid, tap items with Veg (🟢) / Non-Veg (🔴) indicators, add custom prep notes, and fire sequential kitchen order tickets (KOT) with 80mm ESC/POS thermal printing.</p>
-                  <p>• When dining concludes, click <strong className="text-amber-950 font-bold">&quot;Charge to Room Folio&quot;</strong> and pick the guest&apos;s active room. The ERP posts the exact amount to the room folio under SAC <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">996331</code> at 5% GST without mingling with room accommodation tax.</p>
+                  <p>• <strong className="text-slate-950">Dual Operating Mode:</strong> Use the top switcher to toggle between <strong className="text-slate-950">🏨 Hotel Integrated Mode</strong> (queries checked-in guests for direct room folio charging) and <strong className="text-amber-950 font-bold">🍽️ Standalone POS Mode</strong> (pure walk-in diners, mobile phone CRM, Swiggy/Zomato takeaway, and cash/card POS).</p>
+                  <p>• <strong className="text-slate-950">Floor Zones, Shifts &amp; Merges:</strong> Filter by section (Main AC Hall, Open Terrace, Poolside Deck). Click <strong className="text-slate-950">&quot;Shift ➔&quot;</strong> to move active orders between tables, or <strong className="text-slate-950">&quot;Merge 🔗&quot;</strong> to combine adjacent tables for large family or corporate banquets.</p>
+                  <p>• <strong className="text-slate-950">Subsequent KOT Rounds:</strong> Click <strong className="text-amber-950 font-bold">&quot;+ Round&quot;</strong> on any occupied table to fire Round 2 (Mains) or Round 3 (Desserts) to the kitchen (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">KOT-101-R2</code>) while keeping the table bill consolidated.</p>
+                  <p>• <strong className="text-slate-950">Split Billing Engine:</strong> Settle dining checks split 2 to 5 ways with independent payment methods (e.g., Split 1 via Cash, Split 2 via Scan-to-Pay UPI QR, Split 3 via EDC POS Card, and Split 4 charged to Room Folio).</p>
+                  <p>• <strong className="text-slate-950">80mm ESC/POS Thermal Printing:</strong> Generates kitchen order slips (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">KotPrintModal</code>) and official customer tax bills (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">BillPrintModal</code>) with FSSAI, GSTIN, and 5% F&amp;B GST breakdown under SAC <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">996331</code>.</p>
                 </div>
               </div>
             </div>

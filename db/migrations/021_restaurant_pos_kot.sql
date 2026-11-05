@@ -1,4 +1,4 @@
--- Migration 021: Integrated F&B Restaurant POS & KOT (Petpooja-Grade) & Key Management (RFID & Brass)
+-- Migration 021: Integrated F&B Restaurant POS & KOT (Aura Dine Enterprise Grade) & Key Management (RFID & Brass)
 -- Phase 2: Table Management, Menu Master, Kitchen Order Tickets (KOT), Kitchen Display Screen (KDS), 1-Click Room Folio Posting
 -- Phase 4: Room Keys (Brass Keychains with numbered tags & RFID MIFARE cards) & Digital Mobile Passes
 

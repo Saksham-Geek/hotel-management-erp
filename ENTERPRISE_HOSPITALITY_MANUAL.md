@@ -65,7 +65,7 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 | **`/night-audit`** | **Night Audit & Day Close** | Night Auditor / GM | Automated business date rollover, room posting, cashier drawer reconciliation, RevPAR/ADR manager revenue flash reports. |
 | **`/compliance`** | **Statutory Compliance & BoI**| Front Desk / GM | Bureau of Immigration (BoI) Form C filing for foreign national guests within 24 hours of arrival; daily local police station beat register export. |
 | **`/channel-manager`**| **OTA Channel Manager** | GM / Revenue Mgr | Two-way ARI distribution with MakeMyTrip, Booking.com, Agoda, Expedia; live OTA booking simulator and webhook audit logs. |
-| **`/restaurant`** | **F&B Restaurant POS & KOT** | F&B Captain / Cashier / GM | Petpooja-grade touch dining POS. Floor plan table management, digital menu master with Veg/Non-Veg indicators, kitchen order tickets (KOT) with 80mm ESC/POS thermal printing, Kitchen Display System (KDS), direct settlement (Cash/UPI/Card), and 1-click "Charge to Room Folio" under SAC 996331 at 5% GST. |
+| **`/restaurant`** | **F&B Restaurant POS & KOT** | F&B Captain / Cashier / GM | Aura Dine touch dining POS. Floor plan table management with sections, table shifting & merging, multi-round KOTs, digital menu master with Veg/Non-Veg indicators, 80mm ESC/POS thermal printing, Kitchen Display System (KDS), split billing (2-5 ways), phone CRM, direct settlement (Cash/UPI/Card), and 1-click "Charge to Room Folio" under SAC 996331 at 5% GST. |
 | **`/keycards`** | **Key Management & Door Locks**| Front Desk / Housekeeping | Dual-mode enterprise key rack. Traditional brass key tag pigeonhole rack (In Slot, With Guest, With Housekeeping, Lost), W3C Web Serial RFID MIFARE 1K card encoder bridge for electronic door locks, and contactless digital QR mobile guest pass. |
 | **`/staff`** | **Staff & Hierarchy** | Owner / GM | Multi-tier role delegation: Owners appoint GMs, GMs provision Front Desk/Housekeeping, shift assignments, account status toggles. |
 | **`/marketing`** | **Guest Follow-Up & CRM** | GM / Front Desk | Taj InnerCircle loyalty tier tracking, 1-click WhatsApp review requests (Google/TripAdvisor), targeted repeat booking broadcasts. |
@@ -227,49 +227,48 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 ---
 
 ### F. 🍽️ F&B Restaurant Captain & Kitchen Order Ticket (KOT) Journey
-> **Inspiration & Benchmark**: Engineered to replicate the speed and ergonomics of **Petpooja**, India's benchmark F&B POS, unified seamlessly into the hotel guest folio.
+> **Aura Dine Engine**: Unified seamlessly into both **Hotel Integrated PMS** and **Standalone High-Street Restaurant Mode**.
 
-#### 1. Table Floor Plan & Order Inception
-- Open `/restaurant` from the main navigation sidebar.
-- Select the active dining outlet from the header pill (e.g. *The Royal Pavilion* or *In-Room Dining*).
-- Click on any table from the live visual floor plan (e.g. *Table T-01 · 4 Covers · Available*).
-- Choose the order type:
-  - **Dine-In**: Bound to the physical table number.
-  - **In-Room Dining (Room Service)**: Select checked-in guest room (e.g. *Room 201 · Rohan Iyer*).
-  - **Takeaway / Delivery**: Bound to customer name and phone.
+#### 1. Dual-Operation Mode: Hotel Connected vs Standalone POS
+- **Toggle at Top Right**:
+  - **🏨 Hotel Integrated Mode**: Designed for hotel restaurants, poolside bars, and in-room dining. Directly queries checked-in guests, displays active room folios, and supports 1-click **"Charge to Room Folio"** under SAC `996331` at 5% GST.
+  - **🍽️ Standalone POS Mode**: Designed for standalone bistros, cafes, and food courts with zero hotel dependency. Focuses on direct walk-in diners, mobile phone-based CRM profile lookup, Swiggy/Zomato pickup, and direct cashiering settlement.
 
-#### 2. Fast Touch Screen Ordering (Petpooja Style)
-- Browse categorized menu items (Starters, Main Course, Breads & Rice, Desserts, Beverages).
-- Every dish displays clear **Veg (🟢) / Non-Veg (🔴)** culinary dietary badges, spice levels, and prep times.
-- 1-click tap to increment item quantities.
-- Tap the pencil icon to attach custom kitchen preparation instructions (e.g. *"Extra crispy, less oil, no onion/garlic"*).
-- The order summary panel continuously tallies Item Subtotal, 2.5% CGST, and 2.5% SGST (Total 5% GST under SAC `996331`).
+#### 2. Table Floor Plan, Sections, Shifts & Merges
+- **Floor Zones / Sections**: View tables organized by area (*Main AC Hall*, *Open Terrace Garden*, *Poolside Deck*, *Bar & Lounge*, *VIP Private Dining*).
+- **Table Shifting / Transfer**:
+  - If guests move tables (e.g. from Garden to AC Hall), click **"Shift ➔"** on the table card.
+  - Select any vacant destination table; the ERP shifts the active KOT order immediately and vacates the origin table.
+- **Table Merging for Large Parties**:
+  - When hosting a banquet or large family group across multiple tables, click **"Merge 🔗"**.
+  - Select an adjacent table. The ERP combines items into one master order, links both tables, and generates a single consolidated bill.
 
-#### 3. Kitchen Order Ticket (KOT) Dispatch & ESC/POS Thermal Printing
+#### 3. Standalone Diner CRM & Fast Phone Lookup
+- In the POS order panel, enter customer mobile phone (e.g. `9820011223`).
+- The ERP auto-recognizes returning diners: displays total visit count, cumulative spend, and dietary preferences (*"Returning Diner: 6 visits · Prefers corner tables & mild spice"*).
+
+#### 4. Fast Touch Screen Ordering & Multi-Round KOTs
+- Browse categorized menu items (Starters, Main Course, Breads & Rice, Desserts, Beverages) with **Veg (🟢) / Non-Veg (🔴)** badges.
+- **Subsequent KOT Rounds (Multi-KOT)**:
+  - Tables can punch initial drinks & starters, followed by Round 2 (Mains), and Round 3 (Desserts).
+  - Click **"+ Round"** on any occupied table to fire sequential kitchen tickets (`KOT-101-R2`) while keeping the master table bill consolidated.
+- 1-tap quick kitchen prep tags: `[No Onion Garlic]`, `[Mild]`, `[Spicy]`, `[Jain]`, `[Extra Crispy]`, `[Serve Fast]`.
+
+#### 5. Kitchen Order Ticket (KOT) Dispatch & ESC/POS Thermal Printing
 - Click **"Fire KOT to Kitchen"**:
-  - The ERP assigns an incremental sequential KOT reference (e.g. `KOT-2026-0042`).
-  - Automatically launches the **80mm ESC/POS Thermal Slip Modal** (`KotPrintModal`) formatted for standard kitchen star/epson receipt printers.
-  - Highlights running item counts, table/room identifier, timestamp, server captain name, and highlighted preparation notes.
-  - 1-click browser printing sends the job directly to the kitchen thermal printer.
+  - Automatically launches the **80mm ESC/POS Thermal Slip Modal** (`KotPrintModal`) formatted for star/epson kitchen printers.
+  - Displays round number, table/room identifier, server captain name, and highlighted preparation notes.
 
-#### 4. Kitchen Display System (KDS) Supervision
-- Kitchen staff and executive chefs switch to the **"Kitchen KDS"** tab.
-- New orders appear as actionable live cards color-coded by urgency:
-  - 🟡 **Pending / Fired**: New ticket just entered.
-  - 🔵 **Preparing**: Chef acknowledges and starts cooking.
-  - 🟢 **Ready for Service**: Plated and ready for runner pickup.
-  - ⚪ **Served**: Order delivered to table or room.
-
-#### 5. Settlement: 1-Click "Charge to Room Folio" vs Direct Cashiering
+#### 6. Aura Dine Bill Settlement & Split Billing Engine
 - When dining concludes, click **"Settle & Bill"**:
-  - **Option A — 1-Click "Charge to Room Folio"**:
-    - Select from active checked-in hotel guests (e.g. *Room 201 · Rohan Iyer*).
-    - ERP instantly creates a line item on the guest's master PMS folio with description: `Restaurant Dining: The Royal Pavilion (KOT-2026-0042)`.
-    - Automatically tagged with SAC `996331` at 5% GST.
-    - The restaurant table is immediately vacated (`status = available`) and the dining amount will be settled together with the room bill at front desk checkout.
-  - **Option B — Direct Settlement (Walk-in Guests)**:
-    - Settle immediately via **Cash** (with Section 269ST check), **Scan-to-Pay UPI QR**, or **Physical POS Machine Card Swipe**.
-    - Prints final tax invoice bill with GST breakdown.
+  - **Split Bill Engine (2 to 5 Ways)**:
+    - Click **"Split Bill Engine"** and select 2, 3, 4, or 5 equal shares.
+    - Settle each person's share with independent tenders: e.g. Split 1 via Cash, Split 2 via Scan-to-Pay UPI QR, Split 3 via EDC POS Card Machine, and Split 4 charged to Room Folio!
+  - **Single Settlement Options**:
+    - **Option A — 1-Click "Charge to Room Folio"** (Hotel Mode): Directly transfers to active guest folio under SAC `996331` at 5% GST without tax commingling.
+    - **Option B — Direct Settlement** (Standalone Mode): Cash (with Section 269ST ₹2L check), Dynamic NPCI Scan-to-Pay UPI QR, EDC POS Machine Card Swipe, or Swiggy/Zomato.
+  - **80mm Customer Tax Bill (`BillPrintModal`)**:
+    - Prints official Aura Dine 80mm ESC/POS customer receipt with FSSAI license, GSTIN, SAC 996331 breakdown, 2.5% CGST, 2.5% SGST, discounts, and payment mode.
 
 ---
 

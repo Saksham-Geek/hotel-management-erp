@@ -495,7 +495,7 @@ export interface PosChargeResponse {
 }
 
 // -------------------------------------------------------------
-// Phase 2: Restaurant POS & KOT (Petpooja-Grade) Schemas
+// Phase 2: Restaurant POS & KOT (Aura Dine) Schemas
 // -------------------------------------------------------------
 
 export const kotItemSchema = z.object({
@@ -514,13 +514,65 @@ export const createKotOrderSchema = z.object({
   tableId: z.string().uuid().optional(),
   reservationId: z.string().uuid().optional(),
   roomNumber: z.string().trim().max(20).optional(),
-  orderType: z.enum(['dine_in', 'room_service', 'takeaway']).default('dine_in'),
+  orderType: z.enum(['dine_in', 'room_service', 'takeaway', 'delivery', 'aggregator']).default('dine_in'),
   guestName: z.string().trim().max(100).optional(),
   serverName: z.string().trim().max(100).optional(),
+  customerPhone: z.string().trim().max(20).optional(),
   specialInstructions: z.string().trim().max(500).optional(),
   items: z.array(kotItemSchema).min(1, 'Order must contain at least 1 food or beverage item'),
 });
 export type CreateKotOrderInput = z.infer<typeof createKotOrderSchema>;
+
+export const punchKotRoundSchema = z.object({
+  items: z.array(kotItemSchema).min(1, 'Round must contain at least 1 food or beverage item'),
+  serverName: z.string().trim().max(100).optional(),
+  specialInstructions: z.string().trim().max(500).optional(),
+});
+export type PunchKotRoundInput = z.infer<typeof punchKotRoundSchema>;
+
+export const mergeTablesSchema = z.object({
+  sourceTableId: z.string().uuid('Source table ID is required'),
+  targetTableId: z.string().uuid('Target table ID is required'),
+});
+export type MergeTablesInput = z.infer<typeof mergeTablesSchema>;
+
+export const transferTableSchema = z.object({
+  fromTableId: z.string().uuid('Current table ID is required'),
+  toTableId: z.string().uuid('Destination table ID is required'),
+});
+export type TransferTableInput = z.infer<typeof transferTableSchema>;
+
+export const adjustKotBillSchema = z.object({
+  discountType: z.enum(['none', 'percent', 'flat']).default('none'),
+  discountValue: z.coerce.number().finite().min(0).default(0),
+  applyServiceCharge: z.boolean().default(false),
+  serviceChargePercent: z.coerce.number().finite().min(0).max(30).default(5.0),
+  customerName: z.string().trim().max(100).optional(),
+  customerPhone: z.string().trim().max(20).optional(),
+});
+export type AdjustKotBillInput = z.infer<typeof adjustKotBillSchema>;
+
+export const splitKotBillSchema = z.object({
+  splitType: z.enum(['equal', 'custom']),
+  splitsCount: z.coerce.number().int().min(2).max(10).default(2),
+  splits: z.array(z.object({
+    splitNumber: z.number().int(),
+    amount: z.coerce.number().finite().positive(),
+    paymentMethod: z.enum(['cash', 'upi', 'pos_machine', 'room_charge']).default('cash'),
+    reservationId: z.string().uuid().optional(),
+    roomNumber: z.string().trim().optional(),
+  })).optional(),
+});
+export type SplitKotBillInput = z.infer<typeof splitKotBillSchema>;
+
+export const settleKotSplitSchema = z.object({
+  splitId: z.string().uuid(),
+  paymentMethod: z.enum(['cash', 'upi', 'pos_machine', 'room_charge']),
+  paymentReference: z.string().trim().max(100).optional(),
+  reservationId: z.string().uuid().optional(),
+  roomNumber: z.string().trim().optional(),
+});
+export type SettleKotSplitInput = z.infer<typeof settleKotSplitSchema>;
 
 export const updateKotStatusSchema = z.object({
   status: z.enum(['pending', 'preparing', 'ready', 'served', 'settled', 'cancelled']),

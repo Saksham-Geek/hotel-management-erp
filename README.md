@@ -61,13 +61,16 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 - **Rule 114B PAN Validation**: Mandatory PAN record for cash payments &gt; ₹50,000.
 - B2B Corporate Ledgers with 15-character GSTIN validation and multi-item cashiering (Accommodation, In-Room Dining, Minibar, Spa).
 
-### 8. 🍽️ Integrated Petpooja F&B Restaurant POS & KOT (`/restaurant`)
-- **Petpooja-Grade Touch POS**: Ergonomic touch interface featuring table floor plan (Available, Occupied, Billed), Dine-in vs In-Room Dining (Room Service) vs Takeaway.
-- **Categorized Digital Menu Master**: Authentic items tagged with Veg (🟢) / Non-Veg (🔴) culinary badges, spice level ratings, and custom kitchen preparation notes (*"Crispy, less spicy"*).
-- **Kitchen Order Tickets (KOT) & ESC/POS Printing**: Real-time sequential KOT generation (`KOT-2026-0001`) with printable 80mm ESC/POS thermal slips for star/epson kitchen printers.
-- **Kitchen Display System (KDS)**: Live kitchen chef queue managing order progression (*Pending ➔ Preparing ➔ Ready ➔ Served*).
+### 8. 🍽️ Integrated Aura Dine F&B Restaurant POS & KOT (`/restaurant`)
+- **Dual Operating Mode**: Switch seamlessly between **🏨 Hotel Integrated Mode** (connected with active room folios) and **🍽️ Standalone POS Mode** (independent high-street bistros, cafes, and food courts).
+- **Floor Zones & Table Operations**: Multi-section floor plans (*Main AC Hall, Open Terrace Garden, Poolside Deck, Bar & Lounge*), 1-click **Table Shifting** (`transferTable`) and **Table Merging** (`mergeTables`) for large banquet parties.
+- **Multi-Round KOT Punching**: Supports subsequent rounds of ordering (*Round 1 Starters, Round 2 Mains, Round 3 Desserts*) with individual thermal KOT kitchen tickets (`KOT-101-R2`) while consolidating the table bill.
+- **Aura Dine Split Billing Engine**: Split dining bills 2 to 5 ways equally or itemized, with independent payment methods per split (Cash, Scan-to-Pay UPI QR, EDC POS Machine Card, or Room Charge).
+- **Standalone Diner CRM**: Fast mobile number lookup auto-recognizes returning guests with visit frequency, lifetime spend, and dietary preference tags (Veg, Non-Veg, Jain).
+- **80mm ESC/POS Printing**:
+  - `KotPrintModal`: Thermal kitchen tickets with prep instructions (*"No Onion Garlic"*, *"Mild"*, *"Crispy"*).
+  - `BillPrintModal`: Official 80mm customer tax receipts with FSSAI license, GSTIN, SAC 996331 tax breakdown, CGST, SGST, discounts, and payment mode.
 - **1-Click "Charge to Room Folio"**: Directly transfers restaurant dining bills to active checked-in hotel guest folios under **SAC 996331 at 5% GST**, keeping accommodation and dining taxes strictly isolated.
-- **Direct Settlement**: Instant cashiering for non-resident walk-in diners via Cash, Dynamic UPI QR, or EDC POS Machine card swipe.
 
 ### 9. 🔑 Enterprise Key Management & Hardware Bridge (`/keycards`)
 - **Dual-System Hospitality Design**: Accommodates both physical heritage brass keys and electronic contactless RFID locks.
@@ -107,7 +110,7 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 ### 16. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
 - In-site operational handbook that dynamically detects the user's role and displays the exact procedures authorized for their access level.
 - Role-Based Access Control (RBAC) permissions matrix comparing all 5 tiers.
-- Front desk cashiering procedures with dynamic NPCI UPI QR code generation, Petpooja F&B POS, Keycard RFID encoding, and owner banking security rules.
+- Front desk cashiering procedures with dynamic NPCI UPI QR code generation, Aura Dine POS, Keycard RFID encoding, and owner banking security rules.
 
 ---
 

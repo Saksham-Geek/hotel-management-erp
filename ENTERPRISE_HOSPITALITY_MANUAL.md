@@ -284,18 +284,27 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
   - **80mm Customer Tax Bill (`BillPrintModal`)**:
     - Prints official Aura Dine 80mm ESC/POS customer receipt with FSSAI license, GSTIN, SAC 996331 breakdown, 2.5% CGST, 2.5% SGST, discounts, and payment mode.
 
-#### 7. Online Delivery Hub (Swiggy & Zomato Connected)
+#### 7. Online Delivery Hub (Swiggy & Zomato Connected) & Live API Integration
 - Navigate to the **"🛵 Online Delivery Hub"** tab on `/restaurant`.
-- **Live Ingestion Feed**: Orders from Swiggy, Zomato, and direct web appear in real-time with brand badges and auto-updating prep timers.
+- **Connecting in Live / Production (How Swiggy & Zomato API Integration Works in India)**:
+  - Click **"⚙️ API & Webhook Credentials"** in the top header.
+  - **Step 1 (Restaurant IDs)**: Retrieve your **Swiggy Restaurant ID (RID)** from the Swiggy Partner App / Portal (`partner.swiggy.com`) and your **Zomato Restaurant ID (ResID)** from Zomato for Business (`zomato.com/merchant`) or from your Swiggy / Zomato Key Account Manager (KAM).
+  - **Step 2 (Enter Credentials)**: Enter your Swiggy RID, Swiggy Partner Secret, Zomato ResID, and Zomato Partner Token. Choose whether to enable **Auto-Accept Incoming Orders** and set your default prep time (15, 20, 25, 30, or 40 minutes).
+  - **Step 3 (Register Webhook URLs)**: Aura Dine generates dedicated live Webhook Ingestion URLs:
+    - Swiggy Webhook: `https://[your-domain]/api/hotel/restaurant/aggregators/webhook/swiggy/[outletId]`
+    - Zomato Webhook: `https://[your-domain]/api/hotel/restaurant/aggregators/webhook/zomato/[outletId]`
+    Click **"Copy"** and provide these endpoints to your Swiggy/Zomato onboarding engineer.
+  - **Step 4 (Automated Kitchen Ingestion)**: When a diner places an order on Swiggy or Zomato, their cloud infrastructure fires an HTTP POST payload to your webhook. Aura Dine automatically parses the items, calculates 5% F&B GST (SAC 996331), prints the KOT ticket to the kitchen, and triggers the audio notification chime.
+  - **Step 5 (Two-Way Rider Notification)**: When your kitchen packs the food and clicks **"Food Ready & Packed"**, Aura Dine sends an automated status sync to Swiggy/Zomato notifying the delivery rider to proceed to the parcel counter.
 - **1-Click Accept with Prep Timers**:
-  - Accept incoming orders with 1 tap choosing estimated preparation time: **15 Min**, **25 Min**, or **40 Min**.
+  - For manual accept mode, accept incoming orders with 1 tap choosing estimated preparation time: **15 Min**, **25 Min**, or **40 Min**.
   - Automatically transmits ETA to the aggregator rider and dispatches items to kitchen KDS.
 - **Rider OTP & Lifecycle Tracking**:
   - Displays assigned rider name, phone number, and status (`Assigning Rider`, `At Restaurant`, `Picked Up & Dispatched`).
   - Click **"📦 Food Ready & Packed"** when dishes are ready, notifying the delivery rider to proceed to the pickup counter.
   - Click **"🛵 Hand to Rider & Dispatch"** upon parcel handover.
 - **Live Order Simulation**:
-  - Features **"⚡ Simulate Swiggy Order"** and **"⚡ Simulate Zomato Order"** buttons for instant end-to-end demonstrations with zero API key dependencies.
+  - Features **"⚡ Simulate Swiggy Order"** and **"⚡ Simulate Zomato Order"** buttons for instant end-to-end demonstrations with zero API key dependencies. Even on empty menus, built-in fallback dishes ensure instant simulation testing.
 
 #### 8. Live Item 86'ing & Multi-Station Kitchen Routing
 - **Item 86 Out-of-Stock Toggle**:

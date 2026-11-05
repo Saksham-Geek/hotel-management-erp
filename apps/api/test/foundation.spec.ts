@@ -35,6 +35,7 @@ import {
   toggleMenuItemStockSchema,
   closeShiftSchema,
   simulateAggregatorOrderSchema,
+  updateOutletAggregatorConfigSchema,
   FEATURES,
   HOSPITALITY_PLAN_TIERS,
   PERMISSIONS,
@@ -1137,6 +1138,34 @@ test('Migration 023 creates aggregator tracking, item stock toggles, and cashier
   assert.match(migration, /total_swiggy/);
   assert.match(migration, /total_zomato/);
 });
+
+test('Aura Dine Aggregator Credentials schema and Migration 024 validate Swiggy/Zomato keys and webhooks', () => {
+  assert.equal(
+    updateOutletAggregatorConfigSchema.safeParse({
+      swiggyRid: '104928',
+      swiggyApiKey: 'swiggy_live_key_99182',
+      swiggyAutoAccept: true,
+      swiggyDefaultPrepMinutes: 25,
+      zomatoResId: '18492041',
+      zomatoApiKey: 'zom_live_tok_44319',
+      zomatoAutoAccept: false,
+      zomatoDefaultPrepMinutes: 20,
+    }).success,
+    true,
+  );
+
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/024_restaurant_aggregator_credentials.sql'),
+    'utf8',
+  );
+  assert.match(migration, /swiggy_rid/);
+  assert.match(migration, /swiggy_api_key/);
+  assert.match(migration, /swiggy_auto_accept/);
+  assert.match(migration, /zomato_resid/);
+  assert.match(migration, /zomato_api_key/);
+  assert.match(migration, /aggregator_webhook_token/);
+});
+
 
 
 

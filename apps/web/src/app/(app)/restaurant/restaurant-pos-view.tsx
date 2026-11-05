@@ -24,6 +24,7 @@ import {
   toggleMenuItemStockAction,
   updateAggregatorOrderStatusAction,
   simulateAggregatorOrderAction,
+  updateOutletAggregatorConfigAction,
   openShiftAction,
   closeShiftAction,
 } from './actions';
@@ -40,6 +41,15 @@ export interface OutletDto {
   isStandalone?: boolean;
   contactPhone?: string | null;
   address?: string | null;
+  swiggyRid?: string | null;
+  swiggyApiKey?: string | null;
+  swiggyAutoAccept?: boolean;
+  swiggyDefaultPrepMinutes?: number;
+  zomatoResId?: string | null;
+  zomatoApiKey?: string | null;
+  zomatoAutoAccept?: boolean;
+  zomatoDefaultPrepMinutes?: number;
+  aggregatorWebhookToken?: string | null;
 }
 
 export interface TableDto {
@@ -235,6 +245,19 @@ export function RestaurantPosView({
   const [newCategoryName, setNewCategoryName] = useState('');
 
   const [isSopGuideModalOpen, setIsSopGuideModalOpen] = useState(false);
+
+  // Aggregator API & Webhook Configuration Modal State
+  const [isAggregatorSettingsModalOpen, setIsAggregatorSettingsModalOpen] = useState(false);
+  const [swiggyRidInput, setSwiggyRidInput] = useState(activeOutlet?.swiggyRid || '');
+  const [swiggyApiKeyInput, setSwiggyApiKeyInput] = useState(activeOutlet?.swiggyApiKey || '');
+  const [swiggyAutoAcceptInput, setSwiggyAutoAcceptInput] = useState(activeOutlet?.swiggyAutoAccept ?? false);
+  const [swiggyPrepMinsInput, setSwiggyPrepMinsInput] = useState(activeOutlet?.swiggyDefaultPrepMinutes || 20);
+
+  const [zomatoResIdInput, setZomatoResIdInput] = useState(activeOutlet?.zomatoResId || '');
+  const [zomatoApiKeyInput, setZomatoApiKeyInput] = useState(activeOutlet?.zomatoApiKey || '');
+  const [zomatoAutoAcceptInput, setZomatoAutoAcceptInput] = useState(activeOutlet?.zomatoAutoAccept ?? false);
+  const [zomatoPrepMinsInput, setZomatoPrepMinsInput] = useState(activeOutlet?.zomatoDefaultPrepMinutes || 20);
+  const [copiedWebhook, setCopiedWebhook] = useState<'swiggy' | 'zomato' | null>(null);
 
   // Menu Navigation & Filters
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -757,16 +780,28 @@ export function RestaurantPosView({
   // Simulate Incoming Delivery Order (Swiggy / Zomato)
   async function handleSimulateDeliveryOrder(brand: 'swiggy' | 'zomato') {
     const dishes = categories.flatMap((c) => c.items);
-    if (dishes.length === 0) {
-      setFeedbackMsg({ type: 'err', text: 'Please add dishes to your menu first before simulating delivery orders.' });
+    const sampleDish1 = dishes[0] || {
+      id: undefined,
+      name: 'Paneer Butter Masala',
+      price: 280,
+      foodType: 'veg' as const,
+    };
+    const sampleDish2 = dishes[1] || dishes[0] || {
+      id: undefined,
+      name: 'Butter Naan (2 pcs)',
+      price: 90,
+      foodType: 'veg' as const,
+    };
+
+    const targetOutletId = selectedOutletId || activeOutlet?.id || outlets[0]?.id;
+    if (!targetOutletId) {
+      setFeedbackMsg({ type: 'err', text: 'Please configure a dining outlet first.' });
       return;
     }
-    const sampleDish1 = dishes[0];
-    const sampleDish2 = dishes[1] || dishes[0];
 
     setSubmitting(true);
     const res = await simulateAggregatorOrderAction({
-      outletId: selectedOutletId,
+      outletId: targetOutletId,
       brand,
       customerName: brand === 'swiggy' ? 'Rohan Deshmukh' : 'Pooja Kashyap',
       customerPhone: brand === 'swiggy' ? '9820011445' : '9820033889',
@@ -797,6 +832,33 @@ export function RestaurantPosView({
       router.refresh();
     } else {
       setFeedbackMsg({ type: 'err', text: res.error || 'Failed to simulate delivery order' });
+    }
+  }
+
+  // Save Aggregator API Credentials & Auto-Accept Rules
+  async function handleSaveAggregatorSettings(e: React.FormEvent) {
+    e.preventDefault();
+    const targetOutletId = selectedOutletId || activeOutlet?.id || outlets[0]?.id;
+    if (!targetOutletId) return;
+
+    setSubmitting(true);
+    const res = await updateOutletAggregatorConfigAction(targetOutletId, {
+      swiggyRid: swiggyRidInput || null,
+      swiggyApiKey: swiggyApiKeyInput || null,
+      swiggyAutoAccept: swiggyAutoAcceptInput,
+      swiggyDefaultPrepMinutes: Number(swiggyPrepMinsInput) || 20,
+      zomatoResId: zomatoResIdInput || null,
+      zomatoApiKey: zomatoApiKeyInput || null,
+      zomatoAutoAccept: zomatoAutoAcceptInput,
+      zomatoDefaultPrepMinutes: Number(zomatoPrepMinsInput) || 20,
+    });
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({ type: 'ok', text: 'Live aggregator configuration saved successfully!' });
+      setIsAggregatorSettingsModalOpen(false);
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to save aggregator settings.' });
     }
   }
 
@@ -1767,9 +1829,27 @@ export function RestaurantPosView({
               </div>
             </div>
 
-            {/* Test Simulation Controls */}
+            {/* Live API Connect & Demonstration Controls */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-[11px] font-bold text-slate-400 mr-1">Demonstration:</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setSwiggyRidInput(activeOutlet?.swiggyRid || '');
+                  setSwiggyApiKeyInput(activeOutlet?.swiggyApiKey || '');
+                  setSwiggyAutoAcceptInput(activeOutlet?.swiggyAutoAccept ?? false);
+                  setSwiggyPrepMinsInput(activeOutlet?.swiggyDefaultPrepMinutes || 20);
+                  setZomatoResIdInput(activeOutlet?.zomatoResId || '');
+                  setZomatoApiKeyInput(activeOutlet?.zomatoApiKey || '');
+                  setZomatoAutoAcceptInput(activeOutlet?.zomatoAutoAccept ?? false);
+                  setZomatoPrepMinsInput(activeOutlet?.zomatoDefaultPrepMinutes || 20);
+                  setIsAggregatorSettingsModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+              >
+                <span>⚙️ API &amp; Webhook Credentials</span>
+              </button>
+              <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
+              <span className="text-[11px] font-bold text-slate-400 mr-1">Demo Sandbox:</span>
               <button
                 type="button"
                 disabled={submitting}
@@ -1801,7 +1881,24 @@ export function RestaurantPosView({
               <p className="mt-1 max-w-sm text-xs text-slate-500">
                 Incoming orders from Swiggy, Zomato, or direct web will appear here with live rider statuses and prep timers.
               </p>
-              <div className="mt-4 flex gap-2">
+              <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSwiggyRidInput(activeOutlet?.swiggyRid || '');
+                    setSwiggyApiKeyInput(activeOutlet?.swiggyApiKey || '');
+                    setSwiggyAutoAcceptInput(activeOutlet?.swiggyAutoAccept ?? false);
+                    setSwiggyPrepMinsInput(activeOutlet?.swiggyDefaultPrepMinutes || 20);
+                    setZomatoResIdInput(activeOutlet?.zomatoResId || '');
+                    setZomatoApiKeyInput(activeOutlet?.zomatoApiKey || '');
+                    setZomatoAutoAcceptInput(activeOutlet?.zomatoAutoAccept ?? false);
+                    setZomatoPrepMinsInput(activeOutlet?.zomatoDefaultPrepMinutes || 20);
+                    setIsAggregatorSettingsModalOpen(true);
+                  }}
+                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>⚙️ Connect Live Swiggy &amp; Zomato</span>
+                </button>
                 <button
                   type="button"
                   onClick={() => handleSimulateDeliveryOrder('swiggy')}
@@ -3354,6 +3451,286 @@ export function RestaurantPosView({
                 <span>🖨️ Print 80mm Z-Report</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 13: LIVE SWIGGY & ZOMATO AGGREGATOR CREDENTIALS & WEBHOOKS*/}
+      {/* ============================================================== */}
+      {isAggregatorSettingsModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-2xl max-h-[92vh] overflow-y-auto flex-col rounded-3xl bg-white p-6 shadow-2xl text-slate-900 space-y-5">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-orange-100 text-orange-600 text-xl font-bold">
+                  🛵
+                </span>
+                <div>
+                  <h3 className="font-display text-base font-black text-slate-950">
+                    Swiggy &amp; Zomato Integration Portal
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Configure live API keys, Webhooks, and Auto-Accept rules for {activeOutlet?.name || 'Selected Outlet'}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAggregatorSettingsModalOpen(false)}
+                className="grid h-8 w-8 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* How Live Integration Works in India Callout */}
+            <div className="rounded-2xl border border-sky-200 bg-sky-50/70 p-4 text-xs text-sky-950 space-y-2">
+              <div className="flex items-center gap-2 font-bold text-sky-900">
+                <span>ℹ️</span>
+                <span>How Real-Life Swiggy &amp; Zomato Integrations Work:</span>
+              </div>
+              <ol className="list-decimal pl-4 space-y-1.5 text-sky-900/90 leading-relaxed">
+                <li>
+                  <strong>Get Restaurant Identifiers:</strong> Obtain your <strong>Swiggy Restaurant ID (RID)</strong> and <strong>Zomato Restaurant ID (ResID)</strong> from your merchant contracts or Key Account Manager (KAM).
+                </li>
+                <li>
+                  <strong>Webhook Registration:</strong> Provide the Webhook Ingestion URLs below to your Swiggy / Zomato onboarding engineer. Every new order placed by diners in your area will automatically push into Aura Dine.
+                </li>
+                <li>
+                  <strong>Two-Way Kitchen Sync:</strong> When you accept an order or click <em>Food Ready</em> in Aura Dine, an automated status update signals the delivery rider app that the packet is packed and ready for pickup.
+                </li>
+                <li>
+                  <strong>Item 86 Auto-Delisting:</strong> Toggling <em>Item 86</em> in the POS counter instantly instructs Swiggy &amp; Zomato to mark the dish out-of-stock across customer apps.
+                </li>
+              </ol>
+            </div>
+
+            {/* Webhook URLs to Copy */}
+            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+              <h4 className="font-bold text-xs text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <span>🔗</span>
+                <span>Your Live Webhook Endpoints (Copy &amp; Paste in Merchant Portals)</span>
+              </h4>
+
+              {/* Swiggy Webhook URL */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-orange-600 font-bold">
+                    <span>🟠</span> Swiggy Ingestion Webhook URL:
+                  </span>
+                  {copiedWebhook === 'swiggy' && (
+                    <span className="text-emerald-600 font-bold text-[10px]">✓ Copied to clipboard!</span>
+                  )}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/hotel/restaurant/aggregators/webhook/swiggy/${activeOutlet?.id || ''}`}
+                    className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-mono text-slate-700 select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = `${window.location.origin}/api/hotel/restaurant/aggregators/webhook/swiggy/${activeOutlet?.id || ''}`;
+                      navigator.clipboard.writeText(url);
+                      setCopiedWebhook('swiggy');
+                      setTimeout(() => setCopiedWebhook(null), 2500);
+                    }}
+                    className="rounded-xl bg-orange-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-orange-700 shadow-xs cursor-pointer"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+
+              {/* Zomato Webhook URL */}
+              <div className="space-y-1">
+                <label className="text-[11px] font-bold text-slate-600 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-rose-600 font-bold">
+                    <span>🔴</span> Zomato Ingestion Webhook URL:
+                  </span>
+                  {copiedWebhook === 'zomato' && (
+                    <span className="text-emerald-600 font-bold text-[10px]">✓ Copied to clipboard!</span>
+                  )}
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/api/hotel/restaurant/aggregators/webhook/zomato/${activeOutlet?.id || ''}`}
+                    className="flex-1 rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-mono text-slate-700 select-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const url = `${window.location.origin}/api/hotel/restaurant/aggregators/webhook/zomato/${activeOutlet?.id || ''}`;
+                      navigator.clipboard.writeText(url);
+                      setCopiedWebhook('zomato');
+                      setTimeout(() => setCopiedWebhook(null), 2500);
+                    }}
+                    className="rounded-xl bg-rose-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-rose-700 shadow-xs cursor-pointer"
+                  >
+                    Copy
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Credential Inputs Form */}
+            <form onSubmit={handleSaveAggregatorSettings} className="space-y-5">
+              {/* Swiggy Credentials Section */}
+              <div className="rounded-2xl border border-orange-200 bg-orange-50/30 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="grid h-6 w-6 place-items-center rounded-lg bg-orange-500 text-white font-bold text-xs">
+                      S
+                    </span>
+                    <h4 className="font-bold text-sm text-slate-900">Swiggy Merchant Credentials</h4>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={swiggyAutoAcceptInput}
+                      onChange={(e) => setSwiggyAutoAcceptInput(e.target.checked)}
+                      className="h-4 w-4 rounded text-orange-600 focus:ring-orange-500 cursor-pointer"
+                    />
+                    <span>Auto-Accept Incoming Orders</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Swiggy Restaurant ID (RID)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 104928"
+                      value={swiggyRidInput}
+                      onChange={(e) => setSwiggyRidInput(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-orange-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Swiggy Partner API Key / Secret
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="swiggy_live_key_..."
+                      value={swiggyApiKeyInput}
+                      onChange={(e) => setSwiggyApiKeyInput(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-orange-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Default Prep Timer
+                    </label>
+                    <select
+                      value={swiggyPrepMinsInput}
+                      onChange={(e) => setSwiggyPrepMinsInput(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-orange-500 focus:outline-none"
+                    >
+                      <option value={15}>15 Minutes</option>
+                      <option value={20}>20 Minutes (Standard)</option>
+                      <option value={25}>25 Minutes</option>
+                      <option value={30}>30 Minutes</option>
+                      <option value={40}>40 Minutes</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Zomato Credentials Section */}
+              <div className="rounded-2xl border border-rose-200 bg-rose-50/30 p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="grid h-6 w-6 place-items-center rounded-lg bg-rose-600 text-white font-bold text-xs">
+                      Z
+                    </span>
+                    <h4 className="font-bold text-sm text-slate-900">Zomato Merchant Credentials</h4>
+                  </div>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700">
+                    <input
+                      type="checkbox"
+                      checked={zomatoAutoAcceptInput}
+                      onChange={(e) => setZomatoAutoAcceptInput(e.target.checked)}
+                      className="h-4 w-4 rounded text-rose-600 focus:ring-rose-500 cursor-pointer"
+                    />
+                    <span>Auto-Accept Incoming Orders</span>
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Zomato Restaurant ID (ResID)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. 18492041"
+                      value={zomatoResIdInput}
+                      onChange={(e) => setZomatoResIdInput(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-rose-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Zomato Partner Token / Secret
+                    </label>
+                    <input
+                      type="password"
+                      placeholder="zom_live_tok_..."
+                      value={zomatoApiKeyInput}
+                      onChange={(e) => setZomatoApiKeyInput(e.target.value)}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-mono text-slate-900 focus:border-rose-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                      Default Prep Timer
+                    </label>
+                    <select
+                      value={zomatoPrepMinsInput}
+                      onChange={(e) => setZomatoPrepMinsInput(Number(e.target.value))}
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-rose-500 focus:outline-none"
+                    >
+                      <option value={15}>15 Minutes</option>
+                      <option value={20}>20 Minutes (Standard)</option>
+                      <option value={25}>25 Minutes</option>
+                      <option value={30}>30 Minutes</option>
+                      <option value={40}>40 Minutes</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Form Action Buttons */}
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAggregatorSettingsModalOpen(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-xl bg-slate-950 px-6 py-2 text-xs font-bold text-white hover:bg-slate-800 shadow-xs cursor-pointer disabled:opacity-50"
+                >
+                  {submitting ? 'Saving Configuration...' : 'Save Aggregator Credentials'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

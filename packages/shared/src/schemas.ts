@@ -706,6 +706,19 @@ export const simulateAggregatorOrderSchema = z.object({
 });
 export type SimulateAggregatorOrderInput = z.infer<typeof simulateAggregatorOrderSchema>;
 
+export const updateOutletAggregatorConfigSchema = z.object({
+  swiggyRid: z.string().trim().max(100).optional().nullable(),
+  swiggyApiKey: z.string().trim().max(250).optional().nullable(),
+  swiggyAutoAccept: z.boolean().optional(),
+  swiggyDefaultPrepMinutes: z.coerce.number().int().min(5).max(90).optional(),
+  zomatoResId: z.string().trim().max(100).optional().nullable(),
+  zomatoApiKey: z.string().trim().max(250).optional().nullable(),
+  zomatoAutoAccept: z.boolean().optional(),
+  zomatoDefaultPrepMinutes: z.coerce.number().int().min(5).max(90).optional(),
+});
+export type UpdateOutletAggregatorConfigInput = z.infer<typeof updateOutletAggregatorConfigSchema>;
+
+
 
 
 

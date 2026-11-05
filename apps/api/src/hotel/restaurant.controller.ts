@@ -31,6 +31,7 @@ import {
   toggleMenuItemStockSchema,
   closeShiftSchema,
   simulateAggregatorOrderSchema,
+  updateOutletAggregatorConfigSchema,
   type CreateKotOrderInput,
   type UpdateKotStatusInput,
   type ChargeKotToRoomInput,
@@ -49,6 +50,7 @@ import {
   type ToggleMenuItemStockInput,
   type CloseShiftInput,
   type SimulateAggregatorOrderInput,
+  type UpdateOutletAggregatorConfigInput,
 } from '@erp/shared';
 import { AuthUser, CurrentUser } from '../common/current-user';
 import { RequirePermission } from '../common/permission-guard';
@@ -70,7 +72,16 @@ export class RestaurantController {
                 service_charge_percent as "serviceChargePercent",
                 is_standalone as "isStandalone",
                 contact_phone as "contactPhone",
-                address
+                address,
+                swiggy_rid as "swiggyRid",
+                swiggy_api_key as "swiggyApiKey",
+                swiggy_auto_accept as "swiggyAutoAccept",
+                swiggy_default_prep_minutes as "swiggyDefaultPrepMinutes",
+                zomato_resid as "zomatoResId",
+                zomato_api_key as "zomatoApiKey",
+                zomato_auto_accept as "zomatoAutoAccept",
+                zomato_default_prep_minutes as "zomatoDefaultPrepMinutes",
+                aggregator_webhook_token as "aggregatorWebhookToken"
          from restaurant_outlets
          where property_id = $1
          order by (case when outlet_type = 'dine_in' then 0 else 1 end), name asc`,
@@ -1164,6 +1175,52 @@ export class RestaurantController {
     });
   }
 
+  @Patch('outlets/:id/aggregator-config')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async updateOutletAggregatorConfig(
+    @CurrentUser() user: AuthUser,
+    @Param('id') outletId: string,
+    @Body() body: unknown
+  ) {
+    const input = updateOutletAggregatorConfigSchema.parse(body);
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `update restaurant_outlets
+         set swiggy_rid = coalesce($1, swiggy_rid),
+             swiggy_api_key = coalesce($2, swiggy_api_key),
+             swiggy_auto_accept = coalesce($3, swiggy_auto_accept),
+             swiggy_default_prep_minutes = coalesce($4, swiggy_default_prep_minutes),
+             zomato_resid = coalesce($5, zomato_resid),
+             zomato_api_key = coalesce($6, zomato_api_key),
+             zomato_auto_accept = coalesce($7, zomato_auto_accept),
+             zomato_default_prep_minutes = coalesce($8, zomato_default_prep_minutes),
+             updated_at = now()
+         where id = $9 and property_id = $10
+         returning id, name, swiggy_rid as "swiggyRid", zomato_resid as "zomatoResId",
+                   swiggy_auto_accept as "swiggyAutoAccept", zomato_auto_accept as "zomatoAutoAccept",
+                   swiggy_default_prep_minutes as "swiggyDefaultPrepMinutes",
+                   zomato_default_prep_minutes as "zomatoDefaultPrepMinutes",
+                   aggregator_webhook_token as "aggregatorWebhookToken"`,
+        [
+          input.swiggyRid ?? null,
+          input.swiggyApiKey ?? null,
+          input.swiggyAutoAccept ?? null,
+          input.swiggyDefaultPrepMinutes ?? null,
+          input.zomatoResId ?? null,
+          input.zomatoApiKey ?? null,
+          input.zomatoAutoAccept ?? null,
+          input.zomatoDefaultPrepMinutes ?? null,
+          outletId,
+          user.propertyId,
+        ]
+      );
+      if (res.rows.length === 0) {
+        throw new NotFoundException('Restaurant outlet not found');
+      }
+      return { success: true, outlet: res.rows[0], message: 'Aggregator API keys and settings saved successfully.' };
+    });
+  }
+
   // -------------------------------------------------------------
   // Live Item 86'ing & Stock Availability
   // -------------------------------------------------------------
@@ -1366,12 +1423,10 @@ export class RestaurantController {
       for (const item of input.items) {
         await c.query(
           `insert into kot_order_items (
-             tenant_id, property_id, order_id, menu_item_id, item_name,
+             order_id, menu_item_id, item_name,
              quantity, unit_price, gst_rate, food_type, special_notes, status
-           ) values ($1, $2, $3, $4, $5, $6, $7, 5.00, $8, $9, 'pending')`,
+           ) values ($1, $2, $3, $4, $5, 5.00, $6, $7, 'queued')`,
           [
-            user.tenantId,
-            user.propertyId,
             orderId,
             item.menuItemId || null,
             item.itemName,

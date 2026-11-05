@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useEffect, useMemo, useRef, useState } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { formatMoney } from '@/lib/format';
@@ -167,20 +167,31 @@ export interface DragSelection {
 
 export function TapeChartView({
   initialStartDate,
+  initialDays = 7,
   rooms,
   reservations,
   currency,
 }: {
   initialStartDate: string;
+  initialDays?: number;
   rooms: RoomTape[];
   reservations: ReservationTape[];
   currency: string;
 }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [startDateStr, setStartDateStr] = useState(initialStartDate);
-  const [daysCount, setDaysCount] = useState(7);
+  const [daysCount, setDaysCount] = useState(initialDays);
   const [filterType, setFilterType] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    setStartDateStr(initialStartDate);
+  }, [initialStartDate]);
+
+  useEffect(() => {
+    setDaysCount(initialDays);
+  }, [initialDays]);
 
   // Drag-to-select stay range booking state
   const [isDragging, setIsDragging] = useState(false);
@@ -287,10 +298,21 @@ export function TapeChartView({
     return Array.from(map.entries()).sort(([a], [b]) => a - b);
   }, [filteredRooms]);
 
+  function navigateDate(newStart: string, newDays: number = daysCount) {
+    setStartDateStr(newStart);
+    setDaysCount(newDays);
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
+    params.set('startDate', newStart);
+    params.set('days', String(newDays));
+    startTransition(() => {
+      router.push(`/tape-chart?${params.toString()}`);
+    });
+  }
+
   function shiftDays(n: number) {
     const current = new Date(startDateStr);
     const next = new Date(current.getTime() + n * 24 * 60 * 60 * 1000);
-    setStartDateStr(next.toISOString().slice(0, 10));
+    navigateDate(next.toISOString().slice(0, 10), daysCount);
   }
 
   function handleCellMouseDown(room: RoomTape, dateStr: string) {
@@ -668,32 +690,101 @@ export function TapeChartView({
           )}
         </div>
 
-        {/* Bottom: Date Navigation & Search */}
+        {/* Bottom: Date Navigation, Quick Jumps & Search */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50/60 p-1">
-            <button
-              type="button"
-              onClick={() => shiftDays(-daysCount)}
-              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white transition-all"
-              title={`Previous ${daysCount} Days`}
-            >
-              ← Prev {daysCount}d
-            </button>
-            <button
-              type="button"
-              onClick={() => setStartDateStr(new Date().toISOString().slice(0, 10))}
-              className="rounded-lg bg-white px-3.5 py-1.5 text-xs font-bold text-slate-900 shadow-xs border border-slate-200/60 transition-all hover:bg-slate-50"
-            >
-              Today
-            </button>
-            <button
-              type="button"
-              onClick={() => shiftDays(daysCount)}
-              className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white transition-all"
-              title={`Next ${daysCount} Days`}
-            >
-              Next {daysCount}d →
-            </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50/60 p-1">
+              <button
+                type="button"
+                onClick={() => shiftDays(-daysCount)}
+                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white transition-all"
+                title={`Previous ${daysCount} Days`}
+              >
+                ← Prev {daysCount}d
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateDate(new Date().toISOString().slice(0, 10), daysCount)}
+                className="rounded-lg bg-white px-3.5 py-1.5 text-xs font-bold text-slate-900 shadow-xs border border-slate-200/60 transition-all hover:bg-slate-50"
+              >
+                Today
+              </button>
+              <button
+                type="button"
+                onClick={() => shiftDays(daysCount)}
+                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white transition-all"
+                title={`Next ${daysCount} Days`}
+              >
+                Next {daysCount}d →
+              </button>
+            </div>
+
+            {/* Quick Historical Jump Presets */}
+            <div className="hidden sm:inline-flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white px-2 py-1 shadow-2xs">
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1">
+                Jump:
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date();
+                  d.setDate(d.getDate() - 7);
+                  navigateDate(d.toISOString().slice(0, 10), daysCount);
+                }}
+                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                title="Jump to 1 week ago"
+              >
+                -1W
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() - 1);
+                  navigateDate(d.toISOString().slice(0, 10), daysCount);
+                }}
+                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                title="Jump to 1 month ago"
+              >
+                -1M
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() - 3);
+                  navigateDate(d.toISOString().slice(0, 10), daysCount);
+                }}
+                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                title="Jump to 3 months ago (Quarterly History)"
+              >
+                -3M
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date();
+                  d.setMonth(d.getMonth() - 6);
+                  navigateDate(d.toISOString().slice(0, 10), daysCount);
+                }}
+                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                title="Jump to 6 months ago"
+              >
+                -6M
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const d = new Date();
+                  d.setFullYear(d.getFullYear() - 1);
+                  navigateDate(d.toISOString().slice(0, 10), daysCount);
+                }}
+                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                title="Jump to 1 year ago (Past Year History)"
+              >
+                -1Y
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -702,7 +793,9 @@ export function TapeChartView({
               <input
                 type="date"
                 value={startDateStr}
-                onChange={(e) => setStartDateStr(e.target.value)}
+                onChange={(e) => {
+                  if (e.target.value) navigateDate(e.target.value, daysCount);
+                }}
                 className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/5"
               />
             </label>
@@ -711,12 +804,17 @@ export function TapeChartView({
               View:
               <select
                 value={daysCount}
-                onChange={(e) => setDaysCount(parseInt(e.target.value, 10))}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  navigateDate(startDateStr, val);
+                }}
                 className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/5"
               >
                 <option value={7}>7 Days (1 Week)</option>
                 <option value={10}>10 Days</option>
                 <option value={14}>14 Days (2 Weeks)</option>
+                <option value={21}>21 Days (3 Weeks)</option>
+                <option value={30}>30 Days (1 Month)</option>
               </select>
             </label>
 
@@ -733,6 +831,14 @@ export function TapeChartView({
 
       {/* 3. Multi-Day Spanning Gantt Grid (Light Luxury Design with Drag-to-Select) */}
       <div className="overflow-x-auto rounded-3xl border border-slate-200/90 bg-white shadow-sm custom-scrollbar relative">
+        {isPending && (
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-40 flex items-center justify-center">
+            <div className="flex items-center gap-2.5 rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-xs font-bold shadow-lg animate-in fade-in">
+              <span className="h-3.5 w-3.5 rounded-full border-2 border-white/20 border-t-emerald-400 animate-spin" />
+              <span>Loading room allocation &amp; reservations...</span>
+            </div>
+          </div>
+        )}
         <table className="min-w-full border-collapse text-left select-none">
           <thead>
             <tr className="border-b border-slate-200">
@@ -1034,6 +1140,7 @@ export function TapeChartView({
                           // Active Reservation Segment
                           const res = segment.reservation!;
                           const isCheckedIn = res.status === 'checked_in';
+                          const isCheckedOut = res.status === 'checked_out';
                           const isHourly =
                             res.rateMode === 'hourly' || res.checkIn === res.checkOut;
                           const channel = getChannelTag(res);
@@ -1053,6 +1160,13 @@ export function TapeChartView({
                                 badge: 'bg-sky-100 text-sky-900 border-sky-200',
                                 dot: 'bg-sky-600',
                                 statusText: 'text-sky-900',
+                              }
+                            : isCheckedOut
+                            ? {
+                                card: 'bg-slate-50/90 hover:bg-slate-100/90 border-slate-200/90 border-l-[4px] border-l-slate-400',
+                                badge: 'bg-slate-100 text-slate-700 border-slate-200',
+                                dot: 'bg-slate-400',
+                                statusText: 'text-slate-600',
                               }
                             : res.vip
                             ? {
@@ -1114,7 +1228,7 @@ export function TapeChartView({
                                     className={`inline-flex items-center gap-1.5 font-semibold ${theme.statusText}`}
                                   >
                                     <span className={`h-1.5 w-1.5 rounded-full ${theme.dot}`} />
-                                    <span>{isCheckedIn ? 'In-House' : 'Confirmed'}</span>
+                                    <span>{isCheckedIn ? 'In-House' : isCheckedOut ? 'Departed (Paid)' : 'Confirmed'}</span>
                                   </span>
 
                                   <span className="font-mono font-bold text-slate-900 text-xs">
@@ -1153,6 +1267,11 @@ export function TapeChartView({
           <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
             <span className="h-2.5 w-2.5 rounded-full bg-teal-500" />
             Confirmed (Upcoming)
+          </span>
+
+          <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+            <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />
+            Departed (Past Stay)
           </span>
 
           <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">

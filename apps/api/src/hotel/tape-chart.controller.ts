@@ -61,7 +61,7 @@ export class TapeChartController {
              GROUP BY folio_id
            ) pm ON pm.folio_id = f.id
            WHERE r.tenant_id = $1 AND r.property_id = $2
-             AND r.status IN ('reserved', 'checked_in')
+             AND r.status IN ('reserved', 'checked_in', 'checked_out')
              AND (
                (r.check_in < ($3::date + ($4 || ' days')::interval) AND r.check_out > $3::date)
                OR (r.check_in >= $3::date AND r.check_in < ($3::date + ($4 || ' days')::interval))

@@ -58,6 +58,7 @@ export default async function TapeChartPage({
 
       <TapeChartView
         initialStartDate={data.startDate}
+        initialDays={data.days ?? (days ? parseInt(days, 10) : 7)}
         rooms={data.rooms ?? []}
         reservations={data.reservations ?? []}
         currency={me.property?.currency ?? 'INR'}

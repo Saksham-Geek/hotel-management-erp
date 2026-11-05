@@ -879,6 +879,103 @@ test('Migration 020 creates pos_terminals table, RLS policies, and updates folio
   assert.match(migration, /innoviti/);
 });
 
+test('Restaurant POS and KOT schemas validate dining orders, 5% GST, and room folio posting', () => {
+  const {
+    createKotOrderSchema,
+    updateKotStatusSchema,
+    chargeKotToRoomSchema,
+    updateRoomKeyStatusSchema,
+    encodeKeycardSchema,
+  } = require('@erp/shared');
+
+  // 1. Create KOT order schema
+  const validKot = createKotOrderSchema.safeParse({
+    outletId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    tableId: 'a1b2c3d4-e5f6-4a1b-8c2d-3e4f5a6b7c8d',
+    orderType: 'dine_in',
+    items: [
+      {
+        menuItemId: 'c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f',
+        itemName: 'Dal Makhani Heritage',
+        quantity: 2,
+        unitPrice: 425.0,
+        gstRate: 5.0,
+        foodType: 'veg',
+        specialNotes: 'Extra butter on side',
+      },
+      {
+        menuItemId: 'd2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a',
+        itemName: 'Butter Naan',
+        quantity: 4,
+        unitPrice: 95.0,
+        gstRate: 5.0,
+        foodType: 'veg',
+      },
+    ],
+  });
+  assert.equal(validKot.success, true);
+
+  // Rejects empty item orders
+  assert.equal(
+    createKotOrderSchema.safeParse({
+      outletId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      items: [],
+    }).success,
+    false,
+  );
+
+  // 2. Charge KOT to Room Folio schema
+  assert.equal(
+    chargeKotToRoomSchema.safeParse({
+      reservationId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      roomNumber: '302',
+      guestName: 'Vikramaditya Singhania',
+    }).success,
+    true,
+  );
+
+  // 3. Keycard RFID encoding and brass keychain management
+  assert.equal(
+    encodeKeycardSchema.safeParse({
+      keyId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      roomNumber: '302',
+      guestName: 'Vikramaditya Singhania',
+      checkIn: '2026-11-06T14:00:00.000Z',
+      checkOut: '2026-11-09T11:00:00.000Z',
+      protocol: 'mifare_classic_1k',
+    }).success,
+    true,
+  );
+
+  // 4. Update room key status (in_slot, issued_to_guest, with_housekeeping, lost)
+  assert.equal(
+    updateRoomKeyStatusSchema.safeParse({
+      status: 'issued_to_guest',
+      issuedToGuestName: 'Vikramaditya Singhania',
+      notes: 'Handed brass key tag 302',
+    }).success,
+    true,
+  );
+});
+
+test('Migration 021 creates restaurant outlets, tables, menu items, KOT orders, and room keys', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/021_restaurant_pos_kot.sql'),
+    'utf8',
+  );
+  assert.match(migration, /create table if not exists restaurant_outlets/);
+  assert.match(migration, /create table if not exists restaurant_tables/);
+  assert.match(migration, /create table if not exists menu_categories/);
+  assert.match(migration, /create table if not exists menu_items/);
+  assert.match(migration, /create table if not exists kot_orders/);
+  assert.match(migration, /create table if not exists kot_order_items/);
+  assert.match(migration, /create table if not exists room_keys/);
+  assert.match(migration, /hotel\.restaurant\.pos/);
+  assert.match(migration, /hotel\.keycards/);
+  assert.match(migration, /physical_brass/);
+  assert.match(migration, /rfid_mifare/);
+});
+
 
 
 

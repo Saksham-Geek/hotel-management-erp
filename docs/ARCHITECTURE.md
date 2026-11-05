@@ -136,3 +136,54 @@ The SaaS revenue architecture tracks recurring income through:
   - `POST /public/direct-booking`: Validates guest details, stay dates, and room selection via `directGuestBookingSchema`.
 - **Automatic Allocation**: Executes an atomic transaction that creates or retrieves the guest profile, allocates the room via the GiST double-booking guard, generates an initial reservation record (`status = confirmed`, `source = direct`), and provisions an active folio with room charges and taxes.
 - **0% Commission Advantage**: Allows hoteliers to capture direct bookings without surrendering 18–25% in OTA commissions to MakeMyTrip, Agoda, or Booking.com.
+
+---
+
+## 7. Physical POS Machine (EDC Terminal) Architecture
+
+- **Data Models**:
+  - `pos_terminals`: Gated by tenant and property RLS. Stores hardware provider (`pine_labs`, `paytm`, `innoviti`, `razorpay`, `ingenico`, `generic_serial`), terminal IP, port, serial number, assigned counter/desk, status (`online`, `offline`), and connection mode (`lan_ip`, `cloud_push`, `usb_serial`).
+  - `folio_payments`: Extended with `pos_terminal_id`, `card_brand`, `card_last_four`, `bank_rrn`, `auth_code`, and `pos_slip_data` (structured JSON).
+- **Communication Pipelines**:
+  - **LAN IP Sockets**: Asynchronous JSON-RPC / REST dispatch to terminal IP addresses on the local hotel subnet.
+  - **Cloud Push Queues**: Integrations with Pine Labs Plutus Cloud and Paytm Smart POS webhooks.
+  - **W3C Web Serial API**: Direct browser-to-USB serial pairing (`navigator.serial`) at 9600/115200 baud for cashiering PCs connected directly to pinpads without desktop drivers.
+- **PCI-DSS Compliance**: Strict zero-storage of full 16-digit PANs or 3-digit CVVs. Stores only masked card numbers (`XXXX-XXXX-XXXX-1289`) alongside bank-authoritative RRN and Auth Codes for dispute resolution.
+
+---
+
+## 8. Integrated Petpooja-Grade F&B Restaurant POS & KOT Architecture
+
+### A. Data Schema & Isolation (Migration 021)
+- `restaurant_outlets`: Multiple dining venues per hotel (e.g. Fine Dining, Roof-Top Lounge, In-Room Dining, Poolside Bar).
+- `restaurant_tables`: Physical table master with table numbers, capacity (covers), floor zones, and occupancy statuses (`available`, `occupied`, `billed`).
+- `menu_categories` & `menu_items`: Hierarchical digital menu with dietary badges (`is_veg`, `is_vegan`, `contains_egg`), preparation time, spice levels, and prices.
+- `kot_orders` & `kot_order_items`: Kitchen Order Tickets tracking chronological order states (`pending` ➔ `preparing` ➔ `ready` ➔ `served` ➔ `billed` ➔ `cancelled`). Stores waiter/server name, special chef notes, and fulfillment times.
+
+### B. Tax Isolation & Folio Posting Engine
+- **SAC 996331**: Food & Beverage charges are tagged strictly with SAC `996331` at 5% GST (2.5% CGST + 2.5% SGST without ITC).
+- **Atomic Folio Charge Posting**:
+  ```typescript
+  // RestaurantController.chargeToRoom
+  // 1. Validates active checked-in reservation folio
+  // 2. Inserts folio_item with SAC 996331 and 5% GST
+  // 3. Atomically updates folio total and balance
+  // 4. Transitions KOT order status to 'billed' and associated table to 'available'
+  ```
+- **80mm ESC/POS Slip Generation**: `KotPrintModal` renders industry-standard thermal kitchen order tickets with running KOT number, table/room ID, ordered quantities, item notes, and server timestamp.
+
+---
+
+## 9. Enterprise Key Management & Hardware Bridge (Brass Rack & RFID)
+
+### A. Dual Key Philosophy
+- **Physical Brass Keys**: Accommodates heritage palaces, luxury havelis, and boutique properties using engraved brass room keys. Visual wooden rack reflects key location (`in_slot`, `issued_to_guest`, `with_housekeeping`, `lost`).
+- **Electronic RFID Keycards**: MIFARE Classic 1K / Ultralight contactless smart cards. The W3C Web Serial encoder bridge connects directly to front desk USB RFID card writers.
+
+### B. Hardware Bridge Workflow
+1. Front desk receptionist places a blank MIFARE 1K card on the USB card writer.
+2. Web client opens serial port via `navigator.serial.requestPort()`.
+3. Client dispatches encrypted sector write command containing property ID, room number, reservation ID, and check-out expiry timestamp.
+4. Serial reader responds with card UID (e.g. `04:A2:8F:12:5B:60:80`).
+5. ERP records UID in `room_keys` and marks key as `issued_to_guest`.
+6. Digital QR Mobile Pass is simultaneously generated for contactless keyless entry via smartphone cameras.

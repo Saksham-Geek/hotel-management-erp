@@ -4,6 +4,48 @@ This document tracks all schema migrations, architectural enhancements, and feat
 
 ---
 
+## Release v2.8.0: Integrated Petpooja F&B Restaurant POS & KOT + Enterprise Key Management (Brass Rack & RFID Hardware Bridge)
+
+### 1. Integrated Petpooja-Grade Restaurant POS & KOT
+- **Migration 021 (`021_restaurant_pos_kot.sql`)**:
+  - Created tables: `restaurant_outlets`, `restaurant_tables`, `menu_categories`, `menu_items`, `kot_orders`, `kot_order_items`, `room_keys`.
+  - Added feature flags: `hotel.restaurant.pos` and `hotel.keycards` across all subscription plan tiers in `plan_features`.
+  - Seeded default dining outlets ("The Royal Pavilion", "In-Room Dining"), tables T-01 to T-08, 5 menu categories, 16 authentic dishes (Paneer Tikka, Dal Makhani, Butter Chicken, Biryani, Naan, Gulab Jamun, Masala Chai, etc.), and room keys for all rooms.
+  - Attached forced PostgreSQL RLS policies (`tenant_isolation`, `property_isolation`) and `enforce_property_scope` triggers.
+- **Backend Core (`RestaurantController`)**:
+  - Registered under `/hotel/restaurant` in `HotelModule`.
+  - Endpoints:
+    - `GET /hotel/restaurant/outlets`
+    - `GET /hotel/restaurant/tables`
+    - `GET /hotel/restaurant/menu`
+    - `GET /hotel/restaurant/kots`
+    - `POST /hotel/restaurant/kots`
+    - `PATCH /hotel/restaurant/kots/:id/status`
+    - `POST /hotel/restaurant/kots/:id/charge-to-room` (Atomic line item posting under SAC 996331 at 5% GST directly to checked-in guest room folio)
+    - `POST /hotel/restaurant/kots/:id/settle-direct` (Direct cashiering settlement with Cash, UPI QR, or EDC POS card machine)
+- **Frontend Touch POS UI (`/restaurant`)**:
+  - Petpooja-grade touch POS screen with Veg (🟢) / Non-Veg (🔴) culinary badges, spice level indicator, search, and category tabs.
+  - Interactive table floor plan showing real-time occupancy (Available, Occupied, Billed).
+  - Multi-type order support: Dine-In, In-Room Dining (Room Service), and Takeaway.
+  - Custom prep instructions per dish (*"Less spicy, crispy naan"*).
+  - `KotPrintModal`: 80mm ESC/POS thermal kitchen order ticket generator formatted for standard receipt printers with running KOT number and chef instructions.
+  - Real-time Kitchen Display System (KDS) chef board with live status transitions (*Pending ➔ Preparing ➔ Ready ➔ Served*).
+
+### 2. Enterprise Room Key Management (Brass Key Rack & RFID Card Encoder)
+- **Backend Core (`KeycardsController`)**:
+  - Registered under `/hotel/keycards` in `HotelModule`.
+  - Endpoints:
+    - `GET /hotel/keycards/keys`
+    - `PATCH /hotel/keycards/keys/:id/status`
+    - `POST /hotel/keycards/keys/:id/encode` (Writes UID, validates guest stay dates, sets expiry, marks issued)
+- **Frontend Key Management UI (`/keycards`)**:
+  - **Traditional Brass Key Tag Rack**: Heritage wooden key rack with individual room pigeonhole slots displaying physical key possession (*In Slot, Issued to Guest, With Housekeeping, Lost*).
+  - **RFID Keycard Encoder Bridge**: W3C Web Serial API integration (`navigator.serial.requestPort()`) for direct USB RFID smart card writers (MIFARE Classic 1K, MIFARE Ultralight, Saflok/VingCard). Encodes room authorization and reads card UID.
+  - **Digital Mobile Pass**: Contactless keyless entry mobile pass with encrypted QR tokens deliverable to guest smartphones.
+  - **Active Guest Stay Binding**: Synchronized with active checked-in hotel guests for 1-click key issuance and return upon checkout.
+
+---
+
 ## Release v2.7.0: Timeless Luxury Login Portal Redesign & Hardware POS (EDC Machine) Cashiering
 
 ### 1. Timeless Luxury Login Portal Redesign

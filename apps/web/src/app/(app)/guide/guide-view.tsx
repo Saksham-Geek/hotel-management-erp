@@ -105,6 +105,26 @@ export function GuideView({
       icon: '🏨',
     },
     {
+      route: '/restaurant',
+      name: 'F&B Restaurant POS & KOT',
+      badge: 'Dining & Kitchen',
+      minRole: 'frontdesk',
+      rolesAllowed: ['frontdesk', 'manager', 'owner', 'founder'],
+      desc: 'Petpooja-grade touch dining POS with floor plan table management. Supports Dine-In, In-Room Dining (Room Service), and Takeaway. Displays Veg/Non-Veg indicators, custom kitchen notes, 80mm ESC/POS thermal KOT slip printing, live Kitchen Display System (KDS), and 1-click "Charge to Room Folio" under SAC 996331 at 5% GST.',
+      actions: ['Touch-screen table floor plan ordering', 'Generate sequential kitchen order tickets (KOT)', '80mm ESC/POS thermal receipt printing', 'Kitchen Display System (KDS) live chef queue', '1-click Charge to Room Folio under SAC 996331 at 5% GST'],
+      icon: '🍽️',
+    },
+    {
+      route: '/keycards',
+      name: 'Key Management & Door Locks',
+      badge: 'Front Office & Security',
+      minRole: 'frontdesk',
+      rolesAllowed: ['housekeeping', 'frontdesk', 'manager', 'owner', 'founder'],
+      desc: 'Dual-system enterprise key management. Features a visual wooden brass key rack for physical key possession tracking (In Slot, Issued to Guest, With Housekeeping, Lost), direct W3C Web Serial RFID MIFARE 1K card encoder bridge for electronic door locks, and contactless QR mobile guest passes.',
+      actions: ['Visual brass key tag pigeonhole rack', 'Pair USB RFID writer via Web Serial API', 'Encode MIFARE 1K/Ultralight contactless smart keys', 'Issue digital QR contactless mobile guest pass', 'Automatic key de-provisioning on checkout'],
+      icon: '🔑',
+    },
+    {
       route: '/night-audit',
       name: 'Night Audit & Manager KPIs',
       badge: 'Finance & Operations',
@@ -1092,6 +1112,61 @@ export function GuideView({
                 </div>
               </div>
             </div>
+
+            {/* Step 7 */}
+            <div className="relative">
+              <div className="absolute -left-10 sm:-left-12 top-0 grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-xs font-bold text-white shadow-xs">
+                7
+              </div>
+              <div className="rounded-3xl border border-amber-300 bg-amber-50/30 p-6 shadow-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-amber-100 text-amber-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
+                      Petpooja F&amp;B POS
+                    </span>
+                    <h3 className="font-display text-base font-bold text-slate-950">
+                      F&amp;B Restaurant KOT &amp; 1-Click &quot;Charge to Room Folio&quot;
+                    </h3>
+                  </div>
+                  <Link href="/restaurant" className="text-xs font-bold text-amber-700 hover:underline">
+                    Open Restaurant POS ➔
+                  </Link>
+                </div>
+                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
+                  <p>• When guests dine at the hotel restaurant or order In-Room Dining (Room Service), launch <strong className="text-slate-950">/restaurant</strong>.</p>
+                  <p>• Select table from live floor grid, tap items with Veg (🟢) / Non-Veg (🔴) indicators, add custom prep notes, and fire sequential kitchen order tickets (KOT) with 80mm ESC/POS thermal printing.</p>
+                  <p>• When dining concludes, click <strong className="text-amber-950 font-bold">&quot;Charge to Room Folio&quot;</strong> and pick the guest&apos;s active room. The ERP posts the exact amount to the room folio under SAC <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">996331</code> at 5% GST without mingling with room accommodation tax.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 8 */}
+            <div className="relative">
+              <div className="absolute -left-10 sm:-left-12 top-0 grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-xs font-bold text-white shadow-xs">
+                8
+              </div>
+              <div className="rounded-3xl border border-sky-300 bg-sky-50/30 p-6 shadow-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-sky-100 text-sky-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
+                      Key Hardware
+                    </span>
+                    <h3 className="font-display text-base font-bold text-slate-950">
+                      Brass Key Rack Management &amp; RFID Card Encoding Bridge
+                    </h3>
+                  </div>
+                  <Link href="/keycards" className="text-xs font-bold text-sky-700 hover:underline">
+                    Open Keycards ➔
+                  </Link>
+                </div>
+                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
+                  <p>• On guest arrival, navigate to <strong className="text-slate-950">/keycards</strong>.</p>
+                  <p>• <strong className="text-slate-950">Heritage Brass Keys:</strong> Check the visual wooden pigeonhole rack. When handing the physical key tag to the guest, click <strong className="text-sky-950 font-bold">&quot;Hand to Guest&quot;</strong> to link possession to the active reservation.</p>
+                  <p>• <strong className="text-slate-950">RFID Electronic Locks:</strong> Connect any USB RFID reader via Web Serial API. Click <strong className="text-sky-950 font-bold">&quot;Encode New Keycard&quot;</strong> to write checkout expiry to MIFARE smart cards or issue digital QR mobile passes for contactless keyless entry.</p>
+                  <p>• Upon checkout on <strong className="text-slate-950">/billing</strong>, keys are returned to slot in 1 click, de-provisioning room access immediately.</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -1135,6 +1210,22 @@ export function GuideView({
               <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
                 <p>• If plumbing, HVAC, or electrical issues occur, mark the room as <span className="bg-rose-100 text-rose-900 px-2 py-0.5 rounded text-xs font-bold">Maintenance</span> on <strong className="text-slate-950">/housekeeping</strong>.</p>
                 <p>• Maintenance rooms are automatically removed from sellable inventory on the Front Desk Tape Chart and OTA channels to prevent double booking.</p>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-teal-200 bg-teal-50/40 p-6 sm:p-7 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-display text-lg font-black text-slate-950">
+                  Physical Brass Key &amp; Service Key Tag Protocol
+                </h3>
+                <Link href="/keycards" className="text-xs font-bold text-teal-800 hover:underline">
+                  Open Key Rack ➔
+                </Link>
+              </div>
+              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+                <p>• When attending to a vacant or cleaning room, collect the room key from the front desk key rack (<strong className="text-slate-950">/keycards</strong>).</p>
+                <p>• Ensure the key status reflects <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-xs font-bold">With Housekeeping</span> during turndown.</p>
+                <p>• After servicing, return the key to its slot so receptionists can immediately issue it to incoming check-in guests.</p>
               </div>
             </div>
           </div>

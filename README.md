@@ -61,38 +61,53 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 - **Rule 114B PAN Validation**: Mandatory PAN record for cash payments &gt; ₹50,000.
 - B2B Corporate Ledgers with 15-character GSTIN validation and multi-item cashiering (Accommodation, In-Room Dining, Minibar, Spa).
 
-### 8. 🏨 Commission-Free Direct Guest Booking Engine (`/book/[slug]`)
+### 8. 🍽️ Integrated Petpooja F&B Restaurant POS & KOT (`/restaurant`)
+- **Petpooja-Grade Touch POS**: Ergonomic touch interface featuring table floor plan (Available, Occupied, Billed), Dine-in vs In-Room Dining (Room Service) vs Takeaway.
+- **Categorized Digital Menu Master**: Authentic items tagged with Veg (🟢) / Non-Veg (🔴) culinary badges, spice level ratings, and custom kitchen preparation notes (*"Crispy, less spicy"*).
+- **Kitchen Order Tickets (KOT) & ESC/POS Printing**: Real-time sequential KOT generation (`KOT-2026-0001`) with printable 80mm ESC/POS thermal slips for star/epson kitchen printers.
+- **Kitchen Display System (KDS)**: Live kitchen chef queue managing order progression (*Pending ➔ Preparing ➔ Ready ➔ Served*).
+- **1-Click "Charge to Room Folio"**: Directly transfers restaurant dining bills to active checked-in hotel guest folios under **SAC 996331 at 5% GST**, keeping accommodation and dining taxes strictly isolated.
+- **Direct Settlement**: Instant cashiering for non-resident walk-in diners via Cash, Dynamic UPI QR, or EDC POS Machine card swipe.
+
+### 9. 🔑 Enterprise Key Management & Hardware Bridge (`/keycards`)
+- **Dual-System Hospitality Design**: Accommodates both physical heritage brass keys and electronic contactless RFID locks.
+- **Traditional Wooden Brass Key Rack**: Visual pigeonhole key tag rack showing real-time physical possession: *In Slot*, *Issued to Guest*, *With Housekeeping*, or *Lost*.
+- **W3C Web Serial RFID Card Encoder Bridge**: Zero-middleware browser integration (`navigator.serial`) pairing directly with USB RFID writers to encode MIFARE Classic 1K / Ultralight contactless smart keys with automatic check-out timestamp expiry.
+- **Digital QR Mobile Guest Pass**: Contactless keyless entry mobile pass with encrypted QR tokens deliverable directly to guest smartphones.
+- **Checkout Auto-Deprovisioning**: 1-click key return during front desk checkout immediately revokes door access.
+
+### 10. 🏨 Commission-Free Direct Guest Booking Engine (`/book/[slug]`)
 - **Direct Distribution Channel**: Public-facing, mobile-first guest booking portal allowing travelers to reserve directly with **0% OTA commissions**, eliminating the 18% to 25% fees extracted by MakeMyTrip, Agoda, and Booking.com.
 - **Live Inventory Inspection**: Real-time room type availability, tariffs, amenities, and guest count selection.
 - **Direct Advance UPI Settlement**: Displays property's verified NPCI UPI QR code for direct guest deposit confirmation.
 - **Instant Allocation**: Automatically creates guest profile, confirms reservation, and renders directly into the Front Desk Room Rack (`/tape-chart`).
 
-### 9. ⚖️ Statutory Compliance & BoI Form C (`/compliance`)
+### 11. ⚖️ Statutory Compliance & BoI Form C (`/compliance`)
 - Mandatory **Bureau of Immigration (BoI) Form C** filing for foreign national guests within 24 hours of arrival.
 - Daily local police station beat register export formatted for local law enforcement submission.
 
-### 10. 🌙 Automated Night Audit Rollover (`/night-audit`)
+### 12. 🌙 Automated Night Audit Rollover (`/night-audit`)
 - 1-click midnight business date rollover and daily room rate posting.
 - Daily Manager Flash Revenue Report with live ADR, RevPAR, and occupancy calculations.
 
-### 11. 🌐 Two-Way OTA Channel Manager (`/channel-manager`)
+### 13. 🌐 Two-Way OTA Channel Manager (`/channel-manager`)
 - Real-time ARI (Availability, Rates & Inventory) synchronization with MakeMyTrip, Booking.com, Agoda, and Expedia.
 - Inbound booking simulation and webhook audit logging.
 
-### 12. 💬 Guest Loyalty CRM & Marketing Automation (`/marketing`)
+### 14. 💬 Guest Loyalty CRM & Marketing Automation (`/marketing`)
 - Taj InnerCircle VIP loyalty tiers (Kohinoor, Platinum, Gold, Silver).
 - Automated 1-click post-checkout WhatsApp Google Review and TripAdvisor outreach.
 - Guest stay history, lifetime spend (LTV), and guest preferences logging.
 
-### 13. 👥 Staff Hierarchy & Delegation Governance (`/staff`)
+### 15. 👥 Staff Hierarchy & Delegation Governance (`/staff`)
 - Strict hierarchy enforcement: Super Admin ➔ Property Owner ➔ General Manager ➔ Front Desk / Housekeeping.
 - General Managers are restricted to recruiting Front Desk and Housekeeping staff.
 - Shift assignments (Morning, Evening, Night Audit, General).
 
-### 14. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
+### 16. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
 - In-site operational handbook that dynamically detects the user's role and displays the exact procedures authorized for their access level.
 - Role-Based Access Control (RBAC) permissions matrix comparing all 5 tiers.
-- Front desk cashiering procedures with dynamic NPCI UPI QR code generation and owner banking security rules.
+- Front desk cashiering procedures with dynamic NPCI UPI QR code generation, Petpooja F&B POS, Keycard RFID encoding, and owner banking security rules.
 
 ---
 

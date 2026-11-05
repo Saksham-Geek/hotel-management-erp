@@ -30,6 +30,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     { href: '/night-audit', label: 'Night Audit', icon: 'night-audit', feature: FEATURES.HOTEL_NIGHT_AUDIT, group: 'Finance & Compliance' },
     { href: '/compliance', label: 'Statutory BoI & Police', icon: 'compliance', feature: FEATURES.HOTEL_COMPLIANCE, group: 'Finance & Compliance' },
     { href: '/housekeeping', label: 'Housekeeping', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Operations & Growth' },
+    { href: '/restaurant', label: 'Restaurant & Room Service POS', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Operations & Growth' },
+    { href: '/keycards', label: 'Room Keys & Keycards', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Operations & Growth' },
     { href: '/channel-manager', label: 'OTA Channel Manager', icon: 'channels', feature: FEATURES.HOTEL_CHANNEL_MANAGER, group: 'Operations & Growth' },
     { href: '/marketing', label: 'Marketing & CRM', icon: 'marketing', feature: FEATURES.HOTEL_LOYALTY, group: 'Operations & Growth' },
     ...(me.role === 'owner' || me.role === 'manager'

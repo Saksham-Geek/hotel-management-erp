@@ -65,6 +65,8 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 | **`/night-audit`** | **Night Audit & Day Close** | Night Auditor / GM | Automated business date rollover, room posting, cashier drawer reconciliation, RevPAR/ADR manager revenue flash reports. |
 | **`/compliance`** | **Statutory Compliance & BoI**| Front Desk / GM | Bureau of Immigration (BoI) Form C filing for foreign national guests within 24 hours of arrival; daily local police station beat register export. |
 | **`/channel-manager`**| **OTA Channel Manager** | GM / Revenue Mgr | Two-way ARI distribution with MakeMyTrip, Booking.com, Agoda, Expedia; live OTA booking simulator and webhook audit logs. |
+| **`/restaurant`** | **F&B Restaurant POS & KOT** | F&B Captain / Cashier / GM | Petpooja-grade touch dining POS. Floor plan table management, digital menu master with Veg/Non-Veg indicators, kitchen order tickets (KOT) with 80mm ESC/POS thermal printing, Kitchen Display System (KDS), direct settlement (Cash/UPI/Card), and 1-click "Charge to Room Folio" under SAC 996331 at 5% GST. |
+| **`/keycards`** | **Key Management & Door Locks**| Front Desk / Housekeeping | Dual-mode enterprise key rack. Traditional brass key tag pigeonhole rack (In Slot, With Guest, With Housekeeping, Lost), W3C Web Serial RFID MIFARE 1K card encoder bridge for electronic door locks, and contactless digital QR mobile guest pass. |
 | **`/staff`** | **Staff & Hierarchy** | Owner / GM | Multi-tier role delegation: Owners appoint GMs, GMs provision Front Desk/Housekeeping, shift assignments, account status toggles. |
 | **`/marketing`** | **Guest Follow-Up & CRM** | GM / Front Desk | Taj InnerCircle loyalty tier tracking, 1-click WhatsApp review requests (Google/TripAdvisor), targeted repeat booking broadcasts. |
 | **`/housekeeping`**| **Housekeeping Board** | Housekeeping Staff | Room cleaning turnover board: transitions rooms through `Cleaning`, `Inspected`, and `Available` states. |
@@ -224,6 +226,91 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 
 ---
 
+### F. 🍽️ F&B Restaurant Captain & Kitchen Order Ticket (KOT) Journey
+> **Inspiration & Benchmark**: Engineered to replicate the speed and ergonomics of **Petpooja**, India's benchmark F&B POS, unified seamlessly into the hotel guest folio.
+
+#### 1. Table Floor Plan & Order Inception
+- Open `/restaurant` from the main navigation sidebar.
+- Select the active dining outlet from the header pill (e.g. *The Royal Pavilion* or *In-Room Dining*).
+- Click on any table from the live visual floor plan (e.g. *Table T-01 · 4 Covers · Available*).
+- Choose the order type:
+  - **Dine-In**: Bound to the physical table number.
+  - **In-Room Dining (Room Service)**: Select checked-in guest room (e.g. *Room 201 · Rohan Iyer*).
+  - **Takeaway / Delivery**: Bound to customer name and phone.
+
+#### 2. Fast Touch Screen Ordering (Petpooja Style)
+- Browse categorized menu items (Starters, Main Course, Breads & Rice, Desserts, Beverages).
+- Every dish displays clear **Veg (🟢) / Non-Veg (🔴)** culinary dietary badges, spice levels, and prep times.
+- 1-click tap to increment item quantities.
+- Tap the pencil icon to attach custom kitchen preparation instructions (e.g. *"Extra crispy, less oil, no onion/garlic"*).
+- The order summary panel continuously tallies Item Subtotal, 2.5% CGST, and 2.5% SGST (Total 5% GST under SAC `996331`).
+
+#### 3. Kitchen Order Ticket (KOT) Dispatch & ESC/POS Thermal Printing
+- Click **"Fire KOT to Kitchen"**:
+  - The ERP assigns an incremental sequential KOT reference (e.g. `KOT-2026-0042`).
+  - Automatically launches the **80mm ESC/POS Thermal Slip Modal** (`KotPrintModal`) formatted for standard kitchen star/epson receipt printers.
+  - Highlights running item counts, table/room identifier, timestamp, server captain name, and highlighted preparation notes.
+  - 1-click browser printing sends the job directly to the kitchen thermal printer.
+
+#### 4. Kitchen Display System (KDS) Supervision
+- Kitchen staff and executive chefs switch to the **"Kitchen KDS"** tab.
+- New orders appear as actionable live cards color-coded by urgency:
+  - 🟡 **Pending / Fired**: New ticket just entered.
+  - 🔵 **Preparing**: Chef acknowledges and starts cooking.
+  - 🟢 **Ready for Service**: Plated and ready for runner pickup.
+  - ⚪ **Served**: Order delivered to table or room.
+
+#### 5. Settlement: 1-Click "Charge to Room Folio" vs Direct Cashiering
+- When dining concludes, click **"Settle & Bill"**:
+  - **Option A — 1-Click "Charge to Room Folio"**:
+    - Select from active checked-in hotel guests (e.g. *Room 201 · Rohan Iyer*).
+    - ERP instantly creates a line item on the guest's master PMS folio with description: `Restaurant Dining: The Royal Pavilion (KOT-2026-0042)`.
+    - Automatically tagged with SAC `996331` at 5% GST.
+    - The restaurant table is immediately vacated (`status = available`) and the dining amount will be settled together with the room bill at front desk checkout.
+  - **Option B — Direct Settlement (Walk-in Guests)**:
+    - Settle immediately via **Cash** (with Section 269ST check), **Scan-to-Pay UPI QR**, or **Physical POS Machine Card Swipe**.
+    - Prints final tax invoice bill with GST breakdown.
+
+---
+
+### G. 🔑 Enterprise Key Management & Door Lock Journey (Brass Rack & RFID)
+> **Dual-System Hospitality Philosophy**: Supports both historic palace heritage keys and modern RFID electronic contactless locks.
+
+#### 1. Traditional Brass Key Tag Rack Management
+- Open `/keycards` ➔ Select the **"Brass Key Tag Rack"** tab.
+- View a heritage-styled visual wooden key rack with individual room pigeonhole hooks and engraved brass tags.
+- Each key slot reflects real-time physical possession:
+  - 🟢 **In Slot**: Key is resting safely in its hotel desk pigeonhole. Ready to hand to guest.
+  - 🔵 **Issued to Guest**: Currently carried by the registered guest. Shows guest name and reservation link.
+  - 🟡 **With Housekeeping**: Key checked out by housekeeping staff for room turndown or linen change.
+  - 🔴 **Lost / Missing**: Tagged as lost for security replacement.
+- 1-click quick action buttons to instantly transition key state (*"Hand to Guest"*, *"Hand to Housekeeping"*, *"Return to Slot"*).
+
+#### 2. RFID Contactless Keycard Encoder Bridge (Web Serial)
+- Select the **"RFID Keycard Encoder"** tab.
+- Plug any standard USB RFID writer/encoder (supporting MIFARE Classic 1K, MIFARE Ultralight, or Saflok / VingCard protocols) into the front desk PC.
+- Click **"Connect USB Encoder"**:
+  - Invokes W3C Web Serial API (`navigator.serial.requestPort()`) to establish a direct 9600/115200 baud serial connection with zero client driver installation.
+  - Status updates to 🟢 *Connected (COM3 / USB Serial)*.
+- **Card Encoding Workflow**:
+  - Click **"Encode New Keycard"** on any room row.
+  - Select active guest reservation to automatically bind the guest name, room number, check-in date, and strict check-out expiry timestamp.
+  - Select encoder protocol (MIFARE Classic 1K or Ultralight).
+  - Click **"Write to Physical Card"**: ERP writes encrypted room authorization block, reads unique 8-byte Card UID, and flags card as `Issued to Guest`.
+  - The electronic door lock will only grant access until the exact checkout datetime.
+
+#### 3. Digital Mobile Guest Pass (Contactless Keyless Entry)
+- Select the **"Digital Mobile Pass"** tab or click **"Mobile Pass"** on any active keycard.
+- Displays a branded mobile digital pass containing encrypted QR access token, room number, and validity dates.
+- Hoteliers can send the digital pass directly to the guest's smartphone via WhatsApp or SMS, allowing smartphone scan access at smart lock scanners.
+
+#### 4. Guest Checkout & Key De-provisioning
+- During front desk checkout on `/billing`:
+  - Cashier is alerted if brass keys or RFID cards are still held by the departing guest.
+  - 1-click **"Return to Slot"** wipes the RFID encryption key, sets status to `In Slot`, and clears guest identity binding.
+
+---
+
 ## 4. Statutory Compliance Specifications
 
 ### Indian Goods & Services Tax (GST)
@@ -253,3 +340,12 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 - **Bank Reference Audit Trail**: Every card charge processed via Pine Labs, Paytm, Innoviti, Razorpay EzeTap, or Ingenico EDC machines records the 12-digit **Bank RRN** (Retrieval Reference Number) and 6-digit **Auth Code** directly on `folio_payments`.
 - **Thermal Slip Archival**: Detailed EMV transaction receipts (`pos_slip_data`) including Terminal ID (TID), Merchant ID (MID), Batch Number, Invoice Number, Card Brand, and Entry Method (`CHIP_INSERT` / `CONTACTLESS_TAP` / `FALLBACK_SWIPE`) are stored in structured JSON format and renderable on demand in 58mm/80mm thermal printer format.
 - **Hardware Protocol Agnostic**: Supports direct USB connection via W3C Web Serial API (`navigator.serial` at 9600/115200 baud) for legacy serial cash registers and REST / WebSocket LAN socket push for modern Android Smart POS terminals.
+
+### Food & Beverage (F&B) GST Dual-SAC Isolation (SAC 996331 vs SAC 996311)
+- **Distinct Tax Accounting**: Indian GST Council notifications strictly distinguish room accommodation services (SAC `996311` at 12% or 18% based on nightly room rate) from restaurant dining services (SAC `996331` flat 5% without Input Tax Credit).
+- **Folio Auto-Segmentation**: When a restaurant or room-service KOT order is posted to a guest room folio via **"Charge to Room Folio"**, the system creates a distinct line item referencing SAC `996331` and calculates 2.5% CGST + 2.5% SGST. It never commingles restaurant charges with accommodation tariffs, safeguarding against tax misclassification penalties during statutory GST audits.
+
+### Electronic Door Lock & RFID Keycard Security Standards
+- **MIFARE ISO/IEC 14443-A Compatibility**: Supports standard 13.56 MHz high-frequency contactless smart cards widely used in hospitality electronic door locks (Assa Abloy / VingCard, Saflok, Dormakaba, Salto).
+- **Temporal Access Encasement**: Keycard encoding routines enforce strict check-out timestamp expiry down to the minute. Cards automatically deactivate upon the guest's scheduled check-out time, preventing unauthorized room access after key return.
+- **W3C Web Serial Bridge**: Direct browser-to-hardware communication eliminates bulky desktop middleware agents or vendor lock-in. Compatible with standard USB-to-UART bridge chips (CH340, CP2102, FTDI).

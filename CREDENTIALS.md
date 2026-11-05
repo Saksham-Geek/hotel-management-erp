@@ -3,7 +3,7 @@
 This reference document contains all demonstration accounts, testing sandboxes, luxury chain portfolios, independent multi-hotel owner logins, and the SaaS Founder HQ command center.
 
 > [!TIP]
-> **1-Click Pre-Fills**: You do not need to type credentials manually. On the **[`/login`](http://localhost:3000/login)** page, click any of the persona buttons (Taj, ITC, Sayaji, Radisson, Local Boutique, Sandbox, or Founder HQ) to instantly populate these credentials and sign in.
+> **Authentication & Sign-In**: The production login screen (**[`/login`](http://localhost:3000/login)**) is designed with a timeless, clean interface starting with empty fields. You can copy and paste any set of credentials below into `/login`. Alternatively, visit the **[`/showcase`](http://localhost:3000/showcase)** hub for 1-click credential copying cards and presentation pitch highlights.
 
 ---
 
@@ -25,10 +25,10 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 
 | Organization Code | Role | Name | Email | Password | Primary Interface |
 |---|---|---|---|---|---|
-| `grand-azure` | **Property Owner & Director** | Saksham Pethkar | `owner@grandazure.test` | `ChangeMe-123!` | [`/income`](http://localhost:3000/income), [`/dashboard`](http://localhost:3000/dashboard) |
-| `grand-azure` | **General Manager (GM)** | Rohan Iyer | `manager@grandazure.test` | `HotelStaff123!` | [`/dashboard`](http://localhost:3000/dashboard), [`/staff`](http://localhost:3000/staff) |
-| `grand-azure` | **Front Desk Supervisor** | Aarav Mehta / Meera Nair | `frontdesk@grandazure.com` / `desk@grandazure.test` | `HotelStaff123!` | [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing) |
-| `grand-azure` | **Housekeeping Attendant** | Sunita Rao / Ramesh Patel | `housekeeping@grandazure.com` | `HotelStaff123!` | [`/housekeeping`](http://localhost:3000/housekeeping) |
+| `grand-azure` | **Property Owner & Director** | Saksham Pethkar | `owner@grandazure.test` | `ChangeMe-123!` | [`/income`](http://localhost:3000/income), [`/dashboard`](http://localhost:3000/dashboard), [`/restaurant`](http://localhost:3000/restaurant) |
+| `grand-azure` | **General Manager (GM)** | Rohan Iyer | `manager@grandazure.test` | `HotelStaff123!` | [`/dashboard`](http://localhost:3000/dashboard), [`/staff`](http://localhost:3000/staff), [`/restaurant`](http://localhost:3000/restaurant) |
+| `grand-azure` | **Front Desk Supervisor** | Aarav Mehta / Meera Nair | `frontdesk@grandazure.com` / `desk@grandazure.test` | `HotelStaff123!` | [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing), [`/restaurant`](http://localhost:3000/restaurant), [`/keycards`](http://localhost:3000/keycards) |
+| `grand-azure` | **Housekeeping Attendant** | Sunita Rao / Ramesh Patel | `housekeeping@grandazure.com` | `HotelStaff123!` | [`/housekeeping`](http://localhost:3000/housekeeping), [`/keycards`](http://localhost:3000/keycards) |
 
 **Hotel Keys**: 18 Keys (Standard Deluxe, Executive Suites, Presidential Suites).  
 **Public Direct Booking Portal**: [`http://localhost:3000/book/grand-azure`](http://localhost:3000/book/grand-azure)  

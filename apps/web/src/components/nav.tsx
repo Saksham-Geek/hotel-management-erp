@@ -19,7 +19,9 @@ export type NavIconName =
   | 'marketing'
   | 'staff'
   | 'guide'
-  | 'income';
+  | 'income'
+  | 'food'
+  | 'keycard';
 
 export interface NavItem {
   href: string;
@@ -231,6 +233,19 @@ function NavIcon({ name, active }: { name: NavIconName; active: boolean }) {
           <path d="M3 3v18h18" />
           <path d="m19 9-5 5-4-4-5 5" />
           <path d="M19 14V9h-5" />
+        </svg>
+      );
+    case 'food':
+      return (
+        <svg {...common}>
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3" />
+        </svg>
+      );
+    case 'keycard':
+      return (
+        <svg {...common}>
+          <circle cx="7.5" cy="15.5" r="4.5" />
+          <path d="m10.5 12.5 8-8M15 8l3 3M17 6l2 2" />
         </svg>
       );
   }

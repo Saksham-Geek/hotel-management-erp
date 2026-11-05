@@ -20,6 +20,8 @@ const pageNames: Record<string, string> = {
   '/night-audit': 'Night Audit & Manager KPIs',
   '/compliance': 'Police Beat & BoI Form C',
   '/channel-manager': 'OTA Channel Manager & Distribution',
+  '/restaurant': 'F&B Restaurant POS & KOT',
+  '/keycards': 'Room Keys & Door Lock Bridge',
   '/marketing': 'Guest Follow-Up & Loyalty CRM',
   '/staff': 'Staff Hierarchy & Delegation',
   '/guide': 'Hotel ERP SOP & User Journeys',

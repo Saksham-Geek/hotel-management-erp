@@ -15,6 +15,8 @@ import { MarketingController } from './marketing.controller';
 import { IncomeController } from './income.controller';
 import { PublicBookingController } from './public-booking.controller';
 import { PosController } from './pos.controller';
+import { RestaurantController } from './restaurant.controller';
+import { KeycardsController } from './keycards.controller';
 
 @Module({
   imports: [EntitlementsModule],
@@ -33,6 +35,8 @@ import { PosController } from './pos.controller';
     IncomeController,
     PublicBookingController,
     PosController,
+    RestaurantController,
+    KeycardsController,
   ],
   providers: [CustomFieldsService],
 })

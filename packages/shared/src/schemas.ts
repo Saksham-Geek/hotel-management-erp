@@ -494,5 +494,69 @@ export interface PosChargeResponse {
   };
 }
 
+// -------------------------------------------------------------
+// Phase 2: Restaurant POS & KOT (Petpooja-Grade) Schemas
+// -------------------------------------------------------------
+
+export const kotItemSchema = z.object({
+  menuItemId: z.string().uuid(),
+  itemName: z.string().trim().min(1).max(120),
+  quantity: z.coerce.number().int().min(1).max(50),
+  unitPrice: z.coerce.number().finite().min(0).max(1_000_000),
+  gstRate: z.coerce.number().finite().default(5.00),
+  foodType: z.enum(['veg', 'non_veg', 'egg']).default('veg'),
+  specialNotes: z.string().trim().max(200).optional(),
+});
+export type KotItemInput = z.infer<typeof kotItemSchema>;
+
+export const createKotOrderSchema = z.object({
+  outletId: z.string().uuid(),
+  tableId: z.string().uuid().optional(),
+  reservationId: z.string().uuid().optional(),
+  roomNumber: z.string().trim().max(20).optional(),
+  orderType: z.enum(['dine_in', 'room_service', 'takeaway']).default('dine_in'),
+  guestName: z.string().trim().max(100).optional(),
+  serverName: z.string().trim().max(100).optional(),
+  specialInstructions: z.string().trim().max(500).optional(),
+  items: z.array(kotItemSchema).min(1, 'Order must contain at least 1 food or beverage item'),
+});
+export type CreateKotOrderInput = z.infer<typeof createKotOrderSchema>;
+
+export const updateKotStatusSchema = z.object({
+  status: z.enum(['pending', 'preparing', 'ready', 'served', 'settled', 'cancelled']),
+});
+export type UpdateKotStatusInput = z.infer<typeof updateKotStatusSchema>;
+
+export const chargeKotToRoomSchema = z.object({
+  reservationId: z.string().uuid('Valid active room reservation is required'),
+  roomNumber: z.string().trim().min(1),
+  guestName: z.string().trim().optional(),
+});
+export type ChargeKotToRoomInput = z.infer<typeof chargeKotToRoomSchema>;
+
+// -------------------------------------------------------------
+// Phase 4: Room Keycard & Key Management Schemas
+// -------------------------------------------------------------
+
+export const updateRoomKeyStatusSchema = z.object({
+  status: z.enum(['in_slot', 'issued_to_guest', 'with_housekeeping', 'lost']),
+  issuedToReservationId: z.string().uuid().optional().nullable(),
+  issuedToGuestName: z.string().trim().max(100).optional().nullable(),
+  notes: z.string().trim().max(300).optional().nullable(),
+});
+export type UpdateRoomKeyStatusInput = z.infer<typeof updateRoomKeyStatusSchema>;
+
+export const encodeKeycardSchema = z.object({
+  keyId: z.string().uuid(),
+  roomNumber: z.string().trim().min(1),
+  guestName: z.string().trim().min(1),
+  checkIn: z.string().datetime(),
+  checkOut: z.string().datetime(),
+  cardUid: z.string().trim().optional(),
+  protocol: z.enum(['mifare_classic_1k', 'mifare_ultralight', 'saflok_ascii', 'salto_virtual']).default('mifare_classic_1k'),
+});
+export type EncodeKeycardInput = z.infer<typeof encodeKeycardSchema>;
+
+
 
 

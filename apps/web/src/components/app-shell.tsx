@@ -23,7 +23,8 @@ const pageNames: Record<string, string> = {
   '/marketing': 'Guest Follow-Up & Loyalty CRM',
   '/staff': 'Staff Hierarchy & Delegation',
   '/guide': 'Hotel ERP SOP & User Journeys',
-  '/super-admin': 'Super Admin (HQ Console)',
+  '/super-admin': 'Multi-Hotel Portfolio Console',
+  '/platform-admin': 'SaaS Founder HQ & Revenue',
   '/upgrade': 'Subscription Plans & Tiers',
   '/profile': 'My Staff Profile',
 };

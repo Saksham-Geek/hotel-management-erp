@@ -6,7 +6,9 @@ export function middleware(req: NextRequest) {
   const publicPath = path.startsWith('/login')
     || path.startsWith('/verify-email')
     || path.startsWith('/forgot-password')
-    || path.startsWith('/reset-password');
+    || path.startsWith('/reset-password')
+    || path.startsWith('/showcase')
+    || path.startsWith('/onboard');
   if (!req.cookies.has('erp_token') && !publicPath) {
     return NextResponse.redirect(new URL('/login', req.url));
   }

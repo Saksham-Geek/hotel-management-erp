@@ -25,7 +25,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ...(me.role === 'owner'
       ? [
           { href: '/income', label: 'Owner Income & Revenue', icon: 'income' as const, group: 'Executive & Admin' },
-          { href: '/super-admin', label: 'Super Admin (HQ)', icon: 'admin' as const, group: 'Executive & Admin' },
+          { href: '/super-admin', label: 'Multi-Hotel Console', icon: 'admin' as const, group: 'Executive & Admin' },
+          { href: '/platform-admin', label: 'SaaS Founder HQ (MRR)', icon: 'plans' as const, group: 'Executive & Admin' },
         ]
       : []),
     { href: '/upgrade', label: 'Plans & Pricing', icon: 'plans', group: 'Executive & Admin' },

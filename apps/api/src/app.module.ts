@@ -14,6 +14,7 @@ import { HotelModule } from './hotel/hotel.module';
 import { UsersModule } from './users/users.module';
 import { PropertiesModule } from './properties/properties.module';
 import { SuperAdminModule } from './super-admin/super-admin.module';
+import { PlatformModule } from './platform/platform.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { SuperAdminModule } from './super-admin/super-admin.module';
     UsersModule,
     PropertiesModule,
     SuperAdminModule,
+    PlatformModule,
     HotelModule,
   ],
   providers: [

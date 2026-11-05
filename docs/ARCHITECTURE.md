@@ -162,7 +162,13 @@ The SaaS revenue architecture tracks recurring income through:
 - `kot_order_splits`: Split billing ledger enabling equal 2-5 way splits or itemized custom splits with independent tenders (Cash, UPI QR, EDC POS Card, Room Charge).
 - `restaurant_customers`: Standalone restaurant CRM tracking diner phone, name, email, dietary preferences (Veg, Non-Veg, Jain), visit count, and total spend.
 
-### B. Table Operations Engine (Merge & Shift)
+### B. Table & Menu Management APIs
+- **Table Operations (`POST /hotel/restaurant/tables`, `PATCH /hotel/restaurant/tables/:id`, `DELETE /hotel/restaurant/tables/:id`)**:
+  - Full CRUD management of tables per outlet.
+  - Interactive "+ Add Table" modal with covers, floor zones (*Main AC Hall*, *Open Terrace*, *Poolside Deck*, *Bar & Lounge*), and outlet selector.
+  - Safe deletion guard preventing deletion of tables with active dining sessions or pending KOTs.
+- **Menu Management (`POST /hotel/restaurant/menu/categories`, `POST /hotel/restaurant/menu/items`)**:
+  - Digital menu authoring with category sorting, dietary classification (Veg, Non-Veg, Egg), SAC 996331, and 5% GST.
 - **Table Shifting (`transferTable`)**: Atomically shifts active order from Table A to Table B and vacates Table A.
 - **Table Merging (`mergeTables`)**: Combines line items from two adjacent tables into a single consolidated master order, linking both tables.
 

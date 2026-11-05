@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -21,6 +22,11 @@ import {
   adjustKotBillSchema,
   splitKotBillSchema,
   settleKotSplitSchema,
+  createRestaurantTableSchema,
+  updateRestaurantTableSchema,
+  createMenuCategorySchema,
+  createMenuItemSchema,
+  createRestaurantOutletSchema,
   type CreateKotOrderInput,
   type UpdateKotStatusInput,
   type ChargeKotToRoomInput,
@@ -30,6 +36,11 @@ import {
   type AdjustKotBillInput,
   type SplitKotBillInput,
   type SettleKotSplitInput,
+  type CreateRestaurantTableInput,
+  type UpdateRestaurantTableInput,
+  type CreateMenuCategoryInput,
+  type CreateMenuItemInput,
+  type CreateRestaurantOutletInput,
 } from '@erp/shared';
 import { AuthUser, CurrentUser } from '../common/current-user';
 import { RequirePermission } from '../common/permission-guard';
@@ -53,7 +64,9 @@ export class RestaurantController {
                 contact_phone as "contactPhone",
                 address
          from restaurant_outlets
-         order by name asc`
+         where property_id = $1
+         order by (case when outlet_type = 'dine_in' then 0 else 1 end), name asc`,
+        [user.propertyId]
       );
       return res.rows;
     });
@@ -77,9 +90,9 @@ export class RestaurantController {
          from restaurant_tables t
          join restaurant_outlets o on o.id = t.outlet_id
          left join kot_orders k on k.id = t.active_kot_id
-         where ($1::uuid is null or t.outlet_id = $1::uuid)
+         where t.property_id = $1 and ($2::uuid is null or t.outlet_id = $2::uuid)
          order by t.section asc, t.table_number asc`,
-        [outletId || null]
+        [user.propertyId, outletId || null]
       );
       return res.rows;
     });
@@ -92,8 +105,9 @@ export class RestaurantController {
       const catRes = await c.query(
         `select id, name, sort_order as "sortOrder", is_active as "isActive"
          from menu_categories
-         where is_active = true
-         order by sort_order asc, name asc`
+         where property_id = $1 and is_active = true
+         order by sort_order asc, name asc`,
+        [user.propertyId]
       );
 
       const itemRes = await c.query(
@@ -101,8 +115,9 @@ export class RestaurantController {
                 description, price, food_type as "foodType", sac_code as "sacCode",
                 gst_rate as "gstRate", is_available as "isAvailable"
          from menu_items
-         where is_available = true
-         order by item_code asc`
+         where property_id = $1 and is_available = true
+         order by item_code asc`,
+        [user.propertyId]
       );
 
       return catRes.rows.map((cat: any) => ({
@@ -134,9 +149,10 @@ export class RestaurantController {
          join restaurant_outlets o on o.id = k.outlet_id
          left join restaurant_tables t on t.id = k.table_id
          left join rooms r on r.id = k.room_id
-         where k.status not in ('settled', 'cancelled')
+         where k.property_id = $1 and k.status not in ('settled', 'cancelled')
          order by k.created_at desc
-         limit 60`
+         limit 60`,
+        [user.propertyId]
       );
 
       if (ordersRes.rows.length === 0) return [];
@@ -893,6 +909,237 @@ export class RestaurantController {
         kotNumber: kot.kot_number,
         settledAmount: kot.total_amount,
         paymentMethod,
+      };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Table Management Endpoints
+  // -------------------------------------------------------------
+
+  @Post('tables')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async createTable(@CurrentUser() user: AuthUser, @Body() body: unknown) {
+    const parsed = createRestaurantTableSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: CreateRestaurantTableInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const outletCheck = await c.query(
+        `select id, name from restaurant_outlets where id = $1 and property_id = $2`,
+        [input.outletId, user.propertyId]
+      );
+      if (outletCheck.rows.length === 0) {
+        throw new NotFoundException('Selected dining outlet not found in this property');
+      }
+
+      const dupCheck = await c.query(
+        `select id from restaurant_tables where outlet_id = $1 and lower(table_number) = lower($2) and property_id = $3`,
+        [input.outletId, input.tableNumber, user.propertyId]
+      );
+      if (dupCheck.rows.length > 0) {
+        throw new BadRequestException(`Table number "${input.tableNumber}" already exists in ${outletCheck.rows[0].name}`);
+      }
+
+      const res = await c.query(
+        `insert into restaurant_tables (
+           tenant_id, property_id, outlet_id, table_number, capacity, section, status
+         ) values ($1, $2, $3, $4, $5, $6, 'vacant')
+         returning id, outlet_id as "outletId", table_number as "tableNumber", capacity, status, section`,
+        [user.tenantId, user.propertyId, input.outletId, input.tableNumber, input.capacity, input.section]
+      );
+
+      return {
+        success: true,
+        table: res.rows[0],
+        message: `Table ${input.tableNumber} (${input.section}, ${input.capacity} covers) added successfully to ${outletCheck.rows[0].name}.`,
+      };
+    });
+  }
+
+  @Patch('tables/:id')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async updateTable(@CurrentUser() user: AuthUser, @Param('id') id: string, @Body() body: unknown) {
+    const parsed = updateRestaurantTableSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: UpdateRestaurantTableInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const existing = await c.query(
+        `select id, table_number, status, active_kot_id from restaurant_tables where id = $1 and property_id = $2`,
+        [id, user.propertyId]
+      );
+      if (existing.rows.length === 0) throw new NotFoundException('Table not found');
+
+      const res = await c.query(
+        `update restaurant_tables
+         set table_number = coalesce($1, table_number),
+             capacity = coalesce($2, capacity),
+             section = coalesce($3, section),
+             status = coalesce($4, status),
+             updated_at = now()
+         where id = $5 and property_id = $6
+         returning id, outlet_id as "outletId", table_number as "tableNumber", capacity, status, section`,
+        [input.tableNumber ?? null, input.capacity ?? null, input.section ?? null, input.status ?? null, id, user.propertyId]
+      );
+
+      return { success: true, table: res.rows[0] };
+    });
+  }
+
+  @Delete('tables/:id')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async deleteTable(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const existing = await c.query(
+        `select id, table_number, status, active_kot_id from restaurant_tables where id = $1 and property_id = $2`,
+        [id, user.propertyId]
+      );
+      if (existing.rows.length === 0) throw new NotFoundException('Table not found');
+
+      const table = existing.rows[0];
+      if (table.active_kot_id || table.status !== 'vacant') {
+        throw new BadRequestException(`Cannot remove table ${table.table_number} because it has an active dining session or pending KOT.`);
+      }
+
+      await c.query(`delete from restaurant_tables where id = $1 and property_id = $2`, [id, user.propertyId]);
+
+      return {
+        success: true,
+        message: `Table ${table.table_number} removed successfully.`,
+      };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Menu Category & Item Management
+  // -------------------------------------------------------------
+
+  @Post('menu/categories')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async createCategory(@CurrentUser() user: AuthUser, @Body() body: unknown) {
+    const parsed = createMenuCategorySchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: CreateMenuCategoryInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `insert into menu_categories (
+           tenant_id, property_id, name, sort_order, is_active
+         ) values ($1, $2, $3, $4, true)
+         returning id, name, sort_order as "sortOrder", is_active as "isActive"`,
+        [user.tenantId, user.propertyId, input.name, input.sortOrder]
+      );
+
+      return {
+        success: true,
+        category: res.rows[0],
+        message: `Category "${input.name}" created successfully.`,
+      };
+    });
+  }
+
+  @Post('menu/items')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async createMenuItem(@CurrentUser() user: AuthUser, @Body() body: unknown) {
+    const parsed = createMenuItemSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: CreateMenuItemInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const catCheck = await c.query(
+        `select id, name from menu_categories where id = $1 and property_id = $2`,
+        [input.categoryId, user.propertyId]
+      );
+      if (catCheck.rows.length === 0) throw new NotFoundException('Menu category not found in this property');
+
+      let itemCode = input.itemCode;
+      if (!itemCode) {
+        const countRes = await c.query(
+          `select count(*)::int as count from menu_items where property_id = $1`,
+          [user.propertyId]
+        );
+        itemCode = `DISH-${(countRes.rows[0].count + 1).toString().padStart(3, '0')}`;
+      }
+
+      const res = await c.query(
+        `insert into menu_items (
+           tenant_id, property_id, category_id, name, item_code, description, price, food_type, sac_code, gst_rate, is_available
+         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
+         returning id, category_id as "categoryId", name, item_code as "itemCode",
+                   description, price, food_type as "foodType", sac_code as "sacCode",
+                   gst_rate as "gstRate", is_available as "isAvailable"`,
+        [
+          user.tenantId,
+          user.propertyId,
+          input.categoryId,
+          input.name,
+          itemCode,
+          input.description || null,
+          input.price,
+          input.foodType,
+          input.sacCode || '996331',
+          input.gstRate ?? 5.0,
+        ]
+      );
+
+      return {
+        success: true,
+        item: res.rows[0],
+        message: `Dish "${input.name}" added to menu at ₹${Number(input.price).toFixed(2)}.`,
+      };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Outlet Management
+  // -------------------------------------------------------------
+
+  @Post('outlets')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async createOutlet(@CurrentUser() user: AuthUser, @Body() body: unknown) {
+    const parsed = createRestaurantOutletSchema.safeParse(body);
+    if (!parsed.success) {
+      throw new BadRequestException({ issues: parsed.error.flatten() });
+    }
+    const input: CreateRestaurantOutletInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `insert into restaurant_outlets (
+           tenant_id, property_id, name, code, outlet_type, service_charge_percent,
+           fssai_number, gstin, is_standalone, contact_phone, address, is_active
+         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true)
+         returning id, name, code, outlet_type as "outletType", service_charge_percent as "serviceChargePercent",
+                   fssai_number as "fssaiNumber", gstin, is_standalone as "isStandalone",
+                   contact_phone as "contactPhone", address, is_active as "isActive"`,
+        [
+          user.tenantId,
+          user.propertyId,
+          input.name,
+          input.code,
+          input.outletType,
+          input.serviceChargePercent,
+          input.fssaiNumber || null,
+          input.gstin || null,
+          input.isStandalone,
+          input.contactPhone || null,
+          input.address || null,
+        ]
+      );
+
+      return {
+        success: true,
+        outlet: res.rows[0],
+        message: `Dining outlet "${input.name}" created successfully.`,
       };
     });
   }

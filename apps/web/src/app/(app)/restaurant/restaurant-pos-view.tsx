@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { KotPrintModal, type KotPrintData } from './kot-print-modal';
 import { BillPrintModal, type BillPrintData } from './bill-print-modal';
 import {
@@ -15,6 +16,11 @@ import {
   splitKotBillAction,
   settleKotSplitAction,
   lookupCustomerAction,
+  createRestaurantTableAction,
+  updateRestaurantTableAction,
+  deleteRestaurantTableAction,
+  createMenuCategoryAction,
+  createMenuItemAction,
 } from './actions';
 
 export interface OutletDto {
@@ -133,19 +139,54 @@ export function RestaurantPosView({
   kots: KotOrderDto[];
   checkedInRooms: CheckedInRoomDto[];
 }) {
+  const router = useRouter();
+
   // Operating Mode: Hotel Integrated vs Standalone Restaurant
   const [operatingMode, setOperatingMode] = useState<'hotel' | 'standalone'>('hotel');
 
   // Navigation Tabs
   const [activeTab, setActiveTab] = useState<'tables' | 'pos' | 'waiter' | 'kds'>('tables');
 
-  // Active Outlet Selection
-  const [selectedOutletId, setSelectedOutletId] = useState(outlets[0]?.id || '');
-  const activeOutlet = outlets.find((o) => o.id === selectedOutletId) || outlets[0];
+  // Active Outlet Selection: prefer dine_in outlets or first outlet that has tables
+  const preferredOutlet =
+    outlets.find((o) => tables.some((t) => t.outletId === o.id)) ||
+    outlets.find((o) => o.outletType === 'dine_in') ||
+    outlets[0];
+  const [selectedOutletId, setSelectedOutletId] = useState(preferredOutlet?.id || outlets[0]?.id || '');
+  const activeOutlet = outlets.find((o) => o.id === selectedOutletId) || preferredOutlet || outlets[0];
 
   // Table Section Filter
   const allSections = Array.from(new Set(tables.map((t) => t.section || 'Main AC Hall')));
   const [selectedSection, setSelectedSection] = useState<string>('all');
+
+  // Table & Menu Management Modal States
+  const [isAddTableModalOpen, setIsAddTableModalOpen] = useState(false);
+  const [newTableNumber, setNewTableNumber] = useState('');
+  const [newTableCapacity, setNewTableCapacity] = useState(4);
+  const [newTableSection, setNewTableSection] = useState('Main AC Hall');
+  const [newTableOutletId, setNewTableOutletId] = useState('');
+  const [customSectionInput, setCustomSectionInput] = useState('');
+
+  const [isEditTableModalOpen, setIsEditTableModalOpen] = useState(false);
+  const [tableToEdit, setTableToEdit] = useState<TableDto | null>(null);
+  const [editTableNumber, setEditTableNumber] = useState('');
+  const [editTableCapacity, setEditTableCapacity] = useState(4);
+  const [editTableSection, setEditTableSection] = useState('Main AC Hall');
+
+  const [tableToDelete, setTableToDelete] = useState<TableDto | null>(null);
+
+  const [isAddDishModalOpen, setIsAddDishModalOpen] = useState(false);
+  const [newDishCategoryId, setNewDishCategoryId] = useState('');
+  const [newDishName, setNewDishName] = useState('');
+  const [newDishCode, setNewDishCode] = useState('');
+  const [newDishPrice, setNewDishPrice] = useState('');
+  const [newDishFoodType, setNewDishFoodType] = useState<'veg' | 'non_veg' | 'egg'>('veg');
+  const [newDishDescription, setNewDishDescription] = useState('');
+
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  const [isSopGuideModalOpen, setIsSopGuideModalOpen] = useState(false);
 
   // Menu Navigation & Filters
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -510,6 +551,126 @@ export function RestaurantPosView({
     }
   }
 
+  // Table Management Handlers
+  async function handleCreateTable(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newTableNumber.trim()) {
+      setFeedbackMsg({ type: 'err', text: 'Please enter a valid table number (e.g. T-11)' });
+      return;
+    }
+    const section = customSectionInput.trim() ? customSectionInput.trim() : newTableSection;
+    setSubmitting(true);
+    const res = await createRestaurantTableAction({
+      outletId: newTableOutletId || selectedOutletId,
+      tableNumber: newTableNumber.trim(),
+      capacity: Number(newTableCapacity) || 4,
+      section: section || 'Main AC Hall',
+    });
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({ type: 'ok', text: res.data.message });
+      setIsAddTableModalOpen(false);
+      setNewTableNumber('');
+      setCustomSectionInput('');
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to create table' });
+    }
+  }
+
+  async function handleUpdateTable(e: React.FormEvent) {
+    e.preventDefault();
+    if (!tableToEdit) return;
+    setSubmitting(true);
+    const res = await updateRestaurantTableAction(tableToEdit.id, {
+      tableNumber: editTableNumber.trim(),
+      capacity: Number(editTableCapacity),
+      section: editTableSection.trim(),
+    });
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({ type: 'ok', text: `Table ${editTableNumber} updated successfully.` });
+      setIsEditTableModalOpen(false);
+      setTableToEdit(null);
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to update table' });
+    }
+  }
+
+  async function handleDeleteTable() {
+    if (!tableToDelete) return;
+    setSubmitting(true);
+    const res = await deleteRestaurantTableAction(tableToDelete.id);
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({ type: 'ok', text: res.data.message });
+      setTableToDelete(null);
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to delete table' });
+    }
+  }
+
+  // Menu Management Handlers
+  async function handleAddDish(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newDishName.trim() || !newDishPrice) {
+      setFeedbackMsg({ type: 'err', text: 'Please provide dish name and price' });
+      return;
+    }
+    const catId = newDishCategoryId || categories[0]?.id;
+    if (!catId) {
+      setFeedbackMsg({ type: 'err', text: 'Please create a menu category first before adding dishes' });
+      return;
+    }
+    setSubmitting(true);
+    const res = await createMenuItemAction({
+      categoryId: catId,
+      name: newDishName.trim(),
+      itemCode: newDishCode.trim() || undefined,
+      price: Number(newDishPrice),
+      foodType: newDishFoodType,
+      description: newDishDescription.trim() || undefined,
+      sacCode: '996331',
+      gstRate: 5.0,
+    });
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({ type: 'ok', text: res.data.message });
+      setIsAddDishModalOpen(false);
+      setNewDishName('');
+      setNewDishPrice('');
+      setNewDishCode('');
+      setNewDishDescription('');
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to add dish' });
+    }
+  }
+
+  async function handleAddCategory(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newCategoryName.trim()) {
+      setFeedbackMsg({ type: 'err', text: 'Please enter category name' });
+      return;
+    }
+    setSubmitting(true);
+    const res = await createMenuCategoryAction({
+      name: newCategoryName.trim(),
+      sortOrder: categories.length + 1,
+    });
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({ type: 'ok', text: res.data.message });
+      setIsAddCategoryModalOpen(false);
+      setNewCategoryName('');
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to create category' });
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* ============================================================== */}
@@ -674,160 +835,241 @@ export function RestaurantPosView({
       {/* ============================================================== */}
       {activeTab === 'tables' && (
         <div className="space-y-6">
-          {/* Section Filter Pills */}
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 mr-1">Floor Zones:</span>
-            <button
-              type="button"
-              onClick={() => setSelectedSection('all')}
-              className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                selectedSection === 'all'
-                  ? 'bg-slate-950 text-white shadow-xs'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
-              }`}
-            >
-              All Sections
-            </button>
-            {allSections.map((sec) => (
+          {/* Header Row: Floor Zones & Action Buttons */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            {/* Section Filter Pills */}
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-xs font-bold text-slate-500 mr-1">Floor Zones:</span>
               <button
-                key={sec}
                 type="button"
-                onClick={() => setSelectedSection(sec)}
+                onClick={() => setSelectedSection('all')}
                 className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-                  selectedSection === sec
+                  selectedSection === 'all'
                     ? 'bg-slate-950 text-white shadow-xs'
                     : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                 }`}
               >
-                {sec}
+                All Sections
               </button>
-            ))}
-          </div>
-
-          {/* Tables Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-            {filteredTables.map((table) => {
-              const isOccupied = table.status === 'occupied';
-              const activeKot = kots.find((k) => k.id === table.activeKotId);
-
-              return (
-                <div
-                  key={table.id}
-                  className={`relative flex flex-col justify-between rounded-2xl border p-4 transition-all shadow-xs ${
-                    isOccupied
-                      ? 'border-amber-300 bg-amber-50/40 hover:border-amber-400'
-                      : 'border-slate-200 bg-white hover:border-slate-300'
+              {allSections.map((sec) => (
+                <button
+                  key={sec}
+                  type="button"
+                  onClick={() => setSelectedSection(sec)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    selectedSection === sec
+                      ? 'bg-slate-950 text-white shadow-xs'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                   }`}
                 >
-                  {/* Top Bar: Table Number & Status Pill */}
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="font-display text-lg font-black text-slate-950">
-                        {table.tableNumber}
-                      </span>
-                      <span
-                        className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${
-                          isOccupied
-                            ? 'bg-amber-100 text-amber-900'
-                            : 'bg-emerald-100 text-emerald-900'
-                        }`}
-                      >
-                        {isOccupied ? 'Occupied' : 'Vacant'}
-                      </span>
-                    </div>
+                  {sec}
+                </button>
+              ))}
+            </div>
 
-                    <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 font-medium">
-                      <span>{table.capacity} Covers</span>
-                      <span className="text-[10px] font-bold text-slate-400">{table.section}</span>
-                    </div>
-
-                    {table.isMerged && (
-                      <span className="mt-1.5 inline-block rounded-md bg-purple-100 text-purple-800 px-1.5 py-0.5 text-[9.5px] font-extrabold">
-                        🔗 Merged Table
-                      </span>
-                    )}
-
-                    {/* Occupied Table Details */}
-                    {isOccupied && (
-                      <div className="mt-3 rounded-xl border border-amber-200 bg-white p-2.5 space-y-1 text-xs">
-                        <div className="flex justify-between font-bold text-slate-950">
-                          <span>{table.activeKotNumber || 'KOT'}</span>
-                          <span>₹{Number(table.activeTotalAmount || 0).toFixed(0)}</span>
-                        </div>
-                        <p className="text-[11px] text-slate-600 truncate">
-                          {table.activeGuestName || 'Dine-In Guest'}
-                        </p>
-                        {table.activeRoundNumber && table.activeRoundNumber > 1 && (
-                          <span className="inline-block rounded bg-amber-100 text-amber-900 px-1.5 py-0.2 text-[9px] font-bold">
-                            Round {table.activeRoundNumber}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
-                    {isOccupied ? (
-                      <>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (activeKot) {
-                                setRoundAddingKot(activeKot);
-                                setActiveTab('pos');
-                              }
-                            }}
-                            className="rounded-lg bg-amber-600 px-2 py-1.5 text-[11px] font-bold text-white hover:bg-amber-700 transition-colors cursor-pointer text-center"
-                          >
-                            + Round
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (activeKot) setSettlingKot(activeKot);
-                            }}
-                            className="rounded-lg bg-slate-950 px-2 py-1.5 text-[11px] font-bold text-white hover:bg-slate-800 transition-colors cursor-pointer text-center"
-                          >
-                            Settle &amp; Bill
-                          </button>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1 text-[10px] text-slate-600 font-bold">
-                          <button
-                            type="button"
-                            onClick={() => setShiftingTable(table)}
-                            className="rounded bg-slate-100 py-1 hover:bg-slate-200 transition-colors cursor-pointer text-center"
-                          >
-                            Shift ➔
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setMergingTable(table)}
-                            className="rounded bg-slate-100 py-1 hover:bg-slate-200 transition-colors cursor-pointer text-center"
-                          >
-                            Merge 🔗
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedTableId(table.id);
-                          setOrderType('dine_in');
-                          setActiveTab('pos');
-                        }}
-                        className="rounded-lg bg-slate-950 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer text-center"
-                      >
-                        + New Order
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+            {/* Quick Actions: Add Table & How Aura Dine Works SOP */}
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setIsSopGuideModalOpen(true)}
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
+              >
+                <span>ℹ️ How Aura Dine Works</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setNewTableOutletId(selectedOutletId);
+                  setIsAddTableModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-xs cursor-pointer"
+              >
+                <span>+ Add Table</span>
+              </button>
+            </div>
           </div>
+
+          {/* Empty State vs Tables Grid */}
+          {filteredTables.length === 0 ? (
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-amber-50 text-2xl mb-4">
+                🪑
+              </div>
+              <h3 className="font-display text-lg font-black text-slate-950">
+                No Tables Found for {activeOutlet?.name || 'this Outlet'}
+              </h3>
+              <p className="mt-1 max-w-md text-xs text-slate-500 font-medium">
+                Set up your dining tables (e.g. T-01, T-02, Terrace-1) with covers and floor zones to seat guests, punch KOTs, and manage live restaurant orders.
+              </p>
+              <div className="mt-6 flex flex-wrap items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewTableOutletId(selectedOutletId);
+                    setIsAddTableModalOpen(true);
+                  }}
+                  className="rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer"
+                >
+                  + Add First Dining Table
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setIsSopGuideModalOpen(true)}
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  📖 View Aura Dine Operations SOP
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {filteredTables.map((table) => {
+                const isOccupied = table.status === 'occupied';
+                const activeKot = kots.find((k) => k.id === table.activeKotId);
+
+                return (
+                  <div
+                    key={table.id}
+                    className={`relative flex flex-col justify-between rounded-2xl border p-4 transition-all shadow-xs ${
+                      isOccupied
+                        ? 'border-amber-300 bg-amber-50/40 hover:border-amber-400'
+                        : 'border-slate-200 bg-white hover:border-slate-300'
+                    }`}
+                  >
+                    {/* Top Bar: Table Number & Status Pill */}
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-display text-lg font-black text-slate-950">
+                          {table.tableNumber}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                            isOccupied
+                              ? 'bg-amber-100 text-amber-900'
+                              : 'bg-emerald-100 text-emerald-900'
+                          }`}
+                        >
+                          {isOccupied ? 'Occupied' : 'Vacant'}
+                        </span>
+                      </div>
+
+                      <div className="mt-1 flex items-center justify-between text-[11px] text-slate-500 font-medium">
+                        <span>{table.capacity} Covers</span>
+                        <span className="text-[10px] font-bold text-slate-400">{table.section}</span>
+                      </div>
+
+                      {table.isMerged && (
+                        <span className="mt-1.5 inline-block rounded-md bg-purple-100 text-purple-800 px-1.5 py-0.5 text-[9.5px] font-extrabold">
+                          🔗 Merged Table
+                        </span>
+                      )}
+
+                      {/* Occupied Table Details */}
+                      {isOccupied && (
+                        <div className="mt-3 rounded-xl border border-amber-200 bg-white p-2.5 space-y-1 text-xs">
+                          <div className="flex justify-between font-bold text-slate-950">
+                            <span>{table.activeKotNumber || 'KOT'}</span>
+                            <span>₹{Number(table.activeTotalAmount || 0).toFixed(0)}</span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 truncate">
+                            {table.activeGuestName || 'Dine-In Guest'}
+                          </p>
+                          {table.activeRoundNumber && table.activeRoundNumber > 1 && (
+                            <span className="inline-block rounded bg-amber-100 text-amber-900 px-1.5 py-0.2 text-[9px] font-bold">
+                              Round {table.activeRoundNumber}
+                            </span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="mt-4 pt-3 border-t border-slate-100 flex flex-col gap-1.5">
+                      {isOccupied ? (
+                        <>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (activeKot) {
+                                  setRoundAddingKot(activeKot);
+                                  setActiveTab('pos');
+                                }
+                              }}
+                              className="rounded-lg bg-amber-600 px-2 py-1.5 text-[11px] font-bold text-white hover:bg-amber-700 transition-colors cursor-pointer text-center"
+                            >
+                              + Round
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (activeKot) setSettlingKot(activeKot);
+                              }}
+                              className="rounded-lg bg-slate-950 px-2 py-1.5 text-[11px] font-bold text-white hover:bg-slate-800 transition-colors cursor-pointer text-center"
+                            >
+                              Settle &amp; Bill
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-1 text-[10px] text-slate-600 font-bold">
+                            <button
+                              type="button"
+                              onClick={() => setShiftingTable(table)}
+                              className="rounded bg-slate-100 py-1 hover:bg-slate-200 transition-colors cursor-pointer text-center"
+                            >
+                              Shift ➔
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setMergingTable(table)}
+                              className="rounded bg-slate-100 py-1 hover:bg-slate-200 transition-colors cursor-pointer text-center"
+                            >
+                              Merge 🔗
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedTableId(table.id);
+                              setOrderType('dine_in');
+                              setActiveTab('pos');
+                            }}
+                            className="flex-1 rounded-lg bg-slate-950 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer text-center"
+                          >
+                            + New Order
+                          </button>
+                          <button
+                            type="button"
+                            title="Edit Table"
+                            onClick={() => {
+                              setTableToEdit(table);
+                              setEditTableNumber(table.tableNumber);
+                              setEditTableCapacity(table.capacity);
+                              setEditTableSection(table.section);
+                              setIsEditTableModalOpen(true);
+                            }}
+                            className="rounded-lg border border-slate-200 p-1.5 text-slate-600 hover:bg-slate-100 hover:text-slate-950 transition-colors cursor-pointer text-xs"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            type="button"
+                            title="Delete Vacant Table"
+                            onClick={() => setTableToDelete(table)}
+                            className="rounded-lg border border-slate-200 p-1.5 text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer text-xs"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
 
@@ -855,57 +1097,80 @@ export function RestaurantPosView({
               </div>
             )}
 
-            {/* Search Bar & Dietary Filter Pills */}
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <input
-                  type="text"
-                  placeholder="Search dish (e.g. Paneer Tikka, Naan, Biryani)..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-medium text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-slate-950 focus:outline-none"
-                />
+            {/* Search Bar, Dietary Filter Pills & Menu Setup Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+              <div className="flex flex-1 flex-col sm:flex-row gap-3">
+                <div className="relative flex-1">
+                  <input
+                    type="text"
+                    placeholder="Search dish (e.g. Paneer Tikka, Naan, Biryani)..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-medium text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+
+                <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setDietaryFilter('all')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all ${
+                      dietaryFilter === 'all'
+                        ? 'bg-white text-slate-950 shadow-xs'
+                        : 'text-slate-600 hover:text-slate-950'
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDietaryFilter('veg')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
+                      dietaryFilter === 'veg'
+                        ? 'bg-emerald-600 text-white shadow-xs'
+                        : 'text-emerald-700 hover:text-emerald-950'
+                    }`}
+                  >
+                    <span>🟢</span> Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDietaryFilter('non_veg')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
+                      dietaryFilter === 'non_veg'
+                        ? 'bg-rose-600 text-white shadow-xs'
+                        : 'text-rose-700 hover:text-rose-950'
+                    }`}
+                  >
+                    <span>🔴</span> Non-Veg
+                  </button>
+                </div>
               </div>
 
-              <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200">
+              {/* Menu Setup Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
-                  onClick={() => setDietaryFilter('all')}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all ${
-                    dietaryFilter === 'all'
-                      ? 'bg-white text-slate-950 shadow-xs'
-                      : 'text-slate-600 hover:text-slate-950'
-                  }`}
+                  onClick={() => {
+                    setNewDishCategoryId(categories[0]?.id || '');
+                    setIsAddDishModalOpen(true);
+                  }}
+                  className="rounded-xl bg-slate-950 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
                 >
-                  All
+                  <span>+ Add Dish</span>
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDietaryFilter('veg')}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
-                    dietaryFilter === 'veg'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-emerald-700 hover:text-emerald-950'
-                  }`}
+                  onClick={() => setIsAddCategoryModalOpen(true)}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
                 >
-                  <span>🟢</span> Veg
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDietaryFilter('non_veg')}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
-                    dietaryFilter === 'non_veg'
-                      ? 'bg-rose-600 text-white shadow-xs'
-                      : 'text-rose-700 hover:text-rose-950'
-                  }`}
-                >
-                  <span>🔴</span> Non-Veg
+                  <span>+ Category</span>
                 </button>
               </div>
             </div>
 
             {/* Category Navigation Pills */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-2 items-center">
               <button
                 type="button"
                 onClick={() => setSelectedCategory('all')}
@@ -931,10 +1196,51 @@ export function RestaurantPosView({
                   {c.name} ({c.items.length})
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setIsAddCategoryModalOpen(true)}
+                className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-slate-400 hover:bg-slate-100 transition-colors cursor-pointer"
+              >
+                + New Category
+              </button>
             </div>
 
-            {/* Dishes Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5">
+            {/* Dishes Grid or Empty State */}
+            {filteredItems.length === 0 ? (
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-2xl mb-3">
+                  🍲
+                </div>
+                <h3 className="font-display text-base font-black text-slate-950">
+                  No Menu Dishes Found
+                </h3>
+                <p className="mt-1 text-xs text-slate-500 max-w-sm">
+                  {searchQuery ? `No dish matched "${searchQuery}".` : 'Add your first starter, main course, bread, or dessert dish to start punching orders.'}
+                </p>
+                <div className="mt-4 flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDishCategoryId(categories[0]?.id || '');
+                      setIsAddDishModalOpen(true);
+                    }}
+                    className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer"
+                  >
+                    + Add New Dish
+                  </button>
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                    >
+                      Clear Search
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3.5">
               {filteredItems.map((item) => (
                 <button
                   key={item.id}
@@ -971,6 +1277,7 @@ export function RestaurantPosView({
                 </button>
               ))}
             </div>
+            )}
           </div>
 
           {/* Cart & Order Dispatch Drawer (4-5 cols) */}
@@ -1569,6 +1876,585 @@ export function RestaurantPosView({
                     </button>
                   ))}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 4: ADD TABLE MODAL                                       */}
+      {/* ============================================================== */}
+      {isAddTableModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white p-6 shadow-2xl text-slate-900 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="font-display text-base font-black text-slate-950">
+                  Add Dining Table
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Configure a new table for floor plan seating and KOT orders
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddTableModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateTable} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Dining Outlet</label>
+                <select
+                  value={newTableOutletId || selectedOutletId}
+                  onChange={(e) => setNewTableOutletId(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-xs focus:border-slate-950 focus:outline-none"
+                >
+                  {outlets.map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.name} {o.isStandalone ? '(Standalone)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Table Number / ID</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. T-11, T-12, Bar-01"
+                    value={newTableNumber}
+                    onChange={(e) => setNewTableNumber(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Covers / Capacity</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    required
+                    value={newTableCapacity}
+                    onChange={(e) => setNewTableCapacity(Number(e.target.value))}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Floor Zone / Section</label>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {['Main AC Hall', 'Open Terrace', 'Poolside Deck', 'Bar & Lounge', 'Private Dining Room'].map((sec) => (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => {
+                        setNewTableSection(sec);
+                        setCustomSectionInput('');
+                      }}
+                      className={`rounded-lg px-2.5 py-1 text-[11px] font-bold cursor-pointer transition-all ${
+                        newTableSection === sec && !customSectionInput
+                          ? 'bg-slate-950 text-white shadow-xs'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      }`}
+                    >
+                      {sec}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="text"
+                  placeholder="Or enter custom zone name (e.g. Mezzanine Floor)"
+                  value={customSectionInput}
+                  onChange={(e) => setCustomSectionInput(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-slate-950 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAddTableModalOpen(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-xl bg-slate-950 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  {submitting ? 'Creating Table...' : '+ Create Table'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 5: EDIT TABLE MODAL                                      */}
+      {/* ============================================================== */}
+      {isEditTableModalOpen && tableToEdit && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white p-6 shadow-2xl text-slate-900 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="font-display text-base font-black text-slate-950">
+                  Edit Table {tableToEdit.tableNumber}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Update table identifier, covers, or assigned floor zone
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsEditTableModalOpen(false);
+                  setTableToEdit(null);
+                }}
+                className="text-slate-400 hover:text-slate-700 font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleUpdateTable} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Table Number</label>
+                  <input
+                    type="text"
+                    required
+                    value={editTableNumber}
+                    onChange={(e) => setEditTableNumber(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Capacity / Covers</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="50"
+                    required
+                    value={editTableCapacity}
+                    onChange={(e) => setEditTableCapacity(Number(e.target.value))}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Floor Zone / Section</label>
+                <input
+                  type="text"
+                  required
+                  value={editTableSection}
+                  onChange={(e) => setEditTableSection(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditTableModalOpen(false);
+                    setTableToEdit(null);
+                  }}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-xl bg-slate-950 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  {submitting ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 6: DELETE TABLE CONFIRMATION                             */}
+      {/* ============================================================== */}
+      {tableToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-sm flex-col rounded-3xl bg-white p-6 shadow-2xl text-slate-900 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">⚠️</span>
+                <h3 className="font-display text-base font-black text-slate-950">
+                  Remove Table {tableToDelete.tableNumber}?
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setTableToDelete(null)}
+                className="text-slate-400 hover:text-slate-700 font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium leading-relaxed">
+              Are you sure you want to delete <span className="font-bold text-slate-950">{tableToDelete.tableNumber}</span> ({tableToDelete.section}, {tableToDelete.capacity} covers)? This action cannot be undone.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setTableToDelete(null)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={handleDeleteTable}
+                className="rounded-xl bg-rose-600 px-5 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 cursor-pointer shadow-xs"
+              >
+                {submitting ? 'Deleting...' : 'Confirm Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 7: ADD DISH TO MENU                                      */}
+      {/* ============================================================== */}
+      {isAddDishModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white p-6 shadow-2xl text-slate-900 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="font-display text-base font-black text-slate-950">
+                  Add New Menu Item
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Add a dish to your digital menu master with SAC 996331 &amp; 5% GST
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddDishModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddDish} className="space-y-3.5">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Menu Category</label>
+                <div className="flex gap-2 mt-1">
+                  <select
+                    value={newDishCategoryId || categories[0]?.id || ''}
+                    onChange={(e) => setNewDishCategoryId(e.target.value)}
+                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-xs focus:border-slate-950 focus:outline-none"
+                  >
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsAddDishModalOpen(false);
+                      setIsAddCategoryModalOpen(true);
+                    }}
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                  >
+                    + New
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Dish Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Paneer Lababdar, Murgh Makhani, Butter Naan"
+                  value={newDishName}
+                  onChange={(e) => setNewDishName(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Price (₹ INR)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="1"
+                    required
+                    placeholder="340.00"
+                    value={newDishPrice}
+                    onChange={(e) => setNewDishPrice(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-slate-700">Item Code (Optional)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. APP-05"
+                    value={newDishCode}
+                    onChange={(e) => setNewDishCode(e.target.value)}
+                    className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Dietary Classification</label>
+                <div className="mt-1.5 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewDishFoodType('veg')}
+                    className={`flex-1 rounded-xl p-2 text-xs font-bold cursor-pointer transition-all border ${
+                      newDishFoodType === 'veg'
+                        ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
+                        : 'border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    🟢 Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewDishFoodType('non_veg')}
+                    className={`flex-1 rounded-xl p-2 text-xs font-bold cursor-pointer transition-all border ${
+                      newDishFoodType === 'non_veg'
+                        ? 'border-rose-500 bg-rose-50 text-rose-900'
+                        : 'border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    🔴 Non-Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewDishFoodType('egg')}
+                    className={`flex-1 rounded-xl p-2 text-xs font-bold cursor-pointer transition-all border ${
+                      newDishFoodType === 'egg'
+                        ? 'border-amber-500 bg-amber-50 text-amber-900'
+                        : 'border-slate-200 bg-white text-slate-700'
+                    }`}
+                  >
+                    🟡 Egg
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700">Description (Optional)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Cottage cheese cooked in rich creamy tomato and melon seed gravy"
+                  value={newDishDescription}
+                  onChange={(e) => setNewDishDescription(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-900 focus:border-slate-950 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-xl bg-slate-50 p-2.5 text-[11px] font-bold text-slate-600">
+                <span>Tax Compliance: SAC 996331</span>
+                <span>GST: 5% (2.5% CGST + 2.5% SGST)</span>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAddDishModalOpen(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-xl bg-slate-950 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  {submitting ? 'Adding Dish...' : '+ Add Dish'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 8: ADD MENU CATEGORY                                     */}
+      {/* ============================================================== */}
+      {isAddCategoryModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-sm flex-col rounded-3xl bg-white p-6 shadow-2xl text-slate-900 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="font-display text-base font-black text-slate-950">
+                  New Menu Category
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Organize dishes into menu sections
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddCategoryModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleAddCategory} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700">Category Name</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Sizzlers & Grills, Mocktails, Soups"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
+                  className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsAddCategoryModalOpen(false)}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-xl bg-slate-950 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 cursor-pointer shadow-xs"
+                >
+                  {submitting ? 'Creating...' : '+ Create Category'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 9: AURA DINE WORKFLOW & SOP GUIDE                        */}
+      {/* ============================================================== */}
+      {isSopGuideModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-3xl max-h-[90vh] overflow-y-auto flex-col rounded-3xl bg-white p-6 sm:p-8 shadow-2xl text-slate-900 space-y-6">
+            <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-500/10 text-amber-700 font-bold text-xl">
+                  🍽️
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-lg sm:text-xl font-black text-slate-950">
+                      Aura Dine F&amp;B Operations Guide
+                    </h3>
+                    <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-black uppercase">
+                      Enterprise SOP
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Standard operating procedures for table layout, KOT punching, KDS, and cashiering
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsSopGuideModalOpen(false)}
+                className="text-slate-400 hover:text-slate-700 font-bold cursor-pointer text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                <div className="flex items-center gap-2 font-black text-slate-950 text-sm">
+                  <span>1. 🪑 Floor Plan &amp; Table Setup</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed font-medium">
+                  Create physical tables with seating covers and floor zones (<span className="font-bold text-slate-900">Main AC Hall, Open Terrace, Bar, Poolside</span>). Table cards update live: Emerald for Vacant, Amber for Occupied with active bill and timer, Blue for Billed, Purple for Merged.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                <div className="flex items-center gap-2 font-black text-slate-950 text-sm">
+                  <span>2. 📝 KOT Punching &amp; Multi-Rounds</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed font-medium">
+                  Select a table or room, filter dishes by Veg/Non-Veg, add special cooking notes (<span className="font-bold text-slate-900">&quot;Jain, less spicy&quot;</span>), and fire to kitchen. Guests can order in multiple rounds (Round 1 starters, Round 2 mains) without losing bill continuity.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                <div className="flex items-center gap-2 font-black text-slate-950 text-sm">
+                  <span>3. 👨‍🍳 Kitchen Display System (KDS)</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed font-medium">
+                  Chefs view tickets in real-time categorized by table and round. Kitchen staff click <span className="font-bold text-slate-900">&quot;Start Cooking&quot;</span> ➔ <span className="font-bold text-slate-900">&quot;Ready to Serve&quot;</span> to notify floor captains immediately.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                <div className="flex items-center gap-2 font-black text-slate-950 text-sm">
+                  <span>4. 🔗 Table Merging &amp; Shifting</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed font-medium">
+                  For large banquets or big parties, click <span className="font-bold text-slate-900">&quot;Merge&quot;</span> to combine adjacent tables into one unified check. If guests change seats, click <span className="font-bold text-slate-900">&quot;Shift ➔&quot;</span> to transfer the active order cleanly.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                <div className="flex items-center gap-2 font-black text-slate-950 text-sm">
+                  <span>5. 🏨 Hotel Room Folio Transfer</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed font-medium">
+                  In Connected Hotel Mode, click <span className="font-bold text-slate-900">&quot;Charge to Room&quot;</span>. The system automatically verifies active in-house reservations and transfers the bill to Room Folio under SAC 996331 at 5% GST with zero double-entry.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 space-y-2">
+                <div className="flex items-center gap-2 font-black text-slate-950 text-sm">
+                  <span>6. 💳 Split Billing &amp; 80mm ESC/POS</span>
+                </div>
+                <p className="text-slate-600 leading-relaxed font-medium">
+                  Split checks 2 to 5 ways equally or by custom tender. Collect payments via Cash, Dynamic UPI QR with countdown timer, or POS EDC Card Machine. Print 80mm thermal kitchen slips and GST customer receipts with FSSAI &amp; GSTIN compliance.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setIsSopGuideModalOpen(false)}
+                className="rounded-xl bg-slate-950 px-6 py-2.5 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer shadow-xs"
+              >
+                Got It, Return to POS
+              </button>
             </div>
           </div>
         </div>

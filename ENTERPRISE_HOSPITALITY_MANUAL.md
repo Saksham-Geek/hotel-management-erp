@@ -234,7 +234,15 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
   - **🏨 Hotel Integrated Mode**: Designed for hotel restaurants, poolside bars, and in-room dining. Directly queries checked-in guests, displays active room folios, and supports 1-click **"Charge to Room Folio"** under SAC `996331` at 5% GST.
   - **🍽️ Standalone POS Mode**: Designed for standalone bistros, cafes, and food courts with zero hotel dependency. Focuses on direct walk-in diners, mobile phone-based CRM profile lookup, Swiggy/Zomato pickup, and direct cashiering settlement.
 
-#### 2. Table Floor Plan, Sections, Shifts & Merges
+#### 2. Table Floor Plan, Adding Tables, Sections, Shifts & Merges
+- **Adding Tables to Floor Plan**:
+  - On the **"Floor Plan Tables"** tab, click **"+ Add Table"**.
+  - Specify the **Table Number / Identifier** (e.g., `T-01`, `T-02`, `Terrace-04`, `Bar-02`).
+  - Set the **Covers / Seating Capacity** (e.g. 2, 4, 6, 8, 12).
+  - Assign to a **Floor Zone / Section** (*Main AC Hall*, *Open Terrace*, *Poolside Deck*, *Bar & Lounge*, *Private Dining Room*, or custom zone).
+  - Select the target **Dining Outlet** and click **"+ Create Table"**. The table instantly appears on the live interactive floor plan.
+- **Editing & Deleting Tables**:
+  - Vacant tables display quick-action controls: click **`✏️`** to modify table number, seating covers, or assigned zone; click **`🗑️`** to delete any vacant table that has no active orders.
 - **Floor Zones / Sections**: View tables organized by area (*Main AC Hall*, *Open Terrace Garden*, *Poolside Deck*, *Bar & Lounge*, *VIP Private Dining*).
 - **Table Shifting / Transfer**:
   - If guests move tables (e.g. from Garden to AC Hall), click **"Shift ➔"** on the table card.
@@ -243,7 +251,13 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
   - When hosting a banquet or large family group across multiple tables, click **"Merge 🔗"**.
   - Select an adjacent table. The ERP combines items into one master order, links both tables, and generates a single consolidated bill.
 
-#### 3. Standalone Diner CRM & Fast Phone Lookup
+#### 3. Menu Management & On-The-Fly Dish Creation
+- On the **"Touch POS Counter"** tab:
+  - Click **"+ Add Dish"** to create a new menu item with dietary tag (Veg 🟢, Non-Veg 🔴, Egg 🟡), dish name, price in INR, optional item code, SAC `996331`, and 5% GST.
+  - Click **"+ Category"** to create a new menu category (e.g., *Continental Starters*, *Tandoor Kebabs*, *Beverages*).
+- Interactive **"ℹ️ How Aura Dine Works"** guide button opens an instant operational manual directly in the POS view.
+
+#### 4. Standalone Diner CRM & Fast Phone Lookup
 - In the POS order panel, enter customer mobile phone (e.g. `9820011223`).
 - The ERP auto-recognizes returning diners: displays total visit count, cumulative spend, and dietary preferences (*"Returning Diner: 6 visits · Prefers corner tables & mild spice"*).
 

@@ -609,6 +609,58 @@ export const encodeKeycardSchema = z.object({
 });
 export type EncodeKeycardInput = z.infer<typeof encodeKeycardSchema>;
 
+// -------------------------------------------------------------
+// Aura Dine: Multi-Outlet F&B Tables, Menus & Outlets Schemas
+// -------------------------------------------------------------
+
+export const createRestaurantTableSchema = z.object({
+  outletId: z.string().uuid('Valid outlet ID is required'),
+  tableNumber: z.string().trim().min(1, 'Table number is required').max(20),
+  capacity: z.coerce.number().int().min(1).max(50).default(4),
+  section: z.string().trim().min(1).max(50).default('Main AC Hall'),
+});
+export type CreateRestaurantTableInput = z.infer<typeof createRestaurantTableSchema>;
+
+export const updateRestaurantTableSchema = z.object({
+  tableNumber: z.string().trim().min(1).max(20).optional(),
+  capacity: z.coerce.number().int().min(1).max(50).optional(),
+  section: z.string().trim().min(1).max(50).optional(),
+  status: z.enum(['vacant', 'occupied', 'billed']).optional(),
+});
+export type UpdateRestaurantTableInput = z.infer<typeof updateRestaurantTableSchema>;
+
+export const createMenuCategorySchema = z.object({
+  name: z.string().trim().min(1, 'Category name is required').max(100),
+  sortOrder: z.coerce.number().int().default(0),
+});
+export type CreateMenuCategoryInput = z.infer<typeof createMenuCategorySchema>;
+
+export const createMenuItemSchema = z.object({
+  categoryId: z.string().uuid('Category is required'),
+  name: z.string().trim().min(1, 'Dish name is required').max(150),
+  itemCode: z.string().trim().max(30).optional(),
+  price: z.coerce.number().finite().positive('Price must be greater than 0'),
+  foodType: z.enum(['veg', 'non_veg', 'egg']).default('veg'),
+  description: z.string().trim().max(300).optional(),
+  sacCode: z.string().trim().max(20).default('996331'),
+  gstRate: z.coerce.number().finite().default(5.0),
+});
+export type CreateMenuItemInput = z.infer<typeof createMenuItemSchema>;
+
+export const createRestaurantOutletSchema = z.object({
+  name: z.string().trim().min(1, 'Outlet name is required').max(100),
+  code: z.string().trim().min(1).max(30),
+  outletType: z.enum(['dine_in', 'bar', 'cafe', 'room_service', 'banquet', 'takeaway']).default('dine_in'),
+  serviceChargePercent: z.coerce.number().finite().min(0).max(30).default(5.0),
+  fssaiNumber: z.string().trim().max(50).optional(),
+  gstin: z.string().trim().max(20).optional(),
+  isStandalone: z.boolean().default(false),
+  contactPhone: z.string().trim().max(20).optional(),
+  address: z.string().trim().max(250).optional(),
+});
+export type CreateRestaurantOutletInput = z.infer<typeof createRestaurantOutletSchema>;
+
+
 
 
 

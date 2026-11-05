@@ -63,7 +63,8 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 
 ### 8. 🍽️ Integrated Aura Dine F&B Restaurant POS & KOT (`/restaurant`)
 - **Dual Operating Mode**: Switch seamlessly between **🏨 Hotel Integrated Mode** (connected with active room folios) and **🍽️ Standalone POS Mode** (independent high-street bistros, cafes, and food courts).
-- **Floor Zones & Table Operations**: Multi-section floor plans (*Main AC Hall, Open Terrace Garden, Poolside Deck, Bar & Lounge*), 1-click **Table Shifting** (`transferTable`) and **Table Merging** (`mergeTables`) for large banquet parties.
+- **Floor Zones, Dynamic Table Setup & Operations**: Multi-section floor plans (*Main AC Hall, Open Terrace Garden, Poolside Deck, Bar & Lounge*), interactive **+ Add Table** modal with covers and zone configuration, edit/delete table controls, 1-click **Table Shifting** (`transferTable`), and **Table Merging** (`mergeTables`) for large banquet parties.
+- **On-the-Fly Menu & Category Management**: Instant **+ Add Dish** and **+ Category** creation with dietary tags (Veg 🟢, Non-Veg 🔴, Egg 🟡), SAC 996331, and 5% GST.
 - **Multi-Round KOT Punching**: Supports subsequent rounds of ordering (*Round 1 Starters, Round 2 Mains, Round 3 Desserts*) with individual thermal KOT kitchen tickets (`KOT-101-R2`) while consolidating the table bill.
 - **Aura Dine Split Billing Engine**: Split dining bills 2 to 5 ways equally or itemized, with independent payment methods per split (Cash, Scan-to-Pay UPI QR, EDC POS Machine Card, or Room Charge).
 - **Standalone Diner CRM**: Fast mobile number lookup auto-recognizes returning guests with visit frequency, lifetime spend, and dietary preference tags (Veg, Non-Veg, Jain).

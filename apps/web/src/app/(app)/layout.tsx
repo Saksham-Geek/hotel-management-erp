@@ -23,7 +23,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       ? [{ href: '/staff', label: 'Staff & Hierarchy', icon: 'staff' as const, group: 'Executive & Admin' }]
       : []),
     ...(me.role === 'owner'
-      ? [{ href: '/super-admin', label: 'Super Admin (HQ)', icon: 'admin' as const, group: 'Executive & Admin' }]
+      ? [
+          { href: '/income', label: 'Owner Income & Revenue', icon: 'income' as const, group: 'Executive & Admin' },
+          { href: '/super-admin', label: 'Super Admin (HQ)', icon: 'admin' as const, group: 'Executive & Admin' },
+        ]
       : []),
     { href: '/upgrade', label: 'Plans & Pricing', icon: 'plans', group: 'Executive & Admin' },
     { href: '/guide', label: 'SOP & Master Guide', icon: 'guide', group: 'Executive & Admin' },

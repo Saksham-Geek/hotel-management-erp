@@ -12,6 +12,7 @@ import { ReservationsController } from './reservations.controller';
 import { RoomsController } from './rooms.controller';
 import { TapeChartController } from './tape-chart.controller';
 import { MarketingController } from './marketing.controller';
+import { IncomeController } from './income.controller';
 
 @Module({
   imports: [EntitlementsModule],
@@ -27,6 +28,7 @@ import { MarketingController } from './marketing.controller';
     TapeChartController,
     ChannelManagerController,
     MarketingController,
+    IncomeController,
   ],
   providers: [CustomFieldsService],
 })

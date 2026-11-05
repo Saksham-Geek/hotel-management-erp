@@ -107,6 +107,15 @@ export function GuideView() {
       icon: '🧹',
     },
     {
+      route: '/income',
+      name: 'Owner Income & Revenue Analytics',
+      badge: 'Executive & Admin',
+      role: '👑 Property Owner Only',
+      desc: 'Confidential executive financial intelligence system. Provides interactive P&L analytics, rolling daily, weekly, monthly, quarterly, 6-month, and annual turnover, interactive SVG revenue graphs, USALI departmental breakdown, and tax compliance auditing.',
+      actions: ['Audit daily, monthly, and annual gross vs net income', 'Interactive SVG revenue timeline graphs', 'USALI Rooms vs F&B vs Ancillary split', 'Track OTA commissions vs Direct bookings', '1-click Print Board Pack P&L Statement'],
+      icon: '📈',
+    },
+    {
       route: '/rooms',
       name: 'Room Inventory & Floor Configuration',
       badge: 'Front Office',
@@ -462,13 +471,24 @@ export function GuideView() {
             </div>
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm">
-              <h3 className="font-display text-lg sm:text-xl font-black text-slate-950">
-                Step 3: Executive Financial Audit & Performance Review
-              </h3>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="font-display text-lg sm:text-xl font-black text-slate-950">
+                  Step 3: Executive Income &amp; P&amp;L Analytics
+                </h3>
+                <Link
+                  href="/income"
+                  className="text-sm font-semibold text-purple-900 hover:text-purple-700 hover:underline flex items-center gap-1"
+                >
+                  <span>Open Owner Income Analytics</span>
+                  <span>➔</span>
+                </Link>
+              </div>
               <div className="mt-3 text-sm sm:text-[15px] text-slate-700 leading-relaxed space-y-2">
-                <p>• Review the daily Night Audit flash report at <strong className="text-slate-950">/night-audit</strong> to monitor RevPAR, ADR, and total room revenue.</p>
-                <p>• Review monthly GST tax collections and corporate city ledger aging on <strong className="text-slate-950">/billing</strong>.</p>
-                <p>• Inspect repeat guest conversion and review NPS ratings on <strong className="text-slate-950">/marketing</strong>.</p>
+                <p>• Access the confidential Owner Income Dashboard on <strong className="text-slate-950">/income</strong> (restricted exclusively to Property Owners).</p>
+                <p>• Analyze hotel income across 8 flexible intervals: <strong className="text-slate-900 font-semibold">Daily, Weekly (7d), Monthly (30d), Quarterly (3m), 6 Months, 1 Year, Annual Financial Year (FY), and Custom Calendar Date Range</strong>.</p>
+                <p>• Inspect interactive SVG revenue graphs comparing stacked turnover (Rooms vs F&amp;B vs Ancillary Spa/Laundry), pre-tax net operating income, and ADR / RevPAR yields.</p>
+                <p>• Review direct bookings vs OTA channel commissions (MakeMyTrip, Booking.com, Agoda) and tender distribution (UPI, Cards, Cash guarded by Section 269ST).</p>
+                <p>• 1-click <strong className="text-slate-900 font-semibold">"Print Board Pack"</strong> generates an executive P&amp;L review formatted for board meetings or CA audit.</p>
               </div>
             </div>
           </div>

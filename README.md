@@ -53,6 +53,7 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 
 ### 7. 💳 Cashiering, Folios & Statutory Indian GST Billing (`/billing`)
 - Dual-slab Indian GST calculation (12% for tariff &le; ₹7,500; 18% for tariff &gt; ₹7,500) under SAC Code `996311`.
+- **Hardware POS Machine & EDC Terminal Integration**: Full compatibility with physical card swipe/tap terminals (Pine Labs Plutus, Paytm Smart POS, Razorpay POS/EzeTap, Innoviti uniPAY, Ingenico Lane IP, and direct USB Web Serial). Dispatches charges to physical pinpads, records Bank RRN, Auth Codes, EMV chip verification, and formats/prints thermal charge slips.
 - **Dynamic NPCI Scan-to-Pay UPI QR Generator**: Generates real-time, tamper-proof QR codes with embedded property VPA, amount, transaction reference, and a 10-minute security countdown timer for instant settlement via PhonePe, GPay, Paytm, CRED, or BHIM.
 - **1-Click WhatsApp GST Invoice Dispatch**: Instantly compiles and launches pre-filled WhatsApp tax invoice messages to guest mobile numbers with PDF download links and breakdown details.
 - **Owner-Exclusive Receiver UPI ID Configuration**: Property owners exclusively configure and update the receiving bank VPA (`upi_id`) and merchant name. General Managers and Front Desk staff are locked to read-only access (403 Forbidden on write) to safeguard hotel funds.

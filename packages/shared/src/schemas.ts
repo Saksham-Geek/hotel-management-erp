@@ -200,13 +200,20 @@ export const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 export const gstinRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
 export const collectFolioPaymentSchema = z.object({
-  method: z.enum(['cash', 'card', 'upi', 'bank_transfer', 'corporate_ledger', 'other']),
+  method: z.enum(['cash', 'card', 'upi', 'bank_transfer', 'corporate_ledger', 'pos_machine', 'other']),
   amount: z.coerce.number().finite('Amount must be a valid number').min(0.01).max(100_000_000),
   reference: z.string().trim().max(100).optional(),
   payerGuestId: z.string().uuid().optional(),
   corporateAccountId: z.string().uuid().optional(),
   panNumber: z.string().trim().toUpperCase().optional().transform((v) => v || undefined),
   notes: z.string().trim().max(300).optional(),
+  // POS Hardware Machine Fields
+  posTerminalId: z.string().uuid().optional(),
+  cardBrand: z.string().trim().max(40).optional(),
+  cardLastFour: z.string().trim().max(4).optional(),
+  bankRrn: z.string().trim().max(30).optional(),
+  authCode: z.string().trim().max(30).optional(),
+  posSlipData: z.record(z.any()).optional(),
 }).superRefine((data, ctx) => {
   if (data.method === 'cash') {
     if (data.amount >= 200_000) {
@@ -409,5 +416,83 @@ export const updateUpiSettingsSchema = z.object({
   upiMerchantName: z.string().trim().min(2, 'Merchant name must be at least 2 characters').max(120).optional(),
 });
 export type UpdateUpiSettingsInput = z.infer<typeof updateUpiSettingsSchema>;
+
+// --- Hardware POS Terminal (EDC Machine) Integration Schemas ---
+
+export const posProviderEnum = z.enum([
+  'pine_labs',
+  'paytm_edc',
+  'razorpay_pos',
+  'innoviti',
+  'ingenico_lan',
+  'generic_serial',
+  'generic_ip',
+]);
+export type PosProvider = z.infer<typeof posProviderEnum>;
+
+export const posConnectionTypeEnum = z.enum(['cloud_lan', 'local_ip', 'web_serial', 'standalone']);
+export type PosConnectionType = z.infer<typeof posConnectionTypeEnum>;
+
+export const createPosTerminalSchema = z.object({
+  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(80),
+  terminalId: z.string().trim().min(3, 'Terminal ID (TID) must be at least 3 characters').max(50),
+  merchantId: z.string().trim().max(50).optional(),
+  provider: posProviderEnum.default('pine_labs'),
+  connectionType: posConnectionTypeEnum.default('cloud_lan'),
+  ipAddress: z.string().trim().max(60).optional(),
+  port: z.coerce.number().int().min(1).max(65535).default(8080),
+  serialBaudRate: z.coerce.number().int().default(115200),
+  isDefault: z.boolean().default(false),
+  metadata: z.record(z.any()).optional(),
+});
+export type CreatePosTerminalInput = z.infer<typeof createPosTerminalSchema>;
+
+export const updatePosTerminalSchema = createPosTerminalSchema.partial().extend({
+  status: z.enum(['online', 'offline', 'busy', 'maintenance']).optional(),
+  isActive: z.boolean().optional(),
+});
+export type UpdatePosTerminalInput = z.infer<typeof updatePosTerminalSchema>;
+
+export const initiatePosChargeSchema = z.object({
+  terminalId: z.string().uuid('Select a valid connected POS terminal'),
+  folioId: z.string().uuid(),
+  amount: z.coerce.number().finite().min(1, 'Amount must be at least ₹1.00').max(100_000_000),
+  currency: z.string().default('INR'),
+  reference: z.string().optional(),
+});
+export type InitiatePosChargeInput = z.infer<typeof initiatePosChargeSchema>;
+
+export interface PosChargeResponse {
+  status: 'SUCCESS' | 'DECLINED' | 'CANCELLED' | 'TIMEOUT';
+  terminalId: string;
+  terminalName: string;
+  provider: string;
+  amount: number;
+  currency: string;
+  bankRrn: string;
+  authCode: string;
+  cardBrand: string;
+  cardLastFour: string;
+  cardholderName?: string;
+  batchNumber: string;
+  invoiceNumber: string;
+  slipData: {
+    merchantName: string;
+    merchantId?: string;
+    terminalId: string;
+    dateTime: string;
+    aid?: string;
+    tvr?: string;
+    cardBrand: string;
+    maskedPan: string;
+    authCode: string;
+    rrn: string;
+    amount: number;
+    currency: string;
+    entryMode: 'EMV_CHIP' | 'CONTACTLESS_NFC' | 'MAGSTRIPE';
+    verificationMethod: 'PIN_VERIFIED' | 'SIGNATURE_VERIFIED' | 'NO_PIN_NFC';
+  };
+}
+
 
 

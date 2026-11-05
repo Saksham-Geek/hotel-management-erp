@@ -60,7 +60,7 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 | **`/reservations`** | **Reservations & Stays** | Front Desk | Central booking ledger for direct walk-ins, phone bookings, day-use hourly stays, modifications, and cancellations. |
 | **`/rooms`** | **Rooms & Inventory** | Owner / GM | Physical room and floor configuration, room categories (Deluxe, Executive Suite, Palace Suite), base tariffs, and hourly rates. |
 | **`/guests`** | **Guests Master & CRM** | Front Desk / GM | Centralized identity directory, companion linking, photo ID uploads, masked Aadhaar (UIDAI last-4 digits rule), VIP indicators. |
-| **`/billing`** | **Cashiering & GST Folios** | Front Desk / Cashier / Owner | Multi-item cashiering with dual-slab Indian GST (12% &le; ₹7.5k; 18% &gt; ₹7.5k), dynamic NPCI Scan-to-Pay UPI QR codes with countdown timer, 1-click WhatsApp tax invoice dispatch, Owner-exclusive receiver UPI ID bank configuration, Section 269ST ₹2L cash limit check, Rule 114B PAN validation, SAC 996311 tax invoices. |
+| **`/billing`** | **Cashiering & GST Folios** | Front Desk / Cashier / Owner | Multi-item cashiering with dual-slab Indian GST (12% &le; ₹7.5k; 18% &gt; ₹7.5k), physical EDC POS machine integration (Pine Labs Plutus, Paytm Smart POS, Innoviti uniPAY, Razorpay EzeTap, Ingenico Lane IP, USB Web Serial), dynamic NPCI Scan-to-Pay UPI QR codes with countdown timer, printable thermal card charge slips, 1-click WhatsApp tax invoice dispatch, Owner-exclusive receiver UPI ID bank configuration, Section 269ST ₹2L cash limit check, Rule 114B PAN validation, SAC 996311 tax invoices. |
 | **`/book/[slug]`** | **Direct Guest Booking Engine**| Public Guests / Direct | Commission-free, mobile-first public booking portal. Bypasses 18-25% OTA fees, displays live inventory, collects guest particulars, issues instant advance UPI QR deposit requests, and books directly into Front Desk room rack. |
 | **`/night-audit`** | **Night Audit & Day Close** | Night Auditor / GM | Automated business date rollover, room posting, cashier drawer reconciliation, RevPAR/ADR manager revenue flash reports. |
 | **`/compliance`** | **Statutory Compliance & BoI**| Front Desk / GM | Bureau of Immigration (BoI) Form C filing for foreign national guests within 24 hours of arrival; daily local police station beat register export. |
@@ -136,6 +136,12 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
    - Deploy property's public direct booking URL (`/book/[slug]`) across Google My Business, guest communication channels, and print collateral.
    - Guests book directly with 0% OTA commissions, saving 18-25% in commissions.
    - Direct reservations instantly inject into the Front Desk Room Rack (`/tape-chart`), blocking double bookings automatically.
+7. **Hardware POS EDC Fleet Management & Diagnostics**:
+   - Open `/billing` ➔ Click **"Manage POS Terminals"** (available to GMs and Owners).
+   - Review all configured EDC machines across billing desks: Front Desk Master, Executive Lounge, Banquets, and In-Room Wireless terminals.
+   - Register new terminals with connection modes: **LAN / IP Network Socket** (e.g. `192.168.1.140:8080`), **Cloud Push Queue** (Pine Labs / Paytm / Razorpay EzeTap / Innoviti), or **USB Direct Cable**.
+   - Click **"Test Connection"** to verify roundtrip ping latency, battery %, paper roll status, and acquirer handshake.
+   - Assign terminals to specific billing counters to isolate cashier shifts.
 
 ---
 
@@ -175,15 +181,28 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 - **Statutory Cash Guards**:
   - **Section 269ST**: Automatically blocks cash payments &ge; ₹2,00,000 per guest per stay.
   - **Rule 114B**: Requires mandatory PAN recording for cash payments &gt; ₹50,000.
-- Collect payment via UPI, Credit/Debit Card, or B2B Corporate Ledger.
+- Collect payment via UPI, Credit/Debit Card, Hardware POS Machine, or B2B Corporate Ledger.
 - Click **"Issue GST Tax Invoice"** and mark **"Check-Out"**.
 - Room status automatically transitions to `Cleaning`, notifying housekeeping.
 
-#### 5. Instant WhatsApp GST Tax Invoice & Folio Dispatch
+#### 5. Physical POS Machine (EDC Terminal) Card Swipe/Tap Settlement
+- In the folio settlement panel, select payment method **"POS Machine"**.
+- Select the active counter terminal (e.g. *Pine Labs Plutus #1 · Front Desk Counter 1* or *Paytm Smart POS · Desk 2*).
+- **Direct USB Serial Connection**: If the EDC machine is plugged via USB cable directly into the cashier PC, click **"Pair USB Serial Device"** to grant browser access via the standard Web Serial API (`navigator.serial`).
+- Click **"Initiate Card Charge on Terminal"**:
+  - The ERP automatically pushes the exact outstanding folio balance to the physical machine.
+  - Live interactive modal guides the cashier and guest: *Awaiting Card Tap/Insert ➔ Reading EMV Chip ➔ Waiting for Guest 4-6 Digit PIN ➔ Acquirer Bank Handshake ➔ APPROVED*.
+  - Terminal returns the authoritative 12-digit **Bank RRN**, 6-digit **Auth Code**, Card Scheme (Visa/Mastercard/RuPay/Amex), and Masked PAN (`XXXX-XXXX-XXXX-1289`).
+  - The payment is committed to the folio with all tamper-proof card audit metadata.
+- **Authentic Thermal Charge Slip**:
+  - Click **"View POS Slip"** on any POS payment row to open the authentic 58mm/80mm thermal receipt viewer (`PosSlipModal`).
+  - Supports 1-click browser printing for guest signature retention and merchant copy archival.
+
+#### 6. Instant WhatsApp GST Tax Invoice & Folio Dispatch
 - On any settled folio or issued invoice, click the **"WhatsApp Invoice"** button.
 - The ERP launches a direct WhatsApp message to the guest's mobile number with property branding, folio breakdown, invoice number, and paperless tax invoice link.
 
-#### 6. Post-Stay Marketing Review Outreach
+#### 7. Post-Stay Marketing Review Outreach
 - Open `/marketing` under *Pending Review Outreach*.
 - Click **"Send WhatsApp"** to dispatch a personalized thank-you message with a direct Google Reviews link.
 - Update Taj InnerCircle loyalty tier points and record guest room preferences.
@@ -228,3 +247,9 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 - **URI Payload Format**: `upi://pay?pa={vpa}&pn={merchant_name}&am={amount}&cu=INR&tr={folio_ref}` compliant with National Payments Corporation of India (NPCI) merchant specifications.
 - **Dynamic Render**: Generates high-density vector QR code with 10-minute expiry countdown to prevent stale or duplicate cashiering settlements.
 - **Banking Settlement Governance**: Hotel receiving VPA (`upi_id`) and legal merchant entity name (`upi_merchant_name`) are stored on the `properties` table. Access is cryptographically guarded by the `PROPERTY_BANKING_MANAGE` permission and enforced on the NestJS backend via role check (`user.role === 'owner'`). General Managers, Front Desk Receptionists, and Floor Attendants cannot alter the settlement account, mitigating revenue diversion risks.
+
+### Hardware POS (EDC Machine) & PCI-DSS Cardholder Data Compliance
+- **Zero Raw PAN Storage (PCI-DSS Level 1 / Section 3.4)**: The ERP strictly avoids capturing or storing 16-digit Primary Account Numbers (PAN) or 3-digit CVV codes in application memory or PostgreSQL databases. Only the first 4 and last 4 digits (e.g. `4532XXXXXXXX1289`) are preserved for guest receipt presentation and bank chargeback defense.
+- **Bank Reference Audit Trail**: Every card charge processed via Pine Labs, Paytm, Innoviti, Razorpay EzeTap, or Ingenico EDC machines records the 12-digit **Bank RRN** (Retrieval Reference Number) and 6-digit **Auth Code** directly on `folio_payments`.
+- **Thermal Slip Archival**: Detailed EMV transaction receipts (`pos_slip_data`) including Terminal ID (TID), Merchant ID (MID), Batch Number, Invoice Number, Card Brand, and Entry Method (`CHIP_INSERT` / `CONTACTLESS_TAP` / `FALLBACK_SWIPE`) are stored in structured JSON format and renderable on demand in 58mm/80mm thermal printer format.
+- **Hardware Protocol Agnostic**: Supports direct USB connection via W3C Web Serial API (`navigator.serial` at 9600/115200 baud) for legacy serial cash registers and REST / WebSocket LAN socket push for modern Android Smart POS terminals.

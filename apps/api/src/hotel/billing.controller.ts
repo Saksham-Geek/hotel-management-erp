@@ -99,12 +99,16 @@ export class BillingController {
       const payments = (
         await c.query(
           `SELECT fp.id, fp.amount::float8, fp.method, fp.reference, fp.status, fp.pan_number AS "panNumber",
-                  fp.notes, fp.created_at AS "createdAt",
-                  p.full_name AS "payerName", ca.company_name AS "corporateCompanyName"
+                  fp.notes, fp.card_brand AS "cardBrand", fp.card_last_four AS "cardLastFour",
+                  fp.bank_rrn AS "bankRrn", fp.auth_code AS "authCode", fp.pos_slip_data AS "posSlipData",
+                  fp.created_at AS "createdAt",
+                  p.full_name AS "payerName", ca.company_name AS "corporateCompanyName",
+                  pt.name AS "posTerminalName", pt.terminal_id AS "posTerminalIdCode"
            FROM folio_payments fp
            LEFT JOIN guests g ON g.id = fp.payer_guest_id
            LEFT JOIN parties p ON p.id = g.party_id
            LEFT JOIN corporate_accounts ca ON ca.id = fp.corporate_account_id
+           LEFT JOIN pos_terminals pt ON pt.id = fp.pos_terminal_id
            WHERE fp.folio_id = $1
            ORDER BY fp.created_at ASC`,
           [folio.id],
@@ -132,6 +136,17 @@ export class BillingController {
         )
       ).rows[0];
 
+      const posTerminals = (
+        await c.query(
+          `SELECT id, name, terminal_id AS "terminalId", merchant_id AS "merchantId",
+                  provider, connection_type AS "connectionType", ip_address AS "ipAddress",
+                  port, is_default AS "isDefault", status
+           FROM pos_terminals
+           WHERE is_active = true
+           ORDER BY is_default DESC, created_at ASC`,
+        )
+      ).rows;
+
       const paidTotal = payments
         .filter((p) => p.status === 'captured')
         .reduce((sum, p) => sum + Number(p.amount), 0);
@@ -152,6 +167,7 @@ export class BillingController {
           upiId: property?.upiId ?? null,
           upiMerchantName: property?.upiMerchantName ?? property?.name ?? 'Hotel',
         },
+        posTerminals,
       };
     });
   }
@@ -390,21 +406,30 @@ export class BillingController {
         await c.query(
           `INSERT INTO folio_payments (
              tenant_id, folio_id, amount, method, reference, payer_guest_id, corporate_account_id,
-             pan_number, notes, status, received_by
+             pan_number, notes, status, received_by,
+             pos_terminal_id, card_brand, card_last_four, bank_rrn, auth_code, pos_slip_data
            )
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'captured', $10)
-           RETURNING id, amount::float8, method, reference, status, pan_number AS "panNumber", created_at AS "createdAt"`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'captured', $10, $11, $12, $13, $14, $15, $16)
+           RETURNING id, amount::float8, method, reference, status, pan_number AS "panNumber",
+                     card_brand AS "cardBrand", card_last_four AS "cardLastFour", bank_rrn AS "bankRrn",
+                     auth_code AS "authCode", pos_slip_data AS "posSlipData", created_at AS "createdAt"`,
           [
             user.tenantId,
             folioId,
             b.amount,
             b.method,
-            b.reference ?? null,
+            b.reference ?? b.bankRrn ?? null,
             b.payerGuestId ?? null,
             b.corporateAccountId ?? null,
             b.panNumber ?? null,
             b.notes ?? null,
             user.id,
+            b.posTerminalId ?? null,
+            b.cardBrand ?? null,
+            b.cardLastFour ?? null,
+            b.bankRrn ?? null,
+            b.authCode ?? null,
+            b.posSlipData ? JSON.stringify(b.posSlipData) : '{}',
           ],
         )
       ).rows[0];

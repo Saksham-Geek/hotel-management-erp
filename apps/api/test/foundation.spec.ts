@@ -29,6 +29,8 @@ import {
   createMarketingCampaignSchema,
   updateGuestLoyaltySchema,
   updateUpiSettingsSchema,
+  createPosTerminalSchema,
+  initiatePosChargeSchema,
   FEATURES,
   HOSPITALITY_PLAN_TIERS,
   PERMISSIONS,
@@ -796,6 +798,87 @@ test('Migration 019 creates property UPI receiver columns and seeds verified hot
   assert.match(migration, /itcmaurya@icici/);
   assert.match(migration, /grandazure@icici/);
 });
+
+test('POS machine schemas validate terminal configuration, providers, and pos_machine payment method', () => {
+  // 1. Terminal configuration validation
+  const validTerminal = createPosTerminalSchema.safeParse({
+    name: 'Front Desk Counter 1 - Pine Labs Plutus',
+    terminalId: 'TID-PL-88291',
+    merchantId: 'MID-HDFC-99120',
+    provider: 'pine_labs',
+    connectionType: 'cloud_lan',
+    port: 8080,
+    isDefault: true,
+  });
+  assert.equal(validTerminal.success, true);
+
+  // Rejects invalid provider
+  assert.equal(
+    createPosTerminalSchema.safeParse({
+      name: 'Invalid Terminal',
+      terminalId: 'TID-01',
+      provider: 'unknown_brand',
+    }).success,
+    false,
+  );
+
+  // Rejects invalid port
+  assert.equal(
+    createPosTerminalSchema.safeParse({
+      name: 'Bad Port Terminal',
+      terminalId: 'TID-02',
+      port: 999999,
+    }).success,
+    false,
+  );
+
+  // 2. Folio payment method accepts 'pos_machine' with EDC transaction metadata
+  const validPosPayment = collectFolioPaymentSchema.safeParse({
+    method: 'pos_machine',
+    amount: 14500.5,
+    reference: '431012984123',
+    cardBrand: 'RuPay Platinum',
+    cardLastFour: '1289',
+    bankRrn: '431012984123',
+    authCode: 'AUTH892341',
+  });
+  assert.equal(validPosPayment.success, true);
+
+  // 3. Initiate charge schema validates UUIDs and positive amount
+  assert.equal(
+    initiatePosChargeSchema.safeParse({
+      terminalId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+      folioId: 'a1b2c3d4-e5f6-4a1b-8c2d-3e4f5a6b7c8d',
+      amount: 5400,
+      currency: 'INR',
+    }).success,
+    true,
+  );
+
+  // 4. Role authority matrix: Owner and General Manager can manage POS terminals
+  assert.equal(roleHasPermission('owner', PERMISSIONS.POS_TERMINAL_MANAGE), true);
+  assert.equal(roleHasPermission('manager', PERMISSIONS.POS_TERMINAL_MANAGE), true);
+  assert.equal(roleHasPermission('frontdesk', PERMISSIONS.POS_TERMINAL_MANAGE), false);
+  assert.equal(roleHasPermission('housekeeping', PERMISSIONS.POS_TERMINAL_MANAGE), false);
+});
+
+test('Migration 020 creates pos_terminals table, RLS policies, and updates folio_payments', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/020_pos_terminals.sql'),
+    'utf8',
+  );
+  assert.match(migration, /create table if not exists pos_terminals/);
+  assert.match(migration, /folio_payments_method_check/);
+  assert.match(migration, /pos_machine/);
+  assert.match(migration, /card_brand/);
+  assert.match(migration, /bank_rrn/);
+  assert.match(migration, /auth_code/);
+  assert.match(migration, /hotel\.pos/);
+  assert.match(migration, /pine_labs/);
+  assert.match(migration, /paytm_edc/);
+  assert.match(migration, /innoviti/);
+});
+
 
 
 

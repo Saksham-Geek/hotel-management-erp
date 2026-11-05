@@ -171,7 +171,28 @@ Every hotel onboarded has its own public-facing direct booking link (`/book/[slu
 
 ---
 
-## 12. Quick Summary of Passwords
+## 12. 💳 Connected Hardware POS Terminals (EDC Machines) Directory
+
+All hotel demonstration portfolios and sandboxes include pre-configured, live-connected Electronic Data Capture (EDC) POS machines for card dip/tap/swipe cashiering:
+
+| Hotel Organization | Counter / Terminal Name | Terminal ID (TID) | Merchant ID (MID) | Hardware Provider | Connection Mode | Status |
+|---|---|---|---|---|---|---|
+| **The Taj Mahal Palace** | Front Desk Counter 1 | `TID-TAJ-PL01` | `MID-HDFC-TAJ01` | Pine Labs Plutus Cloud | Cloud / LAN IP (`:8080`) | 🟢 Online (Default) |
+| **The Taj Mahal Palace** | Concierge Desk | `TID-USB-COM01` | `MID-DIRECT-USB01` | Generic USB / Serial | Web Serial USB (`COM3`) | 🟢 Online |
+| **ITC Maurya Delhi** | Main Reception | `TID-ITC-INN01` | `MID-ICICI-ITC01` | Innoviti uniPAY EDC | Cloud / LAN IP (`:8080`) | 🟢 Online (Default) |
+| **Sayaji Hotel Indore** | Lobby Counter | `TID-SYJ-PAY01` | `MID-AXIS-SYJ01` | Paytm Android Smart POS | Cloud / LAN IP (`:8080`) | 🟢 Online (Default) |
+| **Radisson Blu Mumbai** | Front Desk EDC 1 | `TID-RAD-PL01` | `MID-HDFC-RAD01` | Pine Labs Android Terminal | Cloud / LAN IP (`:8080`) | 🟢 Online (Default) |
+| **Singhania Boutique** | Front Office | `TID-SNG-PAY01` | `MID-KOTAK-SNG01` | Paytm Smart EDC | Cloud / LAN IP (`:8080`) | 🟢 Online (Default) |
+| **Grand Azure Sandbox** | Sandbox Counter 1 | `TID-AZR-PL01` | `MID-ICICI-AZR01` | Pine Labs Virtual Test EDC | Cloud / LAN IP (`:8080`) | 🟢 Online (Default) |
+| **Grand Azure Sandbox** | Sandbox Counter 2 | `TID-USB-COM01` | `MID-DIRECT-USB01` | Generic USB / Serial | Web Serial USB (`COM3`) | 🟢 Online |
+
+> [!TIP]
+> **Live Card Simulation & Web Serial Pairing**:
+> On the folio cashiering panel ([`/billing`](http://localhost:3000/billing)), select **POS Machine (Connected EDC Terminal)**. You can ping the physical machine link, connect via direct USB cable using the browser's Web Serial API, and dispatch live charges that generate real Bank RRNs, Auth Codes, and thermal charge slips!
+
+---
+
+## 13. Quick Summary of Passwords
 
 - **SaaS Founder**: `FounderCloud2026!`
 - **Testing Sandbox**: `ChangeMe-123!`

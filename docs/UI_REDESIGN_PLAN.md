@@ -14,7 +14,7 @@ The interface follows a clean, warm-neutral **Material 3 / Bundled Notes** aesth
   - Room Categories: Soft pastel pill themes (Presidential Palace Suite, Executive Suite, Deluxe Room, Standard Room).
 - **Outline Filter Chips**: Horizontal scrollable outline chips with active state fills and counter pills.
 - **Accents**: Signature horizontal accent dashes and single VIP badge indicators.
-- **Micro-Interactions**: Drag-to-select stay range booking on the Tape Chart, 1-click persona switchers on `/login`, floating confirmation toasts.
+- **Micro-Interactions**: Drag-to-select stay range booking on the Tape Chart, timeless Aura PMS luxury login with password reveal, dynamic UPI QR countdown timer, live POS terminal card swipe/tap prompt, floating confirmation toasts.
 
 ---
 
@@ -22,7 +22,7 @@ The interface follows a clean, warm-neutral **Material 3 / Bundled Notes** aesth
 
 | Route | Primary Audience | Operational Scope |
 | :--- | :--- | :--- |
-| **`/login`** | All Users | Branded sign-in with 1-click showcase persona cards for Taj, ITC, Sayaji, Radisson, Local Boutique, Sandbox, and SaaS Founder HQ. |
+| **`/login`** | All Users | Timeless luxury Aura PMS portal. Clean property organization code, work email, and password authentication with eye reveal, fresh onboarding link, and discreet showcase link. |
 | **`/onboard`** | Prospective Hoteliers | Public 4-step clean-slate registration wizard with 0 dummy bookings, instant slug generation, and choice between blank slate (0 rooms) and starter inventory. |
 | **`/showcase`** | Sales & Demonstrations | Presentation matrix showcasing 8 client portfolios with 1-click credential cards and sales pitch highlights. |
 | **`/dashboard`** | Front Desk / GM | Real-time floor room rack, today's arrivals/departures counters, occupancy %, quick check-in actions. |
@@ -30,7 +30,7 @@ The interface follows a clean, warm-neutral **Material 3 / Bundled Notes** aesth
 | **`/reservations`** | Front Desk | Complete booking ledger for direct reservations, walk-ins, hourly day-use stays, modifications, and cancellations. |
 | **`/rooms`** | Owner / GM | Physical room and floor configuration, room categories, base tariffs, and hourly rates. |
 | **`/guests`** | Front Desk / GM | Centralized identity directory, companion linking, photo ID uploads, masked Aadhaar storage, VIP indicators. |
-| **`/billing`** | Front Desk / Cashier / Owner | Multi-item cashiering with dual-slab Indian GST (12% / 18%), Dynamic NPCI Scan-to-Pay QR generator (`UpiQrCard`), Owner-exclusive receiver UPI settings modal (`UpiSettingsModal`), WhatsApp invoice dispatch button, Section 269ST ₹2L cash limit check, Rule 114B PAN validation, SAC 996311 tax invoices. |
+| **`/billing`** | Front Desk / Cashier / Owner | Multi-item cashiering with dual-slab Indian GST (12% / 18%), hardware POS machine integration (`PosMachineCard`), authentic thermal slip viewer (`PosSlipModal`), terminal fleet manager (`PosTerminalsModal`), Dynamic NPCI Scan-to-Pay QR generator (`UpiQrCard`), Owner-exclusive receiver UPI settings modal (`UpiSettingsModal`), WhatsApp invoice dispatch button, Section 269ST ₹2L cash limit check, Rule 114B PAN validation, SAC 996311 tax invoices. |
 | **`/book/[slug]`** | Public Direct Guests | Public mobile-first direct booking engine with room category cards, real-time availability, guest details intake, and advance UPI QR settlement. |
 | **`/night-audit`** | Night Auditor / GM | Automated business date rollover, room posting, cashier drawer reconciliation, RevPAR/ADR manager revenue flash reports. |
 | **`/compliance`** | Front Desk / GM | Bureau of Immigration (BoI) Form C filing for foreign national guests within 24 hours of arrival; daily local police station beat register export. |

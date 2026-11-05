@@ -4,6 +4,41 @@ This document tracks all schema migrations, architectural enhancements, and feat
 
 ---
 
+## Release v2.7.0: Timeless Luxury Login Portal Redesign & Hardware POS (EDC Machine) Cashiering
+
+### 1. Timeless Luxury Login Portal Redesign
+- **Aura PMS Brand Architecture**:
+  - Re-engineered `/login` with a timeless, prestigious luxury hospitality aesthetic.
+  - Replaced temporary/demo naming with **Aura PMS: Enterprise Property Management System**.
+  - Integrated classic architectural emblem and elegant split-panel layout with deep obsidian/navy ambiance and frosted glass highlights.
+- **Zero Ephemeral or Incomplete Elements**:
+  - Eliminated the prominent 1-click test persona cards (Taj, ITC, Sayaji, Radisson, Local Multi-Hotel, Sandbox) from the production login screen.
+  - Eliminated hardcoded test default values (`grand-azure`, `owner@grandazure.test`, `ChangeMe-123!`), initializing form inputs with empty values and professional placeholders.
+  - Removed temporary version tags and promotional hotel copy to ensure permanent, timeless durability.
+  - Added discrete, professional secondary links: *"Register for a fresh workspace"* (`/onboard`) and *"Explore Client Showcase"* (`/showcase`).
+- **Refined Authentication Controls**:
+  - Property organization code input with building icon and helper explanation.
+  - Work email input with envelope icon.
+  - Password input with interactive eye show/hide toggle and clean "Forgot password?" recovery link.
+
+### 2. Physical POS Machine (EDC Terminal) Cashiering Integration
+- **Migration 020 (`020_pos_terminals.sql`)**:
+  - Created `pos_terminals` table with forced PostgreSQL Row-Level Security (`tenant_id`, `property_id`).
+  - Added `'pos_machine'` to `folio_payments_method_check` constraint.
+  - Extended `folio_payments` with `pos_terminal_id`, `card_brand`, `card_last_four`, `bank_rrn`, `auth_code`, and `pos_slip_data`.
+  - Seeded default POS terminals across Taj, ITC, Sayaji, Radisson, Singhania, and Grand Azure portfolios.
+- **Backend Core (`PosController`)**:
+  - Registered `PosController` under `/hotel/pos` in `HotelModule`.
+  - Added endpoints: `GET /hotel/pos/terminals`, `POST /hotel/pos/terminals`, `PATCH /hotel/pos/terminals/:id`, `DELETE /hotel/pos/terminals/:id`, `POST /hotel/pos/terminals/:id/ping`, and `POST /hotel/pos/initiate-charge`.
+  - Enforced `PERMISSIONS.POS_TERMINAL_MANAGE` RBAC for Owner and Manager roles.
+- **Frontend POS Cashiering UI**:
+  - `PosMachineCard`: Interactive terminal charge component with terminal selector, connection badge (🟢 Online / ⚪ Offline), and W3C Web Serial API pairing (`navigator.serial.requestPort()`) for direct USB cable connections.
+  - Dual-stage live card swipe/tap animation (*Awaiting Card ➔ Reading Chip ➔ Waiting for Guest PIN ➔ Bank Approval*).
+  - `PosSlipModal`: Authentic 58mm/80mm thermal charge slip receipt generator with 1-click browser printing for cardholder signature retention and merchant copy archival.
+  - `PosTerminalsModal`: Terminal fleet management for Owners and GMs to register, edit, and ping terminals.
+
+---
+
 ## Release v2.6.0: UPI Receiver Settings, Dynamic Scan-to-Pay QR, WhatsApp Invoicing & Direct Booking Engine
 
 ### 1. Owner-Exclusive UPI Receiver Settings

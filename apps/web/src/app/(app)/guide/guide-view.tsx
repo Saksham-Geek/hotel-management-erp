@@ -90,8 +90,8 @@ export function GuideView({
       badge: 'Finance & GST',
       minRole: 'frontdesk',
       rolesAllowed: ['frontdesk', 'manager', 'owner', 'founder'],
-      desc: 'Comprehensive billing folios with automated Indian GST dual-slab calculation (12% for tariff <= ₹7,500; 18% for tariff > ₹7,500). Enforces Section 269ST ₹2L cash limits, Rule 114B PAN validation, dynamic NPCI Scan-to-Pay UPI QR codes with countdown timer, 1-click WhatsApp tax invoice dispatch, and Owner-exclusive receiver UPI ID bank configuration.',
-      actions: ['Dynamic NPCI scan-to-pay QR generator', 'Owner-only receiver UPI ID configuration', '1-click WhatsApp GST invoice dispatch', 'Enforce Section 269ST ₹2L cash guard'],
+      desc: 'Comprehensive billing folios with automated Indian GST dual-slab calculation (12% for tariff <= ₹7,500; 18% for tariff > ₹7,500). Enforces Section 269ST ₹2L cash limits, Rule 114B PAN validation, hardware POS EDC machine integration (Pine Labs, Paytm, Innoviti, USB Web Serial), dynamic NPCI Scan-to-Pay UPI QR codes with countdown timer, 1-click WhatsApp tax invoice dispatch, and Owner-exclusive receiver UPI ID bank configuration.',
+      actions: ['Hardware POS machine EDC card swipe/tap settlement', 'Dynamic NPCI scan-to-pay QR generator', 'Thermal POS charge slip generation & printing', 'Owner-only receiver UPI ID configuration', '1-click WhatsApp GST invoice dispatch'],
       icon: '💳',
     },
     {
@@ -564,6 +564,16 @@ export function GuideView({
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
                   </tr>
+                  <tr className="bg-indigo-50/40">
+                    <td className="px-5 py-3 font-bold text-indigo-950">
+                      Hardware POS Terminal (EDC) Integration &amp; Charge Slips
+                    </td>
+                    <td className="px-4 py-3 text-center text-rose-500 font-bold">Locked</td>
+                    <td className="px-4 py-3 text-center text-emerald-700 font-bold">Operate &amp; Swipe</td>
+                    <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access (Manage)</td>
+                    <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access (Manage)</td>
+                    <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A (Property Hardware)</td>
+                  </tr>
                   <tr className="bg-amber-50/50">
                     <td className="px-5 py-3 font-bold text-amber-950">
                       Configure Receiver UPI ID / Bank VPA (Settlement Authority)
@@ -891,6 +901,28 @@ export function GuideView({
                 <li>• Guests provide advance deposits directly to the hotel's verified UPI receiving VPA, securing immediate liquidity.</li>
               </ul>
             </div>
+
+            <div className="rounded-3xl border border-indigo-200 bg-indigo-50/40 p-6 sm:p-7 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-indigo-100 text-indigo-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
+                    Hardware POS Fleet
+                  </span>
+                  <h3 className="font-display text-lg font-black text-slate-950">
+                    GM SOP 5: Hardware POS Machine Management &amp; Counter Allocation
+                  </h3>
+                </div>
+                <Link href="/billing" className="text-xs font-bold text-indigo-900 hover:underline">
+                  Manage POS Machines ➔
+                </Link>
+              </div>
+              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+                <li>• On <strong className="text-slate-950">/billing</strong>, click <strong className="text-slate-950">"POS Machines"</strong> to review the connected hardware terminals across Front Desk, Concierge, and F&amp;B outlets.</li>
+                <li>• Connect standard Indian EDC terminals: <strong className="text-slate-950">Pine Labs Plutus</strong>, <strong className="text-slate-950">Paytm Smart POS</strong>, <strong className="text-slate-950">Razorpay POS (EzeTap)</strong>, <strong className="text-slate-950">Innoviti uniPAY</strong>, or <strong className="text-slate-950">Direct USB Serial Cable</strong>.</li>
+                <li>• Use the <strong className="text-slate-950">"Test Ping"</strong> button to verify network latency (typically 12–25ms) before high-volume check-in hours.</li>
+                <li>• Set default POS machines for specific workstation counters to streamline one-click cashier dispatch.</li>
+              </ul>
+            </div>
           </div>
         </div>
       )}
@@ -1028,6 +1060,35 @@ export function GuideView({
                   <p>• On any settled guest folio or issued invoice, click the <strong className="text-emerald-900 font-bold">"WhatsApp Invoice"</strong> button.</p>
                   <p>• The ERP instantly prepares and launches a direct WhatsApp Web/app message addressed to the guest's mobile phone number.</p>
                   <p>• Message includes verified hotel property branding, invoice number, room number, total amount paid, and direct link for paperless tax invoice storage.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 6 */}
+            <div className="relative">
+              <div className="absolute -left-10 sm:-left-12 top-0 grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-xs font-bold text-white shadow-xs">
+                6
+              </div>
+              <div className="rounded-3xl border border-indigo-300 bg-indigo-50/30 p-6 shadow-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-indigo-100 text-indigo-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
+                      EDC Hardware
+                    </span>
+                    <h3 className="font-display text-base font-bold text-slate-950">
+                      Hardware POS EDC Terminal Card &amp; Contactless Tap Settlement
+                    </h3>
+                  </div>
+                  <Link href="/billing" className="text-xs font-bold text-indigo-700 hover:underline">
+                    Open POS Settlement ➔
+                  </Link>
+                </div>
+                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
+                  <p>• When settling a folio via card, select <strong className="text-slate-950">POS Machine (Connected EDC Terminal)</strong>.</p>
+                  <p>• Select your counter machine (e.g. Pine Labs Plutus, Paytm Smart POS, or Innoviti uniPAY).</p>
+                  <p>• Click <strong className="text-indigo-950 font-bold">"Send to POS Machine"</strong>. The physical terminal immediately wakes up and displays the exact invoice amount.</p>
+                  <p>• Guest dips their EMV chip card (RuPay / Visa / Mastercard / Amex) or taps contactless NFC, then enters their PIN on the physical pinpad.</p>
+                  <p>• The terminal transmits the 12-digit Bank RRN and Authorization Code back into the ERP, automatically settling the folio and generating a thermal charge slip for customer signature and records.</p>
                 </div>
               </div>
             </div>

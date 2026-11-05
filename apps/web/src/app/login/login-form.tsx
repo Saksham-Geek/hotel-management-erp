@@ -7,215 +7,182 @@ import { FormSubmit } from '@/components/form-submit';
 import { login } from './actions';
 
 export function LoginForm() {
-  const [tenant, setTenant] = useState('grand-azure');
-  const [email, setEmail] = useState('owner@grandazure.test');
-  const [password, setPassword] = useState('ChangeMe-123!');
-
-  function fillDemo(t: string, e: string, p: string) {
-    setTenant(t);
-    setEmail(e);
-    setPassword(p);
-  }
+  const [tenant, setTenant] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="space-y-5">
-      {/* Client Showcase & Demo Persona Quick-Fills */}
-      <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-4 text-xs space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 font-bold text-slate-900 dark:text-slate-100">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>Client Showcase &amp; Demo Portfolios (1-Click Fill)</span>
-          </div>
-          <Link
-            href="/showcase"
-            className="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 hover:underline"
-          >
-            View Presentation Deck →
-          </Link>
-        </div>
-
-        <p className="text-[11px] text-slate-500 leading-tight">
-          Select any hospitality tier to preview live properties, multi-property switching, folios, and tape chart:
-        </p>
-
-        {/* Showcase Persona Chips */}
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-          <button
-            type="button"
-            onClick={() => fillDemo('taj-hotels', 'director@tajhotels.com', 'TajPalace2026!')}
-            className="group flex flex-col items-start rounded-xl border border-amber-200/90 bg-[#fffcf4] dark:bg-amber-950/20 p-2 text-left shadow-2xs hover:border-amber-400 hover:scale-[1.02] transition-all cursor-pointer"
-          >
-            <span className="font-bold text-[11px] text-amber-950 dark:text-amber-200 flex items-center gap-1">
-              <span>👑</span>
-              <span>Taj Hotels IHCL</span>
-            </span>
-            <span className="text-[9px] text-amber-800 dark:text-amber-400 font-medium mt-0.5">
-              Palace Mumbai &amp; Ganges
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fillDemo('itc-hotels', 'owner@itchotels.com', 'ItcLuxury2026!')}
-            className="group flex flex-col items-start rounded-xl border border-purple-200/90 bg-[#faf8ff] dark:bg-purple-950/20 p-2 text-left shadow-2xs hover:border-purple-400 hover:scale-[1.02] transition-all cursor-pointer"
-          >
-            <span className="font-bold text-[11px] text-purple-950 dark:text-purple-200 flex items-center gap-1">
-              <span>🏛️</span>
-              <span>ITC Hotels Group</span>
-            </span>
-            <span className="text-[9px] text-purple-800 dark:text-purple-400 font-medium mt-0.5">
-              ITC Maurya &amp; Mughal
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fillDemo('sayaji-hotels', 'owner@sayajihotels.com', 'SayajiGrowth2026!')}
-            className="group flex flex-col items-start rounded-xl border border-blue-200/90 bg-[#f4faff] dark:bg-blue-950/20 p-2 text-left shadow-2xs hover:border-blue-400 hover:scale-[1.02] transition-all cursor-pointer"
-          >
-            <span className="font-bold text-[11px] text-blue-950 dark:text-blue-200 flex items-center gap-1">
-              <span>🏢</span>
-              <span>Sayaji Hotels</span>
-            </span>
-            <span className="text-[9px] text-blue-800 dark:text-blue-400 font-medium mt-0.5">
-              Indore &amp; Pune Business
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fillDemo('radisson-india', 'franchise@radissonhotels.com', 'Radisson2026!')}
-            className="group flex flex-col items-start rounded-xl border border-teal-200/90 bg-[#f4fbf7] dark:bg-teal-950/20 p-2 text-left shadow-2xs hover:border-teal-400 hover:scale-[1.02] transition-all cursor-pointer"
-          >
-            <span className="font-bold text-[11px] text-teal-950 dark:text-teal-200 flex items-center gap-1">
-              <span>🌐</span>
-              <span>Radisson Blu</span>
-            </span>
-            <span className="text-[9px] text-teal-800 dark:text-teal-400 font-medium mt-0.5">
-              Mumbai &amp; Udaipur Palace
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fillDemo('city-boutique', 'owner@singhaniahotels.com', 'Boutique2026!')}
-            className="group flex flex-col items-start rounded-xl border border-rose-200/90 bg-[#fff5f5] dark:bg-rose-950/20 p-2 text-left shadow-2xs hover:border-rose-400 hover:scale-[1.02] transition-all cursor-pointer"
-          >
-            <span className="font-bold text-[11px] text-rose-950 dark:text-rose-200 flex items-center gap-1">
-              <span>🏰</span>
-              <span>Local Multi-Hotel</span>
-            </span>
-            <span className="text-[9px] text-rose-800 dark:text-rose-400 font-medium mt-0.5">
-              Haveli Jaipur &amp; Lakeview
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => fillDemo('grand-azure', 'owner@grandazure.test', 'ChangeMe-123!')}
-            className="group flex flex-col items-start rounded-xl border border-emerald-200/90 bg-[#f0fdf4] dark:bg-emerald-950/20 p-2 text-left shadow-2xs hover:border-emerald-400 hover:scale-[1.02] transition-all cursor-pointer ring-1 ring-emerald-500/20"
-          >
-            <span className="font-bold text-[11px] text-emerald-950 dark:text-emerald-200 flex items-center gap-1">
-              <span>🧪</span>
-              <span>Test Sandbox</span>
-            </span>
-            <span className="text-[9px] text-emerald-800 dark:text-emerald-400 font-medium mt-0.5">
-              Grand Azure (365d stays)
-            </span>
-          </button>
-        </div>
-
-        {/* Platform Founder HQ Link */}
-        <div className="flex items-center justify-between border-t border-slate-200/60 dark:border-slate-800 pt-2.5">
-          <span className="text-[10px] text-slate-500">SaaS Business Ops:</span>
-          <button
-            type="button"
-            onClick={() => fillDemo('platform-hq', 'founder@antigravity-erp.com', 'FounderCloud2026!')}
-            className="inline-flex items-center gap-1 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-950 px-2.5 py-1 text-[10px] font-bold hover:bg-slate-800 transition-colors cursor-pointer"
-          >
-            <span>⚡ Founder &amp; Staff HQ</span>
-          </button>
-        </div>
-      </div>
-
       <form action={login} className="space-y-4">
-        <label className="block text-xs font-semibold text-ink">
-          Hotel Organization Code
-          <input
-            name="tenant"
-            required
-            autoComplete="organization"
-            placeholder="e.g. grand-azure"
-            value={tenant}
-            onChange={(e) => setTenant(e.target.value)}
-            className={`${inputCls} mt-1.5 font-mono text-sm`}
-          />
-        </label>
-
-        <label className="block text-xs font-semibold text-ink">
-          Work Email
-          <input
-            name="email"
-            type="email"
-            required
-            autoComplete="username"
-            placeholder="name@hotel.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className={`${inputCls} mt-1.5 text-sm`}
-          />
-        </label>
-
-        <label className="block text-xs font-semibold text-ink">
-          Password
-          <input
-            name="password"
-            type="password"
-            required
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className={`${inputCls} mt-1.5 text-sm`}
-          />
-        </label>
-
-        <div className="-mt-1 text-right">
-          <Link
-            href="/forgot-password"
-            className="text-xs font-semibold text-teal-700 hover:text-teal-800 underline dark:text-teal-400"
-          >
-            Forgot password?
-          </Link>
+        {/* Property Organization Code */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200">
+            Property Organization Code
+          </label>
+          <div className="relative mt-1.5">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+              <BuildingIcon />
+            </div>
+            <input
+              name="tenant"
+              required
+              autoComplete="organization"
+              placeholder="e.g. your-property-slug"
+              value={tenant}
+              onChange={(e) => setTenant(e.target.value)}
+              className={`${inputCls} pl-10 font-mono text-sm`}
+            />
+          </div>
+          <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+            The unique identifier assigned to your hotel organization.
+          </p>
         </div>
 
-        <FormSubmit
-          className={`${btnCls} mt-2 w-full bg-slate-900 py-3 text-sm text-white hover:bg-slate-800 dark:bg-teal-600 dark:hover:bg-teal-500 font-semibold cursor-pointer shadow-md`}
-          pendingLabel="Authenticating…"
-        >
-          Sign In to Property
-          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 ml-1.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M13 6l6 6-6 6" />
-          </svg>
-        </FormSubmit>
+        {/* Work Email */}
+        <div>
+          <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200">
+            Work Email Address
+          </label>
+          <div className="relative mt-1.5">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+              <MailIcon />
+            </div>
+            <input
+              name="email"
+              type="email"
+              required
+              autoComplete="username"
+              placeholder="name@yourhotel.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={`${inputCls} pl-10 text-sm`}
+            />
+          </div>
+        </div>
 
-        {/* New Hotel Owner Onboarding CTA */}
-        <div className="pt-2">
+        {/* Password */}
+        <div>
+          <div className="flex items-center justify-between">
+            <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200">
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative mt-1.5">
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400">
+              <LockIcon />
+            </div>
+            <input
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              autoComplete="current-password"
+              placeholder="••••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className={`${inputCls} pl-10 pr-10 text-sm`}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
+        </div>
+
+        {/* Submit Button */}
+        <div className="pt-1">
+          <FormSubmit
+            className={`${btnCls} w-full bg-slate-900 py-3 text-sm text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99]`}
+            pendingLabel="Authenticating…"
+          >
+            Sign In to Property
+            <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 ml-1.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M13 6l6 6-6 6" />
+            </svg>
+          </FormSubmit>
+        </div>
+
+        {/* Clean Onboarding Link for New Hoteliers */}
+        <div className="pt-3 border-t border-slate-100 dark:border-white/10 space-y-2.5">
           <Link
             href="/onboard"
-            className="flex items-center justify-between rounded-xl border border-emerald-200/90 bg-emerald-50/70 p-3 text-xs hover:border-emerald-400 hover:bg-emerald-50 transition-all group"
+            className="flex items-center justify-between rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-50/70 dark:bg-white/[0.03] p-3 text-xs hover:border-slate-300 dark:hover:border-white/20 hover:bg-slate-50 dark:hover:bg-white/[0.05] transition-all group"
           >
-            <div className="flex items-center gap-2 font-bold text-emerald-950">
-              <span className="grid h-6 w-6 place-items-center rounded-lg bg-emerald-200 text-emerald-900 text-xs">
+            <div className="flex items-center gap-2 font-medium text-slate-800 dark:text-slate-200">
+              <span className="grid h-6 w-6 place-items-center rounded-lg bg-slate-200/70 dark:bg-white/10 text-slate-700 dark:text-slate-300 text-xs">
                 ✦
               </span>
-              <span>New Hotel Owner? Start Free 14-Day Trial</span>
+              <span>New property? Register for a fresh workspace</span>
             </div>
-            <span className="text-[11px] font-bold text-emerald-800 group-hover:translate-x-0.5 transition-transform">
+            <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 group-hover:translate-x-0.5 transition-transform">
               Register Hotel →
             </span>
           </Link>
+
+          {/* Discreet Client Showcase Link for Evaluators */}
+          <div className="text-center pt-1">
+            <Link
+              href="/showcase"
+              className="text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+            >
+              Need to preview showcase environments? Explore Client Showcase →
+            </Link>
+          </div>
         </div>
       </form>
     </div>
+  );
+}
+
+function BuildingIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M9 8h1M14 8h1M9 12h1M14 12h1M9 16h1M14 16h1" />
+    </svg>
+  );
+}
+
+function MailIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="4" width="20" height="16" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
+
+function LockIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function EyeOffIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61M2 2l20 20" />
+    </svg>
   );
 }

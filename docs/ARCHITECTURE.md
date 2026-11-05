@@ -19,6 +19,7 @@ This document defines the architectural decisions, database models, security bou
 | **Monetary Precision** | `numeric(12,2)` | Eliminates floating-point rounding errors across folios, invoices, taxes, and platform MRR ledger. |
 | **Banking Settlement Security** | Owner-Exclusive `PROPERTY_BANKING_MANAGE` RBAC | Direct hotel receiving UPI ID (`upi_id`) and merchant name are restricted to `user.role === 'owner'`. General Managers, Front Desk Receptionists, and Floor Staff receive 403 Forbidden on writes, preventing unauthorized bank redirect. |
 | **Direct Guest Booking** | Public Zero-Commission Booking Engine (`/book/[slug]`) | Public unauthenticated API endpoints decorated with `@Public()` with input validation and rate limiting. Allocates live rooms directly to the tape chart and bypasses 18-25% OTA commissions. |
+| **Hardware POS Integration** | Multi-Protocol EDC Terminal Adapter (LAN / Cloud Push / Web Serial) | Pluggable POS hardware layer supporting Pine Labs Plutus, Paytm Smart POS, Innoviti uniPAY, Razorpay EzeTap, Ingenico Lane IP, and W3C Web Serial USB connection for 0-latency cashiering card charges and authentic thermal slips. |
 
 ---
 
@@ -38,6 +39,8 @@ erDiagram
     FOLIOS ||--o{ FOLIO_ITEMS : "charges"
     FOLIOS ||--o{ FOLIO_PAYMENTS : "settles"
     FOLIOS ||--o{ STATUTORY_INVOICES : "issues"
+    PROPERTIES ||--o{ POS_TERMINALS : "provisions"
+    POS_TERMINALS ||--o{ FOLIO_PAYMENTS : "authorizes"
     TENANTS ||--o{ PLATFORM_SUBSCRIPTION_INVOICES : "pays software MRR"
     PROPERTIES {
         uuid id PK
@@ -45,6 +48,16 @@ erDiagram
         text name
         text upi_id
         text upi_merchant_name
+    }
+    POS_TERMINALS {
+        uuid id PK
+        uuid tenant_id FK
+        uuid property_id FK
+        text terminal_name
+        text provider
+        text serial_number
+        text connection_type
+        text status
     }
 ```
 

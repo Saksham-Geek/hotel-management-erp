@@ -14,6 +14,7 @@ import { TapeChartController } from './tape-chart.controller';
 import { MarketingController } from './marketing.controller';
 import { IncomeController } from './income.controller';
 import { PublicBookingController } from './public-booking.controller';
+import { PosController } from './pos.controller';
 
 @Module({
   imports: [EntitlementsModule],
@@ -31,6 +32,7 @@ import { PublicBookingController } from './public-booking.controller';
     MarketingController,
     IncomeController,
     PublicBookingController,
+    PosController,
   ],
   providers: [CustomFieldsService],
 })

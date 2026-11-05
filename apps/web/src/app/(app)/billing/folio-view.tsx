@@ -8,6 +8,9 @@ import { addFolioCharge, collectFolioPayment, issueInvoice } from './actions';
 import { UpiQrCard } from './upi-qr-card';
 import { UpiSettingsModal } from './upi-settings-modal';
 import { WhatsAppInvoiceModal } from './whatsapp-invoice-modal';
+import { PosMachineCard } from './pos-machine-card';
+import { PosSlipModal } from './pos-slip-modal';
+import { PosTerminalsModal } from './pos-terminals-modal';
 
 export interface FolioData {
   property?: {
@@ -15,6 +18,18 @@ export interface FolioData {
     upiId: string | null;
     upiMerchantName: string | null;
   };
+  posTerminals?: {
+    id: string;
+    name: string;
+    terminalId: string;
+    merchantId?: string;
+    provider: string;
+    connectionType: string;
+    ipAddress?: string;
+    port?: number;
+    isDefault?: boolean;
+    status: string;
+  }[];
   reservation: {
     id: string;
     status: string;
@@ -62,6 +77,14 @@ export interface FolioData {
       payerName?: string;
       corporateCompanyName?: string;
       createdAt: string;
+      posTerminalId?: string;
+      cardBrand?: string;
+      cardLastFour?: string;
+      bankRrn?: string;
+      authCode?: string;
+      posSlipData?: any;
+      posTerminalName?: string;
+      posTerminalIdCode?: string;
     }[];
     invoices: {
       id: string;
@@ -102,6 +125,8 @@ export function FolioView({
   const [selectedInvoiceForWhatsApp, setSelectedInvoiceForWhatsApp] = useState<any | null>(null);
   const [showPreCheckinModal, setShowPreCheckinModal] = useState(false);
   const [showUpiModal, setShowUpiModal] = useState(false);
+  const [showPosModal, setShowPosModal] = useState(false);
+  const [viewingSlip, setViewingSlip] = useState<any | null>(null);
 
   return (
     <div className="space-y-6">
@@ -120,7 +145,15 @@ export function FolioView({
               {formatStayDates(reservation.checkIn, reservation.checkOut)} {reservation.guestPhone ? `· ${reservation.guestPhone}` : ''}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => setShowPosModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-800 hover:bg-slate-50 hover:border-slate-300 transition-all cursor-pointer shadow-2xs"
+            >
+              <span>💳</span>
+              <span>POS Machines ({folioData.posTerminals?.length || 0})</span>
+            </button>
             <button
               type="button"
               onClick={() => setShowPreCheckinModal(true)}
@@ -270,7 +303,8 @@ export function FolioView({
               >
                 <option value="cash">Cash (INR)</option>
                 <option value="upi">UPI Dynamic QR / VPA</option>
-                <option value="card">Credit / Debit Card (EDC Swipe)</option>
+                <option value="pos_machine">POS Machine (Connected EDC Terminal - Card/UPI/Tap)</option>
+                <option value="card">Credit / Debit Card (Offline / Manual)</option>
                 <option value="bank_transfer">NEFT / RTGS Bank Transfer</option>
                 <option value="corporate_ledger">Corporate Direct Billing (City Ledger)</option>
               </select>
@@ -289,6 +323,19 @@ export function FolioView({
                 className={`${inputCls} mt-1.5`}
               />
             </label>
+
+            {/* Hardware Connected POS Machine Terminal Card */}
+            {paymentMethod === 'pos_machine' && (
+              <PosMachineCard
+                amount={paymentAmount}
+                currency={currency}
+                folioId={folio.id}
+                reservationId={reservation.id}
+                terminals={folioData.posTerminals || []}
+                onSetReference={(ref) => setReference(ref)}
+                onOpenManageTerminals={() => setShowPosModal(true)}
+              />
+            )}
 
             {/* Dynamic UPI Scan-to-Pay QR Card */}
             {paymentMethod === 'upi' && (
@@ -427,14 +474,43 @@ export function FolioView({
           ) : (
             <div className="divide-y divide-line">
               {folio.payments.map((p) => (
-                <div key={p.id} className="py-2.5 flex items-center justify-between text-xs">
-                  <div>
-                    <p className="font-semibold uppercase text-ink">{p.method.replace('_', ' ')}</p>
+                <div key={p.id} className="py-2.5 flex items-center justify-between text-xs gap-3">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      {p.method === 'pos_machine' ? (
+                        <span className="inline-flex items-center gap-1 rounded bg-indigo-100 border border-indigo-200 px-1.5 py-0.5 text-[9px] font-black uppercase text-indigo-950">
+                          <span>💳</span> POS Machine
+                        </span>
+                      ) : (
+                        <span className="font-semibold uppercase text-ink">{p.method.replace('_', ' ')}</span>
+                      )}
+                      {p.cardBrand && (
+                        <span className="font-bold text-[10px] text-slate-800">
+                          {p.cardBrand} {p.cardLastFour ? `(**** ${p.cardLastFour})` : ''}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-[10px] text-muted">{new Date(p.createdAt).toLocaleString('en-IN')}</p>
+                    {p.bankRrn && (
+                      <p className="font-mono text-[10px] text-slate-600">
+                        Bank RRN: <span className="font-bold text-slate-900">{p.bankRrn}</span>
+                        {p.authCode ? ` · Auth: ${p.authCode}` : ''}
+                      </p>
+                    )}
                     {p.panNumber && <p className="font-mono text-[10px] text-danger">PAN: {p.panNumber}</p>}
-                    {p.reference && <p className="text-[10px] text-muted">Ref: {p.reference}</p>}
+                    {p.reference && !p.bankRrn && <p className="text-[10px] text-muted">Ref: {p.reference}</p>}
+
+                    {p.posSlipData && (
+                      <button
+                        type="button"
+                        onClick={() => setViewingSlip(p.posSlipData)}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-indigo-700 hover:text-indigo-950 hover:underline cursor-pointer pt-0.5"
+                      >
+                        <span>🧾 View POS Charge Slip</span>
+                      </button>
+                    )}
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0">
                     <p className="font-semibold text-emerald-700">{money(p.amount, currency)}</p>
                     <span className="rounded bg-success/10 px-1.5 py-0.5 text-[9px] font-bold text-emerald-800 uppercase">
                       {p.status}
@@ -530,6 +606,21 @@ export function FolioView({
         reservationId={reservation.id}
         isOwner={userRole === 'owner'}
       />
+
+      {/* POS EDC Machines Management Modal */}
+      {showPosModal && (
+        <PosTerminalsModal
+          terminals={folioData.posTerminals || []}
+          isOwnerOrManager={userRole === 'owner' || userRole === 'manager'}
+          reservationId={reservation.id}
+          onClose={() => setShowPosModal(false)}
+        />
+      )}
+
+      {/* POS EDC Charge Slip Modal */}
+      {viewingSlip && (
+        <PosSlipModal slip={viewingSlip} onClose={() => setViewingSlip(null)} />
+      )}
     </div>
   );
 }

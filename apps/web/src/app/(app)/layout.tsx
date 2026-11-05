@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { AppShell } from '@/components/app-shell';
 import type { NavItem } from '@/components/nav';
@@ -5,7 +6,14 @@ import { getEntitlements, getMe } from '@/lib/api';
 import { createProperty, logout, selectProperty } from '../login/actions';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
-  const [me, ent] = await Promise.all([getMe(), getEntitlements()]);
+  let me: Awaited<ReturnType<typeof getMe>>;
+  let ent: Awaited<ReturnType<typeof getEntitlements>>;
+  try {
+    [me, ent] = await Promise.all([getMe(), getEntitlements()]);
+  } catch (err: any) {
+    if (err?.digest?.startsWith('NEXT_REDIRECT')) throw err;
+    redirect('/login?error=' + encodeURIComponent('Your session has ended. Please sign in again.'));
+  }
   const has = (feature: keyof typeof ent.features) => !!ent.features[feature];
   const isPlatformFounder =
     me.tenant.slug === 'platform-hq' ||

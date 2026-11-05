@@ -18,6 +18,10 @@ export class ApiError extends Error {
 /** Server-side only. The JWT lives in an httpOnly cookie and never reaches browser JavaScript. */
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = (await cookies()).get(TOKEN_COOKIE)?.value;
+  if (!token && !path.startsWith('/public') && path !== '/auth/login') {
+    redirect('/login');
+  }
+
   const headers = {
     'content-type': 'application/json',
     ...(token ? { authorization: `Bearer ${token}` } : {}),
@@ -32,8 +36,11 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       headers,
     });
   } catch (err: any) {
-    // Graceful fallback: try 127.0.0.1 if URL was different, or wrap cleanly so SSR doesn't throw raw unhandled TypeError
+    if (err?.digest?.startsWith('NEXT_REDIRECT')) throw err;
     console.error(`[API Network Error] ${init.method ?? 'GET'} ${API_URL + path}:`, err?.message ?? err);
+    if (path === '/auth/me' || path === '/entitlements/me') {
+      redirect('/login?error=' + encodeURIComponent('Your session has ended. Please sign in again.'));
+    }
     throw new ApiError(503, {
       message: 'API backend (:4000) is unreachable. Check that the backend service and database are running.',
       details: err?.message,

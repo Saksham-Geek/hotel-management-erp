@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, PageHeader } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
@@ -19,10 +20,19 @@ export default async function ChannelManagerPage({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
-  const [{ error, ok }, ent, me] = await Promise.all([
+  const me = await getMe();
+  if (me.role !== 'owner' && me.role !== 'manager') {
+    redirect(
+      '/dashboard?error=' +
+        encodeURIComponent(
+          'Access Restricted: OTA Channel Management is reserved for General Managers and Property Owners.',
+        ),
+    );
+  }
+
+  const [{ error, ok }, ent] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_CHANNEL_MANAGER),
-    getMe(),
   ]);
 
   const [channelData, roomTypes, logsData] = await Promise.all([

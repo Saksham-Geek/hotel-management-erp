@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { HOSPITALITY_PLAN_TIERS, type FeatureKey } from '@erp/shared';
 import { PageHeader } from '@/components/ui';
 import { getEntitlements, getMe, getPlans } from '@/lib/api';
@@ -15,6 +16,15 @@ export default async function UpgradePage({
     getEntitlements(),
     getPlans().catch(() => ({ currentPlan: null, tiers: HOSPITALITY_PLAN_TIERS })),
   ]);
+
+  if (me.role !== 'owner') {
+    redirect(
+      '/dashboard?error=' +
+        encodeURIComponent(
+          'Access Restricted: Subscription Plans and Software Invoicing can only be managed by Property Owners.',
+        ),
+    );
+  }
 
   const activeTiers = plansData.tiers && plansData.tiers.length > 0 ? plansData.tiers : HOSPITALITY_PLAN_TIERS;
   const lockedFeatureName = feature ? FEATURE_LABELS[feature as FeatureKey] ?? feature : null;

@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, EmptyState, PageHeader, StatCard } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
@@ -35,10 +36,19 @@ export default async function NightAuditPage({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
-  const [{ error, ok }, ent, me] = await Promise.all([
+  const me = await getMe();
+  if (me.role !== 'owner' && me.role !== 'manager') {
+    redirect(
+      '/dashboard?error=' +
+        encodeURIComponent(
+          'Access Restricted: Night Audit & Day Close is restricted to General Managers and Property Owners.',
+        ),
+    );
+  }
+
+  const [{ error, ok }, ent] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_NIGHT_AUDIT),
-    getMe(),
   ]);
 
   const [status, history] = await Promise.all([

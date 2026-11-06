@@ -1,5 +1,6 @@
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
-import { api, requireFeature } from '@/lib/api';
+import { api, getMe, requireFeature } from '@/lib/api';
 import {
   RestaurantPosView,
   type OutletDto,
@@ -10,6 +11,16 @@ import {
 } from './restaurant-pos-view';
 
 export default async function RestaurantPage() {
+  const me = await getMe();
+  if (me.role === 'housekeeping') {
+    redirect(
+      '/housekeeping?error=' +
+        encodeURIComponent(
+          'Access Restricted: Restaurant POS is restricted to Front Desk and F&B staff.',
+        ),
+    );
+  }
+
   await requireFeature(FEATURES.HOTEL_RESTAURANT_POS);
 
   const [outlets, tables, categories, kots, reservations, activeShift] = await Promise.all([

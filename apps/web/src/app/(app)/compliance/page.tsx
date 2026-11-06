@@ -1,6 +1,7 @@
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, PageHeader } from '@/components/ui';
-import { api, requireFeature } from '@/lib/api';
+import { api, getMe, requireFeature } from '@/lib/api';
 import { ComplianceView, type FormCRecord, type PoliceReportData } from './compliance-view';
 
 export default async function CompliancePage({
@@ -8,6 +9,16 @@ export default async function CompliancePage({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
+  const me = await getMe();
+  if (me.role === 'housekeeping') {
+    redirect(
+      '/housekeeping?error=' +
+        encodeURIComponent(
+          'Access Restricted: Statutory BoI Form C is restricted to Front Desk and Management.',
+        ),
+    );
+  }
+
   const [{ error, ok }, ent] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_COMPLIANCE),

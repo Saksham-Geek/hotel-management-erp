@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, EmptyState, inputCls, PageHeader } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
@@ -27,10 +28,19 @@ export default async function ReservationsPage({
     checkOut?: string;
   }>;
 }) {
-  const [{ error, ok, roomId, checkIn, checkOut }, ent, me] = await Promise.all([
+  const me = await getMe();
+  if (me.role === 'housekeeping') {
+    redirect(
+      '/housekeeping?error=' +
+        encodeURIComponent(
+          'Access Restricted: Reservations management is reserved for Front Desk and Management.',
+        ),
+    );
+  }
+
+  const [{ error, ok, roomId, checkIn, checkOut }, ent] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_RESERVATIONS),
-    getMe(),
   ]);
   const [reservations, rooms] = await Promise.all([
     api<ReservationRow[]>('/hotel/reservations'),

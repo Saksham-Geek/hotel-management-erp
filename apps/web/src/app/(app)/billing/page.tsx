@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, EmptyState, inputCls, PageHeader } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
@@ -19,10 +20,19 @@ export default async function BillingPage({
 }: {
   searchParams: Promise<{ reservationId?: string; error?: string; ok?: string }>;
 }) {
-  const [{ reservationId, error, ok }, ent, me, upiSettings] = await Promise.all([
+  const me = await getMe();
+  if (me.role === 'housekeeping') {
+    redirect(
+      '/housekeeping?error=' +
+        encodeURIComponent(
+          'Access Restricted: Billing & Folio Cashiering is restricted to Front Desk and Management.',
+        ),
+    );
+  }
+
+  const [{ reservationId, error, ok }, ent, upiSettings] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_BILLING),
-    getMe(),
     api<{ upiId: string; upiMerchantName: string; propertyName: string; isOwner: boolean }>('/hotel/upi-settings').catch(() => null),
   ]);
 

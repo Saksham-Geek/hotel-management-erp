@@ -1,11 +1,22 @@
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, EmptyState, inputCls, PageHeader } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
-import { api, requireFeature } from '@/lib/api';
+import { api, getMe, requireFeature } from '@/lib/api';
 import { saveGuest } from './actions';
 import { GuestDirectory, type GuestProfile } from './guest-directory';
 
 export default async function GuestsPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
+  const me = await getMe();
+  if (me.role === 'housekeeping') {
+    redirect(
+      '/housekeeping?error=' +
+        encodeURIComponent(
+          'Access Restricted: Guests directory is reserved for Front Desk and Management.',
+        ),
+    );
+  }
+
   const [{ error, ok }, ent, guests] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_RESERVATIONS),

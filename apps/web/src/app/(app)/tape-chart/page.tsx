@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, btnGhostCls, PageHeader } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
@@ -16,10 +17,19 @@ export default async function TapeChartPage({
 }: {
   searchParams: Promise<{ startDate?: string; days?: string; error?: string; ok?: string }>;
 }) {
-  const [{ startDate, days, error, ok }, ent, me] = await Promise.all([
+  const me = await getMe();
+  if (me.role === 'housekeeping') {
+    redirect(
+      '/housekeeping?error=' +
+        encodeURIComponent(
+          'Access Restricted: Tape Chart is reserved for Front Desk and Management.',
+        ),
+    );
+  }
+
+  const [{ startDate, days, error, ok }, ent] = await Promise.all([
     searchParams,
     requireFeature(FEATURES.HOTEL_TAPE_CHART),
-    getMe(),
   ]);
 
   const query = new URLSearchParams();

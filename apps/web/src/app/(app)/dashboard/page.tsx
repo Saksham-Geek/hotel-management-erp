@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import type { RoomStatus } from '@erp/shared';
 import { FEATURES } from '@erp/shared';
 import { btnCls, btnGhostCls, EmptyState, PageHeader, RoomTile, StatCard } from '@/components/ui';
@@ -24,12 +25,16 @@ export default async function Dashboard({
 }: {
   searchParams?: Promise<{ error?: string; ok?: string }>;
 }) {
+  const me = await getMe();
+  if (me.role === 'housekeeping') {
+    redirect('/housekeeping');
+  }
+
   await requireFeature(FEATURES.HOTEL_ROOMS);
-  const [{ error, ok } = {}, dash, rooms, me] = await Promise.all([
+  const [{ error, ok } = {}, dash, rooms] = await Promise.all([
     searchParams ? searchParams : Promise.resolve({ error: undefined, ok: undefined }),
     api<Dash>('/hotel/dashboard').catch(() => ({ totalRooms: 0, byStatus: {}, arrivalsToday: 0, departuresToday: 0 })),
     api<Room[]>('/hotel/rooms').catch(() => []),
-    getMe(),
   ]);
 
   const safeDash: Dash = dash ?? { totalRooms: 0, byStatus: {}, arrivalsToday: 0, departuresToday: 0 };

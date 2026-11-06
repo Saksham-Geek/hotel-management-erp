@@ -121,4 +121,72 @@ body {
 :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 input, select, textarea, button { font: inherit; }
 button, [role='button'], a { -webkit-tap-highlight-color: transparent; }
+
+/* ==========================================================================
+   Aura PMS Design System: Sleek Themed Form Dropdowns (<select>)
+   ========================================================================== */
+select {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background-color: #ffffff;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-position: right 0.75rem center !important;
+  background-repeat: no-repeat !important;
+  background-size: 1rem 1rem !important;
+  padding-right: 2.5rem !important;
+  border-radius: 0.75rem; /* rounded-xl (12px) */
+  border: 1px solid #e2e8f0; /* slate-200 */
+  color: #0f172a; /* slate-900 */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
+select:hover:not(:disabled) {
+  border-color: #cbd5e1; /* slate-300 */
+}
+
+select:focus {
+  outline: none !important;
+  border-color: #0f172a !important; /* slate-900 */
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.08) !important;
+}
+
+select:disabled {
+  background-color: #f8fafc !important;
+  color: #94a3b8 !important;
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* Styled option elements inside dropdowns */
+select option {
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 8px 12px;
+  font-weight: 500;
+}
+
+select option:checked {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-weight: 600;
+}
+
+/* Dark container dropdown support (e.g., sidebar or dark modals) */
+aside select,
+.dark select {
+  background-color: #0f172a;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+aside select option,
+.dark select option {
+  background-color: #0f172a;
+  color: #f8fafc;
+}
+
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }

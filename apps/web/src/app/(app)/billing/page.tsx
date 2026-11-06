@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
-import { Banner, btnCls, EmptyState, inputCls, PageHeader } from '@/components/ui';
+import { Banner, btnCls, EmptyState, inputCls, selectCls, PageHeader } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { FolioView, type FolioData } from './folio-view';
 import { UpiReceiverBanner } from './upi-receiver-banner';
@@ -76,7 +76,7 @@ export default async function BillingPage({
             id="res-selector"
             name="reservationId"
             defaultValue={reservationId ?? ''}
-            className={`${inputCls} max-w-md flex-1 text-xs`}
+            className={`${selectCls} max-w-md flex-1 text-xs`}
           >
             <option value="" disabled>
               Choose an active stay to open folio…

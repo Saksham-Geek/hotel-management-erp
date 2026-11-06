@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { Banner, btnGhostCls, EmptyState, inputCls, StatusBadge } from '@/components/ui';
+import { Banner, btnGhostCls, EmptyState, inputCls, selectCls, StatusBadge } from '@/components/ui';
 import { formatStayDates } from '@/lib/format';
 import { changeReservation } from './actions';
 
@@ -72,7 +72,7 @@ export function ReservationTable({
           <label className="sr-only" htmlFor="reservation-search">Search reservations</label>
           <input id="reservation-search" type="search" value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Search guest, phone or room" className={inputCls} />
           <label className="sr-only" htmlFor="reservation-status">Filter reservation status</label>
-          <select id="reservation-status" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className={inputCls}>
+          <select id="reservation-status" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className={selectCls}>
             <option value="all">All statuses</option>
             <option value="reserved">Booked</option>
             <option value="checked_in">In house</option>
@@ -80,7 +80,7 @@ export function ReservationTable({
             <option value="cancelled">Cancelled</option>
           </select>
           <label className="sr-only" htmlFor="reservation-sort">Sort reservations</label>
-          <select id="reservation-sort" value={sort} onChange={(event) => setSort(event.target.value as 'newest' | 'oldest')} className={inputCls}>
+          <select id="reservation-sort" value={sort} onChange={(event) => setSort(event.target.value as 'newest' | 'oldest')} className={selectCls}>
             <option value="newest">Check-in: newest</option>
             <option value="oldest">Check-in: oldest</option>
           </select>

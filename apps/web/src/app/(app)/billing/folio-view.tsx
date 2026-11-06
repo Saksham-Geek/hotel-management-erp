@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Banner, btnCls, btnGhostCls, EmptyState, inputCls, StatCard, StatusBadge } from '@/components/ui';
+import { Banner, btnCls, btnGhostCls, EmptyState, inputCls, selectCls, StatCard, StatusBadge } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { formatStayDates, formatDate } from '@/lib/format';
 import { addFolioCharge, collectFolioPayment, issueInvoice } from './actions';
@@ -247,7 +247,7 @@ export function FolioView({
 
             <label className="block text-xs font-medium text-ink">
               Service Category
-              <select name="category" defaultValue="FNB_ROOM_SERVICE" className={`${inputCls} mt-1.5`}>
+              <select name="category" defaultValue="FNB_ROOM_SERVICE" className={`${selectCls} mt-1.5`}>
                 <option value="ACCOMMODATION">Accommodation (SAC 996311 - 12%/18% GST)</option>
                 <option value="FNB_ROOM_SERVICE">Room Service (SAC 996331 - 5% GST)</option>
                 <option value="FNB_REST">Restaurant Dining (SAC 996331 - 5% GST)</option>
@@ -299,7 +299,7 @@ export function FolioView({
                 name="method"
                 value={paymentMethod}
                 onChange={(e) => setPaymentMethod(e.target.value)}
-                className={`${inputCls} mt-1.5`}
+                className={`${selectCls} mt-1.5`}
               >
                 <option value="cash">Cash (INR)</option>
                 <option value="upi">UPI Dynamic QR / VPA</option>
@@ -410,7 +410,7 @@ export function FolioView({
                 name="invoiceType"
                 value={invoiceType}
                 onChange={(e) => setInvoiceType(e.target.value)}
-                className={`${inputCls} mt-1.5`}
+                className={`${selectCls} mt-1.5`}
               >
                 <option value="B2C">B2C (Individual Guest)</option>
                 <option value="B2B">B2B (Corporate / Company GSTIN)</option>

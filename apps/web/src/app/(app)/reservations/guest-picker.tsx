@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { searchGuestProfiles } from './actions';
-import { inputCls } from '@/components/ui';
+import { inputCls, selectCls } from '@/components/ui';
 
 type Guest = {
   id: string;
@@ -46,11 +46,11 @@ function IdentityUploadFields({ prefix, required = false }: { prefix: string; re
     <div className="mt-3 space-y-2 rounded-lg border border-dashed border-line bg-surface p-3 sm:col-span-2">
       <p className="text-xs font-semibold text-ink">Identity document {required ? '(required)' : '(optional)'}</p>
       <div className="grid gap-2 sm:grid-cols-2">
-        <select name={`${prefix}DocumentType`} defaultValue="" required={required} aria-label="Identity document type" className={inputCls}>
+        <select name={`${prefix}DocumentType`} defaultValue="" required={required} aria-label="Identity document type" className={selectCls}>
           <option value="">Uploaded document type{required ? ' (required)' : ''}</option>
           {documentTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
         </select>
-        <select name={`${prefix}ConsentMethod`} defaultValue="" required={required} aria-label="Consent method" className={inputCls}>
+        <select name={`${prefix}ConsentMethod`} defaultValue="" required={required} aria-label="Consent method" className={selectCls}>
           <option value="">Consent method{required ? ' (required)' : ' (when uploading)'}</option>
           <option value="written">Written</option><option value="verbal">Verbal</option><option value="digital">Digital</option>
         </select>
@@ -261,7 +261,7 @@ export function GuestPicker() {
                 aria-label="New guest email"
                 className={`${inputCls} sm:col-span-2`}
               />
-              <select name="guestIdType" defaultValue="" required={!lead} aria-label="New guest identity type" className={inputCls}>
+              <select name="guestIdType" defaultValue="" required={!lead} aria-label="New guest identity type" className={selectCls}>
                 <option value="">Identity type (required)</option>
                 {identityTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
               </select>

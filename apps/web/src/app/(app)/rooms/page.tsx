@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { FEATURES } from '@erp/shared';
-import { Banner, btnCls, btnGhostCls, EmptyState, inputCls, PageHeader, StatCard } from '@/components/ui';
+import { Banner, btnCls, btnGhostCls, EmptyState, inputCls, selectCls, PageHeader, StatCard } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { createRoom, createRoomType, updateRoomType } from './actions';
 import { RoomInventory, type RoomRecord, type RoomTypeRecord } from './room-inventory';
@@ -48,7 +48,7 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
             <form action={createRoom} className="space-y-4 rounded-xl border border-line bg-surface p-4 shadow-sm sm:p-5">
               <div className="flex items-center gap-3"><span className="grid h-8 w-8 place-items-center rounded-lg bg-ground text-sm font-bold text-muted">02</span><div><h3 className="text-sm font-semibold text-ink">Add a room</h3><p className="text-xs text-muted">A room inherits rates from its selected type.</p></div></div>
               {types.length ? <>
-                <label className="block text-xs font-medium text-ink">Room type<select name="roomTypeId" required aria-label="Room type" className={`${inputCls} mt-1.5`} defaultValue=""><option value="" disabled>Choose a room type</option>{types.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label>
+                <label className="block text-xs font-medium text-ink">Room type<select name="roomTypeId" required aria-label="Room type" className={`${selectCls} mt-1.5`} defaultValue=""><option value="" disabled>Choose a room type</option>{types.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <label className="block text-xs font-medium text-ink">Room number<input name="number" required maxLength={20} placeholder="e.g. 101" className={`${inputCls} mt-1.5`} /></label>
                   <label className="block text-xs font-medium text-ink">Floor<input name="floor" type="number" min="-5" max="200" defaultValue="0" className={`${inputCls} mt-1.5`} /></label>

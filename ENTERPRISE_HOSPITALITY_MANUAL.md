@@ -296,13 +296,22 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
     Click **"Copy"** and provide these endpoints to your Swiggy/Zomato onboarding engineer.
   - **Step 4 (Automated Kitchen Ingestion)**: When a diner places an order on Swiggy or Zomato, their cloud infrastructure fires an HTTP POST payload to your webhook. Aura Dine automatically parses the items, calculates 5% F&B GST (SAC 996331), prints the KOT ticket to the kitchen, and triggers the audio notification chime.
   - **Step 5 (Two-Way Rider Notification)**: When your kitchen packs the food and clicks **"Food Ready & Packed"**, Aura Dine sends an automated status sync to Swiggy/Zomato notifying the delivery rider to proceed to the parcel counter.
-- **1-Click Accept with Prep Timers**:
-  - For manual accept mode, accept incoming orders with 1 tap choosing estimated preparation time: **15 Min**, **25 Min**, or **40 Min**.
-  - Automatically transmits ETA to the aggregator rider and dispatches items to kitchen KDS.
-- **Rider OTP & Lifecycle Tracking**:
-  - Displays assigned rider name, phone number, and status (`Assigning Rider`, `At Restaurant`, `Picked Up & Dispatched`).
-  - Click **"📦 Food Ready & Packed"** when dishes are ready, notifying the delivery rider to proceed to the pickup counter.
-  - Click **"🛵 Hand to Rider & Dispatch"** upon parcel handover.
+- **Incoming Order Alert Pop-up Modal (Accept / Reject with Audio Chime)**:
+  - When an incoming delivery arrives from Swiggy, Zomato, direct web, or demo simulation, an audible double-tone melodic chime rings through the terminal.
+  - A high-attention **Accept / Reject Pop-up Modal** triggers immediately displaying:
+    - Order brand badge (Swiggy Orange / Zomato Red) and Order ID.
+    - Customer name, phone, delivery address, and special cooking notes.
+    - Full list of ordered dishes with Veg/Non-Veg icons, quantities, prices, and 5% F&B GST (SAC 996331).
+    - **Reject Order**: Staff can reject with 1 click selecting standardized reasons (*Item 86 Out of Stock*, *Kitchen Overloaded / Peak Rush*, *Restaurant Closing Soon*, *Delivery Address Unserviceable*).
+    - **Accept Order**: Staff selects the estimated preparation timer (**15m**, **20m**, **25m**, **30m**, or **45m**) and taps **Accept Order & Fire KOT**.
+- **Active Kitchen & Dispatch Box (Post-Acceptance)**:
+  - Once accepted from the popup, the order moves onto the kitchen delivery board as an active tracking card:
+    - **Cooking in Kitchen**: Displays live ETA badge (`ETA: 20 Mins`) and assigned delivery rider status (`Assigning`, `At Restaurant`).
+    - **Food Ready & Packed**: Tap **"📦 Food Ready & Packed"** to alert the delivery rider that the parcel is ready at the counter.
+    - **Hand to Rider & Dispatch**: Tap **"🛵 Hand to Rider & Dispatch"** to mark the order complete and dispatched.
+    - **Print KOT**: Tap **"🖨️ Print Kitchen KOT Slip"** to generate an 80mm ESC/POS ticket for the kitchen or packaging bag.
+- **Delivery Lifecycle Filter Tabs**:
+  - Filter online orders across: *All Deliveries*, *🔔 Awaiting Decision*, *🔥 In Kitchen / Cooking*, *📦 Food Ready & Packed*, and *🛵 Dispatched / On the Way*.
 - **Live Order Simulation**:
   - Features **"⚡ Simulate Swiggy Order"** and **"⚡ Simulate Zomato Order"** buttons for instant end-to-end demonstrations with zero API key dependencies. Even on empty menus, built-in fallback dishes ensure instant simulation testing.
 

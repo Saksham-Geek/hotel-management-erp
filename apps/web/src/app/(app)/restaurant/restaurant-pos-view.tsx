@@ -259,6 +259,13 @@ export function RestaurantPosView({
   const [zomatoPrepMinsInput, setZomatoPrepMinsInput] = useState(activeOutlet?.zomatoDefaultPrepMinutes || 20);
   const [copiedWebhook, setCopiedWebhook] = useState<'swiggy' | 'zomato' | null>(null);
 
+  // Incoming Online Order Accept / Reject Pop-up Modal State
+  const [reviewingIncomingOrder, setReviewingIncomingOrder] = useState<KotOrderDto | null>(null);
+  const [selectedAcceptPrepTime, setSelectedAcceptPrepTime] = useState<number>(20);
+  const [isRejectReasonOpen, setIsRejectReasonOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('Item 86 Out of Stock');
+  const [deliveryFilter, setDeliveryFilter] = useState<'all' | 'incoming' | 'preparing' | 'ready' | 'dispatched'>('all');
+
   // Menu Navigation & Filters
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [dietaryFilter, setDietaryFilter] = useState<'all' | 'veg' | 'non_veg'>('all');
@@ -777,6 +784,40 @@ export function RestaurantPosView({
     }
   }
 
+  // Audio Notification Chime for Incoming Online Delivery Orders
+  function playOrderAlertChime() {
+    if (typeof window === 'undefined') return;
+    try {
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) return;
+      const ctx = new AudioCtx();
+      const now = ctx.currentTime;
+
+      // Melodic double-chime (D5 -> A5)
+      const osc1 = ctx.createOscillator();
+      const g1 = ctx.createGain();
+      osc1.frequency.setValueAtTime(587.33, now);
+      g1.gain.setValueAtTime(0.35, now);
+      g1.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+      osc1.connect(g1);
+      g1.connect(ctx.destination);
+      osc1.start(now);
+      osc1.stop(now + 0.28);
+
+      const osc2 = ctx.createOscillator();
+      const g2 = ctx.createGain();
+      osc2.frequency.setValueAtTime(880.0, now + 0.16);
+      g2.gain.setValueAtTime(0.4, now + 0.16);
+      g2.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      osc2.connect(g2);
+      g2.connect(ctx.destination);
+      osc2.start(now + 0.16);
+      osc2.stop(now + 0.55);
+    } catch {
+      // Browser audio context permission fallback
+    }
+  }
+
   // Simulate Incoming Delivery Order (Swiggy / Zomato)
   async function handleSimulateDeliveryOrder(brand: 'swiggy' | 'zomato') {
     const dishes = categories.flatMap((c) => c.items);
@@ -829,6 +870,57 @@ export function RestaurantPosView({
     if (res.ok) {
       setFeedbackMsg({ type: 'ok', text: res.data.message });
       setActiveTab('aggregators');
+      playOrderAlertChime();
+      const mockOrder: KotOrderDto = {
+        id: res.data.orderId,
+        kotNumber: res.data.kotNumber,
+        orderType: 'delivery',
+        status: 'pending',
+        paymentStatus: 'paid_direct',
+        subtotal: res.data.totalAmount,
+        taxAmount: Math.round(Number(res.data.totalAmount) * 0.05 * 100) / 100,
+        totalAmount: res.data.totalAmount,
+        specialInstructions: `Delivery to: ${brand === 'swiggy' ? 'Tower 4, Apt 1102, Hiranandani Estate' : 'Villa 14, Silver Beach Enclave, Juhu'}`,
+        guestName: brand === 'swiggy' ? 'Rohan Deshmukh' : 'Pooja Kashyap',
+        customerPhone: brand === 'swiggy' ? '9820011445' : '9820033889',
+        serverName: 'Online Ingestion Engine',
+        aggregatorBrand: brand,
+        aggregatorOrderId: res.data.aggregatorOrderId,
+        riderName: 'Rahul Sharma (Delivery Captain)',
+        riderPhone: '+91 98200 88712',
+        riderStatus: 'assigning',
+        preparationTimeMinutes: 20,
+        aggregatorStatus: 'incoming',
+        createdAt: new Date().toISOString(),
+        outletName: activeOutlet?.name || 'Grand Azure Dining',
+        tableNumber: null,
+        roomNumber: null,
+        items: [
+          {
+            id: 'sim-1',
+            itemName: sampleDish1.name,
+            quantity: 2,
+            unitPrice: Number(sampleDish1.price),
+            gstRate: 5.0,
+            foodType: sampleDish1.foodType,
+            specialNotes: 'Less spicy, contact-less delivery',
+            status: 'queued',
+          },
+          {
+            id: 'sim-2',
+            itemName: sampleDish2.name,
+            quantity: 1,
+            unitPrice: Number(sampleDish2.price),
+            gstRate: 5.0,
+            foodType: sampleDish2.foodType,
+            specialNotes: 'Pack extra napkins',
+            status: 'queued',
+          },
+        ],
+      };
+      setSelectedAcceptPrepTime(20);
+      setIsRejectReasonOpen(false);
+      setReviewingIncomingOrder(mockOrder);
       router.refresh();
     } else {
       setFeedbackMsg({ type: 'err', text: res.error || 'Failed to simulate delivery order' });
@@ -1869,6 +1961,119 @@ export function RestaurantPosView({
             </div>
           </div>
 
+          {/* Urgent Incoming Orders Notification Banner */}
+          {incomingAggregatorsCount > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 rounded-3xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-600 p-5 text-white shadow-lg animate-pulse">
+              <div className="flex items-center gap-3">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 text-2xl font-bold">
+                  🔔
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-white text-orange-700 px-2.5 py-0.5 text-[10px] font-black uppercase">
+                      Action Required
+                    </span>
+                    <h3 className="font-display text-base sm:text-lg font-black">
+                      {incomingAggregatorsCount} New Online Order{incomingAggregatorsCount > 1 ? 's' : ''} Awaiting Acceptance!
+                    </h3>
+                  </div>
+                  <p className="text-xs text-white/90 font-medium mt-0.5">
+                    Click to review dishes, customer notes, and select preparation time before order auto-rejects.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const firstIncoming = aggregatorOrders.find((o) => o.aggregatorStatus === 'incoming');
+                  if (firstIncoming) {
+                    setSelectedAcceptPrepTime(firstIncoming.preparationTimeMinutes || 20);
+                    setIsRejectReasonOpen(false);
+                    setReviewingIncomingOrder(firstIncoming);
+                    playOrderAlertChime();
+                  }
+                }}
+                className="rounded-2xl bg-white px-5 py-3 text-xs font-black text-slate-950 hover:bg-slate-100 shadow-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-2"
+              >
+                <span>🔔</span>
+                <span>Review &amp; Accept Order (Pop-up) ➔</span>
+              </button>
+            </div>
+          )}
+
+          {/* Delivery Queue Filter Tabs */}
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('all')}
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                deliveryFilter === 'all'
+                  ? 'bg-slate-950 text-white shadow-xs'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              All Deliveries ({aggregatorOrders.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('incoming')}
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                deliveryFilter === 'incoming'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <span>🔔 Awaiting Decision</span>
+              {incomingAggregatorsCount > 0 && (
+                <span className="rounded-full bg-orange-100 text-orange-700 px-1.5 py-0.2 text-[10px] font-black">
+                  {incomingAggregatorsCount}
+                </span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('preparing')}
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                deliveryFilter === 'preparing'
+                  ? 'bg-amber-600 text-white shadow-xs'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <span>🔥 In Kitchen / Cooking</span>
+              <span className="text-[10px] opacity-80">
+                ({aggregatorOrders.filter((o) => o.aggregatorStatus === 'accepted').length})
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('ready')}
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                deliveryFilter === 'ready'
+                  ? 'bg-purple-700 text-white shadow-xs'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <span>📦 Food Ready &amp; Packed</span>
+              <span className="text-[10px] opacity-80">
+                ({aggregatorOrders.filter((o) => o.aggregatorStatus === 'food_ready').length})
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDeliveryFilter('dispatched')}
+              className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                deliveryFilter === 'dispatched'
+                  ? 'bg-emerald-700 text-white shadow-xs'
+                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <span>🛵 Dispatched / On the Way</span>
+              <span className="text-[10px] opacity-80">
+                ({aggregatorOrders.filter((o) => o.aggregatorStatus === 'dispatched').length})
+              </span>
+            </button>
+          </div>
+
           {/* Delivery Orders List */}
           {aggregatorOrders.length === 0 ? (
             <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs">
@@ -1917,7 +2122,15 @@ export function RestaurantPosView({
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {aggregatorOrders.map((ord) => {
+              {aggregatorOrders
+                .filter((ord) => {
+                  if (deliveryFilter === 'incoming') return ord.aggregatorStatus === 'incoming';
+                  if (deliveryFilter === 'preparing') return ord.aggregatorStatus === 'accepted';
+                  if (deliveryFilter === 'ready') return ord.aggregatorStatus === 'food_ready';
+                  if (deliveryFilter === 'dispatched') return ord.aggregatorStatus === 'dispatched';
+                  return true;
+                })
+                .map((ord) => {
                 const isSwiggy = ord.aggregatorBrand === 'swiggy';
                 const isZomato = ord.aggregatorBrand === 'zomato';
                 const isIncoming = ord.aggregatorStatus === 'incoming';
@@ -1933,6 +2146,10 @@ export function RestaurantPosView({
                         ? isSwiggy
                           ? 'border-orange-300 bg-orange-50/40 ring-2 ring-orange-400'
                           : 'border-rose-300 bg-rose-50/40 ring-2 ring-rose-400'
+                        : isAccepted
+                        ? 'border-amber-300 bg-amber-50/20 ring-1 ring-amber-300'
+                        : isFoodReady
+                        ? 'border-purple-300 bg-purple-50/20'
                         : 'border-slate-200 bg-white'
                     }`}
                   >
@@ -1952,9 +2169,11 @@ export function RestaurantPosView({
                           </span>
                         </div>
                         <span
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                          className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
                             isIncoming
                               ? 'bg-amber-100 text-amber-900 animate-pulse'
+                              : isAccepted
+                              ? 'bg-amber-100 text-amber-900'
                               : isFoodReady
                               ? 'bg-purple-100 text-purple-900'
                               : isDispatched
@@ -1962,7 +2181,7 @@ export function RestaurantPosView({
                               : 'bg-blue-100 text-blue-900'
                           }`}
                         >
-                          {ord.aggregatorStatus || ord.status}
+                          {isIncoming ? 'Awaiting Accept' : isAccepted ? 'In Kitchen' : isFoodReady ? 'Food Ready' : isDispatched ? 'Dispatched' : ord.aggregatorStatus}
                         </span>
                       </div>
 
@@ -1970,38 +2189,40 @@ export function RestaurantPosView({
                       <div className="mt-3 text-xs space-y-1">
                         <div className="flex justify-between font-bold text-slate-950">
                           <span>{ord.guestName || 'Delivery Diner'}</span>
-                          <span>₹{Number(ord.totalAmount).toFixed(0)}</span>
+                          <span className="text-emerald-700 font-black">₹{Number(ord.totalAmount).toFixed(0)}</span>
                         </div>
-                        <p className="text-[11px] text-slate-500 font-medium">{ord.customerPhone}</p>
+                        <p className="text-[11px] text-slate-500 font-medium">📞 {ord.customerPhone}</p>
                         {ord.specialInstructions && (
-                          <p className="text-[11px] text-slate-600 bg-slate-50 p-2 rounded-xl italic">
+                          <p className="text-[11px] text-slate-600 bg-slate-50 p-2.5 rounded-xl italic border border-slate-100">
                             📍 {ord.specialInstructions}
                           </p>
                         )}
                       </div>
 
-                      {/* Rider Tracking Card */}
-                      <div className="mt-3 rounded-2xl bg-slate-50 p-3 border border-slate-200/60 text-xs space-y-1">
-                        <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
-                          <span>🛵 Assigned Rider:</span>
-                          <span className="font-black text-slate-950">{ord.riderName || 'Assigning...'}</span>
+                      {/* Rider Tracking Card (Visible for Accepted/Ready/Dispatched) */}
+                      {!isIncoming && (
+                        <div className="mt-3 rounded-2xl bg-slate-50 p-3 border border-slate-200/60 text-xs space-y-1">
+                          <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                            <span>🛵 Assigned Rider:</span>
+                            <span className="font-black text-slate-950">{ord.riderName || 'Assigning...'}</span>
+                          </div>
+                          <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
+                            <span>Contact: {ord.riderPhone || 'In App'}</span>
+                            <span className="rounded bg-slate-200/80 px-1.5 py-0.2 font-bold uppercase text-[9px] text-slate-700">
+                              {ord.riderStatus || 'Searching'}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex items-center justify-between text-[10px] text-slate-500 font-medium">
-                          <span>Rider Contact: {ord.riderPhone || 'In App'}</span>
-                          <span className="rounded bg-slate-200/80 px-1.5 py-0.2 font-bold uppercase text-[9px] text-slate-700">
-                            {ord.riderStatus || 'Searching'}
-                          </span>
-                        </div>
-                      </div>
+                      )}
 
                       {/* Items List */}
-                      <div className="mt-3 space-y-1 text-xs border-t border-slate-100 pt-2.5">
+                      <div className="mt-3 space-y-1.5 text-xs border-t border-slate-100 pt-2.5">
                         {ord.items.map((i, idx) => (
                           <div key={idx} className="flex justify-between font-medium">
                             <span>
                               {i.foodType === 'veg' ? '🟢' : '🔴'} {i.quantity}x {i.itemName}
                             </span>
-                            <span className="text-slate-500">
+                            <span className="text-slate-500 font-mono">
                               ₹{(Number(i.unitPrice) * i.quantity).toFixed(0)}
                             </span>
                           </div>
@@ -2009,74 +2230,117 @@ export function RestaurantPosView({
                       </div>
                     </div>
 
-                    {/* Operational Action Buttons */}
+                    {/* Operational Action Buttons (Lifecycle Box) */}
                     <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
+                      {/* Case 1: Incoming -> Trigger Pop-up Modal to Accept/Reject */}
                       {isIncoming && (
-                        <div className="space-y-1.5">
-                          <span className="text-[10px] font-bold text-slate-500">Accept Order with Prep Time:</span>
-                          <div className="grid grid-cols-3 gap-1.5">
-                            <button
-                              type="button"
-                              disabled={submitting}
-                              onClick={() => handleUpdateAggregatorStatus(ord.id, 'accepted', 15)}
-                              className="rounded-xl bg-emerald-600 py-2 text-xs font-bold text-white hover:bg-emerald-700 cursor-pointer"
-                            >
-                              15 Min ⏱️
-                            </button>
-                            <button
-                              type="button"
-                              disabled={submitting}
-                              onClick={() => handleUpdateAggregatorStatus(ord.id, 'accepted', 25)}
-                              className="rounded-xl bg-emerald-700 py-2 text-xs font-bold text-white hover:bg-emerald-800 cursor-pointer"
-                            >
-                              25 Min ⏱️
-                            </button>
-                            <button
-                              type="button"
-                              disabled={submitting}
-                              onClick={() => handleUpdateAggregatorStatus(ord.id, 'accepted', 40)}
-                              className="rounded-xl bg-emerald-800 py-2 text-xs font-bold text-white hover:bg-emerald-900 cursor-pointer"
-                            >
-                              40 Min ⏱️
-                            </button>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between rounded-xl bg-orange-100/70 p-2 text-[11px] font-bold text-orange-950">
+                            <span>⏱️ Needs Response</span>
+                            <span className="text-[10px] uppercase font-black bg-white px-2 py-0.5 rounded-lg border border-orange-200">Pending</span>
                           </div>
                           <button
                             type="button"
-                            disabled={submitting}
-                            onClick={() => handleUpdateAggregatorStatus(ord.id, 'cancelled', 0)}
-                            className="w-full text-center text-[11px] text-rose-600 hover:text-rose-800 font-bold py-1 cursor-pointer"
+                            onClick={() => {
+                              setSelectedAcceptPrepTime(ord.preparationTimeMinutes || 20);
+                              setIsRejectReasonOpen(false);
+                              setReviewingIncomingOrder(ord);
+                              playOrderAlertChime();
+                            }}
+                            className="w-full rounded-2xl bg-gradient-to-r from-orange-500 to-rose-600 py-3 text-xs font-black text-white shadow-md hover:from-orange-600 hover:to-rose-700 cursor-pointer animate-pulse flex items-center justify-center gap-2"
                           >
-                            Reject Order / Out of Stock
+                            <span>🔔</span>
+                            <span>Review &amp; Accept / Reject Order (Open Pop-up)</span>
                           </button>
                         </div>
                       )}
 
+                      {/* Case 2: Accepted -> This Box Kind (Active in Kitchen) */}
                       {isAccepted && (
-                        <button
-                          type="button"
-                          disabled={submitting}
-                          onClick={() => handleUpdateAggregatorStatus(ord.id, 'food_ready')}
-                          className="w-full rounded-xl bg-purple-700 py-2.5 text-xs font-bold text-white hover:bg-purple-800 shadow-xs cursor-pointer text-center"
-                        >
-                          📦 Food Ready &amp; Packed (Notify Rider)
-                        </button>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between rounded-xl bg-amber-50 p-2.5 border border-amber-200 text-xs font-bold text-amber-950">
+                            <span className="flex items-center gap-1.5">
+                              <span className="animate-spin">🍳</span>
+                              <span>Cooking in Kitchen</span>
+                            </span>
+                            <span className="font-mono text-[11px] bg-white px-2 py-0.5 rounded-lg border border-amber-300 font-black text-amber-900">
+                              ETA: {ord.preparationTimeMinutes || 20} Mins
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={submitting}
+                            onClick={() => handleUpdateAggregatorStatus(ord.id, 'food_ready')}
+                            className="w-full rounded-2xl bg-purple-700 py-2.5 text-xs font-bold text-white hover:bg-purple-800 shadow-xs cursor-pointer text-center flex items-center justify-center gap-1.5"
+                          >
+                            <span>📦</span>
+                            <span>Food Ready &amp; Packed (Alert Delivery Rider)</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const items = ord.items.map((i) => ({
+                                itemName: i.itemName,
+                                quantity: i.quantity,
+                                specialNotes: i.specialNotes,
+                                foodType: i.foodType,
+                              }));
+                              setPrintKotSlip({
+                                kotNumber: ord.kotNumber,
+                                roundNumber: ord.roundNumber || 1,
+                                orderType: ord.orderType,
+                                outletName: activeOutlet?.name || 'Aura Dine',
+                                tableNumber: ord.tableNumber || undefined,
+                                roomNumber: ord.roomNumber || undefined,
+                                serverName: ord.serverName || 'Delivery Hub',
+                                guestName: `${ord.aggregatorBrand?.toUpperCase()} #${ord.aggregatorOrderId || ''} - ${ord.guestName || 'Diner'}`,
+                                createdAt: ord.createdAt,
+                                specialInstructions: ord.specialInstructions,
+                                items,
+                              });
+                            }}
+                            className="w-full rounded-xl border border-slate-200 bg-white py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer text-center flex items-center justify-center gap-1.5"
+                          >
+                            <span>🖨️</span>
+                            <span>Print Kitchen KOT Slip</span>
+                          </button>
+                        </div>
                       )}
 
+                      {/* Case 3: Food Ready -> Waiting for Pickup */}
                       {isFoodReady && (
-                        <button
-                          type="button"
-                          disabled={submitting}
-                          onClick={() => handleUpdateAggregatorStatus(ord.id, 'dispatched')}
-                          className="w-full rounded-xl bg-slate-950 py-2.5 text-xs font-bold text-white hover:bg-slate-800 shadow-xs cursor-pointer text-center"
-                        >
-                          🛵 Hand to Rider &amp; Dispatch
-                        </button>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between rounded-xl bg-purple-50 p-2.5 border border-purple-200 text-xs font-bold text-purple-950">
+                            <span className="flex items-center gap-1.5">
+                              <span>📦</span>
+                              <span>Food Packed &amp; Ready</span>
+                            </span>
+                            <span className="text-[10px] bg-white px-2 py-0.5 rounded-lg border border-purple-300 font-bold text-purple-900 uppercase">
+                              Waiting for Rider
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={submitting}
+                            onClick={() => handleUpdateAggregatorStatus(ord.id, 'dispatched')}
+                            className="w-full rounded-2xl bg-slate-950 py-2.5 text-xs font-bold text-white hover:bg-slate-800 shadow-xs cursor-pointer text-center flex items-center justify-center gap-1.5"
+                          >
+                            <span>🛵</span>
+                            <span>Hand to Rider &amp; Dispatch</span>
+                          </button>
+                        </div>
                       )}
 
+                      {/* Case 4: Dispatched -> En Route */}
                       {isDispatched && (
-                        <div className="flex items-center justify-between text-xs font-bold text-emerald-800 bg-emerald-50 p-2.5 rounded-xl border border-emerald-200">
-                          <span>✅ Dispatched with Rider</span>
-                          <span className="text-[10px]">On the Way</span>
+                        <div className="flex items-center justify-between text-xs font-bold text-emerald-800 bg-emerald-50 p-3 rounded-2xl border border-emerald-200">
+                          <span className="flex items-center gap-1.5">
+                            <span>✅</span>
+                            <span>Dispatched with Rider</span>
+                          </span>
+                          <span className="text-[10px] uppercase bg-emerald-100 px-2 py-0.5 rounded-lg font-black">
+                            On the Way
+                          </span>
                         </div>
                       )}
                     </div>
@@ -3731,6 +3995,208 @@ export function RestaurantPosView({
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* MODAL 14: INCOMING ONLINE ORDER ACCEPT / REJECT POP-UP MODAL    */}
+      {/* ============================================================== */}
+      {reviewingIncomingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-sm animate-in fade-in-50">
+          <div className="relative flex w-full max-w-xl max-h-[92vh] overflow-y-auto flex-col rounded-3xl bg-white shadow-2xl text-slate-900 overflow-hidden">
+            {/* Header Banner */}
+            <div
+              className={`p-5 text-white flex items-center justify-between ${
+                reviewingIncomingOrder.aggregatorBrand === 'swiggy'
+                  ? 'bg-gradient-to-r from-orange-600 to-amber-600'
+                  : reviewingIncomingOrder.aggregatorBrand === 'zomato'
+                  ? 'bg-gradient-to-r from-rose-600 to-red-600'
+                  : 'bg-slate-950'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/20 text-2xl font-bold">
+                  🛵
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-white/25 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider">
+                      {reviewingIncomingOrder.aggregatorBrand?.toUpperCase() || 'ONLINE'} DELIVERY
+                    </span>
+                    <span className="font-mono text-sm font-black">
+                      #{reviewingIncomingOrder.aggregatorOrderId || reviewingIncomingOrder.kotNumber}
+                    </span>
+                  </div>
+                  <h3 className="font-display text-lg font-black">
+                    New Incoming Order Alert
+                  </h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReviewingIncomingOrder(null)}
+                className="grid h-8 w-8 place-items-center rounded-xl bg-white/20 hover:bg-white/30 text-white font-bold cursor-pointer transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-5">
+              {/* Customer & Address Details */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">👤</span>
+                    <span className="font-black text-sm text-slate-950">
+                      {reviewingIncomingOrder.guestName || 'Delivery Diner'}
+                    </span>
+                  </div>
+                  <span className="font-mono font-bold text-slate-600">
+                    📞 {reviewingIncomingOrder.customerPhone || 'In-App'}
+                  </span>
+                </div>
+                {reviewingIncomingOrder.specialInstructions && (
+                  <div className="text-[11px] text-slate-700 bg-white p-2.5 rounded-xl border border-slate-200/80">
+                    📍 <strong>Delivery Address &amp; Instructions:</strong> {reviewingIncomingOrder.specialInstructions}
+                  </div>
+                )}
+              </div>
+
+              {/* Ordered Items List */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                  <h4 className="font-bold text-xs uppercase tracking-wider text-slate-600">
+                    Ordered Dishes ({reviewingIncomingOrder.items.length})
+                  </h4>
+                  <span className="text-[11px] text-slate-500 font-bold">Qty × Price</span>
+                </div>
+                <div className="divide-y divide-slate-100 max-h-48 overflow-y-auto pr-1">
+                  {reviewingIncomingOrder.items.map((item, idx) => (
+                    <div key={idx} className="py-2 flex items-center justify-between text-xs">
+                      <div className="flex items-center gap-2">
+                        <span>{item.foodType === 'veg' ? '🟢' : '🔴'}</span>
+                        <span className="font-bold text-slate-950">{item.itemName}</span>
+                        {item.specialNotes && (
+                          <span className="text-[10px] text-slate-500 italic">({item.specialNotes})</span>
+                        )}
+                      </div>
+                      <div className="font-mono font-bold text-slate-900">
+                        {item.quantity} × ₹{Number(item.unitPrice).toFixed(0)} = ₹{(item.quantity * Number(item.unitPrice)).toFixed(0)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Subtotal, GST & Grand Total */}
+                <div className="rounded-2xl bg-slate-100 p-3 text-xs space-y-1">
+                  <div className="flex justify-between text-slate-600">
+                    <span>Subtotal:</span>
+                    <span>₹{Number(reviewingIncomingOrder.subtotal || reviewingIncomingOrder.totalAmount).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-600">
+                    <span>F&amp;B GST (5% SAC 996331):</span>
+                    <span>₹{Number(reviewingIncomingOrder.taxAmount || 0).toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between font-black text-sm text-slate-950 border-t border-slate-300 pt-1.5 mt-1">
+                    <span>Grand Total:</span>
+                    <span className="text-emerald-700">₹{Number(reviewingIncomingOrder.totalAmount).toFixed(2)}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Rejection Reasons Drawer or Standard Action Form */}
+              {isRejectReasonOpen ? (
+                <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-rose-900 flex items-center gap-1.5">
+                      <span>⚠️</span> Select Rejection Reason for {reviewingIncomingOrder.aggregatorBrand?.toUpperCase()}:
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsRejectReasonOpen(false)}
+                      className="text-xs text-slate-500 hover:text-slate-800 font-bold cursor-pointer"
+                    >
+                      Back
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {[
+                      'Item 86 Out of Stock',
+                      'Kitchen Overloaded (Peak Rush)',
+                      'Restaurant Closing Soon',
+                      'Delivery Address Unserviceable',
+                    ].map((reason) => (
+                      <button
+                        key={reason}
+                        type="button"
+                        onClick={() => {
+                          handleUpdateAggregatorStatus(reviewingIncomingOrder.id, 'cancelled', 0);
+                          setReviewingIncomingOrder(null);
+                          setIsRejectReasonOpen(false);
+                        }}
+                        className="rounded-xl border border-rose-300 bg-white p-2.5 text-left font-bold text-rose-800 hover:bg-rose-100 hover:border-rose-400 transition-colors shadow-xs cursor-pointer"
+                      >
+                        ❌ {reason}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 pt-2 border-t border-slate-100">
+                  {/* Preparation Time Selector */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <span>⏱️</span> Select Kitchen Prep Time:
+                      </span>
+                      <span className="font-mono text-[11px] text-emerald-700 font-bold">
+                        ETA: {selectedAcceptPrepTime} Minutes
+                      </span>
+                    </label>
+                    <div className="grid grid-cols-5 gap-2">
+                      {[15, 20, 25, 30, 45].map((mins) => (
+                        <button
+                          key={mins}
+                          type="button"
+                          onClick={() => setSelectedAcceptPrepTime(mins)}
+                          className={`rounded-xl py-2 text-xs font-bold transition-all cursor-pointer ${
+                            selectedAcceptPrepTime === mins
+                              ? 'bg-emerald-700 text-white shadow-xs ring-2 ring-emerald-500 ring-offset-1'
+                              : 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {mins}m
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Main Action Buttons */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsRejectReasonOpen(true)}
+                      className="rounded-2xl border border-rose-300 bg-white px-4 py-3 text-xs font-bold text-rose-700 hover:bg-rose-50 shadow-xs cursor-pointer whitespace-nowrap"
+                    >
+                      Reject Order
+                    </button>
+                    <button
+                      type="button"
+                      disabled={submitting}
+                      onClick={() => {
+                        handleUpdateAggregatorStatus(reviewingIncomingOrder.id, 'accepted', selectedAcceptPrepTime);
+                        setReviewingIncomingOrder(null);
+                      }}
+                      className="flex-1 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-700 py-3 text-xs font-black text-white hover:from-emerald-700 hover:to-teal-800 shadow-md transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>✅</span>
+                      <span>Accept Order ({selectedAcceptPrepTime}m Prep) &amp; Fire KOT</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

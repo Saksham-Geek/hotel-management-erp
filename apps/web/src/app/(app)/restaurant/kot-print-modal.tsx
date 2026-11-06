@@ -2,7 +2,8 @@
 
 export interface KotPrintData {
   kotNumber: string;
-  orderType: 'dine_in' | 'room_service' | 'takeaway';
+  roundNumber?: number;
+  orderType: 'dine_in' | 'room_service' | 'takeaway' | 'delivery' | 'aggregator';
   outletName: string;
   tableNumber?: string | null;
   roomNumber?: string | null;

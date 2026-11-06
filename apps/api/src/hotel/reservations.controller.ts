@@ -173,14 +173,14 @@ export class ReservationsController {
         await c.query(`insert into reservation_guests (tenant_id, reservation_id, guest_id, is_primary) values ($1,$2,$3,$4) on conflict do nothing`, [user.tenantId, row.id, linkedGuestId, linkedGuestId === guestId]);
       }
       await c.query(
-        `insert into reservation_folios (tenant_id, reservation_id, currency, subtotal, total, status)
-         select $1, $2, t.currency, $3, $3, 'open' from tenants t where t.id = $1 on conflict (tenant_id, reservation_id) do nothing`,
-        [user.tenantId, row.id, row.totalAmount],
+        `insert into reservation_folios (tenant_id, property_id, reservation_id, currency, subtotal, total, status)
+         select $1, $4, $2, t.currency, $3, $3, 'open' from tenants t where t.id = $1 on conflict (tenant_id, reservation_id) do nothing`,
+        [user.tenantId, row.id, row.totalAmount, user.propertyId],
       );
-      await c.query(`insert into folio_items (tenant_id, folio_id, description, quantity, unit_price, line_total)
-                     select $1, f.id, case when $3 = 'hourly' then 'Hourly room charge' else 'Room charge' end, 1, $4, $4
+      await c.query(`insert into folio_items (tenant_id, property_id, folio_id, description, quantity, unit_price, line_total)
+                     select $1, $5, f.id, case when $3 = 'hourly' then 'Hourly room charge' else 'Room charge' end, 1, $4, $4
                      from reservation_folios f where f.tenant_id = $1 and f.reservation_id = $2`,
-        [user.tenantId, row.id, b.rateMode, row.totalAmount]);
+        [user.tenantId, row.id, b.rateMode, row.totalAmount, user.propertyId]);
       await this.audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'reservation.create', entity: 'reservation', entityId: row.id, meta: { roomId: b.roomId, guestIds, checkIn: b.checkIn, checkOut: b.checkOut, rateMode: b.rateMode, priceOverride: b.priceOverride ?? null, hourlyRateOverride: b.hourlyRateOverride ?? null, unitRateOverride: b.unitRateOverride ?? null, overrideReason: b.overrideReason ?? null } });
       return { ...row, guestIds, newGuestId: createdPrimaryGuestId, newCompanionIds };
     });

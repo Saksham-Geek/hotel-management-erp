@@ -725,20 +725,41 @@ export class RestaurantController {
 
         const netBase = Math.round((Number(split.amount) / 1.05) * 100) / 100;
         const tax = Math.round((Number(split.amount) - netBase) * 100) / 100;
+        const halfTax = Math.round((tax / 2) * 100) / 100;
+        const otherHalf = Math.round((tax - halfTax) * 100) / 100;
 
         await c.query(
           `insert into folio_items (
-             tenant_id, property_id, folio_id, description, amount, tax_rate, tax_amount, total, sac_code
-           ) values ($1, $2, $3, $4, $5, 5.00, $6, $7, '996331')`,
+             tenant_id, property_id, folio_id, description, quantity, unit_price,
+             tax_rate, line_total, tax_category_code, hsn_sac, cgst_amount, sgst_amount, igst_amount, is_interstate
+           ) values ($1, $2, $3, $4, 1, $5, 5.00, $6, 'FNB_REST', '996331', $7, $8, 0, false)`,
           [
             user.tenantId,
             user.propertyId,
             folioId,
             `Restaurant Split #${split.split_number} (${split.kot_number}) - Room ${input.roomNumber || 'Guest'}`,
             netBase,
-            tax,
             split.amount,
-          ]
+            halfTax,
+            otherHalf,
+          ],
+        );
+
+        const totals = (
+          await c.query(
+            `SELECT coalesce(sum(quantity * unit_price), 0)::numeric(12,2) AS subtotal,
+                    coalesce(sum(cgst_amount + sgst_amount + igst_amount), 0)::numeric(12,2) AS tax_total,
+                    coalesce(sum(line_total), 0)::numeric(12,2) AS total
+             FROM folio_items WHERE folio_id = $1`,
+            [folioId],
+          )
+        ).rows[0];
+
+        await c.query(
+          `UPDATE reservation_folios
+           SET subtotal = $2, tax_total = $3, total = $4, updated_at = now()
+           WHERE id = $1`,
+          [folioId, totals.subtotal, totals.tax_total, totals.total],
         );
       }
 
@@ -835,25 +856,59 @@ export class RestaurantController {
 
       const folioRes = await c.query(
         `select id from reservation_folios
-         where reservation_id = $1 and status = 'open' limit 1`,
+         where reservation_id = $1 limit 1`,
         [reservationId]
       );
       let folioId = folioRes.rows[0]?.id;
       if (!folioId) {
         const newFolio = await c.query(
           `insert into reservation_folios (tenant_id, property_id, reservation_id, status)
-           values ($1, $2, $3, 'open') returning id`,
+           values ($1, $2, $3, 'open')
+           on conflict (tenant_id, reservation_id) do update set updated_at = now()
+           returning id`,
           [user.tenantId, user.propertyId, reservationId]
         );
         folioId = newFolio.rows[0].id;
       }
 
       const description = `F&B Dining: ${kot.kot_number} (Room ${roomNumber})`;
+      const taxAmt = Number(kot.tax_amount || 0);
+      const halfTax = Math.round((taxAmt / 2) * 100) / 100;
+      const otherHalf = Math.round((taxAmt - halfTax) * 100) / 100;
+
       await c.query(
         `insert into folio_items (
-           tenant_id, property_id, folio_id, description, amount, tax_rate, tax_amount, total, sac_code
-         ) values ($1, $2, $3, $4, $5, 5.00, $6, $7, '996331')`,
-        [user.tenantId, user.propertyId, folioId, description, kot.subtotal, kot.tax_amount, kot.total_amount]
+           tenant_id, property_id, folio_id, description, quantity, unit_price,
+           tax_rate, line_total, tax_category_code, hsn_sac, cgst_amount, sgst_amount, igst_amount, is_interstate
+         ) values ($1, $2, $3, $4, 1, $5, 5.00, $6, 'FNB_REST', '996331', $7, $8, 0, false)`,
+        [
+          user.tenantId,
+          user.propertyId,
+          folioId,
+          description,
+          kot.subtotal,
+          kot.total_amount,
+          halfTax,
+          otherHalf,
+        ],
+      );
+
+      // Recalculate and update reservation_folios totals
+      const totals = (
+        await c.query(
+          `SELECT coalesce(sum(quantity * unit_price), 0)::numeric(12,2) AS subtotal,
+                  coalesce(sum(cgst_amount + sgst_amount + igst_amount), 0)::numeric(12,2) AS tax_total,
+                  coalesce(sum(line_total), 0)::numeric(12,2) AS total
+           FROM folio_items WHERE folio_id = $1`,
+          [folioId],
+        )
+      ).rows[0];
+
+      await c.query(
+        `UPDATE reservation_folios
+         SET subtotal = $2, tax_total = $3, total = $4, updated_at = now()
+         WHERE id = $1`,
+        [folioId, totals.subtotal, totals.tax_total, totals.total],
       );
 
       await c.query(

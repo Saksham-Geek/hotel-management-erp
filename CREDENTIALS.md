@@ -23,12 +23,18 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 ## 2. 🧪 Dedicated Testing Sandbox (Grand Azure Hotel)
 > **Access Boundary**: Safe playground environment with 365 days of continuous historical booking records. Test reservations, cancellations, folios, and rate modifications freely without affecting demonstration presentation accounts.
 
+> [!IMPORTANT]
+> **Unified Testing Sandbox Credentials**: All accounts under the **`grand-azure`** testing sandbox (Owner, General Manager, Front Desk Supervisor, Night Audit, and Housekeeping) use the single password **`ChangeMe-123!`**.
+
 | Organization Code | Role | Name | Email | Password | Primary Interface |
 |---|---|---|---|---|---|
 | `grand-azure` | **Property Owner & Director** | Saksham Pethkar | `owner@grandazure.test` | `ChangeMe-123!` | [`/income`](http://localhost:3000/income), [`/dashboard`](http://localhost:3000/dashboard), [`/restaurant`](http://localhost:3000/restaurant) |
-| `grand-azure` | **General Manager (GM)** | Rohan Iyer | `manager@grandazure.test` | `HotelStaff123!` | [`/dashboard`](http://localhost:3000/dashboard), [`/staff`](http://localhost:3000/staff), [`/restaurant`](http://localhost:3000/restaurant) |
-| `grand-azure` | **Front Desk Supervisor** | Aarav Mehta / Meera Nair | `frontdesk@grandazure.com` / `desk@grandazure.test` | `HotelStaff123!` | [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing), [`/restaurant`](http://localhost:3000/restaurant), [`/keycards`](http://localhost:3000/keycards) |
-| `grand-azure` | **Housekeeping Attendant** | Sunita Rao / Ramesh Patel | `housekeeping@grandazure.com` | `HotelStaff123!` | [`/housekeeping`](http://localhost:3000/housekeeping), [`/keycards`](http://localhost:3000/keycards) |
+| `grand-azure` | **General Manager (GM)** | Rohan Iyer | `manager@grandazure.test` | `ChangeMe-123!` | [`/dashboard`](http://localhost:3000/dashboard), [`/staff`](http://localhost:3000/staff), [`/restaurant`](http://localhost:3000/restaurant) |
+| `grand-azure` | **Front Desk Supervisor** | Aarav Mehta | `frontdesk@grandazure.com` | `ChangeMe-123!` | [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing), [`/restaurant`](http://localhost:3000/restaurant), [`/keycards`](http://localhost:3000/keycards) |
+| `grand-azure` | **Front Desk (Alternate)** | Meera Nair | `desk@grandazure.test` | `ChangeMe-123!` | [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing), [`/restaurant`](http://localhost:3000/restaurant), [`/keycards`](http://localhost:3000/keycards) |
+| `grand-azure` | **Front Desk (Night Audit)** | Kavita Deshmukh | `reception.night@grandazure.com` | `ChangeMe-123!` | [`/night-audit`](http://localhost:3000/night-audit), [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing) |
+| `grand-azure` | **Housekeeping Attendant** | Sunita Rao | `housekeeping@grandazure.com` | `ChangeMe-123!` | [`/housekeeping`](http://localhost:3000/housekeeping), [`/keycards`](http://localhost:3000/keycards) |
+| `grand-azure` | **Housekeeping Supervisor** | Ramesh Patel | `hk.supervisor@grandazure.com` | `ChangeMe-123!` | [`/housekeeping`](http://localhost:3000/housekeeping), [`/staff`](http://localhost:3000/staff) |
 
 **Hotel Keys**: 18 Keys (Standard Deluxe, Executive Suites, Presidential Suites).  
 **Public Direct Booking Portal**: [`http://localhost:3000/book/grand-azure`](http://localhost:3000/book/grand-azure)  
@@ -124,6 +130,8 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 
 ## 8. 📉 Churned Hotel Demonstration: Coastal Haven Goa (`coastal-haven`)
 > **Demonstration Angle**: Demonstrates churn auditing and retention tracking on the SaaS Founder Dashboard. Subscription was canceled due to seasonal closure.
+>
+> *(Note: Because this tenant has status `suspended`, direct sign-in at `/login` is rejected by design to showcase how suspended client accounts are protected. To view this property and its churn telemetry, sign in as SaaS Founder at `/platform-admin`).*
 
 | Organization Code | Role | Name | Email | Password | Property & Churn Details |
 |---|---|---|---|---|---|
@@ -194,11 +202,17 @@ All hotel demonstration portfolios and sandboxes include pre-configured, live-co
 
 ## 13. Quick Summary of Passwords
 
-- **SaaS Founder**: `FounderCloud2026!`
-- **Testing Sandbox**: `ChangeMe-123!`
-- **Taj Hotels Owner**: `TajPalace2026!`
-- **ITC Hotels Owner**: `ItcLuxury2026!`
-- **Sayaji Hotels Owner**: `SayajiGrowth2026!`
-- **Radisson Hotels Owner**: `Radisson2026!`
-- **Singhania Boutique Owner**: `Boutique2026!`
-- **All General Managers & Staff**: `HotelStaff123!`
+- **Testing Sandbox (`grand-azure` — All Roles: Owner, GM, Front Desk, Housekeeping)**: `ChangeMe-123!`
+- **SaaS Platform Founder (`platform-hq`)**: `FounderCloud2026!`
+- **Showcase Hotel Owners (Taj, ITC, Sayaji, Radisson, Singhania)**:
+  - Taj Hotels Owner (`taj-hotels`): `TajPalace2026!`
+  - ITC Hotels Owner (`itc-hotels`): `ItcLuxury2026!`
+  - Sayaji Hotels Owner (`sayaji-hotels`): `SayajiGrowth2026!`
+  - Radisson Hotels Owner (`radisson-india`): `Radisson2026!`
+  - Singhania Boutique Owner (`city-boutique`): `Boutique2026!`
+- **All Showcase Staff & General Managers (Taj, ITC, Sayaji, Radisson, Singhania, Platform HQ Ops)**: `HotelStaff123!`
+- **Secondary & Self-Service Accounts**:
+  - Serene Nirvana (`serene-nirvana`): `NirvanaPass2026!`
+  - Udaipur Heritage (`udaipur-heritage`): `RathorePass123!`
+  - Alpine Pines Manali (`alpine-manali`): `Password123!`
+  - Coastal Haven Goa (`coastal-haven`): `Password123!` *(Suspended tenant)*

@@ -1071,7 +1071,7 @@ async function main() {
       { email: 'hk.supervisor@grandazure.com', name: 'Ramesh Patel', role: 'housekeeping', dept: 'Housekeeping Floor Supervisor', shift: 'Evening (15:00 - 23:30)' },
     ];
 
-    const passHash = '$2a$10$w3q.l9tV3Y29M0Q0oM0mbe7x3Z4v5w9f7p1K.i6h8u.u4h5q0r5a2'; // dummy hash for quick seed
+    const passHash = '$2a$10$9YJLHJftkrb.ZAh2hMZ5Ne1QGh3KDxdVUkxc8SOaBfU/8GXZ1D.mS'; // bcrypt hash for ChangeMe-123!
     for (const sm of staffMembers) {
       const uRes = await client.query(
         `INSERT INTO users (tenant_id, email, password_hash, full_name, role)

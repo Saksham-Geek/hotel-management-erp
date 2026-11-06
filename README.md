@@ -62,16 +62,17 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 - B2B Corporate Ledgers with 15-character GSTIN validation and multi-item cashiering (Accommodation, In-Room Dining, Minibar, Spa).
 
 ### 8. 🍽️ Integrated Aura Dine F&B Restaurant POS & KOT (`/restaurant`)
+- **Role-Decoupled Operations & Zero Clutter**: Decoupled into dedicated operational workspaces (**🪑 Floor Plan Tables** for Captains, **🖥️ Touch POS Counter** for Cashiers, **🛵 Online Delivery Hub** for Aggregator Dispatch, **👨‍🍳 Kitchen KDS** for Station Chefs, **📊 Cashier Shifts** for Reconciliation, and a centralized **⚙️ Settings & Hardware Control Center** for Admin setup).
 - **Dual Operating Mode**: Switch seamlessly between **🏨 Hotel Integrated Mode** (connected with active room folios) and **🍽️ Standalone POS Mode** (independent high-street bistros, cafes, and food courts).
-- **Floor Zones, Dynamic Table Setup & Operations**: Multi-section floor plans (*Main AC Hall, Open Terrace Garden, Poolside Deck, Bar & Lounge*), interactive **+ Add Table** modal with covers and zone configuration, edit/delete table controls, 1-click **Table Shifting** (`transferTable`), and **Table Merging** (`mergeTables`) for large banquet parties.
-- **On-the-Fly Menu & Category Management**: Instant **+ Add Dish** and **+ Category** creation with dietary tags (Veg 🟢, Non-Veg 🔴, Egg 🟡), SAC 996331, and 5% GST.
+- **Floor Zones, Dynamic Table Setup & Operations**: Multi-section floor plans (*Main AC Hall, Open Terrace Garden, Poolside Deck, Bar & Lounge*), 1-click **Table Shifting** (`transferTable`), and **Table Merging** (`mergeTables`) for large banquet parties.
+- **Centralized Settings & Configuration Control Center**: Heavy setup tasks (Table authoring, Menu & Category creation with SAC 996331 5% GST, Swiggy & Zomato API credentials, 80mm ESC/POS hardware setup) are isolated in **Settings** to keep operational screens clean, distraction-free, and dead simple for waitstaff.
 - **Multi-Round KOT Punching**: Supports subsequent rounds of ordering (*Round 1 Starters, Round 2 Mains, Round 3 Desserts*) with individual thermal KOT kitchen tickets (`KOT-101-R2`) while consolidating the table bill.
 - **Aura Dine Split Billing Engine**: Split dining bills 2 to 5 ways equally or itemized, with independent payment methods per split (Cash, Scan-to-Pay UPI QR, EDC POS Machine Card, or Room Charge).
 - **Standalone Diner CRM**: Fast mobile number lookup auto-recognizes returning guests with visit frequency, lifetime spend, and dietary preference tags (Veg, Non-Veg, Jain).
 - **80mm ESC/POS Printing**:
   - `KotPrintModal`: Thermal kitchen tickets with prep instructions (*"No Onion Garlic"*, *"Mild"*, *"Crispy"*).
   - `BillPrintModal`: Official 80mm customer tax receipts with FSSAI license, GSTIN, SAC 996331 tax breakdown, CGST, SGST, discounts, and payment mode.
-- **Online Delivery Hub (Swiggy & Zomato Connected)**: Live incoming delivery orders feed, 1-click acceptance with prep time selection (15m, 25m, 40m), food ready packing alerts, rider status tracking, and 1-click live demo simulation.
+- **Online Delivery Hub (Swiggy & Zomato Connected)**: Live incoming delivery orders feed, dual-tone alert chime, pop-up accept/reject modal with prep timers (15m, 25m, 40m), food ready packing alerts, rider status tracking, and 1-click live demo simulation.
 - **Live Item 86'ing & Multi-Station Kitchen Routing**: Instant out-of-stock toggle (Item 86) syncing across dine-in and delivery channels; automated KDS department routing (*🔥 Tandoor, 🍳 Main Curry, 🍸 Bar, 🥗 Pantry*).
 - **Cashier Shifts & Day-End Z-Report**: Shift opening float management, multi-tender revenue aggregation, cash drawer variance auditing, and official 80mm Day-End Z-Reports.
 - **1-Click "Charge to Room Folio"**: Directly transfers restaurant dining bills to active checked-in hotel guest folios under **SAC 996331 at 5% GST**, keeping accommodation and dining taxes strictly isolated.

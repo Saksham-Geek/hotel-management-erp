@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { KotPrintModal, type KotPrintData } from './kot-print-modal';
 import { BillPrintModal, type BillPrintData } from './bill-print-modal';
@@ -183,8 +183,9 @@ export function RestaurantPosView({
   // Operating Mode: Hotel Integrated vs Standalone Restaurant
   const [operatingMode, setOperatingMode] = useState<'hotel' | 'standalone'>('hotel');
 
-  // Navigation Tabs: Floor Plan, Touch POS, Swiggy/Zomato Aggregators, Waiter Handheld, Kitchen KDS, Cashier Shifts
-  const [activeTab, setActiveTab] = useState<'tables' | 'pos' | 'aggregators' | 'waiter' | 'kds' | 'shifts'>('tables');
+  // Navigation Tabs: Floor Plan, Touch POS, Swiggy/Zomato Aggregators, Kitchen KDS, Cashier Shifts, Settings
+  const [activeTab, setActiveTab] = useState<'tables' | 'pos' | 'aggregators' | 'kds' | 'shifts' | 'settings'>('tables');
+  const [settingsSubTab, setSettingsSubTab] = useState<'tables' | 'menu' | 'aggregators' | 'hardware' | 'sop'>('tables');
 
   // Aggregator Orders
   const aggregatorOrders = kots.filter((k) => k.aggregatorBrand && k.aggregatorBrand !== 'none');
@@ -323,18 +324,56 @@ export function RestaurantPosView({
     return true;
   });
 
-  // Filtered Menu Items
-  const allItems = categories.flatMap((c) => c.items);
-  const filteredItems = allItems.filter((it) => {
-    if (selectedCategory !== 'all' && it.categoryId !== selectedCategory) return false;
-    if (dietaryFilter === 'veg' && it.foodType !== 'veg') return false;
-    if (dietaryFilter === 'non_veg' && it.foodType !== 'non_veg') return false;
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      return it.name.toLowerCase().includes(q) || it.itemCode.toLowerCase().includes(q);
+  // Deduplicate categories and items to prevent duplicate pills and ghost cards
+  const uniqueCategories = useMemo(() => {
+    const catMap = new Map<string, MenuCategoryDto>();
+    for (const c of categories) {
+      const key = c.name.trim().toLowerCase();
+      if (!catMap.has(key)) {
+        catMap.set(key, { ...c, items: [...(c.items || [])] });
+      } else {
+        const existing = catMap.get(key)!;
+        const existingItemIds = new Set(existing.items.map((it) => it.id));
+        for (const it of c.items || []) {
+          if (!existingItemIds.has(it.id)) {
+            existing.items.push(it);
+            existingItemIds.add(it.id);
+          }
+        }
+      }
     }
-    return true;
-  });
+    return Array.from(catMap.values());
+  }, [categories]);
+
+  const allItems = useMemo(() => {
+    const itemMap = new Map<string, MenuItemDto>();
+    for (const c of uniqueCategories) {
+      for (const it of c.items) {
+        if (!itemMap.has(it.id)) {
+          itemMap.set(it.id, it);
+        }
+      }
+    }
+    return Array.from(itemMap.values());
+  }, [uniqueCategories]);
+
+  const filteredItems = useMemo(() => {
+    return allItems.filter((it) => {
+      if (selectedCategory !== 'all') {
+        const selectedCat = uniqueCategories.find(
+          (c) => c.id === selectedCategory || c.name.toLowerCase() === selectedCategory.toLowerCase()
+        );
+        if (selectedCat && !selectedCat.items.some((item) => item.id === it.id)) return false;
+      }
+      if (dietaryFilter === 'veg' && it.foodType !== 'veg') return false;
+      if (dietaryFilter === 'non_veg' && it.foodType !== 'non_veg') return false;
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return it.name.toLowerCase().includes(q) || it.itemCode.toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [allItems, selectedCategory, dietaryFilter, searchQuery, uniqueCategories]);
 
   // Cart Calculations
   const subtotal = cart.reduce((sum, item) => sum + item.quantity * item.unitPrice, 0);
@@ -697,7 +736,7 @@ export function RestaurantPosView({
       setFeedbackMsg({ type: 'err', text: 'Please provide dish name and price' });
       return;
     }
-    const catId = newDishCategoryId || categories[0]?.id;
+    const catId = newDishCategoryId || uniqueCategories[0]?.id;
     if (!catId) {
       setFeedbackMsg({ type: 'err', text: 'Please create a menu category first before adding dishes' });
       return;
@@ -736,7 +775,7 @@ export function RestaurantPosView({
     setSubmitting(true);
     const res = await createMenuCategoryAction({
       name: newCategoryName.trim(),
-      sortOrder: categories.length + 1,
+      sortOrder: uniqueCategories.length + 1,
     });
     setSubmitting(false);
     if (res.ok) {
@@ -820,7 +859,7 @@ export function RestaurantPosView({
 
   // Simulate Incoming Delivery Order (Swiggy / Zomato)
   async function handleSimulateDeliveryOrder(brand: 'swiggy' | 'zomato') {
-    const dishes = categories.flatMap((c) => c.items);
+    const dishes = allItems;
     const sampleDish1 = dishes[0] || {
       id: undefined,
       name: 'Paneer Butter Masala',
@@ -844,7 +883,7 @@ export function RestaurantPosView({
     const res = await simulateAggregatorOrderAction({
       outletId: targetOutletId,
       brand,
-      customerName: brand === 'swiggy' ? 'Rohan Deshmukh' : 'Pooja Kashyap',
+      customerName: brand === 'swiggy' ? 'Rohan Deshmukh' : 'Priya Kashyap',
       customerPhone: brand === 'swiggy' ? '9820011445' : '9820033889',
       deliveryAddress: brand === 'swiggy' ? 'Tower 4, Apt 1102, Hiranandani Estate' : 'Villa 14, Silver Beach Enclave, Juhu',
       items: [
@@ -881,7 +920,7 @@ export function RestaurantPosView({
         taxAmount: Math.round(Number(res.data.totalAmount) * 0.05 * 100) / 100,
         totalAmount: res.data.totalAmount,
         specialInstructions: `Delivery to: ${brand === 'swiggy' ? 'Tower 4, Apt 1102, Hiranandani Estate' : 'Villa 14, Silver Beach Enclave, Juhu'}`,
-        guestName: brand === 'swiggy' ? 'Rohan Deshmukh' : 'Pooja Kashyap',
+        guestName: brand === 'swiggy' ? 'Rohan Deshmukh' : 'Priya Kashyap',
         customerPhone: brand === 'swiggy' ? '9820011445' : '9820033889',
         serverName: 'Online Ingestion Engine',
         aggregatorBrand: brand,
@@ -1178,6 +1217,21 @@ export function RestaurantPosView({
             {currentShift ? 'Open' : 'Closed'}
           </span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('settings')}
+          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'settings'
+              ? 'border-b-2 border-indigo-600 text-indigo-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span>⚙️ Settings &amp; Hardware</span>
+          <span className="rounded-full bg-indigo-50 text-indigo-700 px-2 py-0.5 text-xs font-bold border border-indigo-200">
+            Setup
+          </span>
+        </button>
       </div>
 
       {/* ============================================================== */}
@@ -1217,24 +1271,24 @@ export function RestaurantPosView({
               ))}
             </div>
 
-            {/* Quick Actions: Add Table & How Aura Dine Works SOP */}
+            {/* Clean Floor Status & Settings shortcut */}
             <div className="flex items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => setIsSopGuideModalOpen(true)}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
-              >
-                <span>ℹ️ How Aura Dine Works</span>
-              </button>
+              <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                <span className="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
+                <span>{filteredTables.filter((t) => t.status === 'vacant').length} Vacant</span>
+                <span className="text-slate-300">•</span>
+                <span className="inline-block h-2 w-2 rounded-full bg-amber-500"></span>
+                <span>{filteredTables.filter((t) => t.status === 'occupied').length} Occupied</span>
+              </div>
               <button
                 type="button"
                 onClick={() => {
-                  setNewTableOutletId(selectedOutletId);
-                  setIsAddTableModalOpen(true);
+                  setSettingsSubTab('tables');
+                  setActiveTab('settings');
                 }}
-                className="flex items-center gap-1.5 rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-xs cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
               >
-                <span>+ Add Table</span>
+                <span>⚙️ Manage Floor Plan</span>
               </button>
             </div>
           </div>
@@ -1426,7 +1480,7 @@ export function RestaurantPosView({
       {/* ============================================================== */}
       {/* TAB 2: TOUCH POS COUNTER (Aura Dine Touch Screen)              */}
       {/* ============================================================== */}
-      {(activeTab === 'pos' || activeTab === 'waiter') && (
+      {activeTab === 'pos' && (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Menu Catalog Section (8 cols) */}
           <div className="lg:col-span-7 xl:col-span-8 space-y-4">
@@ -1497,24 +1551,17 @@ export function RestaurantPosView({
                 </div>
               </div>
 
-              {/* Menu Setup Buttons */}
+              {/* Menu Setup Shortcut */}
               <div className="flex items-center gap-2 shrink-0">
                 <button
                   type="button"
                   onClick={() => {
-                    setNewDishCategoryId(categories[0]?.id || '');
-                    setIsAddDishModalOpen(true);
+                    setSettingsSubTab('menu');
+                    setActiveTab('settings');
                   }}
-                  className="rounded-xl bg-slate-950 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
+                  className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
                 >
-                  <span>+ Add Dish</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsAddCategoryModalOpen(true)}
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
-                >
-                  <span>+ Category</span>
+                  <span>⚙️ Menu Catalog</span>
                 </button>
               </div>
             </div>
@@ -1532,7 +1579,7 @@ export function RestaurantPosView({
               >
                 All Categories ({allItems.length})
               </button>
-              {categories.map((c) => (
+              {uniqueCategories.map((c) => (
                 <button
                   key={c.id}
                   type="button"
@@ -1546,13 +1593,6 @@ export function RestaurantPosView({
                   {c.name} ({c.items.length})
                 </button>
               ))}
-              <button
-                type="button"
-                onClick={() => setIsAddCategoryModalOpen(true)}
-                className="rounded-xl border border-dashed border-slate-300 bg-slate-50 px-3 py-1.5 text-xs font-bold text-slate-600 hover:border-slate-400 hover:bg-slate-100 transition-colors cursor-pointer"
-              >
-                + New Category
-              </button>
             </div>
 
             {/* Dishes Grid or Empty State */}
@@ -1926,19 +1966,12 @@ export function RestaurantPosView({
               <button
                 type="button"
                 onClick={() => {
-                  setSwiggyRidInput(activeOutlet?.swiggyRid || '');
-                  setSwiggyApiKeyInput(activeOutlet?.swiggyApiKey || '');
-                  setSwiggyAutoAcceptInput(activeOutlet?.swiggyAutoAccept ?? false);
-                  setSwiggyPrepMinsInput(activeOutlet?.swiggyDefaultPrepMinutes || 20);
-                  setZomatoResIdInput(activeOutlet?.zomatoResId || '');
-                  setZomatoApiKeyInput(activeOutlet?.zomatoApiKey || '');
-                  setZomatoAutoAcceptInput(activeOutlet?.zomatoAutoAccept ?? false);
-                  setZomatoPrepMinsInput(activeOutlet?.zomatoDefaultPrepMinutes || 20);
-                  setIsAggregatorSettingsModalOpen(true);
+                  setSettingsSubTab('aggregators');
+                  setActiveTab('settings');
                 }}
                 className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
               >
-                <span>⚙️ API &amp; Webhook Credentials</span>
+                <span>⚙️ Aggregator API &amp; Webhooks</span>
               </button>
               <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
               <span className="text-[11px] font-bold text-slate-400 mr-1">Demo Sandbox:</span>
@@ -2090,15 +2123,8 @@ export function RestaurantPosView({
                 <button
                   type="button"
                   onClick={() => {
-                    setSwiggyRidInput(activeOutlet?.swiggyRid || '');
-                    setSwiggyApiKeyInput(activeOutlet?.swiggyApiKey || '');
-                    setSwiggyAutoAcceptInput(activeOutlet?.swiggyAutoAccept ?? false);
-                    setSwiggyPrepMinsInput(activeOutlet?.swiggyDefaultPrepMinutes || 20);
-                    setZomatoResIdInput(activeOutlet?.zomatoResId || '');
-                    setZomatoApiKeyInput(activeOutlet?.zomatoApiKey || '');
-                    setZomatoAutoAcceptInput(activeOutlet?.zomatoAutoAccept ?? false);
-                    setZomatoPrepMinsInput(activeOutlet?.zomatoDefaultPrepMinutes || 20);
-                    setIsAggregatorSettingsModalOpen(true);
+                    setSettingsSubTab('aggregators');
+                    setActiveTab('settings');
                   }}
                   className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
@@ -2584,6 +2610,704 @@ export function RestaurantPosView({
           ) : (
             <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-xs text-slate-500 font-medium">
               Click <strong className="text-slate-900 font-bold">&quot;+ Open New Cashier Shift&quot;</strong> to declare starting drawer cash float and begin shift session tracking.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ============================================================== */}
+      {/* TAB 6: F&B SETTINGS & HARDWARE CONTROL CENTER                  */}
+      {/* ============================================================== */}
+      {activeTab === 'settings' && (
+        <div className="space-y-6">
+          {/* Header Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
+            <div className="flex items-center gap-4">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-50 text-indigo-700 font-bold text-2xl border border-indigo-100">
+                ⚙️
+              </span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="font-display text-lg font-black text-slate-950">
+                    Aura Dine Control &amp; Configuration Center
+                  </h2>
+                  <span className="rounded-full bg-indigo-100 text-indigo-800 px-2.5 py-0.5 text-[10px] font-black uppercase">
+                    Admin Hub
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 font-medium">
+                  Centralized setup for floor plans, menu catalog, Swiggy &amp; Zomato API keys, thermal printers, and SOPs
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setActiveTab('tables')}
+                className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer"
+              >
+                ← Return to Tables
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('pos')}
+                className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 shadow-xs cursor-pointer"
+              >
+                Open POS Counter →
+              </button>
+            </div>
+          </div>
+
+          {/* Sub-Tabs Navigation */}
+          <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200 gap-1 overflow-x-auto">
+            <button
+              type="button"
+              onClick={() => setSettingsSubTab('tables')}
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+                settingsSubTab === 'tables'
+                  ? 'bg-white text-slate-950 shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-950'
+              }`}
+            >
+              <span>🪑 Floor &amp; Tables Master</span>
+              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                {filteredTables.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSettingsSubTab('menu')}
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+                settingsSubTab === 'menu'
+                  ? 'bg-white text-slate-950 shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-950'
+              }`}
+            >
+              <span>📋 Menu Catalog &amp; GST</span>
+              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                {allItems.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSettingsSubTab('aggregators')}
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+                settingsSubTab === 'aggregators'
+                  ? 'bg-white text-slate-950 shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-950'
+              }`}
+            >
+              <span>🛵 Swiggy &amp; Zomato API</span>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-black text-emerald-800">
+                Live
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSettingsSubTab('hardware')}
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+                settingsSubTab === 'hardware'
+                  ? 'bg-white text-slate-950 shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-950'
+              }`}
+            >
+              <span>🖨️ POS Terminals &amp; Printers</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSettingsSubTab('sop')}
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+                settingsSubTab === 'sop'
+                  ? 'bg-white text-slate-950 shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-950'
+              }`}
+            >
+              <span>📖 SOP &amp; User Manual</span>
+            </button>
+          </div>
+
+          {/* SUB-PANEL 1: FLOOR & TABLES MASTER */}
+          {settingsSubTab === 'tables' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                <div>
+                  <h3 className="font-display text-base font-black text-slate-950">
+                    Dining Room Tables Inventory
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Manage table numbers, guest capacities, and floor zones for {activeOutlet?.name || 'this Outlet'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewTableOutletId(selectedOutletId);
+                    setIsAddTableModalOpen(true);
+                  }}
+                  className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <span>+ Add Dining Table</span>
+                </button>
+              </div>
+
+              {filteredTables.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
+                  <p className="text-sm font-bold text-slate-700">No tables configured for this outlet yet.</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewTableOutletId(selectedOutletId);
+                      setIsAddTableModalOpen(true);
+                    }}
+                    className="mt-3 rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer"
+                  >
+                    + Create First Table
+                  </button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
+                  <table className="w-full text-left text-xs">
+                    <thead className="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
+                      <tr>
+                        <th className="px-4 py-3">Table Identifier</th>
+                        <th className="px-4 py-3">Floor Zone / Section</th>
+                        <th className="px-4 py-3">Seating Capacity</th>
+                        <th className="px-4 py-3">Live Status</th>
+                        <th className="px-4 py-3">Active Order</th>
+                        <th className="px-4 py-3 text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                      {filteredTables.map((t) => (
+                        <tr key={t.id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="px-4 py-3 font-bold text-slate-950">
+                            Table {t.tableNumber}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                              {t.section}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-slate-600">
+                            👥 {t.capacity} Covers
+                          </td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
+                                t.status === 'occupied'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : t.status === 'billed'
+                                  ? 'bg-sky-100 text-sky-800'
+                                  : 'bg-emerald-100 text-emerald-800'
+                              }`}
+                            >
+                              {t.status}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 font-mono font-bold text-slate-700">
+                            {t.activeTotalAmount ? `₹${Number(t.activeTotalAmount).toLocaleString('en-IN')}` : '—'}
+                          </td>
+                          <td className="px-4 py-3 text-right space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setTableToEdit(t);
+                                setEditTableNumber(t.tableNumber);
+                                setEditTableCapacity(t.capacity);
+                                setEditTableSection(t.section);
+                                setIsEditTableModalOpen(true);
+                              }}
+                              className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                            >
+                              ✏️ Edit
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setTableToDelete(t)}
+                              className="rounded-lg border border-rose-200 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-50 cursor-pointer"
+                            >
+                              🗑️ Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* SUB-PANEL 2: MENU CATALOG & GST */}
+          {settingsSubTab === 'menu' && (
+            <div className="space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                <div>
+                  <h3 className="font-display text-base font-black text-slate-950">
+                    Menu Dishes &amp; Indian GST 5% Master (SAC 996331)
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Catalog dishes, prices, dietary classification, kitchen routing stations, and live stock 86&apos;ing
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewDishCategoryId(uniqueCategories[0]?.id || '');
+                      setIsAddDishModalOpen(true);
+                    }}
+                    className="rounded-xl bg-slate-950 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
+                  >
+                    <span>+ Add New Dish</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddCategoryModalOpen(true)}
+                    className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
+                  >
+                    <span>+ Add Category</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Unique Categories Filter */}
+              <div className="flex flex-wrap gap-2 items-center">
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('all')}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    selectedCategory === 'all'
+                      ? 'bg-slate-950 text-white shadow-xs'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  }`}
+                >
+                  All Categories ({allItems.length})
+                </button>
+                {uniqueCategories.map((c) => (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setSelectedCategory(c.id)}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                      selectedCategory === c.id
+                        ? 'bg-slate-950 text-white shadow-xs'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {c.name} ({c.items.length})
+                  </button>
+                ))}
+              </div>
+
+              {/* Menu Items Master Table */}
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
+                <table className="w-full text-left text-xs">
+                  <thead className="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
+                    <tr>
+                      <th className="px-4 py-3">Code</th>
+                      <th className="px-4 py-3">Dish Particulars</th>
+                      <th className="px-4 py-3">Dietary</th>
+                      <th className="px-4 py-3">Base Tariff</th>
+                      <th className="px-4 py-3">GST Slab</th>
+                      <th className="px-4 py-3">Kitchen Station</th>
+                      <th className="px-4 py-3 text-right">Live Stock Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                    {filteredItems.map((it) => (
+                      <tr key={it.id} className="hover:bg-slate-50/60 transition-colors">
+                        <td className="px-4 py-3 font-mono font-bold text-slate-900">
+                          {it.itemCode}
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="font-bold text-slate-950">{it.name}</p>
+                          {it.description && (
+                            <p className="text-[11px] text-slate-500 line-clamp-1">{it.description}</p>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                              it.foodType === 'veg'
+                                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                : 'bg-rose-50 text-rose-800 border border-rose-200'
+                            }`}
+                          >
+                            {it.foodType === 'veg' ? '🟢 Veg' : '🔴 Non-Veg'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-bold text-slate-950">
+                          ₹{Number(it.price).toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[11px] text-slate-600">
+                          SAC 996331 (5%)
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="rounded-lg bg-slate-100 px-2 py-0.5 text-[10px] font-bold uppercase text-slate-700">
+                            {it.kitchenStation ? it.kitchenStation.replace('_', ' ') : 'Main Kitchen'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleItemStock(it.id, it.isOutOfStock)}
+                            className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-colors cursor-pointer ${
+                              it.isOutOfStock
+                                ? 'bg-rose-100 text-rose-800 hover:bg-rose-200'
+                                : 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200'
+                            }`}
+                          >
+                            {it.isOutOfStock ? '⚠️ 86 (Out of Stock)' : '✓ In Stock'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* SUB-PANEL 3: SWIGGY & ZOMATO API & WEBHOOKS */}
+          {settingsSubTab === 'aggregators' && (
+            <div className="space-y-6">
+              <form onSubmit={handleSaveAggregatorSettings} className="space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Swiggy Integration Card */}
+                  <div className="rounded-3xl border border-orange-200 bg-orange-50/30 p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-orange-600 text-white font-black text-lg">
+                          S
+                        </span>
+                        <div>
+                          <h4 className="font-display text-base font-black text-orange-950">
+                            Swiggy Direct Merchant API
+                          </h4>
+                          <p className="text-xs text-orange-800/80 font-medium">
+                            UrbanPiper &amp; Swiggy Partner POS Ingestion
+                          </p>
+                        </div>
+                      </div>
+                      <span className="rounded-full bg-orange-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-orange-800">
+                        {swiggyRidInput ? 'Active' : 'Unlinked'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 pt-2">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700">Swiggy Restaurant ID (RID)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. SWIGGY-DEL-10492"
+                          value={swiggyRidInput}
+                          onChange={(e) => setSwiggyRidInput(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700">Swiggy Merchant Secret API Key</label>
+                        <input
+                          type="password"
+                          placeholder="swiggy_live_sec_..."
+                          value={swiggyApiKeyInput}
+                          onChange={(e) => setSwiggyApiKeyInput(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700">Default Kitchen Prep Time</label>
+                          <select
+                            value={swiggyPrepMinsInput}
+                            onChange={(e) => setSwiggyPrepMinsInput(Number(e.target.value))}
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-slate-950 focus:outline-none"
+                          >
+                            <option value={15}>15 Minutes</option>
+                            <option value={20}>20 Minutes</option>
+                            <option value={25}>25 Minutes</option>
+                            <option value={30}>30 Minutes</option>
+                            <option value={40}>40 Minutes</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col justify-end">
+                          <label className="flex items-center gap-2 cursor-pointer pb-2">
+                            <input
+                              type="checkbox"
+                              checked={swiggyAutoAcceptInput}
+                              onChange={(e) => setSwiggyAutoAcceptInput(e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-orange-600 focus:ring-orange-500"
+                            />
+                            <span className="text-xs font-bold text-slate-800">Auto-Accept Orders</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Zomato Integration Card */}
+                  <div className="rounded-3xl border border-rose-200 bg-rose-50/30 p-6 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-rose-600 text-white font-black text-lg">
+                          Z
+                        </span>
+                        <div>
+                          <h4 className="font-display text-base font-black text-rose-950">
+                            Zomato Merchant API
+                          </h4>
+                          <p className="text-xs text-rose-800/80 font-medium">
+                            Zomato Order Ingestion &amp; Live Rider Tracking
+                          </p>
+                        </div>
+                      </div>
+                      <span className="rounded-full bg-rose-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-rose-800">
+                        {zomatoResIdInput ? 'Active' : 'Unlinked'}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3 pt-2">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700">Zomato Restaurant ID (ResID)</label>
+                        <input
+                          type="text"
+                          placeholder="e.g. ZOMATO-MUM-8821"
+                          value={zomatoResIdInput}
+                          onChange={(e) => setZomatoResIdInput(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-xs font-bold text-slate-700">Zomato Merchant API Key</label>
+                        <input
+                          type="password"
+                          placeholder="zomato_live_key_..."
+                          value={zomatoApiKeyInput}
+                          onChange={(e) => setZomatoApiKeyInput(e.target.value)}
+                          className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-mono font-bold text-slate-900 focus:border-slate-950 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="text-xs font-bold text-slate-700">Default Kitchen Prep Time</label>
+                          <select
+                            value={zomatoPrepMinsInput}
+                            onChange={(e) => setZomatoPrepMinsInput(Number(e.target.value))}
+                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-slate-950 focus:outline-none"
+                          >
+                            <option value={15}>15 Minutes</option>
+                            <option value={20}>20 Minutes</option>
+                            <option value={25}>25 Minutes</option>
+                            <option value={30}>30 Minutes</option>
+                            <option value={40}>40 Minutes</option>
+                          </select>
+                        </div>
+                        <div className="flex flex-col justify-end">
+                          <label className="flex items-center gap-2 cursor-pointer pb-2">
+                            <input
+                              type="checkbox"
+                              checked={zomatoAutoAcceptInput}
+                              onChange={(e) => setZomatoAutoAcceptInput(e.target.checked)}
+                              className="h-4 w-4 rounded border-slate-300 text-rose-600 focus:ring-rose-500"
+                            />
+                            <span className="text-xs font-bold text-slate-800">Auto-Accept Orders</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Webhook Gateway Info & Save Button */}
+                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="space-y-1">
+                    <span className="text-xs font-bold text-slate-700">
+                      Live Inbound Webhook Endpoint:
+                    </span>
+                    <p className="font-mono text-xs font-bold text-indigo-700 bg-slate-50 p-2 rounded-xl border border-slate-200 select-all">
+                      POST /hotel/restaurant/webhooks/aggregators
+                    </p>
+                    <p className="text-[11px] text-slate-500">
+                      Configure this URL in your Swiggy Partner and Zomato Merchant developer dashboards to stream real-time orders directly into Aura Dine.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="rounded-xl bg-slate-950 px-6 py-2.5 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                    >
+                      {submitting ? 'Saving...' : '💾 Save Aggregator Credentials'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          )}
+
+          {/* SUB-PANEL 4: POS HARDWARE & PRINTERS */}
+          {settingsSubTab === 'hardware' && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-indigo-50 text-indigo-700 font-bold text-xl">
+                  🖨️
+                </span>
+                <div>
+                  <h4 className="font-display text-base font-black text-slate-950">
+                    80mm ESC/POS Thermal Printers
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Industry standard 80mm thermal receipts with auto-cutter for KOTs and guest bills
+                  </p>
+                </div>
+                <div className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-100">
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Paper Width:</span>
+                    <span className="font-bold">80mm (576 dots/line)</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Command Emulation:</span>
+                    <span className="font-bold">ESC/POS Standard</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Interface Bridges:</span>
+                    <span className="font-bold">USB Web Serial / LAN IP</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-50 text-amber-700 font-bold text-xl">
+                  👨‍🍳
+                </span>
+                <div>
+                  <h4 className="font-display text-base font-black text-slate-950">
+                    Kitchen Station KOT Routing
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Split ticket items automatically to corresponding kitchen department printers
+                  </p>
+                </div>
+                <div className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-100">
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Tandoor &amp; Starters:</span>
+                    <span className="font-bold text-amber-800">Station Printer 1</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Main Curry &amp; Gravies:</span>
+                    <span className="font-bold text-indigo-800">Station Printer 2</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Bar &amp; Beverages:</span>
+                    <span className="font-bold text-teal-800">Station Printer 3</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-emerald-50 text-emerald-700 font-bold text-xl">
+                  💳
+                </span>
+                <div>
+                  <h4 className="font-display text-base font-black text-slate-950">
+                    EDC Card Machines &amp; Cash Drawer
+                  </h4>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Pine Labs, Paytm, Innoviti POS EDC integration &amp; RJ11 24V drawer kick
+                  </p>
+                </div>
+                <div className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-100">
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">EDC Card Settlement:</span>
+                    <span className="font-bold text-emerald-700">Direct Swipe / Tap</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Cash Drawer Pulse:</span>
+                    <span className="font-bold">RJ11 Kick on Bill Settle</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="font-medium">Dynamic UPI QR:</span>
+                    <span className="font-bold text-emerald-700">Scan-to-Pay Countdown</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SUB-PANEL 5: SOP & USER MANUAL */}
+          {settingsSubTab === 'sop' && (
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-6">
+              <div className="border-b border-slate-100 pb-4">
+                <h3 className="font-display text-lg font-black text-slate-950">
+                  Aura Dine F&amp;B Operating System Standard Operating Procedures
+                </h3>
+                <p className="text-xs text-slate-500 font-medium mt-1">
+                  Comprehensive reference for captains, cashiers, chefs, and hospitality managers
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-700">
+                <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-200">
+                  <span className="font-black text-slate-950 uppercase tracking-wider text-[11px]">
+                    1. Table Seating &amp; Multi-Round KOTs
+                  </span>
+                  <p className="leading-relaxed">
+                    Select a table on the Floor Plan to open the Touch POS. Punch items for Round 1. Once dispatched, the table turns amber with an elapsed timer. To add subsequent items as the party orders more, click &quot;+ Add Round KOT&quot; — Aura Dine automatically stamps Round #2, Round #3 and routes items to the kitchen without overwriting previous dishes.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-200">
+                  <span className="font-black text-slate-950 uppercase tracking-wider text-[11px]">
+                    2. Charge to Room 302 (Hotel Integrated Mode)
+                  </span>
+                  <p className="leading-relaxed">
+                    When in-house hotel guests dine, select &quot;Charge to Room Folio&quot; during settlement. Enter the room number or select from the live in-house guest list. Aura Dine posts the exact food &amp; beverage balance to the resident&apos;s hotel cashiering folio under SAC 996331 at 5% GST, consolidating their checkout invoice seamlessly.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-200">
+                  <span className="font-black text-slate-950 uppercase tracking-wider text-[11px]">
+                    3. Table Merging &amp; Shifting
+                  </span>
+                  <p className="leading-relaxed">
+                    For large parties occupying multiple tables (e.g. Table 4 and Table 5), use &quot;Merge Tables&quot; to combine the bills under a master table. If guests wish to move from indoor to outdoor patio seating, click &quot;Shift Table&quot; to transfer the running order and timers to the target table instantly.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-200">
+                  <span className="font-black text-slate-950 uppercase tracking-wider text-[11px]">
+                    4. Equal 2-to-5 Way Split Billing
+                  </span>
+                  <p className="leading-relaxed">
+                    When diners wish to split the check, open &quot;Settle &amp; Bill&quot; and toggle &quot;Split Bill&quot;. Select 2, 3, 4, or 5 equal splits. Aura Dine generates separate split fractions (e.g. Split 1 of 3: ₹450), allowing each guest to pay individually via Cash, Card EDC, or dynamic UPI QR.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-200">
+                  <span className="font-black text-slate-950 uppercase tracking-wider text-[11px]">
+                    5. Swiggy &amp; Zomato Aggregator Delivery Hub
+                  </span>
+                  <p className="leading-relaxed">
+                    Online delivery orders stream in real-time. Upon order arrival, a dual-tone alert chime sounds and an Accept/Reject pop-up opens with customer details and items. Select prep time (15m to 40m) to accept, which automatically dispatches the KOT to the kitchen and sets a live cooking countdown. Once ready, print the kitchen slip and hand off to the rider using the delivery OTP.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-slate-50 p-5 space-y-2 border border-slate-200">
+                  <span className="font-black text-slate-950 uppercase tracking-wider text-[11px]">
+                    6. Cashier Drawer Float &amp; Day-End Z-Report
+                  </span>
+                  <p className="leading-relaxed">
+                    At shift start, the cashier declares their opening drawer float (e.g. ₹2,000). At shift close, the cashier counts physical cash in the drawer. Aura Dine calculates variance (Over / Short), audits all Cash, Card, UPI, and Room Folio collections, and prints an 80mm ESC/POS Day-End Z-Report.
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -3153,11 +3877,11 @@ export function RestaurantPosView({
                 <label className="text-xs font-bold text-slate-700">Menu Category</label>
                 <div className="flex gap-2 mt-1">
                   <select
-                    value={newDishCategoryId || categories[0]?.id || ''}
+                    value={newDishCategoryId || uniqueCategories[0]?.id || ''}
                     onChange={(e) => setNewDishCategoryId(e.target.value)}
                     className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-xs focus:border-slate-950 focus:outline-none"
                   >
-                    {categories.map((c) => (
+                    {uniqueCategories.map((c) => (
                       <option key={c.id} value={c.id}>
                         {c.name}
                       </option>

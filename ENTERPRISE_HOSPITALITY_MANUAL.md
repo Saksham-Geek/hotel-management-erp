@@ -227,22 +227,23 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 ---
 
 ### F. 🍽️ F&B Restaurant Captain & Kitchen Order Ticket (KOT) Journey
-> **Aura Dine Engine**: Unified seamlessly into both **Hotel Integrated PMS** and **Standalone High-Street Restaurant Mode**.
+> **Aura Dine Engine**: Unified seamlessly into both **Hotel Integrated PMS** and **Standalone High-Street Restaurant Mode**. Built on a **Role-Decoupled Architecture** where daily service staff (waiters, cashiers, chefs) work in dedicated, distraction-free workspaces, while administrative setup (table layout authoring, dish catalog, aggregator credentials, ESC/POS hardware) is centralized in the dedicated **Settings & Hardware Control Center**.
 
 #### 1. Dual-Operation Mode: Hotel Connected vs Standalone POS
 - **Toggle at Top Right**:
   - **🏨 Hotel Integrated Mode**: Designed for hotel restaurants, poolside bars, and in-room dining. Directly queries checked-in guests, displays active room folios, and supports 1-click **"Charge to Room Folio"** under SAC `996331` at 5% GST.
   - **🍽️ Standalone POS Mode**: Designed for standalone bistros, cafes, and food courts with zero hotel dependency. Focuses on direct walk-in diners, mobile phone-based CRM profile lookup, Swiggy/Zomato pickup, and direct cashiering settlement.
 
-#### 2. Table Floor Plan, Adding Tables, Sections, Shifts & Merges
-- **Adding Tables to Floor Plan**:
-  - On the **"Floor Plan Tables"** tab, click **"+ Add Table"**.
-  - Specify the **Table Number / Identifier** (e.g., `T-01`, `T-02`, `Terrace-04`, `Bar-02`).
-  - Set the **Covers / Seating Capacity** (e.g. 2, 4, 6, 8, 12).
-  - Assign to a **Floor Zone / Section** (*Main AC Hall*, *Open Terrace*, *Poolside Deck*, *Bar & Lounge*, *Private Dining Room*, or custom zone).
-  - Select the target **Dining Outlet** and click **"+ Create Table"**. The table instantly appears on the live interactive floor plan.
-- **Editing & Deleting Tables**:
-  - Vacant tables display quick-action controls: click **`✏️`** to modify table number, seating covers, or assigned zone; click **`🗑️`** to delete any vacant table that has no active orders.
+#### 2. Dedicated Operational Workspaces (Role Decoupling)
+To eliminate operational confusion and cognitive overload during rush hours, Aura Dine decouples duties into 5 operational modes and 1 central configuration hub:
+1. **🪑 Floor Plan Tables (Captain / Waiter Mode)**: High-visibility table grid with live occupancy color-coding (Emerald for Vacant, Amber for Occupied with elapsed timer, Sky for Billed). 1-click to punch new orders or add Round KOTs.
+2. **🖥️ Touch POS Counter (Cashier / Takeaway Mode)**: Fast menu catalog with deduplicated category pills, Veg/Non-Veg dietary filters, live item search, diner CRM phone lookup, and split billing checkout.
+3. **🛵 Online Delivery Hub (Delivery Dispatcher Mode)**: Swiggy and Zomato incoming order feed with live chime alerts, pop-up accept/reject modal, prep timers, kitchen slip printing, and rider handover OTP verification.
+4. **👨‍🍳 Kitchen KDS (Chef Station Mode)**: Departmental ticket routing (Tandoor, Main Curry, Bar, Bakery) with elapsed timers and 1-click Item 86 out-of-stock toggles.
+5. **📊 Cashier Shifts & Z-Report (Shift Cashier Mode)**: Drawer opening cash float declaration, payment tenders tally (Cash, UPI, Card EDC, Room Folios), variance reconciliation, and 80mm Day-End Z-Report printing.
+6. **⚙️ Settings & Hardware (Admin & Owner Configuration Hub)**: All table master creation, menu pricing, aggregator API keys, and POS printer bridges are organized into dedicated sub-tabs away from daily ordering screens.
+
+#### 3. Table Floor Plan, Sections, Shifts & Merges
 - **Floor Zones / Sections**: View tables organized by area (*Main AC Hall*, *Open Terrace Garden*, *Poolside Deck*, *Bar & Lounge*, *VIP Private Dining*).
 - **Table Shifting / Transfer**:
   - If guests move tables (e.g. from Garden to AC Hall), click **"Shift ➔"** on the table card.
@@ -250,12 +251,16 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 - **Table Merging for Large Parties**:
   - When hosting a banquet or large family group across multiple tables, click **"Merge 🔗"**.
   - Select an adjacent table. The ERP combines items into one master order, links both tables, and generates a single consolidated bill.
+- **Managing Floor Plan in Centralized Settings**:
+  - Click **"⚙️ Manage Floor Plan"** or navigate to **Settings > Floor & Tables Master** to add new tables, set covers, edit existing table numbers, or delete vacant tables.
 
-#### 3. Menu Management & On-The-Fly Dish Creation
-- On the **"Touch POS Counter"** tab:
-  - Click **"+ Add Dish"** to create a new menu item with dietary tag (Veg 🟢, Non-Veg 🔴, Egg 🟡), dish name, price in INR, optional item code, SAC `996331`, and 5% GST.
-  - Click **"+ Category"** to create a new menu category (e.g., *Continental Starters*, *Tandoor Kebabs*, *Beverages*).
-- Interactive **"ℹ️ How Aura Dine Works"** guide button opens an instant operational manual directly in the POS view.
+#### 4. Menu Catalog & Centralized Menu Setup
+- **Ordering on POS**: Waiters and cashiers select dishes from clean, deduplicated category pills with instant Veg/Non-Veg indicators.
+- **Adding Dishes & Categories in Centralized Settings**:
+  - Administrative staff navigate to **Settings > Menu Catalog & GST**:
+    - Click **"+ Add New Dish"** to create a menu item with dietary tag (Veg 🟢, Non-Veg 🔴, Egg 🟡), dish name, price in INR, item code, SAC `996331`, and kitchen routing station.
+    - Click **"+ Add Category"** to create a new category (e.g. *Starters & Kebabs*, *Curries & Gravies*, *Tandoor Breads*, *Desserts*).
+    - 1-click **"In Stock / 86"** toggle to mark sold-out dishes unavailable across dine-in and delivery channels.
 
 #### 4. Standalone Diner CRM & Fast Phone Lookup
 - In the POS order panel, enter customer mobile phone (e.g. `9820011223`).

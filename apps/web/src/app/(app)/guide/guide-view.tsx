@@ -460,10 +460,16 @@ export function GuideView({
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredPages.map((p) => {
               const isAllowedForMe = p.rolesAllowed.includes(currentRoleKey);
+              const targetHref = p.route.includes('[slug]')
+                ? p.route.replace('[slug]', tenantSlug || 'grand-azure')
+                : p.route;
+              const isExternalOrPublic = p.route.includes('[slug]');
               return (
                 <Link
                   key={p.route}
-                  href={p.route}
+                  href={targetHref}
+                  target={isExternalOrPublic ? '_blank' : undefined}
+                  rel={isExternalOrPublic ? 'noopener noreferrer' : undefined}
                   className={`group flex flex-col justify-between rounded-3xl border p-6 transition-all duration-200 ${
                     isAllowedForMe
                       ? 'border-slate-200 bg-white shadow-xs hover:border-slate-950 hover:shadow-md'
@@ -492,7 +498,9 @@ export function GuideView({
                     <h3 className="mt-4 font-display text-lg font-black text-slate-950 group-hover:text-indigo-900 transition-colors">
                       {p.name}
                     </h3>
-                    <p className="mt-0.5 text-xs font-mono text-indigo-700 font-bold">{p.route}</p>
+                    <p className="mt-0.5 text-xs font-mono text-indigo-700 font-bold">
+                      {p.route.includes('[slug]') ? `/book/${tenantSlug || 'grand-azure'}` : p.route}
+                    </p>
                     <p className="mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed">{p.desc}</p>
                   </div>
 

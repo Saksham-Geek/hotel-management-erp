@@ -2,7 +2,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { API_URL, api, errorMessage, TOKEN_COOKIE } from '@/lib/api';
+import { API_URL, api, errorMessage, TOKEN_COOKIE, clearSessionCache } from '@/lib/api';
 
 async function storeToken(token: string) {
   (await cookies()).set(TOKEN_COOKIE, token, {
@@ -61,6 +61,7 @@ export async function selectProperty(fd: FormData) {
     method: 'POST',
     body: JSON.stringify({ propertyId }),
   });
+  clearSessionCache();
   await storeToken(result.token);
   revalidatePath('/', 'layout');
   redirect('/dashboard');
@@ -76,12 +77,14 @@ export async function createProperty(fd: FormData) {
     method: 'POST',
     body: JSON.stringify({ propertyId: property.id }),
   });
+  clearSessionCache();
   await storeToken(result.token);
   revalidatePath('/', 'layout');
   redirect('/dashboard');
 }
 
 export async function logout() {
+  clearSessionCache();
   (await cookies()).delete(TOKEN_COOKIE);
   redirect('/login');
 }

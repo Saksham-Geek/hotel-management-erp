@@ -33,6 +33,7 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     res = await fetch(API_URL + path, {
       ...init,
       cache: 'no-store',
+      keepalive: true,
       headers,
     });
   } catch (err: any) {
@@ -48,13 +49,59 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   }
 
   const body = await res.json().catch(() => null);
-  if (res.status === 401) redirect('/login?error=' + encodeURIComponent('Your session has ended. Sign in again'));
+  if (res.status === 401) {
+    if (token) clearSessionCache(token);
+    redirect('/login?error=' + encodeURIComponent('Your session has ended. Sign in again'));
+  }
   if (!res.ok) throw new ApiError(res.status, body);
   return body as T;
 }
 
-export const getMe = cache(() => api<MeDto>('/auth/me'));
-export const getEntitlements = cache(() => api<EntitlementsDto>('/entitlements/me'));
+// In-memory short-lived session cache (15 seconds TTL) to eliminate redundant JWT database queries across tab switches
+const meCache = new Map<string, { me: MeDto; timestamp: number }>();
+const entCache = new Map<string, { ent: EntitlementsDto; timestamp: number }>();
+const CACHE_TTL_MS = 15_000;
+
+export function clearSessionCache(token?: string) {
+  if (token) {
+    meCache.delete(token);
+    entCache.delete(token);
+  } else {
+    meCache.clear();
+    entCache.clear();
+  }
+}
+
+export const getMe = cache(async (): Promise<MeDto> => {
+  const token = (await cookies()).get(TOKEN_COOKIE)?.value;
+  if (!token) return api<MeDto>('/auth/me');
+
+  const cached = meCache.get(token);
+  const now = Date.now();
+  if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+    return cached.me;
+  }
+
+  const me = await api<MeDto>('/auth/me');
+  meCache.set(token, { me, timestamp: now });
+  return me;
+});
+
+export const getEntitlements = cache(async (): Promise<EntitlementsDto> => {
+  const token = (await cookies()).get(TOKEN_COOKIE)?.value;
+  if (!token) return api<EntitlementsDto>('/entitlements/me');
+
+  const cached = entCache.get(token);
+  const now = Date.now();
+  if (cached && now - cached.timestamp < CACHE_TTL_MS) {
+    return cached.ent;
+  }
+
+  const ent = await api<EntitlementsDto>('/entitlements/me');
+  entCache.set(token, { ent, timestamp: now });
+  return ent;
+});
+
 export const getPlans = cache(() => api<{ currentPlan: PlanKey; tiers: PlanTierConfig[] }>('/entitlements/plans'));
 
 /** Page-level gate. The API enforces the same rule; this just sends people somewhere helpful. */

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -42,6 +43,11 @@ export function Nav({
   onNavigate?: () => void;
 }) {
   const path = usePathname();
+  const [pendingHref, setPendingHref] = useState<string | null>(null);
+
+  useEffect(() => {
+    setPendingHref(null);
+  }, [path]);
 
   // Group items by their defined group name
   const groups: { name: string; items: NavItem[] }[] = [];
@@ -67,16 +73,25 @@ export function Nav({
           <div className="flex flex-col gap-0.5">
             {group.items.map((item) => {
               const active = path === item.href || (item.href !== '/dashboard' && path.startsWith(item.href + '/'));
+              const isPending = pendingHref === item.href && !active;
               return (
                 <Link
                   key={item.label}
                   href={item.href}
-                  onClick={onNavigate}
+                  prefetch={true}
+                  onClick={() => {
+                    if (!active) {
+                      setPendingHref(item.href);
+                    }
+                    onNavigate?.();
+                  }}
                   aria-current={active ? 'page' : undefined}
                   title={collapsed ? item.label : undefined}
                   className={`group relative flex min-h-[42px] items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-[13.5px] transition-all duration-150 ${
                     active
                       ? 'bg-white/[0.12] text-white font-bold shadow-xs'
+                      : isPending
+                      ? 'bg-white/[0.18] text-white font-bold shadow-xs'
                       : 'text-slate-300 font-medium hover:bg-white/[0.06] hover:text-white'
                   }`}
                 >
@@ -86,11 +101,38 @@ export function Nav({
                       className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-white shadow-xs"
                     />
                   )}
-                  <NavIcon name={item.icon} active={active} />
+                  {isPending && (
+                    <span
+                      aria-hidden
+                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-teal-400 animate-pulse shadow-xs"
+                    />
+                  )}
+                  <NavIcon name={item.icon} active={active || isPending} />
                   <span className={`truncate leading-snug ${collapsed ? 'md:sr-only' : ''}`}>
                     {item.label}
                   </span>
-                  {item.locked && !collapsed && (
+                  {isPending && (
+                    <svg
+                      className="ml-auto h-3.5 w-3.5 animate-spin text-teal-400 shrink-0"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8v8H4z"
+                      />
+                    </svg>
+                  )}
+                  {item.locked && !collapsed && !isPending && (
                     <span className="ml-auto rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-300 border border-white/20">
                       Tier
                     </span>

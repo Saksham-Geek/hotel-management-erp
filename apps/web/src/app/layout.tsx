@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { Plus_Jakarta_Sans, Inter } from 'next/font/google';
 import './globals.css';
+import { NavigationProgressBar } from '@/components/navigation-progress';
 
 const display = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -23,7 +25,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
-      <body className="min-h-screen bg-ground font-sans text-ink antialiased selection:bg-teal-500/20">{children}</body>
+      <body className="min-h-screen bg-ground font-sans text-ink antialiased selection:bg-teal-500/20">
+        <Suspense fallback={null}>
+          <NavigationProgressBar />
+        </Suspense>
+        {children}
+      </body>
     </html>
   );
 }

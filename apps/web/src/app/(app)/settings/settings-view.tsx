@@ -370,12 +370,16 @@ export function SettingsView({
       )}
 
       {/* Tabs Navigation Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-200">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-200" role="tablist" aria-label="Settings tabs">
         {tabsList.map((t) => {
           const active = tab === t.id;
           return (
             <button
               key={t.id}
+              id={`tab-${t.id}`}
+              role="tab"
+              aria-selected={active}
+              aria-controls={`panel-${t.id}`}
               type="button"
               onClick={() => switchTab(t.id)}
               className={`flex items-center gap-2 whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-bold transition-all cursor-pointer ${
@@ -384,7 +388,7 @@ export function SettingsView({
                   : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-slate-50 hover:text-slate-900'
               }`}
             >
-              <span>{t.icon}</span>
+              <span aria-hidden="true">{t.icon}</span>
               <span>{t.label}</span>
               {t.count && (
                 <span

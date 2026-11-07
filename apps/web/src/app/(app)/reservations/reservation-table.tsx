@@ -107,7 +107,7 @@ export function ReservationTable({
         <>
           <div className="hidden overflow-hidden rounded-2xl border border-line bg-surface shadow-sm md:block">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[800px] text-left">
+              <table className="w-full min-w-[800px] text-left" aria-label="Reservations list">
                 <thead className="border-b border-line bg-slate-100/90 text-xs font-black uppercase tracking-wider text-slate-800">
                   <tr>
                     <th scope="col" className="px-5 py-4">Guest</th>
@@ -121,7 +121,7 @@ export function ReservationTable({
                 <tbody className="divide-y divide-line text-sm sm:text-[15px]">
                   {visible.map((reservation) => (
                     <tr key={reservation.id} className="transition-colors hover:bg-slate-50/70">
-                      <td className="px-5 py-4">
+                      <th scope="row" className="px-5 py-4 font-normal text-left">
                         <p className="font-bold text-slate-950">{reservation.guestName}</p>
                         {reservation.guestPhone && <p className="mt-0.5 text-xs text-slate-600 font-medium">{reservation.guestPhone}</p>}
                         {(reservation.guests?.length ?? 0) > 1 && (
@@ -129,7 +129,7 @@ export function ReservationTable({
                             + {(reservation.guests?.length ?? 1) - 1} companion{reservation.guests?.length === 2 ? '' : 's'}
                           </p>
                         )}
-                      </td>
+                      </th>
                       <td className="px-5 py-4 font-black font-mono text-slate-950">Room {reservation.roomNumber}</td>
                       <td className="whitespace-nowrap px-5 py-4 font-semibold text-slate-800">{formatStayDates(reservation.checkIn, reservation.checkOut)}</td>
                       <td className="whitespace-nowrap px-5 py-4 font-black text-slate-950">{money(reservation.totalAmount, currency)}</td>
@@ -162,13 +162,29 @@ export function ReservationTable({
           </div>
 
           {filtered.length > pageSize && (
-            <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-3 py-2">
-              <p className="text-xs text-muted">Page {safePage} of {pageCount}</p>
+            <nav aria-label="Reservations pagination" className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-line bg-surface px-4 py-2.5">
+              <p className="text-xs text-muted" aria-live="polite">Page {safePage} of {pageCount} ({filtered.length} total stays)</p>
               <div className="flex gap-2">
-                <button type="button" onClick={() => changePage(Math.max(1, safePage - 1))} disabled={safePage === 1} className={btnGhostCls}>Previous</button>
-                <button type="button" onClick={() => changePage(Math.min(pageCount, safePage + 1))} disabled={safePage === pageCount} className={btnGhostCls}>Next</button>
+                <button
+                  type="button"
+                  onClick={() => changePage(Math.max(1, safePage - 1))}
+                  disabled={safePage === 1}
+                  aria-label="Go to previous page"
+                  className={btnGhostCls}
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => changePage(Math.min(pageCount, safePage + 1))}
+                  disabled={safePage === pageCount}
+                  aria-label="Go to next page"
+                  className={btnGhostCls}
+                >
+                  Next
+                </button>
               </div>
-            </div>
+            </nav>
           )}
         </>
       )}
@@ -182,7 +198,8 @@ function Actions({ reservation, readOnly }: { reservation: ReservationRow; readO
     <div className="flex flex-wrap justify-end items-center gap-2">
       <Link
         href={`/billing?reservationId=${reservation.id}`}
-        className="inline-flex min-h-9 items-center justify-center rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-lagoon-dark hover:bg-ground transition-colors"
+        aria-label={`View billing folio for ${reservation.guestName}, Room ${reservation.roomNumber}`}
+        className="inline-flex min-h-9 items-center justify-center rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-lagoon-dark hover:bg-ground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
       >
         Folio / Bill
       </Link>
@@ -198,16 +215,35 @@ function Actions({ reservation, readOnly }: { reservation: ReservationRow; readO
         >
           <input type="hidden" name="id" value={reservation.id} />
           <input type="hidden" name="action" value={item.action} />
-          <ActionButton action={item.action}>{item.label}</ActionButton>
+          <ActionButton
+            action={item.action}
+            ariaLabel={`${item.label} for ${reservation.guestName}, Room ${reservation.roomNumber}`}
+          >
+            {item.label}
+          </ActionButton>
         </form>
       ))}
     </div>
   );
 }
 
-function ActionButton({ action, children }: { action: string; children: string }) {
+function ActionButton({ action, ariaLabel, children }: { action: string; ariaLabel?: string; children: string }) {
   const { pending } = useFormStatus();
-  return <button disabled={pending} className={action === 'cancel' ? 'inline-flex min-h-9 items-center justify-center rounded-lg border border-danger/20 px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger/5 disabled:opacity-50' : btnGhostCls}>{pending ? 'Saving…' : children}</button>;
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      aria-label={ariaLabel}
+      aria-busy={pending}
+      className={
+        action === 'cancel'
+          ? 'inline-flex min-h-9 items-center justify-center rounded-lg border border-danger/20 px-3 py-1.5 text-xs font-semibold text-danger hover:bg-danger/5 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500'
+          : btnGhostCls
+      }
+    >
+      {pending ? 'Saving…' : children}
+    </button>
+  );
 }
 
 function money(amount: number, currency: string) {

@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 export interface KotPrintData {
   kotNumber: string;
   roundNumber?: number;
@@ -26,6 +28,16 @@ export function KotPrintModal({
   data: KotPrintData;
   onClose: () => void;
 }) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const formattedTime = new Date(data.createdAt).toLocaleTimeString('en-IN', {
     hour: '2-digit',
     minute: '2-digit',
@@ -43,17 +55,22 @@ export function KotPrintModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
-      <div className="relative flex w-full max-w-md flex-col rounded-2xl bg-white shadow-2xl overflow-hidden text-slate-900">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50" role="presentation">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="kot-print-dialog-title"
+        className="relative flex w-full max-w-md flex-col rounded-2xl bg-white shadow-2xl overflow-hidden text-slate-900"
+      >
         
         {/* Modal Controls Header (Hidden in Print) */}
         <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5 print:hidden">
           <div className="flex items-center gap-2">
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs">
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs" aria-hidden="true">
               KOT
             </span>
             <div>
-              <p className="text-xs font-bold text-slate-900">Kitchen Order Ticket (80mm ESC/POS)</p>
+              <p id="kot-print-dialog-title" className="text-xs font-bold text-slate-900">Kitchen Order Ticket (80mm ESC/POS)</p>
               <p className="text-[10px] text-slate-500 font-mono">{data.kotNumber}</p>
             </div>
           </div>
@@ -72,6 +89,7 @@ export function KotPrintModal({
             <button
               type="button"
               onClick={onClose}
+              aria-label="Close dialog"
               className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors cursor-pointer"
             >
               ✕

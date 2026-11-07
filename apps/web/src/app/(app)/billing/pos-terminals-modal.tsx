@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { CustomDropdown } from '@/components/dropdown';
 import { createPosTerminalAction, pingPosTerminalAction } from './actions';
 
@@ -34,6 +34,16 @@ export function PosTerminalsModal({
   const [pingResults, setPingResults] = useState<Record<string, { online: boolean; message: string; latency?: number }>>({});
   const [pingingId, setPingingId] = useState<string | null>(null);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const handlePing = async (id: string) => {
     setPingingId(id);
     try {
@@ -60,14 +70,19 @@ export function PosTerminalsModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in-50">
-      <div className="relative w-full max-w-2xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in-50" role="presentation">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pos-terminals-dialog-title"
+        className="relative w-full max-w-2xl rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[90vh]"
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4 bg-slate-50">
           <div className="flex items-center gap-2.5">
-            <span className="text-xl">💳</span>
+            <span className="text-xl" aria-hidden="true">💳</span>
             <div>
-              <h3 className="font-display text-base font-black text-slate-950">
+              <h3 id="pos-terminals-dialog-title" className="font-display text-base font-black text-slate-950">
                 Connected POS Terminals &amp; EDC Machines
               </h3>
               <p className="text-xs text-slate-500">
@@ -78,6 +93,7 @@ export function PosTerminalsModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close dialog"
             className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition-colors cursor-pointer text-xs font-bold"
           >
             ✕

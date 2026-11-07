@@ -1,5 +1,7 @@
 'use client';
 
+import { useEffect } from 'react';
+
 interface PosSlipModalProps {
   slip: {
     merchantName: string;
@@ -26,6 +28,16 @@ interface PosSlipModalProps {
 }
 
 export function PosSlipModal({ slip, onClose }: PosSlipModalProps) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   const formattedDate = slip.dateTime
     ? new Date(slip.dateTime).toLocaleString('en-IN', {
         dateStyle: 'medium',
@@ -38,19 +50,25 @@ export function PosSlipModal({ slip, onClose }: PosSlipModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in-50">
-      <div className="relative w-full max-w-sm rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in-50" role="presentation">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="pos-slip-dialog-title"
+        className="relative w-full max-w-sm rounded-3xl bg-white shadow-2xl border border-slate-200 overflow-hidden"
+      >
         {/* Top Header Controls */}
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5 bg-slate-50">
           <div className="flex items-center gap-2">
-            <span className="text-base">🧾</span>
-            <span className="text-xs font-black uppercase tracking-wider text-slate-800">
+            <span className="text-base" aria-hidden="true">🧾</span>
+            <span id="pos-slip-dialog-title" className="text-xs font-black uppercase tracking-wider text-slate-800">
               POS EDC Transaction Slip
             </span>
           </div>
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close dialog"
             className="rounded-lg p-1 text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition-colors cursor-pointer text-xs font-bold"
           >
             ✕

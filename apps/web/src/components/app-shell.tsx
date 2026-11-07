@@ -71,6 +71,18 @@ export function AppShell({
     setMobileOpen(false);
   }, [pathname]);
 
+  // Handle Escape key to close mobile navigation
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mobileOpen]);
+
   function toggleCollapsed() {
     setCollapsed((value) => {
       window.localStorage.setItem('erp.sidebar.collapsed', String(!value));
@@ -94,6 +106,14 @@ export function AppShell({
 
   return (
     <div className="min-h-dvh md:flex bg-ground">
+      {/* Skip to Main Content Link for Keyboard and Screen-Reader Users (WCAG 2.2 AA) */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-xl focus:bg-slate-900 focus:px-4 focus:py-2.5 focus:text-xs focus:font-bold focus:text-white focus:shadow-xl focus:ring-2 focus:ring-amber-400 focus:outline-none"
+      >
+        Skip to main content
+      </a>
+
       {mobileOpen && (
         <button
           type="button"
@@ -287,13 +307,15 @@ export function AppShell({
             </button>
 
             {/* Breadcrumb Navigation */}
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs font-medium">
-                <span className="text-slate-500">{property.name}</span>
-                <span className="text-slate-300" aria-hidden>/</span>
-                <span className="font-semibold text-slate-900">{pageNames[pathname] ?? 'Hotel Operations'}</span>
-              </div>
-            </div>
+            <nav aria-label="Breadcrumb" className="min-w-0">
+              <ol className="flex items-center gap-2 text-xs font-medium list-none p-0 m-0">
+                <li className="text-slate-500">{property.name}</li>
+                <li className="text-slate-300" aria-hidden="true">/</li>
+                <li className="font-semibold text-slate-900" aria-current="page">
+                  {pageNames[pathname] ?? 'Hotel Operations'}
+                </li>
+              </ol>
+            </nav>
           </div>
 
           {/* Header Right Actions */}
@@ -301,7 +323,7 @@ export function AppShell({
             {/* Quick ERP Guide & Journeys Pill */}
             <Link
               href="/guide"
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
               title="Click to view SOP, Page Directory & Step-by-Step Journeys"
             >
               <span>📖 SOP & Journeys</span>
@@ -309,7 +331,7 @@ export function AppShell({
 
             {/* Live Indian Time & Date Capsule */}
             <span className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-medium text-slate-700 shadow-2xs lg:inline-flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
               {new Intl.DateTimeFormat('en-IN', {
                 weekday: 'short',
                 day: 'numeric',
@@ -320,7 +342,7 @@ export function AppShell({
             {/* Tier / Edition Link Capsule */}
             <Link
               href="/upgrade"
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
             >
               <span>{plan === 'enterprise' ? '👑 Enterprise Edition' : plan === 'growth' || plan === 'plus' ? '⚡ Growth Edition' : '🌱 Starter Edition'}</span>
             </Link>
@@ -332,7 +354,7 @@ export function AppShell({
         </header>
 
         {/* Page Content Body */}
-        <main className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 focus:outline-none">
           {readOnly && (
             <div
               role="status"

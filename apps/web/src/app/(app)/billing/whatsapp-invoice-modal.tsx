@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { btnCls, btnGhostCls } from '@/components/ui';
 
 interface WhatsAppInvoiceModalProps {
@@ -28,6 +28,17 @@ export function WhatsAppInvoiceModal({
   const [phone, setPhone] = useState(cleanPhone.startsWith('91') ? cleanPhone : `91${cleanPhone}`);
   const [sent, setSent] = useState(false);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const invNum = invoiceNumber || `INV-${new Date().getFullYear()}-001`;
@@ -50,17 +61,21 @@ export function WhatsAppInvoiceModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in-50 duration-150">
-      <div className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5">
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in-50 duration-150" role="presentation">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="whatsapp-invoice-dialog-title"
+        className="relative w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl space-y-5"
+      >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
           <div className="flex items-center gap-2">
-            <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-500 text-white font-black text-sm shadow-xs">
+            <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-500 text-white font-black text-sm shadow-xs" aria-hidden="true">
               💬
             </span>
             <div>
-              <h3 className="font-display text-base font-black text-slate-950">
+              <h3 id="whatsapp-invoice-dialog-title" className="font-display text-base font-black text-slate-950">
                 Dispatch WhatsApp GST Tax Invoice
               </h3>
               <p className="text-xs text-slate-500">Official WhatsApp Cloud API Template</p>
@@ -69,7 +84,8 @@ export function WhatsAppInvoiceModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+            aria-label="Close dialog"
+            className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
           >
             ✕
           </button>
@@ -77,14 +93,15 @@ export function WhatsAppInvoiceModal({
 
         {/* Guest WhatsApp Phone Input */}
         <div>
-          <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+          <label htmlFor="wa-recipient-phone" className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
             Recipient WhatsApp Mobile Number (with Country Code)
           </label>
           <div className="flex rounded-xl shadow-2xs">
-            <span className="inline-flex items-center rounded-l-xl border border-r-0 border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-600">
+            <span className="inline-flex items-center rounded-l-xl border border-r-0 border-slate-200 bg-slate-50 px-3 text-xs font-bold text-slate-600" aria-hidden="true">
               🇮🇳 +
             </span>
             <input
+              id="wa-recipient-phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ''))}

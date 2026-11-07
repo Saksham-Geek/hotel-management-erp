@@ -3,16 +3,16 @@ import type { RoomStatus } from '@erp/shared';
 import { getRoomTypeTheme } from '@/lib/room-types';
 
 export const inputCls =
-  'min-h-[44px] w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-slate-900 shadow-2xs placeholder:text-slate-400 transition duration-150 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-950/10 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
+  'min-h-[44px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white shadow-2xs placeholder:text-slate-400 transition duration-150 focus-visible:border-slate-900 dark:focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
 
 export const selectCls =
-  'min-h-[44px] w-full appearance-none cursor-pointer rounded-xl border border-slate-200 bg-white px-3.5 pr-10 py-2.5 text-sm font-semibold text-slate-800 shadow-2xs hover:border-slate-300 focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 transition duration-150 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
+  'min-h-[44px] w-full appearance-none cursor-pointer rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] px-3.5 pr-10 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 focus-visible:border-slate-900 dark:focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-1 transition duration-150 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
 
 export const btnCls =
-  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-slate-900 dark:bg-white px-5 py-2.5 text-sm font-semibold text-white dark:text-slate-950 shadow-xs hover:bg-slate-800 dark:hover:bg-slate-100 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';
 
 export const btnGhostCls =
-  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 hover:border-slate-300 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 disabled:cursor-not-allowed disabled:opacity-50';
+  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50';
 
 export const btnDangerCls =
   'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 shadow-2xs hover:bg-rose-100 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
@@ -22,6 +22,7 @@ export function Banner({ error, ok }: { error?: string; ok?: string }) {
   return (
     <div
       role={error ? 'alert' : 'status'}
+      aria-live={error ? 'assertive' : 'polite'}
       className={`mb-6 flex items-start gap-3.5 rounded-2xl border p-5 text-sm font-medium shadow-xs transition-all animate-in fade-in-50 duration-200 ${
         error
           ? 'border-rose-200 bg-rose-50/90 text-rose-950'

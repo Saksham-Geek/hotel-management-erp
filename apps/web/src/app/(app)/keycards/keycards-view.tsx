@@ -204,6 +204,20 @@ export function KeycardsView({
     }
   }
 
+  // Handle Escape key to dismiss any active modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (encodingKey) setEncodingKey(null);
+        if (handingKey) setHandingKey(null);
+        if (mobilePassKey) setMobilePassKey(null);
+        if (historyKey) setHistoryKey(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [encodingKey, handingKey, mobilePassKey, historyKey]);
+
   return (
     <div className="space-y-6">
       
@@ -678,22 +692,30 @@ export function KeycardsView({
         const stay = roomStays[0];
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
-            <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50" role="presentation">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="encode-rfid-modal-title"
+              className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10"
+            >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
                 <div className="flex items-center gap-2">
-                  <span className="grid h-8 w-8 place-items-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm">
+                  <span className="grid h-8 w-8 place-items-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm" aria-hidden="true">
                     💳
                   </span>
                   <div>
-                    <h3 className="font-display text-sm font-bold">Encode Contactless RFID Keycard</h3>
+                    <h3 id="encode-rfid-modal-title" className="font-display text-sm font-bold">
+                      Encode Contactless RFID Keycard
+                    </h3>
                     <p className="text-[11px] text-muted">Room {encodingKey.roomNumber} ({encodingKey.roomTypeName || 'Room'})</p>
                   </div>
                 </div>
                 <button
                   type="button"
+                  aria-label="Close encode dialog"
                   onClick={() => setEncodingKey(null)}
-                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
                 >
                   ✕
                 </button>
@@ -805,15 +827,20 @@ export function KeycardsView({
         );
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
-            <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50" role="presentation">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="hand-key-modal-title"
+              className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10"
+            >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
                 <div className="flex items-center gap-2.5">
-                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-400 text-slate-950 font-black text-base shadow-xs">
+                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-400 text-slate-950 font-black text-base shadow-xs" aria-hidden="true">
                     🗝️
                   </span>
                   <div>
-                    <h3 className="font-display text-base font-bold">
+                    <h3 id="hand-key-modal-title" className="font-display text-base font-bold">
                       Hand Brass Key #{handingKey.roomNumber} to Guest
                     </h3>
                     <p className="text-xs text-muted">
@@ -830,15 +857,16 @@ export function KeycardsView({
                       setHistoryKey(k);
                     }}
                     title="View Custody Log for this key"
-                    className="rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300 transition-colors cursor-pointer flex items-center gap-1"
+                    className="rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300 transition-colors cursor-pointer flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
                   >
                     <span>📜</span>
                     <span>Custody Log</span>
                   </button>
                   <button
                     type="button"
+                    aria-label="Close handover dialog"
                     onClick={() => setHandingKey(null)}
-                    className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                    className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
                   >
                     ✕
                   </button>
@@ -960,15 +988,28 @@ export function KeycardsView({
       {/* MODAL 3: DIGITAL MOBILE PASS QR */}
       {/* ========================================================================= */}
       {mobilePassKey && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
-          <div className="relative flex w-full max-w-sm flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 text-center">
-            <h3 className="font-display text-base font-bold">Room {mobilePassKey.roomNumber} Digital Mobile Key</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50" role="presentation">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="mobile-pass-modal-title"
+            className="relative flex w-full max-w-sm flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 text-center"
+          >
+            <h3 id="mobile-pass-modal-title" className="font-display text-base font-bold">
+              Room {mobilePassKey.roomNumber} Digital Mobile Key
+            </h3>
             <p className="text-xs text-muted mt-1">Guest can scan this QR code at the door reader.</p>
 
             <div className="my-5 flex justify-center">
               <div className="rounded-2xl border-4 border-slate-900 bg-white p-4 shadow-md">
                 {/* SVG QR Code Graphic */}
-                <svg className="h-44 w-44" viewBox="0 0 100 100" fill="none">
+                <svg
+                  role="img"
+                  aria-label={`QR Code pass for room ${mobilePassKey.roomNumber}`}
+                  className="h-44 w-44"
+                  viewBox="0 0 100 100"
+                  fill="none"
+                >
                   <rect width="100" height="100" fill="white" />
                   <rect x="10" y="10" width="24" height="24" fill="black" />
                   <rect x="14" y="14" width="16" height="16" fill="white" />
@@ -997,7 +1038,7 @@ export function KeycardsView({
               <button
                 type="button"
                 onClick={() => setMobilePassKey(null)}
-                className="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors cursor-pointer"
+                className="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
               >
                 Close Mobile Pass
               </button>
@@ -1015,16 +1056,21 @@ export function KeycardsView({
         const isLost = historyKey.status === 'lost';
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
-            <div className="relative flex w-full max-w-lg flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 max-h-[90vh] overflow-hidden">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50" role="presentation">
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="custody-log-modal-title"
+              className="relative flex w-full max-w-lg flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 max-h-[90vh] overflow-hidden"
+            >
               {/* Modal Header */}
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-500/20 text-amber-500 font-black text-lg">
+                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-500/20 text-amber-500 font-black text-lg" aria-hidden="true">
                     📜
                   </span>
                   <div>
-                    <h3 className="font-display text-base font-bold">
+                    <h3 id="custody-log-modal-title" className="font-display text-base font-bold">
                       Key Custody History · Room {historyKey.roomNumber}
                     </h3>
                     <p className="text-xs text-muted">
@@ -1034,8 +1080,9 @@ export function KeycardsView({
                 </div>
                 <button
                   type="button"
+                  aria-label="Close custody log dialog"
                   onClick={() => setHistoryKey(null)}
-                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
                 >
                   ✕
                 </button>

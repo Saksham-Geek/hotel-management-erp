@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { btnCls, inputCls } from '@/components/ui';
 import { updateUpiSettingsAction } from './actions';
 
@@ -26,6 +26,17 @@ export function UpiSettingsModal({
   const [upiId, setUpiId] = useState(currentUpiId || '');
   const [merchantName, setMerchantName] = useState(currentMerchantName || propertyName);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const previewVpa = upiId.trim() || 'yourhotel@icici';
@@ -33,26 +44,31 @@ export function UpiSettingsModal({
   const sampleUri = `upi://pay?pa=${encodeURIComponent(previewVpa)}&pn=${encodeURIComponent(previewName)}&cu=INR`;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200" role="presentation">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="upi-settings-dialog-title"
+        className="relative w-full max-w-lg overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-2xl"
+      >
         {/* Header */}
         <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
           <div className="flex items-center gap-3">
-            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-700 font-extrabold text-base shadow-2xs">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-indigo-50 border border-indigo-200 text-indigo-700 font-extrabold text-base shadow-2xs" aria-hidden="true">
               ₹
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="font-display text-base font-bold text-slate-900">
+                <h3 id="upi-settings-dialog-title" className="font-display text-base font-bold text-slate-900">
                   Receiver UPI ID &amp; Bank Settlement
                 </h3>
                 {isOwner ? (
                   <span className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[10px] font-bold text-amber-900 flex items-center gap-1">
-                    <span>👑</span> Owner Authority
+                    <span aria-hidden="true">👑</span> Owner Authority
                   </span>
                 ) : (
                   <span className="rounded-full bg-rose-100 border border-rose-200 px-2 py-0.5 text-[10px] font-bold text-rose-800 flex items-center gap-1">
-                    <span>🔒</span> Read-Only (Staff)
+                    <span aria-hidden="true">🔒</span> Read-Only (Staff)
                   </span>
                 )}
               </div>
@@ -65,6 +81,7 @@ export function UpiSettingsModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Close dialog"
             className="grid h-8 w-8 place-items-center rounded-xl text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
           >
             ✕

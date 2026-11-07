@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useEffect, useState, useTransition } from 'react';
 import { CustomDropdown } from '@/components/dropdown';
 import { createStaff, toggleStaffStatus, removeStaff, type ActionState } from './actions';
 
@@ -41,6 +41,17 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
   const [search, setSearch] = useState('');
   const [pending, startTransition] = useTransition();
   const [formState, setFormState] = useState<ActionState>(null);
+
+  useEffect(() => {
+    if (!isAddOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsAddOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isAddOpen]);
 
   const filteredStaff = data.staff.filter((s) => {
     const matchesRole = roleFilter === 'all' || s.role === roleFilter;
@@ -179,9 +190,11 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
 
       {/* Tabs & Search Controls */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2" role="tablist" aria-label="Staff roster sections">
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'all'}
             onClick={() => setActiveTab('all')}
             className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-colors ${
               activeTab === 'all'
@@ -193,6 +206,8 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'hierarchy'}
             onClick={() => setActiveTab('hierarchy')}
             className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-colors ${
               activeTab === 'hierarchy'
@@ -204,6 +219,8 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
           </button>
           <button
             type="button"
+            role="tab"
+            aria-selected={activeTab === 'shifts'}
             onClick={() => setActiveTab('shifts')}
             className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-colors ${
               activeTab === 'shifts'
@@ -502,11 +519,16 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
 
       {/* Add Staff Modal */}
       {isAddOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in-50">
-          <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in-50" role="presentation">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-staff-dialog-title"
+            className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl"
+          >
             <div className="flex items-center justify-between border-b border-slate-100 pb-4">
               <div>
-                <h3 className="font-display text-lg font-bold text-slate-950">
+                <h3 id="add-staff-dialog-title" className="font-display text-lg font-bold text-slate-950">
                   Provision Hotel Staff Member
                 </h3>
                 <p className="text-xs text-slate-500">
@@ -516,7 +538,8 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
               <button
                 type="button"
                 onClick={() => setIsAddOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                aria-label="Close dialog"
+                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors cursor-pointer"
               >
                 ✕
               </button>
@@ -549,8 +572,9 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
               className="mt-4 space-y-3.5 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-900">Full Name</label>
+                <label htmlFor="staff-full-name" className="block font-bold text-slate-900">Full Name</label>
                 <input
+                  id="staff-full-name"
                   name="fullName"
                   required
                   placeholder="e.g. Vikramaditya Rathore"
@@ -559,8 +583,9 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
               </div>
 
               <div>
-                <label className="block font-bold text-slate-900">Staff Email Address</label>
+                <label htmlFor="staff-email" className="block font-bold text-slate-900">Staff Email Address</label>
                 <input
+                  id="staff-email"
                   name="email"
                   type="email"
                   required
@@ -571,7 +596,7 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-900 mb-1">Delegated Role</label>
+                  <label id="staff-role-label" className="block font-bold text-slate-900 mb-1">Delegated Role</label>
                   <CustomDropdown
                     name="role"
                     required
@@ -583,13 +608,14 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
                       ...(data.allowedRoles.includes('frontdesk') ? [{ value: 'frontdesk', label: 'Front Desk / Receptionist' }] : []),
                       ...(data.allowedRoles.includes('housekeeping') ? [{ value: 'housekeeping', label: 'Housekeeping Attendant' }] : []),
                     ]}
-                    aria-label="Delegated Role"
+                    aria-labelledby="staff-role-label"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-900 mb-1">Department</label>
+                  <label htmlFor="staff-department" className="block font-bold text-slate-900 mb-1">Department</label>
                   <input
+                    id="staff-department"
                     name="department"
                     defaultValue="Front Office"
                     placeholder="e.g. Front Office, F&B, Housekeeping"
@@ -600,7 +626,7 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-900 mb-1">Assigned Shift</label>
+                  <label id="staff-shift-label" className="block font-bold text-slate-900 mb-1">Assigned Shift</label>
                   <CustomDropdown
                     name="shift"
                     defaultValue="Morning (07:00 - 15:30)"
@@ -611,13 +637,14 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
                       { value: 'Night (23:00 - 07:30)', label: 'Night (23:00 - 07:30)' },
                       { value: 'General', label: 'General (09:00 - 18:00)' },
                     ]}
-                    aria-label="Assigned Shift"
+                    aria-labelledby="staff-shift-label"
                   />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-900">Temporary Password</label>
+                  <label htmlFor="staff-password" className="block font-bold text-slate-900">Temporary Password</label>
                   <input
+                    id="staff-password"
                     name="password"
                     defaultValue="HotelStaff123!"
                     className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-3 font-mono font-medium text-slate-900 focus:border-teal-500 focus:outline-none"

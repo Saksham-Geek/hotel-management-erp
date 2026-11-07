@@ -1095,7 +1095,16 @@ export function TapeChartView({
                                 if (isPreview) {
                                   return (
                                     <div
+                                      role="button"
+                                      tabIndex={0}
+                                      aria-label={`Connect stay range to ${formatCellDate(segment.dateStr)} for Room ${room.number}`}
                                       data-empty-cell="true"
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter' || e.key === ' ') {
+                                          e.preventDefault();
+                                          handleCellMouseDown(room, segment.dateStr);
+                                        }
+                                      }}
                                       onMouseDown={(e) => {
                                         if (e.button === 0) {
                                           handleCellMouseDown(room, segment.dateStr);
@@ -1105,7 +1114,7 @@ export function TapeChartView({
                                         handleCellMouseEnter(room, segment.dateStr, roomReservations)
                                       }
                                       onMouseUp={handleCellMouseUp}
-                                      className="flex flex-col items-center justify-center w-full h-14 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50/80 text-emerald-950 transition-all cursor-pointer select-none"
+                                      className="flex flex-col items-center justify-center w-full h-14 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50/80 text-emerald-950 transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
                                       title={`Click to connect stay range to ${formatCellDate(segment.dateStr)}`}
                                     >
                                       <span className="text-[10px] font-bold text-emerald-800">
@@ -1120,7 +1129,16 @@ export function TapeChartView({
 
                                 return (
                                   <div
+                                    role="button"
+                                    tabIndex={0}
+                                    aria-label={`Select ${formatCellDate(segment.dateStr)} for Room ${room.number}`}
                                     data-empty-cell="true"
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        handleCellMouseDown(room, segment.dateStr);
+                                      }
+                                    }}
                                     onMouseDown={(e) => {
                                       if (e.button === 0) {
                                         handleCellMouseDown(room, segment.dateStr);
@@ -1130,7 +1148,7 @@ export function TapeChartView({
                                       handleCellMouseEnter(room, segment.dateStr, roomReservations)
                                     }
                                     onMouseUp={handleCellMouseUp}
-                                    className="flex items-center justify-center w-full h-14 rounded-xl border border-dashed border-slate-200 hover:border-slate-400 hover:bg-slate-50/90 transition-all text-xs font-medium text-slate-400 cursor-crosshair group/empty"
+                                    className="flex items-center justify-center w-full h-14 rounded-xl border border-dashed border-slate-200 hover:border-slate-400 hover:bg-slate-50/90 transition-all text-xs font-medium text-slate-400 cursor-crosshair group/empty focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900"
                                     title={`Click to select check-in date or drag across dates`}
                                   >
                                     <span className="opacity-0 group-hover/empty:opacity-100 transition-opacity font-bold text-slate-700 flex items-center gap-1 text-[11px]">

@@ -1,55 +1,56 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 
+/**
+ * Production-Grade Top Navigation Progress Bar
+ * Similar to GitHub, Vercel, and Linear:
+ * - 0ms instant visual response on internal link clicks
+ * - Silky smooth CSS cubic-bezier animation (no rapid React interval re-renders)
+ * - Zero UI shift, zero modal popup, zero blocking of page elements
+ * - Built-in watchdog timer to guarantee it never gets stuck
+ */
 export function NavigationProgressBar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState(false);
+  const [active, setActive] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [visible, setVisible] = useState(false);
+  const watchdogRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Complete progress loop whenever the pathname or search parameters change
+  // Complete and fade out whenever the route finishes mounting
   useEffect(() => {
-    if (loading) {
+    if (active) {
       setProgress(100);
-      const timer = setTimeout(() => {
-        setLoading(false);
-        setProgress(0);
-      }, 240);
-      return () => clearTimeout(timer);
+      const fadeTimer = setTimeout(() => {
+        setVisible(false);
+        const resetTimer = setTimeout(() => {
+          setActive(false);
+          setProgress(0);
+        }, 300);
+        return () => clearTimeout(resetTimer);
+      }, 200);
+
+      if (watchdogRef.current) clearTimeout(watchdogRef.current);
+      return () => clearTimeout(fadeTimer);
     }
   }, [pathname, searchParams]);
 
-  // Global listener to catch all internal navigation clicks instantly (0ms)
+  // Catch internal navigation clicks
   useEffect(() => {
-    let interval: NodeJS.Timeout | null = null;
-
-    const startProgress = () => {
-      setLoading(true);
-      setProgress(25);
-
-      if (interval) clearInterval(interval);
-      interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 88) {
-            if (interval) clearInterval(interval);
-            return 88;
-          }
-          const step = (88 - prev) * 0.18;
-          return Math.min(88, prev + Math.max(step, 1.5));
-        });
-      }, 100);
-    };
+    let t1: NodeJS.Timeout | null = null;
+    let t2: NodeJS.Timeout | null = null;
 
     const handleAnchorClick = (e: MouseEvent) => {
+      // Find closest anchor tag
       const target = (e.target as HTMLElement)?.closest('a');
       if (!target) return;
 
       const href = target.getAttribute('href');
       const targetAttr = target.getAttribute('target');
 
-      // Ignore external links, downloads, modified clicks, hash-only, or new tabs
+      // Ignore external links, mailto, tel, downloads, or modified clicks (new tab / window)
       if (
         !href ||
         href.startsWith('#') ||
@@ -59,132 +60,94 @@ export function NavigationProgressBar() {
         e.ctrlKey ||
         e.metaKey ||
         e.shiftKey ||
-        e.altKey
+        e.altKey ||
+        e.button !== 0 // only primary left click
       ) {
         return;
       }
 
-      // Check if it's an internal route that actually changes the path
+      // Check if it's an internal route that actually changes the path or query
       try {
-        const url = new URL(href, window.location.href);
+        const targetUrl = new URL(href, window.location.href);
         const currentUrl = new URL(window.location.href);
 
-        if (url.origin === currentUrl.origin) {
-          const isSamePage = url.pathname === currentUrl.pathname && url.search === currentUrl.search;
-          if (!isSamePage) {
-            // Instant 0ms trigger
-            startProgress();
+        if (targetUrl.origin === currentUrl.origin) {
+          const isSameUrl =
+            targetUrl.pathname === currentUrl.pathname &&
+            targetUrl.search === currentUrl.search;
+
+          if (!isSameUrl) {
+            // Start smooth progress
+            if (t1) clearTimeout(t1);
+            if (t2) clearTimeout(t2);
+            if (watchdogRef.current) clearTimeout(watchdogRef.current);
+
+            setActive(true);
+            setVisible(true);
+            setProgress(28);
+
+            // Staged progression with natural deceleration
+            t1 = setTimeout(() => {
+              setProgress((p) => (p < 65 ? 65 : p));
+            }, 250);
+
+            t2 = setTimeout(() => {
+              setProgress((p) => (p < 85 ? 85 : p));
+            }, 600);
+
+            // Watchdog fallback: auto-clear after 6 seconds to prevent stuck state
+            watchdogRef.current = setTimeout(() => {
+              setProgress(100);
+              setTimeout(() => {
+                setVisible(false);
+                setActive(false);
+                setProgress(0);
+              }, 250);
+            }, 6000);
           }
         }
       } catch {
-        // invalid URL
+        // Invalid URL, do nothing
       }
     };
 
-    // Also trigger on valid form submissions to prevent duplicate clicks
-    const handleFormSubmit = (e: SubmitEvent) => {
-      const form = e.target as HTMLFormElement;
-      if (!form) return;
-      startProgress();
-    };
-
     document.addEventListener('click', handleAnchorClick, true);
-    document.addEventListener('submit', handleFormSubmit, true);
 
     return () => {
       document.removeEventListener('click', handleAnchorClick, true);
-      document.removeEventListener('submit', handleFormSubmit, true);
-      if (interval) clearInterval(interval);
+      if (t1) clearTimeout(t1);
+      if (t2) clearTimeout(t2);
+      if (watchdogRef.current) clearTimeout(watchdogRef.current);
     };
   }, []);
 
-  if (!loading && progress === 0) return null;
-
-  // Circle geometry: r = 16, C = 2 * PI * 16 = 100.53
-  const circumference = 100.53;
-  const strokeOffset = circumference - (progress / 100) * circumference;
+  if (!active && progress === 0) return null;
 
   return (
-    <aside
-      aria-label="Loading indicator"
-      aria-live="polite"
-      className={`fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/[0.04] backdrop-blur-[1px] transition-opacity duration-200 ${
-        progress === 100 ? 'opacity-0 pointer-events-none' : 'opacity-100 cursor-wait'
-      }`}
+    <div
+      role="progressbar"
+      aria-label="Page navigation progress"
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuenow={progress}
+      className="pointer-events-none fixed inset-x-0 top-0 z-[99999] h-[3px] select-none"
     >
-      {/* Top Hairline Progress Bar in sleek executive slate */}
+      {/* Background track (transparent) */}
       <div
-        className="pointer-events-none fixed inset-x-0 top-0 h-[2px] bg-slate-900 shadow-[0_0_8px_rgba(15,23,42,0.3)] transition-all duration-150 ease-out"
+        className="relative h-full bg-gradient-to-r from-teal-500 via-sky-500 to-indigo-600 shadow-[0_0_12px_rgba(14,165,233,0.7)]"
         style={{
           width: `${progress}%`,
-          opacity: progress === 100 ? 0 : 1,
+          opacity: visible ? 1 : 0,
+          transition:
+            progress === 100
+              ? 'width 180ms ease-out, opacity 250ms ease-in 100ms'
+              : 'width 350ms cubic-bezier(0.1, 0.8, 0.2, 1), opacity 150ms ease',
+          willChange: 'width, opacity',
         }}
-      />
-
-      {/* Production-Grade Minimal Luxury Center Capsule */}
-      <div className="relative flex items-center gap-4 rounded-2xl border border-slate-200/90 bg-white/95 px-5 py-3.5 text-slate-900 shadow-[0_16px_40px_rgba(15,23,42,0.08)] backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150 select-none">
-        {/* Circular Progress Ring */}
-        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center">
-          <svg className="h-10 w-10 -rotate-90 transform" viewBox="0 0 40 40">
-            {/* Background Track in soft slate-100 */}
-            <circle
-              cx="20"
-              cy="20"
-              r="16"
-              stroke="#e2e8f0"
-              strokeWidth="3"
-              fill="none"
-            />
-
-            {/* Smooth animated progress track in brand slate-900 */}
-            <circle
-              cx="20"
-              cy="20"
-              r="16"
-              stroke="#0f172a"
-              strokeWidth="3"
-              strokeLinecap="round"
-              fill="none"
-              style={{
-                strokeDasharray: circumference,
-                strokeDashoffset: strokeOffset,
-                transition: 'stroke-dashoffset 140ms ease-out',
-              }}
-            />
-          </svg>
-
-          {/* Centered Counter / Completion Checkmark */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            {progress === 100 ? (
-              <svg
-                className="h-4 w-4 text-emerald-600 animate-in zoom-in-50 duration-150"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="3"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M20 6 9 17l-5-5" />
-              </svg>
-            ) : (
-              <span className="font-mono text-[10px] font-bold text-slate-700">
-                {Math.round(progress)}%
-              </span>
-            )}
-          </div>
-        </div>
-
-        {/* Status Text matching Aura PMS Executive theme */}
-        <div className="min-w-0 pr-1">
-          <p className="font-display text-xs font-bold text-slate-900 tracking-tight leading-tight">
-            {progress === 100 ? 'Workspace Ready' : 'Loading Workspace…'}
-          </p>
-          <p className="mt-0.5 text-[11px] font-medium text-slate-500 leading-tight">
-            {progress === 100 ? 'Rendering view' : 'Fetching latest records'}
-          </p>
-        </div>
+      >
+        {/* Glowing Head Point */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-3.5 w-3.5 rounded-full bg-sky-300 blur-[3px] shadow-[0_0_8px_rgba(56,189,248,1)]" />
       </div>
-    </aside>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
-import { Banner, btnCls, EmptyState, inputCls, PageHeader } from '@/components/ui';
+import { Banner, btnCls, CustomDatePicker, EmptyState, inputCls, PageHeader } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { createReservation } from './actions';
@@ -86,8 +86,14 @@ export default async function ReservationsPage({
               <div className="space-y-4">
                 <ReservationPricingFields rooms={rooms} currency={currency} defaultRoomId={roomId} />
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="block text-xs font-semibold text-slate-700">Check-in date<input name="checkIn" type="date" defaultValue={checkIn} required className={`${inputCls} mt-1.5`} /></label>
-                  <label className="block text-xs font-semibold text-slate-700">Check-out date<input name="checkOut" type="date" defaultValue={checkOut} required className={`${inputCls} mt-1.5`} /></label>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Check-in date</label>
+                    <CustomDatePicker name="checkIn" defaultValue={checkIn} required aria-label="Check-in date" />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-700 mb-1.5">Check-out date</label>
+                    <CustomDatePicker name="checkOut" defaultValue={checkOut} required aria-label="Check-out date" />
+                  </div>
                   <label className="block text-xs font-semibold text-slate-700">Check-in time<input name="checkInTime" type="time" defaultValue="12:00" className={`${inputCls} mt-1.5`} /></label>
                   <label className="block text-xs font-semibold text-slate-700">Check-out time<input name="checkOutTime" type="time" defaultValue="11:00" className={`${inputCls} mt-1.5`} /></label>
                 </div>

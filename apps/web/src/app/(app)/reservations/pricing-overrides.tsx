@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { inputCls } from '@/components/ui';
+import { CustomDropdown, inputCls } from '@/components/ui';
 
 interface RoomOption {
   id: string;
@@ -47,37 +47,36 @@ export function ReservationPricingFields({
   return (
     <>
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block text-xs font-medium text-muted">
-          Room
-          <select
+        <div>
+          <label className="block text-xs font-medium text-muted mb-1">Room</label>
+          <CustomDropdown
             name="roomId"
             required
             value={roomId}
-            onChange={(event) => setRoomId(event.target.value)}
+            onChange={(val) => setRoomId(val)}
+            placeholder="Choose a room"
+            options={rooms.map((room) => ({
+              value: room.id,
+              label: `${room.number} · ${room.roomType}`,
+              badge: `Rm ${room.number}`,
+            }))}
             aria-label="Room"
-            className={`${inputCls} mt-1`}
-          >
-            <option value="" disabled>Choose a room</option>
-            {rooms.map((room) => (
-              <option key={room.id} value={room.id}>
-                {room.number} · {room.roomType}
-              </option>
-            ))}
-          </select>
-        </label>
+          />
+        </div>
 
-        <label className="block text-xs font-medium text-muted">
-          Pricing basis
-          <select
+        <div>
+          <label className="block text-xs font-medium text-muted mb-1">Pricing basis</label>
+          <CustomDropdown
             name="rateMode"
             value={rateMode}
-            onChange={(event) => setRateMode(event.target.value as 'nightly' | 'hourly')}
-            className={`${inputCls} mt-1`}
-          >
-            <option value="nightly">Nightly stay</option>
-            <option value="hourly">Hourly stay</option>
-          </select>
-        </label>
+            onChange={(val) => setRateMode(val as 'nightly' | 'hourly')}
+            options={[
+              { value: 'nightly', label: 'Nightly stay' },
+              { value: 'hourly', label: 'Hourly stay' },
+            ]}
+            aria-label="Pricing basis"
+          />
+        </div>
 
         <label className="block text-xs font-medium text-muted">
           Manual {rateMode === 'hourly' ? 'hourly' : 'nightly'} rate (optional)

@@ -209,6 +209,44 @@ export class ReservationsController {
           await c.query(`update rooms set status = 'cleaning' where id = $1 and not exists (select 1 from reservations where room_id = $1 and status = 'checked_in')`, [cur.room_id]);
         } else { await c.query(`update rooms set status = $2 where id = $1`, [cur.room_id, roomStatus]); }
       }
+
+      // Real-World Keycard Automation: Sync physical RFID room keys with check-in and check-out
+      if (target === 'checked_in') {
+        const guestRes = await c.query(
+          `select p.full_name as "guestName"
+           from reservations r
+           join guests g on g.id = r.guest_id
+           join parties p on p.id = g.party_id
+           where r.id = $1`,
+          [id]
+        );
+        const guestName = guestRes.rows[0]?.guestName || 'In-House Guest';
+
+        await c.query(
+          `update room_keys
+           set status = 'issued_to_guest',
+               issued_to_reservation_id = $1,
+               issued_to_guest_name = $2,
+               issued_at = now(),
+               returned_at = null,
+               updated_at = now()
+           where room_id = $3 and status in ('in_slot', 'with_housekeeping')`,
+          [id, guestName, cur.room_id]
+        );
+      } else if (target === 'checked_out' || target === 'cancelled') {
+        await c.query(
+          `update room_keys
+           set status = 'in_slot',
+               issued_to_reservation_id = null,
+               issued_to_guest_name = null,
+               returned_at = now(),
+               updated_at = now()
+           where issued_to_reservation_id = $1
+              or (room_id = $2 and status = 'issued_to_guest')`,
+          [id, cur.room_id]
+        );
+      }
+
       await this.audit.log(c, { tenantId: user.tenantId, userId: user.id, action: `reservation.${target}`, entity: 'reservation', entityId: id });
       return { id, status: target };
     });

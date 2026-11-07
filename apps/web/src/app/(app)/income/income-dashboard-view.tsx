@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { formatMoney } from '@/lib/format';
+import { CustomDatePicker } from '@/components/date-picker';
 import type { IncomeReportDto } from './types';
 
 export function IncomeDashboardView({
@@ -162,18 +163,18 @@ export function IncomeDashboardView({
         {/* Sub-Controls: Daily Date Picker */}
         {activePeriod === 'daily' && (
           <div className="mt-3.5 pt-3.5 border-t border-slate-100 flex flex-wrap items-center gap-3">
-            <label className="text-xs font-bold text-slate-700 flex items-center gap-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
               <span>Select Date:</span>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={dailyDate}
-                onChange={(e) => {
-                  setDailyDate(e.target.value);
-                  applyPeriod('daily', { date: e.target.value });
+                onChange={(val) => {
+                  setDailyDate(val);
+                  applyPeriod('daily', { date: val });
                 }}
-                className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 shadow-2xs"
+                size="sm"
+                aria-label="Daily date"
               />
-            </label>
+            </div>
 
             <button
               type="button"
@@ -206,21 +207,21 @@ export function IncomeDashboardView({
           <div className="mt-3.5 pt-3.5 border-t border-slate-100 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-700">From:</span>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={customStart}
-                onChange={(e) => setCustomStart(e.target.value)}
-                className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 shadow-2xs"
+                onChange={(val) => setCustomStart(val)}
+                size="sm"
+                aria-label="From date"
               />
             </div>
 
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-slate-700">To:</span>
-              <input
-                type="date"
+              <CustomDatePicker
                 value={customEnd}
-                onChange={(e) => setCustomEnd(e.target.value)}
-                className="rounded-lg border border-slate-300 px-3 py-1 text-xs font-mono font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900 shadow-2xs"
+                onChange={(val) => setCustomEnd(val)}
+                size="sm"
+                aria-label="To date"
               />
             </div>
 

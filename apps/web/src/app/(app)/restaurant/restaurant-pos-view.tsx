@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
 import { KotPrintModal, type KotPrintData } from './kot-print-modal';
@@ -215,8 +215,38 @@ export function RestaurantPosView({
   const [selectedOutletId, setSelectedOutletId] = useState(preferredOutlet?.id || outlets[0]?.id || '');
   const activeOutlet = outlets.find((o) => o.id === selectedOutletId) || preferredOutlet || outlets[0];
 
-  // Table Section Filter
-  const allSections = Array.from(new Set(tables.map((t) => t.section || 'Main AC Hall')));
+  // Table Section Filter & Custom Floor Zones
+  const [isManageZonesModalOpen, setIsManageZonesModalOpen] = useState(false);
+  const [newZoneNameInput, setNewZoneNameInput] = useState('');
+  const [zoneToDelete, setZoneToDelete] = useState<string | null>(null);
+  const [zoneReassignTarget, setZoneReassignTarget] = useState<string>('Main AC Hall');
+  const [zoneToRename, setZoneToRename] = useState<string | null>(null);
+  const [zoneRenameInput, setZoneRenameInput] = useState('');
+
+  const [customZones, setCustomZones] = useState<string[]>([]);
+  const [removedZones, setRemovedZones] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const czKey = `aura_dine_custom_zones_${activeOutlet?.id || 'default'}`;
+      const rzKey = `aura_dine_removed_zones_${activeOutlet?.id || 'default'}`;
+      const cz = localStorage.getItem(czKey);
+      if (cz) setCustomZones(JSON.parse(cz));
+      const rz = localStorage.getItem(rzKey);
+      if (rz) setRemovedZones(JSON.parse(rz));
+    } catch {
+      // Ignore parse errors
+    }
+  }, [activeOutlet?.id]);
+
+  const allSections = useMemo(() => {
+    const fromTables = tables.map((t) => t.section || 'Main AC Hall');
+    const combined = Array.from(new Set([...fromTables, ...customZones]));
+    const filtered = combined.filter((s) => !removedZones.includes(s));
+    return filtered.length > 0 ? filtered : ['Main AC Hall'];
+  }, [tables, customZones, removedZones]);
+
   const [selectedSection, setSelectedSection] = useState<string>('all');
 
   // Table & Menu Management Modal States
@@ -728,6 +758,95 @@ export function RestaurantPosView({
     } else {
       setFeedbackMsg({ type: 'err', text: res.error || 'Failed to delete table' });
     }
+  }
+
+  // Floor Zones Management Handlers
+  function handleAddFloorZone(e: React.FormEvent) {
+    e.preventDefault();
+    const trimmed = newZoneNameInput.trim();
+    if (!trimmed) return;
+    if (allSections.includes(trimmed)) {
+      setFeedbackMsg({ type: 'err', text: `Floor zone "${trimmed}" already exists.` });
+      return;
+    }
+    const updatedCustom = Array.from(new Set([...customZones, trimmed]));
+    const updatedRemoved = removedZones.filter((z) => z !== trimmed);
+    setCustomZones(updatedCustom);
+    setRemovedZones(updatedRemoved);
+    setNewZoneNameInput('');
+    try {
+      const czKey = `aura_dine_custom_zones_${activeOutlet?.id || 'default'}`;
+      const rzKey = `aura_dine_removed_zones_${activeOutlet?.id || 'default'}`;
+      localStorage.setItem(czKey, JSON.stringify(updatedCustom));
+      localStorage.setItem(rzKey, JSON.stringify(updatedRemoved));
+    } catch {}
+    setFeedbackMsg({ type: 'ok', text: `Floor Zone "${trimmed}" added successfully.` });
+  }
+
+  async function handleDeleteFloorZone(zoneName: string, reassignTo: string) {
+    setSubmitting(true);
+    const affectedTables = tables.filter((t) => t.section === zoneName);
+    for (const t of affectedTables) {
+      await updateRestaurantTableAction(t.id, {
+        tableNumber: t.tableNumber,
+        capacity: t.capacity,
+        section: reassignTo,
+      });
+    }
+    const updatedCustom = customZones.filter((z) => z !== zoneName);
+    const updatedRemoved = Array.from(new Set([...removedZones, zoneName]));
+    setCustomZones(updatedCustom);
+    setRemovedZones(updatedRemoved);
+    try {
+      const czKey = `aura_dine_custom_zones_${activeOutlet?.id || 'default'}`;
+      const rzKey = `aura_dine_removed_zones_${activeOutlet?.id || 'default'}`;
+      localStorage.setItem(czKey, JSON.stringify(updatedCustom));
+      localStorage.setItem(rzKey, JSON.stringify(updatedRemoved));
+    } catch {}
+    setSubmitting(false);
+    setZoneToDelete(null);
+    if (selectedSection === zoneName) setSelectedSection('all');
+    setFeedbackMsg({
+      type: 'ok',
+      text: affectedTables.length > 0
+        ? `Floor zone "${zoneName}" removed and ${affectedTables.length} table(s) moved to "${reassignTo}".`
+        : `Floor zone "${zoneName}" removed successfully.`,
+    });
+    router.refresh();
+  }
+
+  async function handleRenameFloorZone(oldName: string, newName: string) {
+    const trimmed = newName.trim();
+    if (!trimmed || trimmed === oldName) {
+      setZoneToRename(null);
+      return;
+    }
+    setSubmitting(true);
+    const affectedTables = tables.filter((t) => t.section === oldName);
+    for (const t of affectedTables) {
+      await updateRestaurantTableAction(t.id, {
+        tableNumber: t.tableNumber,
+        capacity: t.capacity,
+        section: trimmed,
+      });
+    }
+    const updatedCustom = customZones.map((z) => (z === oldName ? trimmed : z));
+    if (!updatedCustom.includes(trimmed)) updatedCustom.push(trimmed);
+    const updatedRemoved = removedZones.filter((z) => z !== trimmed);
+    setCustomZones(updatedCustom);
+    setRemovedZones(updatedRemoved);
+    try {
+      const czKey = `aura_dine_custom_zones_${activeOutlet?.id || 'default'}`;
+      const rzKey = `aura_dine_removed_zones_${activeOutlet?.id || 'default'}`;
+      localStorage.setItem(czKey, JSON.stringify(updatedCustom));
+      localStorage.setItem(rzKey, JSON.stringify(updatedRemoved));
+    } catch {}
+    setSubmitting(false);
+    setZoneToRename(null);
+    setZoneRenameInput('');
+    if (selectedSection === oldName) setSelectedSection(trimmed);
+    setFeedbackMsg({ type: 'ok', text: `Floor zone renamed to "${trimmed}".` });
+    router.refresh();
   }
 
   // Menu Management Handlers
@@ -1272,6 +1391,15 @@ export function RestaurantPosView({
                   {sec}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setIsManageZonesModalOpen(true)}
+                className="rounded-xl px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                title="Add or remove custom floor zones"
+              >
+                <span>⚙️</span>
+                <span>Manage Floor Zones</span>
+              </button>
             </div>
 
             {/* Clean Floor Status & Settings shortcut */}
@@ -4936,6 +5064,227 @@ export function RestaurantPosView({
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Floor Zones Modal */}
+      {isManageZonesModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-xl rounded-3xl border border-slate-200 bg-white shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div className="flex items-center justify-between border-b border-slate-100 bg-slate-50/80 px-6 py-4">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-indigo-50 text-indigo-700 font-bold border border-indigo-200">
+                  🏛️
+                </span>
+                <div>
+                  <h3 className="font-display text-base font-black text-slate-950">
+                    Floor Zones &amp; Dining Sections
+                  </h3>
+                  <p className="text-xs text-slate-500 font-medium">
+                    Configure custom zones tailored to your hotel&apos;s physical floor plan.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsManageZonesModalOpen(false);
+                  setZoneToDelete(null);
+                  setZoneToRename(null);
+                }}
+                className="grid h-8 w-8 place-items-center rounded-full text-slate-400 hover:bg-slate-200/60 hover:text-slate-700 transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 overflow-y-auto">
+              {/* Add New Zone Card */}
+              <form onSubmit={handleAddFloorZone} className="rounded-2xl border border-indigo-100 bg-indigo-50/50 p-4 space-y-3">
+                <label className="block text-xs font-bold text-indigo-950">
+                  Add New Floor Zone
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    required
+                    value={newZoneNameInput}
+                    onChange={(e) => setNewZoneNameInput(e.target.value)}
+                    placeholder="e.g. Rooftop Sky Lounge, Poolside Deck, Lawn Gazebo"
+                    className="flex-1 rounded-xl border border-indigo-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 shadow-2xs"
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 text-xs font-bold transition-all shadow-xs shrink-0 cursor-pointer"
+                  >
+                    + Add Zone
+                  </button>
+                </div>
+              </form>
+
+              {/* Active Zones List */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Active Floor Zones ({allSections.length})
+                  </h4>
+                  <span className="text-[11px] text-slate-400 font-medium">
+                    {tables.length} Total Tables Assigned
+                  </span>
+                </div>
+
+                <div className="divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white overflow-hidden shadow-2xs">
+                  {allSections.map((sec) => {
+                    const tablesInZone = tables.filter((t) => t.section === sec);
+                    const isDeleting = zoneToDelete === sec;
+                    const isRenaming = zoneToRename === sec;
+                    const otherSections = allSections.filter((s) => s !== sec);
+
+                    return (
+                      <div key={sec} className="p-4 transition-colors hover:bg-slate-50/50">
+                        {isRenaming ? (
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={zoneRenameInput}
+                              onChange={(e) => setZoneRenameInput(e.target.value)}
+                              className="flex-1 rounded-xl border border-indigo-300 px-3 py-1.5 text-xs font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                              autoFocus
+                            />
+                            <button
+                              type="button"
+                              disabled={submitting}
+                              onClick={() => handleRenameFloorZone(sec, zoneRenameInput)}
+                              className="rounded-xl bg-indigo-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-indigo-700 cursor-pointer"
+                            >
+                              Save
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setZoneToRename(null)}
+                              className="rounded-xl border border-slate-200 text-slate-600 px-3 py-1.5 text-xs font-bold hover:bg-slate-100 cursor-pointer"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : isDeleting ? (
+                          <div className="space-y-3 rounded-xl bg-rose-50 border border-rose-200 p-3.5">
+                            <p className="text-xs font-bold text-rose-950">
+                              Remove Floor Zone &ldquo;{sec}&rdquo;?
+                            </p>
+                            {tablesInZone.length > 0 ? (
+                              <div className="space-y-2">
+                                <p className="text-xs text-rose-800">
+                                  This zone has <strong className="font-bold">{tablesInZone.length} table(s)</strong> ({tablesInZone.map((t) => t.tableNumber).join(', ')}). Select a destination zone to reassign them:
+                                </p>
+                                <CustomDropdown
+                                  value={zoneReassignTarget}
+                                  onChange={(val) => setZoneReassignTarget(val)}
+                                  size="sm"
+                                  options={otherSections.map((s) => ({ value: s, label: s }))}
+                                  aria-label="Reassign tables to"
+                                />
+                                <div className="flex items-center gap-2 pt-1">
+                                  <button
+                                    type="button"
+                                    disabled={submitting}
+                                    onClick={() => handleDeleteFloorZone(sec, zoneReassignTarget)}
+                                    className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 text-xs font-bold transition-all cursor-pointer"
+                                  >
+                                    Reassign &amp; Delete Zone
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setZoneToDelete(null)}
+                                    className="rounded-xl border border-slate-300 bg-white text-slate-700 px-3 py-1.5 text-xs font-bold hover:bg-slate-100 cursor-pointer"
+                                  >
+                                    Cancel
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  disabled={submitting}
+                                  onClick={() => handleDeleteFloorZone(sec, 'Main AC Hall')}
+                                  className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 text-xs font-bold transition-all cursor-pointer"
+                                >
+                                  Confirm Delete
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => setZoneToDelete(null)}
+                                  className="rounded-xl border border-slate-300 bg-white text-slate-700 px-3 py-1.5 text-xs font-bold hover:bg-slate-100 cursor-pointer"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="font-display text-sm font-bold text-slate-900">
+                                {sec}
+                              </span>
+                              <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-bold border ${
+                                tablesInZone.length > 0
+                                  ? 'bg-slate-100 text-slate-700 border-slate-200'
+                                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                              }`}>
+                                {tablesInZone.length} table{tablesInZone.length === 1 ? '' : 's'}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setZoneToRename(sec);
+                                  setZoneRenameInput(sec);
+                                }}
+                                className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer"
+                              >
+                                ✏️ Rename
+                              </button>
+                              {allSections.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setZoneToDelete(sec);
+                                    const fallback = otherSections[0] || 'Main AC Hall';
+                                    setZoneReassignTarget(fallback);
+                                  }}
+                                  className="rounded-lg border border-rose-200 px-2.5 py-1 text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors cursor-pointer"
+                                >
+                                  🗑️ Remove
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-slate-100 bg-slate-50 px-6 py-3.5 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsManageZonesModalOpen(false);
+                  setZoneToDelete(null);
+                  setZoneToRename(null);
+                }}
+                className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shadow-2xs"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>

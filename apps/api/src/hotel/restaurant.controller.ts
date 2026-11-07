@@ -1380,13 +1380,14 @@ export class RestaurantController {
 
       const res = await c.query(
         `update kot_orders
-         set aggregator_status = $1,
+         set property_id = $8,
+             aggregator_status = $1,
              status = $2,
              preparation_time_minutes = coalesce($3, preparation_time_minutes),
              rider_name = coalesce($4, rider_name),
              rider_phone = coalesce($5, rider_phone),
              rider_status = coalesce($6, rider_status),
-             prepared_at = (case when $1 = 'accepted' then now() else prepared_at end),
+             prepared_at = (case when $1 in ('accepted', 'food_ready') then coalesce(prepared_at, now()) else prepared_at end),
              served_at = (case when $1 = 'dispatched' then now() else served_at end),
              updated_at = now()
          where id = $7 and property_id = $8

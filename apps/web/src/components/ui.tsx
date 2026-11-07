@@ -293,3 +293,4 @@ export function EmptyState({
 }
 
 export { CustomDropdown, type DropdownOption, type CustomDropdownProps } from './dropdown';
+export { CustomDatePicker, type CustomDatePickerProps } from './date-picker';

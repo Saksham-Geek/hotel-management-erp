@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { btnCls, btnGhostCls, CustomDropdown, inputCls, StatCard } from '@/components/ui';
+import { btnCls, btnGhostCls, CustomDatePicker, CustomDropdown, inputCls, StatCard } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { saveChannelConnection, simulateOtaBooking, syncChannel } from './actions';
 
@@ -164,15 +164,15 @@ export function ChannelView({
               <input name="guestPhone" defaultValue="+91 98201 54321" className={`${inputCls} mt-1.5`} />
             </label>
 
-            <label className="block text-xs font-bold text-ink">
-              Check-In Date
-              <input name="checkIn" type="date" defaultValue={todayStr} required className={`${inputCls} mt-1.5`} />
-            </label>
+            <div>
+              <label className="block text-xs font-bold text-ink mb-1.5">Check-In Date</label>
+              <CustomDatePicker name="checkIn" defaultValue={todayStr} required aria-label="Check-In Date" />
+            </div>
 
-            <label className="block text-xs font-bold text-ink">
-              Check-Out Date
-              <input name="checkOut" type="date" defaultValue={tomorrowStr} required className={`${inputCls} mt-1.5`} />
-            </label>
+            <div>
+              <label className="block text-xs font-bold text-ink mb-1.5">Check-Out Date</label>
+              <CustomDatePicker name="checkOut" defaultValue={tomorrowStr} required aria-label="Check-Out Date" />
+            </div>
 
             <div>
               <label className="block text-xs font-bold text-ink mb-1.5">Preferred Room Category</label>

@@ -28,8 +28,8 @@ This reference document contains all demonstration accounts, testing sandboxes, 
 
 | Organization Code | Role | Name | Email | Password | Primary Interface |
 |---|---|---|---|---|---|
-| `grand-azure` | **Property Owner & Director** | Saksham Pethkar | `owner@grandazure.test` | `ChangeMe-123!` | [`/income`](http://localhost:3000/income), [`/dashboard`](http://localhost:3000/dashboard), [`/restaurant`](http://localhost:3000/restaurant) |
-| `grand-azure` | **General Manager (GM)** | Rohan Iyer | `manager@grandazure.test` | `ChangeMe-123!` | [`/dashboard`](http://localhost:3000/dashboard), [`/staff`](http://localhost:3000/staff), [`/restaurant`](http://localhost:3000/restaurant) |
+| `grand-azure` | **Property Owner & Director** | Saksham Pethkar | `owner@grandazure.com` (or `.test`) | `ChangeMe-123!` | [`/income`](http://localhost:3000/income), [`/dashboard`](http://localhost:3000/dashboard), [`/restaurant`](http://localhost:3000/restaurant) |
+| `grand-azure` | **General Manager (GM)** | Rohan Iyer | `manager@grandazure.com` (or `.test`) | `ChangeMe-123!` | [`/dashboard`](http://localhost:3000/dashboard), [`/staff`](http://localhost:3000/staff), [`/restaurant`](http://localhost:3000/restaurant) |
 | `grand-azure` | **Front Desk Supervisor** | Aarav Mehta | `frontdesk@grandazure.com` | `ChangeMe-123!` | [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing), [`/restaurant`](http://localhost:3000/restaurant), [`/keycards`](http://localhost:3000/keycards) |
 | `grand-azure` | **Front Desk (Alternate)** | Meera Nair | `desk@grandazure.test` | `ChangeMe-123!` | [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing), [`/restaurant`](http://localhost:3000/restaurant), [`/keycards`](http://localhost:3000/keycards) |
 | `grand-azure` | **Front Desk (Night Audit)** | Kavita Deshmukh | `reception.night@grandazure.com` | `ChangeMe-123!` | [`/night-audit`](http://localhost:3000/night-audit), [`/tape-chart`](http://localhost:3000/tape-chart), [`/billing`](http://localhost:3000/billing) |

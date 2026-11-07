@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CustomDropdown } from '@/components/dropdown';
 import { createPosTerminalAction, pingPosTerminalAction } from './actions';
 
 interface PosTerminal {
@@ -222,35 +223,39 @@ export function PosTerminalsModal({
                   />
                 </label>
 
-                <label className="block text-xs font-medium text-slate-800">
-                  Hardware Provider
-                  <select
+                <div>
+                  <label className="block text-xs font-medium text-slate-800 mb-1">Hardware Provider</label>
+                  <CustomDropdown
                     name="provider"
                     defaultValue="pine_labs"
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 shadow-2xs focus:border-indigo-600 focus:outline-hidden"
-                  >
-                    <option value="pine_labs">Pine Labs Plutus</option>
-                    <option value="paytm_edc">Paytm Smart POS</option>
-                    <option value="razorpay_pos">Razorpay POS (EzeTap)</option>
-                    <option value="innoviti">Innoviti uniPAY</option>
-                    <option value="ingenico_lan">Ingenico Lane 3000</option>
-                    <option value="generic_serial">Generic USB / Web Serial</option>
-                  </select>
-                </label>
+                    size="sm"
+                    options={[
+                      { value: 'pine_labs', label: 'Pine Labs Plutus' },
+                      { value: 'paytm_edc', label: 'Paytm Smart POS' },
+                      { value: 'razorpay_pos', label: 'Razorpay POS (EzeTap)' },
+                      { value: 'innoviti', label: 'Innoviti uniPAY' },
+                      { value: 'ingenico_lan', label: 'Ingenico Lane 3000' },
+                      { value: 'generic_serial', label: 'Generic USB / Web Serial' },
+                    ]}
+                    aria-label="Hardware Provider"
+                  />
+                </div>
 
-                <label className="block text-xs font-medium text-slate-800">
-                  Connection Mode
-                  <select
+                <div>
+                  <label className="block text-xs font-medium text-slate-800 mb-1">Connection Mode</label>
+                  <CustomDropdown
                     name="connectionType"
                     defaultValue="cloud_lan"
-                    className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 shadow-2xs focus:border-indigo-600 focus:outline-hidden"
-                  >
-                    <option value="cloud_lan">Cloud / LAN IP Push</option>
-                    <option value="local_ip">Local Static IP</option>
-                    <option value="web_serial">Direct USB Cable (Web Serial)</option>
-                    <option value="standalone">Standalone Manual Slip</option>
-                  </select>
-                </label>
+                    size="sm"
+                    options={[
+                      { value: 'cloud_lan', label: 'Cloud / LAN IP Push' },
+                      { value: 'local_ip', label: 'Local Static IP' },
+                      { value: 'web_serial', label: 'Direct USB Cable (Web Serial)' },
+                      { value: 'standalone', label: 'Standalone Manual Slip' },
+                    ]}
+                    aria-label="Connection Mode"
+                  />
+                </div>
 
                 <label className="block text-xs font-medium text-slate-800">
                   IP Address (Optional)

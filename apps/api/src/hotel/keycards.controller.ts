@@ -44,7 +44,9 @@ export class KeycardsController {
          join rooms r on r.id = k.room_id
          left join room_types rt on rt.id = r.room_type_id
          left join reservations res on res.id = k.issued_to_reservation_id
-         order by r.number asc, k.key_type asc`
+         where k.property_id = $1
+         order by r.number asc, k.key_type asc`,
+        [user.propertyId]
       );
       return res.rows;
     });
@@ -67,9 +69,9 @@ export class KeycardsController {
                issued_to_guest_name = null,
                notes = coalesce($1, notes),
                updated_at = now()
-           where id = $2
+           where id = $2 and property_id = $3
            returning id, key_number as "keyNumber", status`,
-          [input.notes ?? null, id]
+          [input.notes ?? null, id, user.propertyId]
         );
         if (!res.rows[0]) throw new NotFoundException('Key record not found');
         return res.rows[0];
@@ -78,15 +80,15 @@ export class KeycardsController {
       const res = await c.query(
         `update room_keys
          set status = $1,
-             issued_to_reservation_id = coalesce($2, issued_to_reservation_id),
-             issued_to_guest_name = coalesce($3, issued_to_guest_name),
+             issued_to_reservation_id = case when $1 = 'issued_to_guest' then coalesce($2, issued_to_reservation_id) else null end,
+             issued_to_guest_name = case when $1 = 'issued_to_guest' then coalesce($3, issued_to_guest_name) else null end,
              notes = coalesce($4, notes),
              issued_at = case when $1 = 'issued_to_guest' then now() else issued_at end,
-             returned_at = case when $1 = 'issued_to_guest' then null else returned_at end,
+             returned_at = case when $1 = 'in_slot' then now() else returned_at end,
              updated_at = now()
-         where id = $5
+         where id = $5 and property_id = $6
          returning id, key_number as "keyNumber", status`,
-        [input.status, input.issuedToReservationId ?? null, input.issuedToGuestName ?? null, input.notes ?? null, id]
+        [input.status, input.issuedToReservationId ?? null, input.issuedToGuestName ?? null, input.notes ?? null, id, user.propertyId]
       );
 
       if (!res.rows[0]) throw new NotFoundException('Key record not found');
@@ -114,8 +116,8 @@ export class KeycardsController {
              issued_at = now(),
              notes = $3,
              updated_at = now()
-         where id = $4`,
-        [cardUid, input.guestName, `Encoded via ${input.protocol.toUpperCase()}`, id]
+         where id = $4 and property_id = $5`,
+        [cardUid, input.guestName, `Encoded via ${input.protocol.toUpperCase()}`, id, user.propertyId]
       );
 
       return {

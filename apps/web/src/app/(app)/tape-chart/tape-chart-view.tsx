@@ -4,6 +4,7 @@ import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from 'r
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
+import { CustomDatePicker } from '@/components/date-picker';
 import { formatMoney } from '@/lib/format';
 import { getRoomTypeTheme } from '@/lib/room-types';
 
@@ -789,17 +790,17 @@ export function TapeChartView({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <label className="text-xs font-semibold text-slate-600 flex items-center gap-2">
-              Date:
-              <input
-                type="date"
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+              <span>Date:</span>
+              <CustomDatePicker
                 value={startDateStr}
-                onChange={(e) => {
-                  if (e.target.value) navigateDate(e.target.value, daysCount);
+                onChange={(val) => {
+                  if (val) navigateDate(val, daysCount);
                 }}
-                className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/5"
+                size="sm"
+                aria-label="Navigate date"
               />
-            </label>
+            </div>
 
             <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
               <span>View:</span>

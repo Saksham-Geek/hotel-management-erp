@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from 'react';
 import Link from 'next/link';
-import { Banner, btnCls, btnGhostCls, inputCls, selectCls } from '@/components/ui';
+import { Banner, btnCls, btnGhostCls, CustomDropdown, inputCls, selectCls } from '@/components/ui';
 import { onboardHotelAction, updateTenantPlanAction, updateTenantStatusAction } from './actions';
 
 export interface PlatformTenantDto {
@@ -524,16 +524,20 @@ export function PlatformAdminView({
                     <td className="px-4 py-3.5 text-right">
                       <div className="flex items-center justify-end gap-2">
                         {/* Plan Switcher */}
-                        <select
-                          value={t.planKey}
-                          onChange={(e) => handlePlanChange(t.id, e.target.value as any)}
-                          disabled={isPending}
-                          className="h-7 rounded-lg border border-slate-200 bg-white px-2 text-[11px] font-bold text-slate-700 focus:outline-none cursor-pointer"
-                        >
-                          <option value="starter">Starter</option>
-                          <option value="growth">Growth</option>
-                          <option value="enterprise">Enterprise</option>
-                        </select>
+                        <div className="w-28 text-left">
+                          <CustomDropdown
+                            value={t.planKey}
+                            onChange={(val) => handlePlanChange(t.id, val as any)}
+                            disabled={isPending}
+                            size="sm"
+                            options={[
+                              { value: 'starter', label: 'Starter' },
+                              { value: 'growth', label: 'Growth' },
+                              { value: 'enterprise', label: 'Enterprise' },
+                            ]}
+                            aria-label="Switch plan"
+                          />
+                        </div>
 
                         {/* Status Toggle */}
                         <button
@@ -706,19 +710,21 @@ export function PlatformAdminView({
                   />
                 </label>
 
-                <label className="block text-xs font-bold text-slate-700">
-                  Subscription Tier:
-                  <select
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">Subscription Tier:</label>
+                  <CustomDropdown
                     name="planKey"
                     value={newPlan}
-                    onChange={(e) => setNewPlan(e.target.value as any)}
-                    className={`${selectCls} mt-1`}
-                  >
-                    <option value="starter">Starter (₹1,999/mo) — Boutique/Homestay</option>
-                    <option value="growth">Growth (₹5,999/mo) — Mid-Scale &amp; Resorts</option>
-                    <option value="enterprise">Enterprise (₹19,999/mo) — Luxury &amp; Chains</option>
-                  </select>
-                </label>
+                    onChange={(val) => setNewPlan(val as any)}
+                    size="sm"
+                    options={[
+                      { value: 'starter', label: 'Starter (₹1,999/mo) — Boutique/Homestay' },
+                      { value: 'growth', label: 'Growth (₹5,999/mo) — Mid-Scale & Resorts' },
+                      { value: 'enterprise', label: 'Enterprise (₹19,999/mo) — Luxury & Chains' },
+                    ]}
+                    aria-label="Subscription Tier"
+                  />
+                </div>
               </div>
 
               <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3 space-y-2">

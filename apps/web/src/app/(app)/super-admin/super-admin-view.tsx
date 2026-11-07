@@ -6,6 +6,7 @@ import {
   btnCls,
   btnGhostCls,
   btnDangerCls,
+  CustomDropdown,
   inputCls,
   StatCard,
   Banner,
@@ -249,15 +250,18 @@ export function SuperAdminView({
               onChange={(e) => setSearchQuery(e.target.value)}
               className="min-h-[42px] w-64 rounded-xl border border-line bg-surface px-3.5 text-sm text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-teal-500/20"
             />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as any)}
-              className="min-h-[42px] rounded-xl border border-line bg-surface px-3 text-sm font-semibold text-ink focus:outline-none"
-            >
-              <option value="all">All Statuses</option>
-              <option value="active">Active Only</option>
-              <option value="suspended">Suspended Only</option>
-            </select>
+            <div className="w-40">
+              <CustomDropdown
+                value={statusFilter}
+                onChange={(val) => setStatusFilter(val as any)}
+                options={[
+                  { value: 'all', label: 'All Statuses' },
+                  { value: 'active', label: 'Active Only' },
+                  { value: 'suspended', label: 'Suspended Only' },
+                ]}
+                aria-label="Filter status"
+              />
+            </div>
           </div>
         )}
       </div>
@@ -656,24 +660,36 @@ export function SuperAdminView({
               </label>
 
               <div className="grid grid-cols-2 gap-3">
-                <label className="block text-xs font-bold text-ink">
-                  Subscription Tier Edition
-                  <select name="planKey" defaultValue="growth" className={`${inputCls} mt-1 font-semibold`}>
-                    <option value="starter">🌱 Starter (Boutique &amp; Small)</option>
-                    <option value="growth">⚡ Growth Edition (Mid-Scale &amp; Resort)</option>
-                    <option value="enterprise">👑 Taj Chain Edition (Luxury &amp; Multi-Property)</option>
-                  </select>
-                </label>
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">Subscription Tier Edition</label>
+                  <CustomDropdown
+                    name="planKey"
+                    defaultValue="growth"
+                    size="sm"
+                    options={[
+                      { value: 'starter', label: '🌱 Starter (Boutique & Small)' },
+                      { value: 'growth', label: '⚡ Growth Edition (Mid-Scale & Resort)' },
+                      { value: 'enterprise', label: '👑 Taj Chain Edition (Luxury & Multi-Property)' },
+                    ]}
+                    aria-label="Subscription Tier Edition"
+                  />
+                </div>
 
-                <label className="block text-xs font-bold text-ink">
-                  Base Currency
-                  <select name="currency" defaultValue="INR" className={`${inputCls} mt-1 font-semibold`}>
-                    <option value="INR">INR (₹ - Indian Rupee)</option>
-                    <option value="USD">USD ($ - US Dollar)</option>
-                    <option value="EUR">EUR (€ - Euro)</option>
-                    <option value="AED">AED (د.إ - UAE Dirham)</option>
-                  </select>
-                </label>
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">Base Currency</label>
+                  <CustomDropdown
+                    name="currency"
+                    defaultValue="INR"
+                    size="sm"
+                    options={[
+                      { value: 'INR', label: 'INR (₹ - Indian Rupee)' },
+                      { value: 'USD', label: 'USD ($ - US Dollar)' },
+                      { value: 'EUR', label: 'EUR (€ - Euro)' },
+                      { value: 'AED', label: 'AED (د.إ - UAE Dirham)' },
+                    ]}
+                    aria-label="Base Currency"
+                  />
+                </div>
               </div>
 
               {/* Initial General Manager Assignment */}
@@ -801,40 +817,47 @@ export function SuperAdminView({
             <form action={assignStaff} className="mt-4 space-y-3.5">
               <input type="hidden" name="propertyId" value={assignModalProperty.id} />
 
-              <label className="block text-xs font-bold text-ink">
-                Role at {assignModalProperty.name}
-                <select name="role" defaultValue="manager" className={`${inputCls} mt-1 font-semibold`}>
-                  <option value="manager">👔 General Manager (Full Property Control)</option>
-                  <option value="frontdesk">🛎️ Front Desk Officer (Check-In &amp; Folios)</option>
-                  <option value="housekeeping">🧹 Housekeeping Supervisor (Room Cleaning)</option>
-                  <option value="owner">👑 Co-Owner / Director</option>
-                </select>
-              </label>
+              <div>
+                <label className="block text-xs font-bold text-ink mb-1">
+                  Role at {assignModalProperty.name}
+                </label>
+                <CustomDropdown
+                  name="role"
+                  defaultValue="manager"
+                  size="sm"
+                  options={[
+                    { value: 'manager', label: '👔 General Manager (Full Property Control)' },
+                    { value: 'frontdesk', label: '🛎️ Front Desk Officer (Check-In & Folios)' },
+                    { value: 'housekeeping', label: '🧹 Housekeeping Supervisor (Room Cleaning)' },
+                    { value: 'owner', label: '👑 Co-Owner / Director' },
+                  ]}
+                  aria-label={`Role at ${assignModalProperty.name}`}
+                />
+              </div>
 
               {assignMode === 'existing' ? (
-                <label className="block text-xs font-bold text-ink">
-                  Select Existing Team Member
-                  <select
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">
+                    Select Existing Team Member
+                  </label>
+                  <CustomDropdown
                     name="userId"
                     required
-                    onChange={(e) => {
-                      const sel = users.find((u) => u.id === e.target.value);
+                    placeholder="Choose a team member..."
+                    onChange={(val) => {
+                      const sel = users.find((u) => u.id === val);
                       const emailInput = document.getElementById('assign-email-input') as HTMLInputElement;
                       if (emailInput && sel) emailInput.value = sel.email;
                     }}
-                    className={`${inputCls} mt-1 font-semibold`}
-                  >
-                    <option value="" disabled selected>
-                      Choose a team member...
-                    </option>
-                    {users.map((u) => (
-                      <option key={u.id} value={u.id}>
-                        {u.fullName} ({u.email}) · {u.baseRole}
-                      </option>
-                    ))}
-                  </select>
+                    options={users.map((u) => ({
+                      value: u.id,
+                      label: `${u.fullName} (${u.email}) · ${u.baseRole}`,
+                      badge: u.baseRole,
+                    }))}
+                    aria-label="Select Existing Team Member"
+                  />
                   <input type="hidden" id="assign-email-input" name="email" value="" />
-                </label>
+                </div>
               ) : (
                 <>
                   <label className="block text-xs font-bold text-ink">

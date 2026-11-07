@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { CustomDropdown } from '@/components/dropdown';
 import { initiatePosChargeAction, pingPosTerminalAction } from './actions';
 import { PosSlipModal } from './pos-slip-modal';
 
@@ -233,21 +234,21 @@ export function PosMachineCard({
         <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
           Select EDC Machine Counter
         </label>
-        <select
+        <CustomDropdown
           value={selectedTerminalId}
-          onChange={(e) => {
-            setSelectedTerminalId(e.target.value);
+          onChange={(val) => {
+            setSelectedTerminalId(val);
             setPingStatus(null);
           }}
           disabled={isProcessing}
-          className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 shadow-2xs focus:border-indigo-600 focus:outline-hidden"
-        >
-          {terminals.map((t) => (
-            <option key={t.id} value={t.id}>
-              {t.name} ({t.terminalId}) — {t.connectionType === 'web_serial' ? 'USB Serial' : 'Cloud / LAN'}
-            </option>
-          ))}
-        </select>
+          size="sm"
+          options={terminals.map((t) => ({
+            value: t.id,
+            label: `${t.name} (${t.terminalId}) — ${t.connectionType === 'web_serial' ? 'USB Serial' : 'Cloud / LAN'}`,
+            badge: t.connectionType === 'web_serial' ? 'USB' : 'LAN',
+          }))}
+          aria-label="Select EDC Machine Counter"
+        />
       </div>
 
       {/* Active Machine Specs Card */}

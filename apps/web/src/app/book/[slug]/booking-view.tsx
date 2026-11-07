@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { CustomDropdown } from '@/components/dropdown';
+import { CustomDatePicker } from '@/components/date-picker';
 import { createDirectBookingAction } from './actions';
 
 function money(amount: number | null | undefined, currency = 'INR') {
@@ -239,19 +241,20 @@ export function BookingView({ profile }: { profile: HotelBookingProfile }) {
               {/* Property Selector for Multi-Hotel Chains */}
               {profile.properties.length > 1 && (
                 <div className="flex items-center gap-2">
-                  <label htmlFor="property-picker" className="text-xs text-slate-400">Select Property:</label>
-                  <select
-                    id="property-picker"
-                    value={selectedPropertyId}
-                    onChange={(e) => setSelectedPropertyId(e.target.value)}
-                    className="rounded-xl border border-white/20 bg-slate-900 px-3 py-2 text-xs font-semibold text-white shadow-sm"
-                  >
-                    {profile.properties.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
+                  <span className="text-xs text-slate-400">Select Property:</span>
+                  <div className="w-56">
+                    <CustomDropdown
+                      id="property-picker"
+                      value={selectedPropertyId}
+                      onChange={(val) => setSelectedPropertyId(val)}
+                      size="sm"
+                      options={profile.properties.map((p) => ({
+                        value: p.id,
+                        label: p.name,
+                      }))}
+                      aria-label="Select Property"
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -348,29 +351,27 @@ export function BookingView({ profile }: { profile: HotelBookingProfile }) {
                 {/* Stay Dates */}
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label htmlFor="check-in-date" className="block text-xs font-semibold text-slate-300">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                       Check-in Date
                     </label>
-                    <input
+                    <CustomDatePicker
                       id="check-in-date"
-                      type="date"
                       required
                       value={checkIn}
-                      onChange={(e) => setCheckIn(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-slate-900 px-3 py-2 text-xs font-semibold text-white shadow-xs focus:border-amber-400 focus:outline-none"
+                      onChange={(val) => setCheckIn(val)}
+                      aria-label="Check-in Date"
                     />
                   </div>
                   <div>
-                    <label htmlFor="check-out-date" className="block text-xs font-semibold text-slate-300">
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
                       Check-out Date
                     </label>
-                    <input
+                    <CustomDatePicker
                       id="check-out-date"
-                      type="date"
                       required
                       value={checkOut}
-                      onChange={(e) => setCheckOut(e.target.value)}
-                      className="mt-1.5 w-full rounded-xl border border-white/15 bg-slate-900 px-3 py-2 text-xs font-semibold text-white shadow-xs focus:border-amber-400 focus:outline-none"
+                      onChange={(val) => setCheckOut(val)}
+                      aria-label="Check-out Date"
                     />
                   </div>
                 </div>

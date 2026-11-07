@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { CustomDropdown } from '@/components/dropdown';
+import { CustomDatePicker } from '@/components/date-picker';
 import { formatDate, formatStayDates, formatMoney } from '@/lib/format';
 import {
   sendReviewRequest,
@@ -798,12 +799,12 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-900">Anniversary Date</label>
-                  <input
+                  <label className="block font-bold text-slate-900 mb-1">Anniversary Date</label>
+                  <CustomDatePicker
                     name="anniversary"
-                    type="date"
                     defaultValue={editingGuest.anniversaryDate || ''}
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-3 font-medium text-slate-900 focus:border-teal-500 focus:outline-none"
+                    size="sm"
+                    aria-label="Anniversary Date"
                   />
                 </div>
               </div>

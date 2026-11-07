@@ -86,11 +86,13 @@ function GuestSearch({
   placeholder,
   onSelect,
   excludeIds = [],
+  inputId,
 }: {
   label: string;
   placeholder: string;
   onSelect: (guest: Guest) => void;
   excludeIds?: string[];
+  inputId?: string;
 }) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<Guest[]>([]);
@@ -133,6 +135,7 @@ function GuestSearch({
         {label}
 
         <input
+          id={inputId}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={placeholder}
@@ -219,6 +222,7 @@ export function GuestPicker() {
         </div>
 
         <GuestSearch
+          inputId="reservation-guest-search-input"
           label="Find returning guest"
           placeholder="Enter phone number, name or email…"
           onSelect={setLead}

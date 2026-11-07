@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Banner, btnCls, btnGhostCls, EmptyState, inputCls, StatCard } from '@/components/ui';
+import { Banner, btnCls, btnGhostCls, CustomDatePicker, EmptyState, inputCls, StatCard } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { formatDate } from '@/lib/format';
 import { createFormC, submitFormC } from './actions';
@@ -391,25 +391,26 @@ export function ComplianceView({
                 </button>
               </div>
 
-              {/* Exact Date Picker Input */}
+              {/* Custom Date Picker */}
               <div className="flex items-center gap-2">
                 <label htmlFor="police-beat-date-picker" className="text-xs font-semibold text-slate-500 whitespace-nowrap">
                   Select Date:
                 </label>
-                <input
-                  id="police-beat-date-picker"
-                  type="date"
-                  value={dateInput}
-                  onChange={(e) => setDateInput(e.target.value)}
-                  className="rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-[#0c1222] px-3 py-1.5 text-xs font-semibold text-slate-900 dark:text-white shadow-2xs"
-                />
-                <button
-                  type="button"
-                  onClick={() => handleDateChange(dateInput)}
-                  className="rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-950 text-white px-3.5 py-1.5 text-xs font-bold shadow-2xs cursor-pointer transition-all"
-                >
-                  Go
-                </button>
+                <div className="w-48">
+                  <CustomDatePicker
+                    id="police-beat-date-picker"
+                    value={dateInput}
+                    onChange={(val) => {
+                      if (val) {
+                        setDateInput(val);
+                        handleDateChange(val);
+                      }
+                    }}
+                    size="sm"
+                    align="right"
+                    aria-label="Select police beat report date"
+                  />
+                </div>
               </div>
             </div>
           </div>

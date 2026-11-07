@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -146,10 +146,30 @@ export function SettingsView({
   const [newZoneName, setNewZoneName] = useState('');
   const [renameFrom, setRenameFrom] = useState('');
   const [renameTo, setRenameTo] = useState('');
+  const [zoneToDelete, setZoneToDelete] = useState<string | null>(null);
+  const [deleteReassignTarget, setDeleteReassignTarget] = useState<string>('Main AC Hall');
+  const [zoneToDeleteDropdown, setZoneToDeleteDropdown] = useState<string>('');
+  const [submitting, setSubmitting] = useState<boolean>(false);
 
   // Selected outlet for table creation
   const defaultOutletId = outlets[0]?.id || '';
   const [selectedOutletId, setSelectedOutletId] = useState(defaultOutletId);
+
+  // Sync custom and removed floor zones from localStorage
+  useEffect(() => {
+    try {
+      const czKey = `aura_dine_custom_zones_${defaultOutletId || 'default'}`;
+      const rzKey = `aura_dine_removed_zones_${defaultOutletId || 'default'}`;
+      const savedCustom: string[] = JSON.parse(localStorage.getItem(czKey) || '[]');
+      const savedRemoved: string[] = JSON.parse(localStorage.getItem(rzKey) || '[]');
+      setZones((prev) => {
+        const combined = Array.from(new Set([...prev, ...savedCustom])).filter(
+          (z) => !savedRemoved.includes(z) || tables.some((t) => (t.section || 'Main AC Hall') === z),
+        );
+        return combined.length > 0 ? combined : ['Main AC Hall'];
+      });
+    } catch {}
+  }, [defaultOutletId, tables]);
 
   const isOwner = role === 'owner';
   const currency = property.currency || 'INR';
@@ -170,6 +190,14 @@ export function SettingsView({
     }
     setZones((prev) => [...prev, trimmed]);
     setNewZoneName('');
+    try {
+      const czKey = `aura_dine_custom_zones_${defaultOutletId || 'default'}`;
+      const rzKey = `aura_dine_removed_zones_${defaultOutletId || 'default'}`;
+      const existingCustom: string[] = JSON.parse(localStorage.getItem(czKey) || '[]');
+      const existingRemoved: string[] = JSON.parse(localStorage.getItem(rzKey) || '[]');
+      localStorage.setItem(czKey, JSON.stringify(Array.from(new Set([...existingCustom, trimmed]))));
+      localStorage.setItem(rzKey, JSON.stringify(existingRemoved.filter((z) => z !== trimmed)));
+    } catch {}
     setMsg({ type: 'ok', text: `Added new floor zone: "${trimmed}". You can now assign tables to it.` });
   };
 
@@ -186,6 +214,14 @@ export function SettingsView({
         });
       }
       setZones((prev) => prev.map((z) => (z === renameFrom ? targetTo : z)));
+      try {
+        const czKey = `aura_dine_custom_zones_${defaultOutletId || 'default'}`;
+        const existingCustom: string[] = JSON.parse(localStorage.getItem(czKey) || '[]');
+        localStorage.setItem(
+          czKey,
+          JSON.stringify(existingCustom.map((z) => (z === renameFrom ? targetTo : z))),
+        );
+      } catch {}
       setRenameFrom('');
       setRenameTo('');
       setMsg({
@@ -198,17 +234,50 @@ export function SettingsView({
     }
   };
 
-  const handleDeleteZone = (zoneToDelete: string) => {
-    const assignedTables = tables.filter((t) => (t.section || 'Main AC Hall') === zoneToDelete);
-    if (assignedTables.length > 0) {
+  const executeDeleteZone = async (targetZone: string, reassignTo: string) => {
+    if (!targetZone) return;
+    setSubmitting(true);
+    try {
+      const tablesInZone = tables.filter((t) => (t.section || 'Main AC Hall') === targetZone);
+      const remainingZones = zones.filter((z) => z !== targetZone);
+      const destination = reassignTo || remainingZones[0] || 'Main AC Hall';
+
+      if (tablesInZone.length > 0) {
+        for (const t of tablesInZone) {
+          await updateRestaurantTableAction(t.id, {
+            tableNumber: t.tableNumber,
+            capacity: t.capacity,
+            section: destination,
+          });
+        }
+      }
+
+      setZones(remainingZones);
+
+      try {
+        const czKey = `aura_dine_custom_zones_${defaultOutletId || 'default'}`;
+        const rzKey = `aura_dine_removed_zones_${defaultOutletId || 'default'}`;
+        const existingCustom: string[] = JSON.parse(localStorage.getItem(czKey) || '[]');
+        const existingRemoved: string[] = JSON.parse(localStorage.getItem(rzKey) || '[]');
+        localStorage.setItem(czKey, JSON.stringify(existingCustom.filter((z) => z !== targetZone)));
+        localStorage.setItem(rzKey, JSON.stringify(Array.from(new Set([...existingRemoved, targetZone]))));
+      } catch {}
+
+      setZoneToDelete(null);
+      setZoneToDeleteDropdown('');
       setMsg({
-        type: 'error',
-        text: `Cannot delete zone "${zoneToDelete}": ${assignedTables.length} table(s) are currently assigned to it. Reassign them first.`,
+        type: 'ok',
+        text:
+          tablesInZone.length > 0
+            ? `Floor zone "${targetZone}" deleted and ${tablesInZone.length} table(s) moved to "${destination}".`
+            : `Floor zone "${targetZone}" deleted successfully.`,
       });
-      return;
+      router.refresh();
+    } catch (err: any) {
+      setMsg({ type: 'error', text: err?.message || 'Failed to delete floor zone.' });
+    } finally {
+      setSubmitting(false);
     }
-    setZones((prev) => prev.filter((z) => z !== zoneToDelete));
-    setMsg({ type: 'ok', text: `Floor zone "${zoneToDelete}" removed successfully.` });
   };
 
   const tabsList = [
@@ -705,33 +774,134 @@ export function SettingsView({
               </div>
             </div>
 
-            {/* Live Active Zones Chips */}
+            {/* Live Active Zones Chips with Direct Delete Button */}
             <div className="flex flex-wrap items-center gap-2 pt-2">
               {zones.map((zone) => {
                 const count = tables.filter((t) => (t.section || 'Main AC Hall') === zone).length;
+                const isSelectedForDelete = zoneToDelete === zone;
                 return (
                   <div
                     key={zone}
-                    className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 shadow-2xs"
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-semibold shadow-2xs transition-all ${
+                      isSelectedForDelete
+                        ? 'border-rose-400 bg-rose-50 text-rose-950 ring-2 ring-rose-300'
+                        : 'border-emerald-200 bg-white text-slate-800 hover:border-slate-300'
+                    }`}
                   >
                     <span>{zone}</span>
                     <span className="rounded-full bg-emerald-100 px-1.5 py-0.2 text-[10px] font-bold text-emerald-800">
                       {count} {count === 1 ? 'table' : 'tables'}
                     </span>
-                    {count === 0 && (
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteZone(zone)}
-                        className="text-slate-400 hover:text-rose-600 transition-colors ml-1"
-                        title="Delete empty zone"
-                      >
-                        ✕
-                      </button>
-                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (isSelectedForDelete) {
+                          setZoneToDelete(null);
+                          setZoneToDeleteDropdown('');
+                        } else {
+                          setZoneToDelete(zone);
+                          setZoneToDeleteDropdown(zone);
+                          const other = zones.find((z) => z !== zone) || 'Main AC Hall';
+                          setDeleteReassignTarget(other);
+                        }
+                      }}
+                      className="flex h-4 w-4 items-center justify-center rounded-full text-slate-400 hover:bg-rose-200 hover:text-rose-800 transition-colors cursor-pointer"
+                      title={`Delete floor zone "${zone}"`}
+                    >
+                      ✕
+                    </button>
                   </div>
                 );
               })}
             </div>
+
+            {/* Interactive Confirmation & Reassignment Card for Deleting Zone */}
+            {zoneToDelete && (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50/95 p-4 space-y-3 animate-in fade-in-50 duration-200 shadow-xs">
+                <div className="flex items-center justify-between gap-2 border-b border-rose-200/60 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">🗑️</span>
+                    <h4 className="text-xs font-bold text-rose-950">
+                      Delete Floor Zone: &ldquo;{zoneToDelete}&rdquo;
+                    </h4>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setZoneToDelete(null);
+                      setZoneToDeleteDropdown('');
+                    }}
+                    className="text-xs text-rose-700 hover:text-rose-950 font-bold cursor-pointer"
+                  >
+                    Cancel ✕
+                  </button>
+                </div>
+
+                {tables.filter((t) => (t.section || 'Main AC Hall') === zoneToDelete).length > 0 ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-rose-900 leading-relaxed">
+                      This zone currently has <strong>{tables.filter((t) => (t.section || 'Main AC Hall') === zoneToDelete).length} table(s)</strong> assigned to it ({tables.filter((t) => (t.section || 'Main AC Hall') === zoneToDelete).map((t) => t.tableNumber).join(', ')}).
+                      Select where to reassign these tables:
+                    </p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <div className="w-56">
+                        <CustomDropdown
+                          size="sm"
+                          defaultValue={deleteReassignTarget}
+                          onChange={(val) => setDeleteReassignTarget(val)}
+                          options={zones.filter((z) => z !== zoneToDelete).map((z) => ({ value: z, label: z }))}
+                          aria-label="Reassign tables destination zone"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        disabled={submitting}
+                        onClick={() => executeDeleteZone(zoneToDelete, deleteReassignTarget)}
+                        className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                      >
+                        {submitting ? 'Reassigning & Deleting...' : 'Reassign Tables & Delete Zone'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setZoneToDelete(null);
+                          setZoneToDeleteDropdown('');
+                        }}
+                        className="rounded-xl border border-slate-300 bg-white text-slate-700 px-3 py-2 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-xs text-rose-900">
+                      This zone has <strong>0 tables</strong>. Confirm permanent deletion?
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        disabled={submitting}
+                        onClick={() => executeDeleteZone(zoneToDelete, '')}
+                        className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-4 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                      >
+                        {submitting ? 'Deleting...' : 'Confirm Delete'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setZoneToDelete(null);
+                          setZoneToDeleteDropdown('');
+                        }}
+                        className="rounded-xl border border-slate-300 bg-white text-slate-700 px-3 py-1.5 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Quick Rename Zone Across Tables */}
             <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-emerald-200/50">
@@ -762,6 +932,45 @@ export function SettingsView({
               >
                 Apply Rename
               </button>
+            </div>
+
+            {/* Dedicated Delete Zone Row */}
+            <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-emerald-200/50">
+              <span className="text-xs font-bold text-rose-800 flex items-center gap-1">
+                <span>🗑️</span> Delete Zone:
+              </span>
+              <div className="w-56">
+                <CustomDropdown
+                  placeholder="Select zone to delete..."
+                  size="sm"
+                  defaultValue={zoneToDeleteDropdown}
+                  onChange={(val) => {
+                    setZoneToDeleteDropdown(val);
+                    setZoneToDelete(val);
+                    const other = zones.find((z) => z !== val) || 'Main AC Hall';
+                    setDeleteReassignTarget(other);
+                  }}
+                  options={zones.map((z) => ({
+                    value: z,
+                    label: `${z} (${tables.filter((t) => (t.section || 'Main AC Hall') === z).length} tables)`,
+                  }))}
+                  aria-label="Select zone to delete"
+                />
+              </div>
+              {zoneToDeleteDropdown && (
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => {
+                    setZoneToDelete(zoneToDeleteDropdown);
+                    const other = zones.find((z) => z !== zoneToDeleteDropdown) || 'Main AC Hall';
+                    setDeleteReassignTarget(other);
+                  }}
+                  className="rounded-xl bg-rose-600 hover:bg-rose-700 text-white px-3.5 py-1.5 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                >
+                  Configure &amp; Delete
+                </button>
+              )}
             </div>
           </div>
 

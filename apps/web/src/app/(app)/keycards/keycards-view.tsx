@@ -703,13 +703,13 @@ export function KeycardsView({
       })()}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: HAND TO GUEST MODAL (BRASS KEY - ROOM-BOUND) */}
+      {/* MODAL 2: HAND TO GUEST MODAL (BRASS KEY - STRICTLY FILTERED BY ROOM) */}
       {/* ========================================================================= */}
       {handingKey && (() => {
+        // STRICT FILTER: Only show guests registered in THIS exact room number
         const roomStays = activeStays.filter(
           (s) => String(s.roomNumber).trim() === String(handingKey.roomNumber).trim()
         );
-        const stay = roomStays[0];
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
@@ -721,10 +721,10 @@ export function KeycardsView({
                   </span>
                   <div>
                     <h3 className="font-display text-base font-bold">
-                      Brass Key #{handingKey.roomNumber}
+                      Hand Brass Key #{handingKey.roomNumber} to Guest
                     </h3>
                     <p className="text-xs text-muted">
-                      {handingKey.roomTypeName || 'Room'} · Physical Brass Tag
+                      Select the guest registered in Room {handingKey.roomNumber} taking possession of the key tag.
                     </p>
                   </div>
                 </div>
@@ -737,82 +737,55 @@ export function KeycardsView({
                 </button>
               </div>
 
-              {stay ? (
-                /* Active In-House Guest(s) Registered for this Room */
-                <div className="my-5 space-y-4">
-                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-950/30 p-3.5 text-xs text-emerald-900 dark:text-emerald-200">
-                    <p className="font-bold flex items-center gap-1.5">
-                      <span>🛡️</span> Verified Room Occupant Binding
-                    </p>
-                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-0.5">
-                      For guest privacy and hotel security, keys can only be issued to guests registered in Room {handingKey.roomNumber}.
-                    </p>
+              {roomStays.length > 0 ? (
+                <div className="my-4 space-y-2.5">
+                  <div className="rounded-xl border border-emerald-500/30 bg-emerald-50/70 dark:bg-emerald-950/30 px-3 py-2 text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
+                    🛡️ Verified Room Occupants — Only guests staying in Room {handingKey.roomNumber}
                   </div>
 
-                  {/* Primary Guest Card */}
-                  <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] p-4 space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <span className="grid h-10 w-10 place-items-center rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 font-bold text-sm">
-                          👤
-                        </span>
-                        <div>
-                          <p className="text-sm font-bold text-ink">{stay.guestName}</p>
-                          <span className="inline-block rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold px-2 py-0.5 mt-0.5">
-                            Primary In-House Guest
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="rounded-xl bg-white dark:bg-[#080d19] border border-slate-200/80 dark:border-white/10 p-2.5 text-[11px] grid grid-cols-2 gap-2 text-slate-600 dark:text-slate-300">
-                      <div>
-                        <span className="block text-[9px] font-bold text-slate-400 uppercase">Check-In</span>
-                        <span className="font-semibold">{stay.checkInFormatted || new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
-                      </div>
-                      <div>
-                        <span className="block text-[9px] font-bold text-slate-400 uppercase">Check-Out</span>
-                        <span className="font-semibold">{stay.checkOutFormatted || new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateKeyStatus(handingKey.id, 'issued_to_guest', stay.guestName, stay.reservationId)}
-                      className="w-full rounded-xl bg-amber-400 py-2.5 text-xs font-black text-slate-950 hover:bg-amber-300 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2"
-                    >
-                      <span>Hand Key to {stay.guestName} →</span>
-                    </button>
-                  </div>
-
-                  {/* Registered Companions (if any) */}
-                  {Array.isArray(stay.guests) && stay.guests.filter((g) => g.name !== stay.guestName).length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                        Registered Companions in Room {handingKey.roomNumber}
-                      </p>
-                      {stay.guests
-                        .filter((g) => g.name !== stay.guestName)
-                        .map((comp) => (
-                          <div
-                            key={comp.id}
-                            className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 p-3 bg-white dark:bg-white/[0.02]"
-                          >
-                            <div>
-                              <p className="text-xs font-bold text-ink">{comp.name}</p>
-                              <p className="text-[10px] text-muted">Registered Room Companion</p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateKeyStatus(handingKey.id, 'issued_to_guest', comp.name, stay.reservationId)}
-                              className="rounded-lg bg-amber-400 px-3 py-1.5 text-[11px] font-bold text-slate-950 hover:bg-amber-300 transition-colors cursor-pointer"
-                            >
-                              Hand Key →
-                            </button>
+                  <div className="space-y-2">
+                    {roomStays.map((s) => (
+                      <div key={s.reservationId} className="space-y-2">
+                        {/* Primary Registered Guest */}
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateKeyStatus(handingKey.id, 'issued_to_guest', s.guestName, s.reservationId)}
+                          className="w-full text-left rounded-xl border border-slate-200 dark:border-white/10 p-3 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all cursor-pointer flex items-center justify-between group"
+                        >
+                          <div>
+                            <p className="text-xs font-bold text-ink">Room {s.roomNumber} — {s.guestName}</p>
+                            <p className="text-[10px] text-muted">
+                              Primary Guest · Checked in · {s.checkInFormatted || 'Today'} → {s.checkOutFormatted || 'Tomorrow'}
+                            </p>
                           </div>
-                        ))}
-                    </div>
-                  )}
+                          <span className="rounded-lg bg-amber-400 px-3 py-1.5 text-[11px] font-bold text-slate-950 group-hover:bg-amber-300 transition-colors shadow-xs">
+                            Hand Key →
+                          </span>
+                        </button>
+
+                        {/* Registered Companions in this room (if any) */}
+                        {Array.isArray(s.guests) &&
+                          s.guests
+                            .filter((g) => g.name !== s.guestName)
+                            .map((comp) => (
+                              <button
+                                key={comp.id}
+                                type="button"
+                                onClick={() => handleUpdateKeyStatus(handingKey.id, 'issued_to_guest', comp.name, s.reservationId)}
+                                className="w-full text-left rounded-xl border border-slate-200 dark:border-white/10 p-3 pl-5 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all cursor-pointer flex items-center justify-between group bg-slate-50/50 dark:bg-white/[0.02]"
+                              >
+                                <div>
+                                  <p className="text-xs font-bold text-ink">Room {s.roomNumber} — {comp.name}</p>
+                                  <p className="text-[10px] text-muted">Registered Room Companion</p>
+                                </div>
+                                <span className="rounded-lg bg-amber-400 px-3 py-1.5 text-[11px] font-bold text-slate-950 group-hover:bg-amber-300 transition-colors shadow-xs">
+                                  Hand Key →
+                                </span>
+                              </button>
+                            ))}
+                      </div>
+                    ))}
+                  </div>
 
                   {/* Housekeeping Option */}
                   <div className="pt-2 border-t border-slate-100 dark:border-white/10">
@@ -821,7 +794,7 @@ export function KeycardsView({
                       onClick={() => handleUpdateKeyStatus(handingKey.id, 'with_housekeeping', 'Housekeeping Staff')}
                       className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                     >
-                      <span>🧹 Hand to Housekeeping / Service Staff</span>
+                      <span>🧹 Hand to Housekeeping Staff</span>
                     </button>
                   </div>
                 </div>
@@ -834,19 +807,17 @@ export function KeycardsView({
                     </p>
                     <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
                       No active checked-in guest is registered for Room {handingKey.roomNumber}.
-                      For hotel security and guest safety, room keys <strong>cannot</strong> be handed to guests staying in other rooms.
+                      Keys cannot be handed to guests staying in other rooms.
                     </p>
                   </div>
 
                   <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-4 space-y-3">
-                    <p className="text-xs font-bold text-ink">Permitted Front Desk Operations:</p>
-
                     <button
                       type="button"
                       onClick={() => handleUpdateKeyStatus(handingKey.id, 'with_housekeeping', 'Housekeeping Staff')}
                       className="w-full rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 py-2.5 text-xs font-bold text-blue-900 dark:text-blue-200 hover:bg-blue-100 transition-colors cursor-pointer flex items-center justify-center gap-2"
                     >
-                      <span>🧹 Hand to Housekeeping / Cleaning Staff</span>
+                      <span>🧹 Hand to Housekeeping Staff</span>
                     </button>
 
                     <button
@@ -869,7 +840,7 @@ export function KeycardsView({
                   onClick={() => setHandingKey(null)}
                   className="w-full rounded-xl border border-slate-200 dark:border-white/10 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
                 >
-                  Close
+                  Cancel
                 </button>
               </div>
             </div>

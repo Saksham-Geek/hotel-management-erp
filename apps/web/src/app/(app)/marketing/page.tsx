@@ -4,7 +4,12 @@ import { FEATURES } from '@erp/shared';
 import { MarketingView } from './marketing-view';
 
 export default async function MarketingPage() {
-  const me = await getMe();
+  const [me, ent, data] = await Promise.all([
+    getMe(),
+    requireFeature(FEATURES.HOTEL_LOYALTY),
+    api<any>('/hotel/marketing/overview'),
+  ]);
+
   if (me.role !== 'owner' && me.role !== 'manager') {
     redirect(
       '/dashboard?error=' +
@@ -13,9 +18,6 @@ export default async function MarketingPage() {
         ),
     );
   }
-
-  await requireFeature(FEATURES.HOTEL_LOYALTY);
-  const data = await api<any>('/hotel/marketing/overview');
 
   return <MarketingView initialData={data} />;
 }

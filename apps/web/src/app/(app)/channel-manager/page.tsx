@@ -20,7 +20,18 @@ export default async function ChannelManagerPage({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
-  const me = await getMe();
+  const [me, { error, ok }, ent, channelData, roomTypes, logsData] = await Promise.all([
+    getMe(),
+    searchParams,
+    requireFeature(FEATURES.HOTEL_CHANNEL_MANAGER),
+    api<ChannelListResponse>('/hotel/channels').catch(() => ({
+      channels: [],
+      stats: { otaBookingsCount: 0, totalCommissionAmount: 0, totalOtaRevenue: 0 },
+    })),
+    api<RoomTypeItem[]>('/hotel/rooms/types').catch(() => []),
+    api<{ logs: OtaSyncLog[] }>('/hotel/channels/logs').catch(() => ({ logs: [] })),
+  ]);
+
   if (me.role !== 'owner' && me.role !== 'manager') {
     redirect(
       '/dashboard?error=' +
@@ -29,20 +40,6 @@ export default async function ChannelManagerPage({
         ),
     );
   }
-
-  const [{ error, ok }, ent] = await Promise.all([
-    searchParams,
-    requireFeature(FEATURES.HOTEL_CHANNEL_MANAGER),
-  ]);
-
-  const [channelData, roomTypes, logsData] = await Promise.all([
-    api<ChannelListResponse>('/hotel/channels').catch(() => ({
-      channels: [],
-      stats: { otaBookingsCount: 0, totalCommissionAmount: 0, totalOtaRevenue: 0 },
-    })),
-    api<RoomTypeItem[]>('/hotel/rooms/types').catch(() => []),
-    api<{ logs: OtaSyncLog[] }>('/hotel/channels/logs').catch(() => ({ logs: [] })),
-  ]);
 
   return (
     <>

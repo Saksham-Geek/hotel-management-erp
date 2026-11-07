@@ -20,7 +20,19 @@ export default async function BillingPage({
 }: {
   searchParams: Promise<{ reservationId?: string; error?: string; ok?: string }>;
 }) {
-  const me = await getMe();
+  const resolvedParams = await searchParams;
+  const { reservationId, error, ok } = resolvedParams;
+
+  const [me, ent, upiSettings, reservations, folioData] = await Promise.all([
+    getMe(),
+    requireFeature(FEATURES.HOTEL_BILLING),
+    api<{ upiId: string; upiMerchantName: string; propertyName: string; isOwner: boolean }>('/hotel/upi-settings').catch(() => null),
+    api<ReservationQuickPick[]>('/hotel/reservations?status=checked_in').catch(() => []),
+    reservationId
+      ? api<FolioData>(`/hotel/folios/reservation/${reservationId}`).catch(() => null)
+      : Promise.resolve(null),
+  ]);
+
   if (me.role === 'housekeeping') {
     redirect(
       '/housekeeping?error=' +
@@ -30,23 +42,6 @@ export default async function BillingPage({
     );
   }
 
-  const [{ reservationId, error, ok }, ent, upiSettings] = await Promise.all([
-    searchParams,
-    requireFeature(FEATURES.HOTEL_BILLING),
-    api<{ upiId: string; upiMerchantName: string; propertyName: string; isOwner: boolean }>('/hotel/upi-settings').catch(() => null),
-  ]);
-
-  let folioData: FolioData | null = null;
-  if (reservationId) {
-    try {
-      folioData = await api<FolioData>(`/hotel/folios/reservation/${reservationId}`);
-    } catch {
-      folioData = null;
-    }
-  }
-
-  // Fetch active reservations for the quick-picker dropdown
-  const reservations = (await api<ReservationQuickPick[]>('/hotel/reservations').catch(() => [])) ?? [];
   const currency = me.property?.currency ?? 'INR';
 
   return (

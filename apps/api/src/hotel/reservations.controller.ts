@@ -37,9 +37,9 @@ export class ReservationsController {
            join rooms ro on ro.id = rs.room_id
            join guests g on g.id = rs.guest_id
            join parties p on p.id = g.party_id
-           where ($1::text is null or rs.status = $1)
+           where rs.property_id = $2 and ($1::text is null or rs.status = $1)
            order by rs.check_in desc, rs.created_at desc limit 200`,
-          [status ?? null],
+          [status ?? null, user.propertyId],
         )
       ).rows,
     );

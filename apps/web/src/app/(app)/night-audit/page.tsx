@@ -36,22 +36,10 @@ export default async function NightAuditPage({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
-  const me = await getMe();
-  if (me.role !== 'owner' && me.role !== 'manager') {
-    redirect(
-      '/dashboard?error=' +
-        encodeURIComponent(
-          'Access Restricted: Night Audit & Day Close is restricted to General Managers and Property Owners.',
-        ),
-    );
-  }
-
-  const [{ error, ok }, ent] = await Promise.all([
+  const [me, { error, ok }, ent, status, history] = await Promise.all([
+    getMe(),
     searchParams,
     requireFeature(FEATURES.HOTEL_NIGHT_AUDIT),
-  ]);
-
-  const [status, history] = await Promise.all([
     api<NightAuditStatus>('/hotel/night-audit/status').catch(() => ({
       currentBusinessDate: new Date().toISOString().slice(0, 10),
       isAuditInProgress: false,
@@ -64,6 +52,15 @@ export default async function NightAuditPage({
     })),
     api<NightAuditLog[]>('/hotel/night-audit/history').catch(() => []),
   ]);
+
+  if (me.role !== 'owner' && me.role !== 'manager') {
+    redirect(
+      '/dashboard?error=' +
+        encodeURIComponent(
+          'Access Restricted: Night Audit & Day Close is restricted to General Managers and Property Owners.',
+        ),
+    );
+  }
 
   const currency = me.property?.currency ?? 'INR';
 

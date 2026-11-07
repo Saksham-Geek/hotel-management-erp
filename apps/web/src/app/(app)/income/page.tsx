@@ -8,7 +8,7 @@ export default async function IncomePage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const me = await getMe();
+  const [me, sp] = await Promise.all([getMe(), searchParams]);
 
   // Strict Role-Based Access Control: Strictly restricted to Property Owners
   if (me.role !== 'owner') {
@@ -20,7 +20,6 @@ export default async function IncomePage({
     );
   }
 
-  const sp = await searchParams;
   const period = typeof sp.period === 'string' ? sp.period : 'monthly';
   const startDate = typeof sp.startDate === 'string' ? sp.startDate : '';
   const endDate = typeof sp.endDate === 'string' ? sp.endDate : '';

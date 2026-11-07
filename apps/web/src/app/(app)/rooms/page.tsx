@@ -5,8 +5,13 @@ import { api, getMe, requireFeature } from '@/lib/api';
 import { RoomInventory, type RoomRecord, type RoomTypeRecord } from './room-inventory';
 
 export default async function RoomsPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
-  const [{ error, ok }, ent, me] = await Promise.all([searchParams, requireFeature(FEATURES.HOTEL_ROOMS), getMe()]);
-  const [rooms, types] = await Promise.all([api<RoomRecord[]>('/hotel/rooms'), api<RoomTypeRecord[]>('/hotel/room-types')]);
+  const [{ error, ok }, ent, me, rooms, types] = await Promise.all([
+    searchParams,
+    requireFeature(FEATURES.HOTEL_ROOMS),
+    getMe(),
+    api<RoomRecord[]>('/hotel/rooms'),
+    api<RoomTypeRecord[]>('/hotel/room-types'),
+  ]);
   const canManage = me.role === 'owner' || me.role === 'manager';
   const ready = rooms.filter((room) => room.status === 'available').length;
   const occupied = rooms.filter((room) => room.status === 'occupied').length;

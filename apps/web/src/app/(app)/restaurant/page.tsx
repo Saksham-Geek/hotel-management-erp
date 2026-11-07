@@ -11,7 +11,17 @@ import {
 } from './restaurant-pos-view';
 
 export default async function RestaurantPage() {
-  const me = await getMe();
+  const [me, ent, outlets, tables, categories, kots, reservations, activeShift] = await Promise.all([
+    getMe(),
+    requireFeature(FEATURES.HOTEL_RESTAURANT_POS),
+    api<OutletDto[]>('/hotel/restaurant/outlets').catch(() => []),
+    api<TableDto[]>('/hotel/restaurant/tables').catch(() => []),
+    api<MenuCategoryDto[]>('/hotel/restaurant/menu').catch(() => []),
+    api<KotOrderDto[]>('/hotel/restaurant/kots').catch(() => []),
+    api<any[]>('/hotel/reservations?status=checked_in').catch(() => []),
+    api<any>('/hotel/restaurant/shifts/active').catch(() => null),
+  ]);
+
   if (me.role === 'housekeeping') {
     redirect(
       '/housekeeping?error=' +
@@ -21,19 +31,7 @@ export default async function RestaurantPage() {
     );
   }
 
-  await requireFeature(FEATURES.HOTEL_RESTAURANT_POS);
-
-  const [outlets, tables, categories, kots, reservations, activeShift] = await Promise.all([
-    api<OutletDto[]>('/hotel/restaurant/outlets').catch(() => []),
-    api<TableDto[]>('/hotel/restaurant/tables').catch(() => []),
-    api<MenuCategoryDto[]>('/hotel/restaurant/menu').catch(() => []),
-    api<KotOrderDto[]>('/hotel/restaurant/kots').catch(() => []),
-    api<any[]>('/hotel/reservations').catch(() => []),
-    api<any>('/hotel/restaurant/shifts/active').catch(() => null),
-  ]);
-
   const checkedInRooms: CheckedInRoomDto[] = reservations
-    .filter((r) => r.status === 'confirmed' || r.status === 'checked_in')
     .map((r) => ({
       id: r.id,
       number: r.roomNumber || '101',

@@ -7,7 +7,11 @@ export default async function SuperAdminPage({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
-  const [{ error, ok }, me] = await Promise.all([searchParams, getMe()]);
+  const [{ error, ok }, me, overview] = await Promise.all([
+    searchParams,
+    getMe(),
+    api<SuperAdminOverviewDto>('/super-admin/overview'),
+  ]);
 
   if (me.role !== 'owner') {
     redirect(
@@ -15,8 +19,6 @@ export default async function SuperAdminPage({
         encodeURIComponent('Access denied: Super Admin console is restricted to organization owners and directors.'),
     );
   }
-
-  const overview = await api<SuperAdminOverviewDto>('/super-admin/overview');
 
   return <SuperAdminView data={overview} error={error} ok={ok} />;
 }

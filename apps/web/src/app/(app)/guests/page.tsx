@@ -7,7 +7,13 @@ import { saveGuest } from './actions';
 import { GuestDirectory, type GuestProfile } from './guest-directory';
 
 export default async function GuestsPage({ searchParams }: { searchParams: Promise<{ error?: string; ok?: string }> }) {
-  const me = await getMe();
+  const [me, { error, ok }, ent, guests] = await Promise.all([
+    getMe(),
+    searchParams,
+    requireFeature(FEATURES.HOTEL_RESERVATIONS),
+    api<GuestProfile[]>('/hotel/guests'),
+  ]);
+
   if (me.role === 'housekeeping') {
     redirect(
       '/housekeeping?error=' +
@@ -16,12 +22,6 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
         ),
     );
   }
-
-  const [{ error, ok }, ent, guests] = await Promise.all([
-    searchParams,
-    requireFeature(FEATURES.HOTEL_RESERVATIONS),
-    api<GuestProfile[]>('/hotel/guests'),
-  ]);
 
   return (
     <>

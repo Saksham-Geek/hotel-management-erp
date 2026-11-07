@@ -25,17 +25,17 @@ export default async function Dashboard({
 }: {
   searchParams?: Promise<{ error?: string; ok?: string }>;
 }) {
-  const me = await getMe();
-  if (me.role === 'housekeeping') {
-    redirect('/housekeeping');
-  }
-
-  await requireFeature(FEATURES.HOTEL_ROOMS);
-  const [{ error, ok } = {}, dash, rooms] = await Promise.all([
+  const [me, ent, { error, ok } = {}, dash, rooms] = await Promise.all([
+    getMe(),
+    requireFeature(FEATURES.HOTEL_ROOMS),
     searchParams ? searchParams : Promise.resolve({ error: undefined, ok: undefined }),
     api<Dash>('/hotel/dashboard').catch(() => ({ totalRooms: 0, byStatus: {}, arrivalsToday: 0, departuresToday: 0 })),
     api<Room[]>('/hotel/rooms').catch(() => []),
   ]);
+
+  if (me.role === 'housekeeping') {
+    redirect('/housekeeping');
+  }
 
   const safeDash: Dash = dash ?? { totalRooms: 0, byStatus: {}, arrivalsToday: 0, departuresToday: 0 };
   const safeByStatus = safeDash.byStatus ?? {};

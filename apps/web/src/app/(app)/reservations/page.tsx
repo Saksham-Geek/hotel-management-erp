@@ -28,7 +28,14 @@ export default async function ReservationsPage({
     checkOut?: string;
   }>;
 }) {
-  const me = await getMe();
+  const [me, { error, ok, roomId, checkIn, checkOut }, ent, reservations, rooms] = await Promise.all([
+    getMe(),
+    searchParams,
+    requireFeature(FEATURES.HOTEL_RESERVATIONS),
+    api<ReservationRow[]>('/hotel/reservations'),
+    api<Room[]>('/hotel/rooms'),
+  ]);
+
   if (me.role === 'housekeeping') {
     redirect(
       '/housekeeping?error=' +
@@ -38,14 +45,6 @@ export default async function ReservationsPage({
     );
   }
 
-  const [{ error, ok, roomId, checkIn, checkOut }, ent] = await Promise.all([
-    searchParams,
-    requireFeature(FEATURES.HOTEL_RESERVATIONS),
-  ]);
-  const [reservations, rooms] = await Promise.all([
-    api<ReservationRow[]>('/hotel/reservations'),
-    api<Room[]>('/hotel/rooms'),
-  ]);
   const currency = me.property.currency;
 
   return (

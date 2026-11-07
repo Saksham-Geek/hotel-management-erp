@@ -7,15 +7,13 @@ import {
 } from './keycards-view';
 
 export default async function KeycardsPage() {
-  await requireFeature(FEATURES.HOTEL_KEYCARDS);
-
-  const [keys, reservations] = await Promise.all([
+  const [ent, keys, reservations] = await Promise.all([
+    requireFeature(FEATURES.HOTEL_KEYCARDS),
     api<RoomKeyDto[]>('/hotel/keycards/keys').catch(() => []),
-    api<any[]>('/hotel/reservations').catch(() => []),
+    api<any[]>('/hotel/reservations?status=checked_in').catch(() => []),
   ]);
 
   const activeStays: ActiveGuestStayDto[] = reservations
-    .filter((r) => r.status === 'confirmed' || r.status === 'checked_in')
     .map((r) => ({
       reservationId: r.id,
       roomNumber: r.roomNumber || '101',

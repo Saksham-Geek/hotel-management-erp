@@ -4,7 +4,12 @@ import { FEATURES } from '@erp/shared';
 import { StaffView } from './staff-view';
 
 export default async function StaffPage() {
-  const me = await getMe();
+  const [me, ent, data] = await Promise.all([
+    getMe(),
+    requireFeature(FEATURES.CORE_USERS),
+    api<any>('/users'),
+  ]);
+
   if (me.role !== 'owner' && me.role !== 'manager') {
     redirect(
       '/dashboard?error=' +
@@ -13,9 +18,6 @@ export default async function StaffPage() {
         ),
     );
   }
-
-  await requireFeature(FEATURES.CORE_USERS);
-  const data = await api<any>('/users');
 
   return <StaffView initialData={data} />;
 }

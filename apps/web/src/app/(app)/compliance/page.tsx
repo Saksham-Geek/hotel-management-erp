@@ -9,22 +9,10 @@ export default async function CompliancePage({
 }: {
   searchParams: Promise<{ error?: string; ok?: string }>;
 }) {
-  const me = await getMe();
-  if (me.role === 'housekeeping') {
-    redirect(
-      '/housekeeping?error=' +
-        encodeURIComponent(
-          'Access Restricted: Statutory BoI Form C is restricted to Front Desk and Management.',
-        ),
-    );
-  }
-
-  const [{ error, ok }, ent] = await Promise.all([
+  const [me, { error, ok }, ent, policeData, formCList] = await Promise.all([
+    getMe(),
     searchParams,
     requireFeature(FEATURES.HOTEL_COMPLIANCE),
-  ]);
-
-  const [policeData, formCList] = await Promise.all([
     api<PoliceReportData>('/hotel/compliance/police-report').catch(() => ({
       property: { name: 'Hotel Property', timezone: 'Asia/Kolkata', currency: 'INR' },
       reportDate: new Date().toISOString().slice(0, 10),
@@ -36,6 +24,15 @@ export default async function CompliancePage({
     })),
     api<FormCRecord[]>('/hotel/compliance/form-c').catch(() => []),
   ]);
+
+  if (me.role === 'housekeeping') {
+    redirect(
+      '/housekeeping?error=' +
+        encodeURIComponent(
+          'Access Restricted: Statutory BoI Form C is restricted to Front Desk and Management.',
+        ),
+    );
+  }
 
   return (
     <>

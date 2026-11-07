@@ -3,8 +3,9 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Nav, type NavItem } from './nav';
+import { CustomDropdown } from './dropdown';
 
 type PropertyOption = { id: string; name: string };
 type FormAction = (formData: FormData) => void | Promise<void>;
@@ -60,6 +61,7 @@ export function AppShell({
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [addPropertyOpen, setAddPropertyOpen] = useState(false);
+  const propertyFormRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem('erp.sidebar.collapsed') === 'true');
@@ -137,6 +139,7 @@ export function AppShell({
         {/* Multi-Property Switcher */}
         {properties.length > 1 && (
           <form
+            ref={propertyFormRef}
             action={selectProperty}
             className={`mt-4 rounded-xl border border-white/10 bg-white/[.04] p-2.5 backdrop-blur-xs ${
               collapsed ? 'md:hidden' : ''
@@ -150,19 +153,22 @@ export function AppShell({
                 Active Property
               </label>
             </div>
-            <select
+            <CustomDropdown
               id="sidebar-property"
               name="propertyId"
               defaultValue={property.id}
-              onChange={(e) => e.target.form?.requestSubmit()}
-              className="h-8.5 w-full rounded-lg border border-white/15 bg-slate-900/90 px-2.5 text-xs font-semibold text-white focus:border-white/40 focus:outline-none focus:ring-1 focus:ring-white/30 transition-colors cursor-pointer"
-            >
-              {properties.map((item) => (
-                <option className="text-ink bg-white font-medium" key={item.id} value={item.id}>
-                  {item.name}
-                </option>
-              ))}
-            </select>
+              size="sm"
+              options={properties.map((item) => ({
+                value: item.id,
+                label: item.name,
+              }))}
+              onChange={() => {
+                setTimeout(() => {
+                  propertyFormRef.current?.requestSubmit();
+                }, 50);
+              }}
+              aria-label="Active Property"
+            />
           </form>
         )}
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { btnCls, btnGhostCls, EmptyState, inputCls } from '@/components/ui';
+import { btnCls, btnGhostCls, CustomDropdown, EmptyState, inputCls } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { updateGuest, uploadGuestDocuments } from './actions';
 
@@ -51,8 +51,39 @@ export function GuestDirectory({ guests, readOnly }: { guests: GuestProfile[]; r
                   <form action={uploadGuestDocuments} className="rounded-lg border border-dashed border-line bg-surface p-3">
                     <input type="hidden" name="guestId" value={guest.id} />
                     <div className="grid gap-3 sm:grid-cols-2">
-                      <label className="text-xs font-medium text-ink">Document category<select name="documentType" defaultValue="other" className={`${inputCls} mt-1.5`}><option value="aadhaar_masked">Masked Aadhaar</option><option value="passport">Passport</option><option value="driving_license">Driving licence</option><option value="voter_id">Voter ID</option><option value="other">Other</option></select></label>
-                      <label className="text-xs font-medium text-ink">Consent method<select name="consentMethod" defaultValue="" required className={`${inputCls} mt-1.5`}><option value="" disabled>Select method</option><option value="written">Written</option><option value="verbal">Verbal</option><option value="digital">Digital</option></select></label>
+                      <div>
+                        <label className="block text-xs font-medium text-ink mb-1">Document category</label>
+                        <CustomDropdown
+                          name="documentType"
+                          defaultValue="other"
+                          size="sm"
+                          options={[
+                            { value: 'aadhaar_masked', label: 'Masked Aadhaar' },
+                            { value: 'passport', label: 'Passport' },
+                            { value: 'driving_license', label: 'Driving licence' },
+                            { value: 'voter_id', label: 'Voter ID' },
+                            { value: 'other', label: 'Other' },
+                          ]}
+                          aria-label="Document category"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-ink mb-1">Consent method</label>
+                        <CustomDropdown
+                          name="consentMethod"
+                          defaultValue=""
+                          required
+                          size="sm"
+                          placeholder="Select method"
+                          options={[
+                            { value: '', label: 'Select method' },
+                            { value: 'written', label: 'Written' },
+                            { value: 'verbal', label: 'Verbal' },
+                            { value: 'digital', label: 'Digital' },
+                          ]}
+                          aria-label="Consent method"
+                        />
+                      </div>
                     </div>
                     <label className="mt-3 flex items-start gap-2 text-[11px] leading-4 text-ink"><input name="consentGiven" type="checkbox" required className="mt-0.5 h-4 w-4" /> Guest was informed of the purpose and agreed; an alternative ID may be provided.</label>
                     <label className="mt-2 flex items-start gap-2 text-[11px] leading-4 text-ink"><input name="aadhaarMasked" type="checkbox" className="mt-0.5 h-4 w-4" /> If Aadhaar, first eight digits are masked.</label>

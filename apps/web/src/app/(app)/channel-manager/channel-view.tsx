@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { btnCls, btnGhostCls, inputCls, StatCard } from '@/components/ui';
+import { btnCls, btnGhostCls, CustomDropdown, inputCls, StatCard } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { saveChannelConnection, simulateOtaBooking, syncChannel } from './actions';
 
@@ -138,16 +138,21 @@ export function ChannelView({
           </div>
 
           <form action={simulateOtaBooking} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <label className="block text-xs font-bold text-ink">
-              Originating OTA Channel
-              <select name="channelKey" defaultValue="makemytrip" className={`${inputCls} mt-1.5 font-bold`}>
-                <option value="makemytrip">🇮🇳 MakeMyTrip &amp; Goibibo (Ingot API)</option>
-                <option value="booking_com">🌐 Booking.com (Connectivity API)</option>
-                <option value="agoda">🌏 Agoda (YCS Partner API)</option>
-                <option value="expedia">✈️ Expedia Group (QuickConnect)</option>
-                <option value="airbnb">🏡 Airbnb (Host API)</option>
-              </select>
-            </label>
+            <div>
+              <label className="block text-xs font-bold text-ink mb-1.5">Originating OTA Channel</label>
+              <CustomDropdown
+                name="channelKey"
+                defaultValue="makemytrip"
+                options={[
+                  { value: 'makemytrip', label: '🇮🇳 MakeMyTrip & Goibibo (Ingot API)' },
+                  { value: 'booking_com', label: '🌐 Booking.com (Connectivity API)' },
+                  { value: 'agoda', label: '🌏 Agoda (YCS Partner API)' },
+                  { value: 'expedia', label: '✈️ Expedia Group (QuickConnect)' },
+                  { value: 'airbnb', label: '🏡 Airbnb (Host API)' },
+                ]}
+                aria-label="Originating OTA Channel"
+              />
+            </div>
 
             <label className="block text-xs font-bold text-ink">
               Guest Full Name
@@ -169,17 +174,23 @@ export function ChannelView({
               <input name="checkOut" type="date" defaultValue={tomorrowStr} required className={`${inputCls} mt-1.5`} />
             </label>
 
-            <label className="block text-xs font-bold text-ink">
-              Preferred Room Category
-              <select name="roomTypeId" className={`${inputCls} mt-1.5`}>
-                <option value="">Any Available Room Category</option>
-                {roomTypes.map((rt) => (
-                  <option key={rt.id} value={rt.id}>
-                    {rt.name} (Base Tariff: ₹{rt.baseRate})
-                  </option>
-                ))}
-              </select>
-            </label>
+            <div>
+              <label className="block text-xs font-bold text-ink mb-1.5">Preferred Room Category</label>
+              <CustomDropdown
+                name="roomTypeId"
+                defaultValue=""
+                placeholder="Any Available Room Category"
+                options={[
+                  { value: '', label: 'Any Available Room Category' },
+                  ...roomTypes.map((rt) => ({
+                    value: rt.id,
+                    label: `${rt.name} (Base: ₹${rt.baseRate})`,
+                    badge: `₹${rt.baseRate}`,
+                  })),
+                ]}
+                aria-label="Preferred Room Category"
+              />
+            </div>
 
             <label className="block text-xs font-bold text-ink">
               Total Booking Tariff (INR)
@@ -390,14 +401,20 @@ export function ChannelView({
                   />
                 </label>
 
-                <label className="block text-xs font-bold text-ink">
-                  Sync Mode
-                  <select name="syncMode" defaultValue={selectedChannel.syncMode} className={`${inputCls} mt-1`}>
-                    <option value="two_way">Two-Way (ARI Push + Booking Pull)</option>
-                    <option value="inbound_only">Inbound Bookings Only</option>
-                    <option value="outbound_only">Outbound Rates &amp; Inventory Only</option>
-                  </select>
-                </label>
+                <div>
+                  <label className="block text-xs font-bold text-ink mb-1">Sync Mode</label>
+                  <CustomDropdown
+                    name="syncMode"
+                    defaultValue={selectedChannel.syncMode}
+                    size="sm"
+                    options={[
+                      { value: 'two_way', label: 'Two-Way (ARI Push + Booking Pull)' },
+                      { value: 'inbound_only', label: 'Inbound Bookings Only' },
+                      { value: 'outbound_only', label: 'Outbound Rates & Inventory Only' },
+                    ]}
+                    aria-label="Sync Mode"
+                  />
+                </div>
               </div>
 
               <label className="flex items-center gap-2.5 pt-2 cursor-pointer">

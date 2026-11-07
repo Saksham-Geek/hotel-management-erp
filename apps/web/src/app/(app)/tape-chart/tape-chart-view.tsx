@@ -3,6 +3,7 @@
 import { Fragment, useEffect, useMemo, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { CustomDropdown } from '@/components/dropdown';
 import { formatMoney } from '@/lib/format';
 import { getRoomTypeTheme } from '@/lib/room-types';
 
@@ -800,23 +801,27 @@ export function TapeChartView({
               />
             </label>
 
-            <label className="text-xs font-semibold text-slate-600 flex items-center gap-2">
-              View:
-              <select
-                value={daysCount}
-                onChange={(e) => {
-                  const val = parseInt(e.target.value, 10);
-                  navigateDate(startDateStr, val);
-                }}
-                className="h-9 rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-950/5"
-              >
-                <option value={7}>7 Days (1 Week)</option>
-                <option value={10}>10 Days</option>
-                <option value={14}>14 Days (2 Weeks)</option>
-                <option value={21}>21 Days (3 Weeks)</option>
-                <option value={30}>30 Days (1 Month)</option>
-              </select>
-            </label>
+            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+              <span>View:</span>
+              <div className="w-36">
+                <CustomDropdown
+                  value={String(daysCount)}
+                  onChange={(val) => {
+                    const num = parseInt(val, 10);
+                    navigateDate(startDateStr, num);
+                  }}
+                  size="sm"
+                  options={[
+                    { value: '7', label: '7 Days (1 Wk)' },
+                    { value: '10', label: '10 Days' },
+                    { value: '14', label: '14 Days (2 Wks)' },
+                    { value: '21', label: '21 Days (3 Wks)' },
+                    { value: '30', label: '30 Days (1 Mo)' },
+                  ]}
+                  aria-label="View duration"
+                />
+              </div>
+            </div>
 
             <input
               type="search"

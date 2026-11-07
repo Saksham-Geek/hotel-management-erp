@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { Banner, btnGhostCls, EmptyState, inputCls, selectCls, StatusBadge } from '@/components/ui';
+import { Banner, btnGhostCls, CustomDropdown, EmptyState, inputCls, selectCls, StatusBadge } from '@/components/ui';
 import { formatStayDates } from '@/lib/format';
 import { changeReservation } from './actions';
 
@@ -71,19 +71,33 @@ export function ReservationTable({
         <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[minmax(210px,1fr)_150px_145px]">
           <label className="sr-only" htmlFor="reservation-search">Search reservations</label>
           <input id="reservation-search" type="search" value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Search guest, phone or room" className={inputCls} />
-          <label className="sr-only" htmlFor="reservation-status">Filter reservation status</label>
-          <select id="reservation-status" value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} className={selectCls}>
-            <option value="all">All statuses</option>
-            <option value="reserved">Booked</option>
-            <option value="checked_in">In house</option>
-            <option value="checked_out">Checked out</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          <label className="sr-only" htmlFor="reservation-sort">Sort reservations</label>
-          <select id="reservation-sort" value={sort} onChange={(event) => setSort(event.target.value as 'newest' | 'oldest')} className={selectCls}>
-            <option value="newest">Check-in: newest</option>
-            <option value="oldest">Check-in: oldest</option>
-          </select>
+          <div className="w-full sm:w-[150px]">
+            <CustomDropdown
+              id="reservation-status"
+              value={status}
+              onChange={(val) => { setStatus(val); setPage(1); }}
+              options={[
+                { value: 'all', label: 'All statuses' },
+                { value: 'reserved', label: 'Booked' },
+                { value: 'checked_in', label: 'In house' },
+                { value: 'checked_out', label: 'Checked out' },
+                { value: 'cancelled', label: 'Cancelled' },
+              ]}
+              aria-label="Filter reservation status"
+            />
+          </div>
+          <div className="w-full sm:w-[160px]">
+            <CustomDropdown
+              id="reservation-sort"
+              value={sort}
+              onChange={(val) => setSort(val as 'newest' | 'oldest')}
+              options={[
+                { value: 'newest', label: 'Check-in: newest' },
+                { value: 'oldest', label: 'Check-in: oldest' },
+              ]}
+              aria-label="Sort reservations"
+            />
+          </div>
         </div>
       </div>
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { searchGuestProfiles } from './actions';
-import { inputCls, selectCls } from '@/components/ui';
+import { CustomDropdown, inputCls, selectCls } from '@/components/ui';
 
 type Guest = {
   id: string;
@@ -46,14 +46,32 @@ function IdentityUploadFields({ prefix, required = false }: { prefix: string; re
     <div className="mt-3 space-y-2 rounded-lg border border-dashed border-line bg-surface p-3 sm:col-span-2">
       <p className="text-xs font-semibold text-ink">Identity document {required ? '(required)' : '(optional)'}</p>
       <div className="grid gap-2 sm:grid-cols-2">
-        <select name={`${prefix}DocumentType`} defaultValue="" required={required} aria-label="Identity document type" className={selectCls}>
-          <option value="">Uploaded document type{required ? ' (required)' : ''}</option>
-          {documentTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-        </select>
-        <select name={`${prefix}ConsentMethod`} defaultValue="" required={required} aria-label="Consent method" className={selectCls}>
-          <option value="">Consent method{required ? ' (required)' : ' (when uploading)'}</option>
-          <option value="written">Written</option><option value="verbal">Verbal</option><option value="digital">Digital</option>
-        </select>
+        <CustomDropdown
+          name={`${prefix}DocumentType`}
+          defaultValue=""
+          required={required}
+          size="sm"
+          placeholder={`Uploaded document type${required ? ' (required)' : ''}`}
+          options={[
+            { value: '', label: `Uploaded document type${required ? ' (required)' : ''}` },
+            ...documentTypes.map(([value, label]) => ({ value, label })),
+          ]}
+          aria-label="Identity document type"
+        />
+        <CustomDropdown
+          name={`${prefix}ConsentMethod`}
+          defaultValue=""
+          required={required}
+          size="sm"
+          placeholder={`Consent method${required ? ' (required)' : ' (when uploading)'}`}
+          options={[
+            { value: '', label: `Consent method${required ? ' (required)' : ' (when uploading)'}` },
+            { value: 'written', label: 'Written' },
+            { value: 'verbal', label: 'Verbal' },
+            { value: 'digital', label: 'Digital' },
+          ]}
+          aria-label="Consent method"
+        />
       </div>
       <input name={`${prefix}Documents`} type="file" accept="image/jpeg,image/png,image/webp" required={required} aria-label="Upload identity document" className="block w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-ground file:px-3 file:py-2 file:text-xs file:font-semibold" />
       <label className="flex items-start gap-2 text-[11px] leading-4 text-muted"><input name={`${prefix}ConsentGiven`} type="checkbox" required={required} className="mt-0.5 h-4 w-4" /> Guest was informed about the purpose, agrees to storage, and was told an alternative ID may be provided.</label>
@@ -261,10 +279,17 @@ export function GuestPicker() {
                 aria-label="New guest email"
                 className={`${inputCls} sm:col-span-2`}
               />
-              <select name="guestIdType" defaultValue="" required={!lead} aria-label="New guest identity type" className={selectCls}>
-                <option value="">Identity type (required)</option>
-                {identityTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-              </select>
+              <CustomDropdown
+                name="guestIdType"
+                defaultValue=""
+                required={!lead}
+                placeholder="Identity type (required)"
+                options={[
+                  { value: '', label: 'Identity type (required)' },
+                  ...identityTypes.map(([value, label]) => ({ value, label })),
+                ]}
+                aria-label="New guest identity type"
+              />
               <input name="guestIdNumber" required={!lead} maxLength={60} placeholder="ID number (Aadhaar: last 4 digits only)" aria-label="New guest identity number" className={inputCls} />
               <IdentityUploadFields prefix="guest" required={!lead} />
             </div>
@@ -372,15 +397,16 @@ export function GuestPicker() {
                 aria-label="New companion nationality"
                 className={inputCls}
               />
-              <select
+              <CustomDropdown
                 value={draft.idType ?? ''}
-                onChange={(event) => setDraft((value) => ({ ...value, idType: event.target.value }))}
+                onChange={(val) => setDraft((value) => ({ ...value, idType: val }))}
+                placeholder="ID type (required)"
+                options={[
+                  { value: '', label: 'ID type (required)' },
+                  ...identityTypes.map(([value, label]) => ({ value, label })),
+                ]}
                 aria-label="New companion ID type"
-                className={inputCls}
-              >
-                <option value="">ID type (required)</option>
-                {identityTypes.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-              </select>
+              />
               <input
                 value={draft.idNumber ?? ''}
                 onChange={(event) => setDraft((value) => ({ ...value, idNumber: event.target.value }))}

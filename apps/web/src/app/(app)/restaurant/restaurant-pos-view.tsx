@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { CustomDropdown } from '@/components/dropdown';
 import { KotPrintModal, type KotPrintData } from './kot-print-modal';
 import { BillPrintModal, type BillPrintData } from './bill-print-modal';
 import {
@@ -1093,17 +1094,19 @@ export function RestaurantPosView({
           </div>
 
           {/* Outlet Selector Dropdown */}
-          <select
-            value={selectedOutletId}
-            onChange={(e) => setSelectedOutletId(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-xs focus:border-slate-950 focus:outline-none cursor-pointer"
-          >
-            {outlets.map((o) => (
-              <option key={o.id} value={o.id}>
-                {o.name} {o.isStandalone ? '(Standalone Bistro)' : ''}
-              </option>
-            ))}
-          </select>
+          <div className="w-52">
+            <CustomDropdown
+              value={selectedOutletId}
+              onChange={(val) => setSelectedOutletId(val)}
+              size="sm"
+              options={outlets.map((o) => ({
+                value: o.id,
+                label: o.name,
+                badge: o.isStandalone ? 'Bistro' : 'Hotel',
+              }))}
+              aria-label="Select Restaurant Outlet"
+            />
+          </div>
         </div>
       </div>
 
@@ -1752,35 +1755,36 @@ export function RestaurantPosView({
 
               {orderType === 'dine_in' && (
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500">Select Table:</label>
-                  <select
+                  <label className="text-[11px] font-bold text-slate-500 mb-1 block">Select Table:</label>
+                  <CustomDropdown
                     value={selectedTableId}
-                    onChange={(e) => setSelectedTableId(e.target.value)}
-                    className="w-full mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 shadow-xs"
-                  >
-                    {filteredTables.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.tableNumber} ({t.section}) - {t.capacity} Covers [{t.status}]
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSelectedTableId(val)}
+                    size="sm"
+                    options={filteredTables.map((t) => ({
+                      value: t.id,
+                      label: `${t.tableNumber} (${t.section}) - ${t.capacity} Covers`,
+                      badge: t.status,
+                      badgeColor: t.status === 'vacant' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800',
+                    }))}
+                    aria-label="Select Table"
+                  />
                 </div>
               )}
 
               {orderType === 'room_service' && (
                 <div>
-                  <label className="text-[11px] font-bold text-slate-500">Select Checked-In Room:</label>
-                  <select
+                  <label className="text-[11px] font-bold text-slate-500 mb-1 block">Select Checked-In Room:</label>
+                  <CustomDropdown
                     value={selectedRoomNumber}
-                    onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                    className="w-full mt-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-900 shadow-xs"
-                  >
-                    {checkedInRooms.map((r) => (
-                      <option key={r.id} value={r.number}>
-                        Room {r.number} — {r.guestName}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(val) => setSelectedRoomNumber(val)}
+                    size="sm"
+                    options={checkedInRooms.map((r) => ({
+                      value: r.number,
+                      label: `Room ${r.number} — ${r.guestName}`,
+                      badge: `Rm ${r.number}`,
+                    }))}
+                    aria-label="Select Checked-In Room"
+                  />
                 </div>
               )}
             </div>
@@ -3021,18 +3025,20 @@ export function RestaurantPosView({
 
                       <div className="grid grid-cols-2 gap-3 pt-1">
                         <div>
-                          <label className="text-xs font-bold text-slate-700">Default Kitchen Prep Time</label>
-                          <select
-                            value={swiggyPrepMinsInput}
-                            onChange={(e) => setSwiggyPrepMinsInput(Number(e.target.value))}
-                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-slate-950 focus:outline-none"
-                          >
-                            <option value={15}>15 Minutes</option>
-                            <option value={20}>20 Minutes</option>
-                            <option value={25}>25 Minutes</option>
-                            <option value={30}>30 Minutes</option>
-                            <option value={40}>40 Minutes</option>
-                          </select>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Default Kitchen Prep Time</label>
+                          <CustomDropdown
+                            value={String(swiggyPrepMinsInput)}
+                            onChange={(val) => setSwiggyPrepMinsInput(Number(val))}
+                            size="sm"
+                            options={[
+                              { value: '15', label: '15 Minutes' },
+                              { value: '20', label: '20 Minutes' },
+                              { value: '25', label: '25 Minutes' },
+                              { value: '30', label: '30 Minutes' },
+                              { value: '40', label: '40 Minutes' },
+                            ]}
+                            aria-label="Swiggy Default Kitchen Prep Time"
+                          />
                         </div>
                         <div className="flex flex-col justify-end">
                           <label className="flex items-center gap-2 cursor-pointer pb-2">
@@ -3095,18 +3101,20 @@ export function RestaurantPosView({
 
                       <div className="grid grid-cols-2 gap-3 pt-1">
                         <div>
-                          <label className="text-xs font-bold text-slate-700">Default Kitchen Prep Time</label>
-                          <select
-                            value={zomatoPrepMinsInput}
-                            onChange={(e) => setZomatoPrepMinsInput(Number(e.target.value))}
-                            className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 focus:border-slate-950 focus:outline-none"
-                          >
-                            <option value={15}>15 Minutes</option>
-                            <option value={20}>20 Minutes</option>
-                            <option value={25}>25 Minutes</option>
-                            <option value={30}>30 Minutes</option>
-                            <option value={40}>40 Minutes</option>
-                          </select>
+                          <label className="text-xs font-bold text-slate-700 mb-1 block">Default Kitchen Prep Time</label>
+                          <CustomDropdown
+                            value={String(zomatoPrepMinsInput)}
+                            onChange={(val) => setZomatoPrepMinsInput(Number(val))}
+                            size="sm"
+                            options={[
+                              { value: '15', label: '15 Minutes' },
+                              { value: '20', label: '20 Minutes' },
+                              { value: '25', label: '25 Minutes' },
+                              { value: '30', label: '30 Minutes' },
+                              { value: '40', label: '40 Minutes' },
+                            ]}
+                            aria-label="Zomato Default Kitchen Prep Time"
+                          />
                         </div>
                         <div className="flex flex-col justify-end">
                           <label className="flex items-center gap-2 cursor-pointer pb-2">
@@ -3419,18 +3427,20 @@ export function RestaurantPosView({
                     <p className="text-xs font-bold text-emerald-950">
                       Option A: 1-Click &quot;Charge to Room Folio&quot;
                     </p>
-                    <div className="flex gap-2">
-                      <select
-                        value={selectedRoomNumber}
-                        onChange={(e) => setSelectedRoomNumber(e.target.value)}
-                        className="flex-1 rounded-xl border border-emerald-300 bg-white px-3 py-2 text-xs font-bold text-slate-900"
-                      >
-                        {checkedInRooms.map((r) => (
-                          <option key={r.id} value={r.number}>
-                            Room {r.number} — {r.guestName}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="flex gap-2 items-center">
+                      <div className="flex-1">
+                        <CustomDropdown
+                          value={selectedRoomNumber}
+                          onChange={(val) => setSelectedRoomNumber(val)}
+                          size="sm"
+                          options={checkedInRooms.map((r) => ({
+                            value: r.number,
+                            label: `Room ${r.number} — ${r.guestName}`,
+                            badge: `Rm ${r.number}`,
+                          }))}
+                          aria-label="Select room for folio charge"
+                        />
+                      </div>
                       <button
                         type="button"
                         disabled={submitting}
@@ -3622,18 +3632,17 @@ export function RestaurantPosView({
 
             <form onSubmit={handleCreateTable} className="space-y-4">
               <div>
-                <label className="text-xs font-bold text-slate-700">Dining Outlet</label>
-                <select
+                <label className="text-xs font-bold text-slate-700 mb-1 block">Dining Outlet</label>
+                <CustomDropdown
                   value={newTableOutletId || selectedOutletId}
-                  onChange={(e) => setNewTableOutletId(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-xs focus:border-slate-950 focus:outline-none"
-                >
-                  {outlets.map((o) => (
-                    <option key={o.id} value={o.id}>
-                      {o.name} {o.isStandalone ? '(Standalone)' : ''}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setNewTableOutletId(val)}
+                  size="sm"
+                  options={outlets.map((o) => ({
+                    value: o.id,
+                    label: `${o.name} ${o.isStandalone ? '(Standalone)' : ''}`,
+                  }))}
+                  aria-label="Dining Outlet"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -3874,26 +3883,27 @@ export function RestaurantPosView({
 
             <form onSubmit={handleAddDish} className="space-y-3.5">
               <div>
-                <label className="text-xs font-bold text-slate-700">Menu Category</label>
-                <div className="flex gap-2 mt-1">
-                  <select
-                    value={newDishCategoryId || uniqueCategories[0]?.id || ''}
-                    onChange={(e) => setNewDishCategoryId(e.target.value)}
-                    className="flex-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-xs focus:border-slate-950 focus:outline-none"
-                  >
-                    {uniqueCategories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                <label className="text-xs font-bold text-slate-700 mb-1 block">Menu Category</label>
+                <div className="flex gap-2 items-center">
+                  <div className="flex-1">
+                    <CustomDropdown
+                      value={newDishCategoryId || uniqueCategories[0]?.id || ''}
+                      onChange={(val) => setNewDishCategoryId(val)}
+                      size="sm"
+                      options={uniqueCategories.map((c) => ({
+                        value: c.id,
+                        label: c.name,
+                      }))}
+                      aria-label="Menu Category"
+                    />
+                  </div>
                   <button
                     type="button"
                     onClick={() => {
                       setIsAddDishModalOpen(false);
                       setIsAddCategoryModalOpen(true);
                     }}
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer shrink-0"
                   >
                     + New
                   </button>
@@ -3978,18 +3988,20 @@ export function RestaurantPosView({
               </div>
 
               <div>
-                <label className="text-xs font-bold text-slate-700">Kitchen Station Routing</label>
-                <select
+                <label className="text-xs font-bold text-slate-700 mb-1 block">Kitchen Station Routing</label>
+                <CustomDropdown
                   value={newDishStation}
-                  onChange={(e) => setNewDishStation(e.target.value as any)}
-                  className="mt-1 w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-800 shadow-xs focus:border-slate-950 focus:outline-none"
-                >
-                  <option value="main_kitchen">🍳 Main Curry &amp; Gravy Station</option>
-                  <option value="tandoor">🔥 Tandoor &amp; Clay Oven Station</option>
-                  <option value="bar">🍸 Bar Counter &amp; Beverages</option>
-                  <option value="pantry">🥗 Pantry, Salads &amp; Desserts</option>
-                  <option value="bakery">🥖 Bakery &amp; Breads</option>
-                </select>
+                  onChange={(val) => setNewDishStation(val as any)}
+                  size="sm"
+                  options={[
+                    { value: 'main_kitchen', label: '🍳 Main Curry & Gravy Station' },
+                    { value: 'tandoor', label: '🔥 Tandoor & Clay Oven Station' },
+                    { value: 'bar', label: '🍸 Bar Counter & Beverages' },
+                    { value: 'pantry', label: '🥗 Pantry, Salads & Desserts' },
+                    { value: 'bakery', label: '🥖 Bakery & Breads' },
+                  ]}
+                  aria-label="Kitchen Station Routing"
+                />
               </div>
 
               <div>
@@ -4620,17 +4632,19 @@ export function RestaurantPosView({
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Default Prep Timer
                     </label>
-                    <select
-                      value={swiggyPrepMinsInput}
-                      onChange={(e) => setSwiggyPrepMinsInput(Number(e.target.value))}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-orange-500 focus:outline-none"
-                    >
-                      <option value={15}>15 Minutes</option>
-                      <option value={20}>20 Minutes (Standard)</option>
-                      <option value={25}>25 Minutes</option>
-                      <option value={30}>30 Minutes</option>
-                      <option value={40}>40 Minutes</option>
-                    </select>
+                    <CustomDropdown
+                      value={String(swiggyPrepMinsInput)}
+                      onChange={(val) => setSwiggyPrepMinsInput(Number(val))}
+                      size="sm"
+                      options={[
+                        { value: '15', label: '15 Minutes' },
+                        { value: '20', label: '20 Minutes (Standard)' },
+                        { value: '25', label: '25 Minutes' },
+                        { value: '30', label: '30 Minutes' },
+                        { value: '40', label: '40 Minutes' },
+                      ]}
+                      aria-label="Swiggy Default Prep Timer"
+                    />
                   </div>
                 </div>
               </div>
@@ -4686,17 +4700,19 @@ export function RestaurantPosView({
                     <label className="block text-[11px] font-bold text-slate-700 mb-1">
                       Default Prep Timer
                     </label>
-                    <select
-                      value={zomatoPrepMinsInput}
-                      onChange={(e) => setZomatoPrepMinsInput(Number(e.target.value))}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 focus:border-rose-500 focus:outline-none"
-                    >
-                      <option value={15}>15 Minutes</option>
-                      <option value={20}>20 Minutes (Standard)</option>
-                      <option value={25}>25 Minutes</option>
-                      <option value={30}>30 Minutes</option>
-                      <option value={40}>40 Minutes</option>
-                    </select>
+                    <CustomDropdown
+                      value={String(zomatoPrepMinsInput)}
+                      onChange={(val) => setZomatoPrepMinsInput(Number(val))}
+                      size="sm"
+                      options={[
+                        { value: '15', label: '15 Minutes' },
+                        { value: '20', label: '20 Minutes (Standard)' },
+                        { value: '25', label: '25 Minutes' },
+                        { value: '30', label: '30 Minutes' },
+                        { value: '40', label: '40 Minutes' },
+                      ]}
+                      aria-label="Zomato Default Prep Timer"
+                    />
                   </div>
                 </div>
               </div>

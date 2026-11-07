@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { ROOM_STATUSES, type RoomStatus } from '@erp/shared';
-import { btnGhostCls, EmptyState, inputCls, selectCls, STATUS_META, StatusBadge } from '@/components/ui';
+import { btnGhostCls, CustomDropdown, EmptyState, inputCls, selectCls, STATUS_META, StatusBadge } from '@/components/ui';
 import { getRoomTypeTheme } from '@/lib/room-types';
 import { setRoomStatus, updateRoom } from './actions';
 
@@ -64,10 +64,19 @@ export function RoomInventory({
           <label className="sr-only" htmlFor="room-search">Search rooms</label>
           <input id="room-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search room, type or floor" className={inputCls} />
           <label className="sr-only" htmlFor="room-status-filter">Filter by room status</label>
-          <select id="room-status-filter" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)} className={selectCls}>
-            <option value="all">All room statuses</option>
-            {statuses.map((status) => <option key={status} value={status}>{STATUS_META[status].label}</option>)}
-          </select>
+          <CustomDropdown
+            id="room-status-filter"
+            value={statusFilter}
+            onChange={(val) => setStatusFilter(val)}
+            options={[
+              { value: 'all', label: 'All room statuses' },
+              ...statuses.map((status) => ({
+                value: status,
+                label: STATUS_META[status].label,
+              })),
+            ]}
+            aria-label="Filter by room status"
+          />
         </div>
       </div>
 
@@ -82,7 +91,7 @@ export function RoomInventory({
             const statusLocked = room.status === 'maintenance' && !canManage;
             const roomTheme = getRoomTypeTheme(room.roomType);
             return (
-              <article key={room.id} className={`min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 ${roomTheme.lightBg} shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:border-slate-300 transition-all`}>
+              <article key={room.id} className={`min-w-0 relative rounded-2xl border border-slate-200/80 ${roomTheme.lightBg} shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:border-slate-300 transition-all`}>
                 <div className="flex items-start justify-between gap-3 p-5">
                   <div className="min-w-0">
                     {/* Bundled Notes Signature Accent Dash */}
@@ -115,7 +124,19 @@ export function RoomInventory({
                       </summary>
                       <form action={updateRoom} className="mt-3 grid gap-2 border-t border-line pt-3">
                         <input type="hidden" name="id" value={room.id} />
-                        <label className="text-[11px] font-medium text-muted">Room type<select name="roomTypeId" defaultValue={room.roomTypeId} className={`${selectCls} mt-1 min-h-9 py-1.5 text-xs`}>{types.map((type) => <option key={type.id} value={type.id}>{type.name}</option>)}</select></label>
+                        <div>
+                          <label className="block text-[11px] font-medium text-muted mb-1">Room type</label>
+                          <CustomDropdown
+                            name="roomTypeId"
+                            defaultValue={room.roomTypeId}
+                            size="sm"
+                            options={types.map((type) => ({
+                              value: type.id,
+                              label: type.name,
+                            }))}
+                            aria-label="Room type"
+                          />
+                        </div>
                         <div className="grid grid-cols-[1fr_100px] gap-2">
                           <label className="text-[11px] font-medium text-muted">Room number<input name="number" required defaultValue={room.number} className={`${inputCls} mt-1 min-h-9 py-1.5 text-xs`} /></label>
                           <label className="text-[11px] font-medium text-muted">Floor<input name="floor" type="number" defaultValue={room.floor} className={`${inputCls} mt-1 min-h-9 py-1.5 text-xs`} /></label>
@@ -131,7 +152,27 @@ export function RoomInventory({
                     : <form action={setRoomStatus} className="flex items-end gap-2 border-t border-line pt-3">
                       <input type="hidden" name="id" value={room.id} />
                       <input type="hidden" name="back" value="/rooms" />
-                      <label className="min-w-0 flex-1 text-[11px] font-medium text-muted">Operational status<select name="status" defaultValue={room.status} className={`${selectCls} mt-1 min-h-9 py-1.5 text-xs font-semibold`}>{allowedStatuses.map((status) => <option key={status} value={status}>{STATUS_META[status].label}</option>)}</select></label>
+                      <div className="min-w-0 flex-1">
+                        <label className="block text-[11px] font-medium text-muted mb-1">Operational status</label>
+                        <CustomDropdown
+                          name="status"
+                          defaultValue={room.status}
+                          size="sm"
+                          direction="up"
+                          options={allowedStatuses.map((status) => ({
+                            value: status,
+                            label: STATUS_META[status].label,
+                            badge: status === 'available' ? 'Ready' : status === 'cleaning' ? 'Cleaning' : 'Maint',
+                            badgeColor:
+                              status === 'available'
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                                : status === 'cleaning'
+                                ? 'bg-amber-100 text-amber-800 border-amber-200'
+                                : 'bg-rose-100 text-rose-800 border-rose-200',
+                          }))}
+                          aria-label="Operational status"
+                        />
+                      </div>
                       <RoomSubmit label="Save" compact />
                     </form>)}
                 </div>

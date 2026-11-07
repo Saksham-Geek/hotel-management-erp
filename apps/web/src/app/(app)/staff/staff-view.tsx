@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { CustomDropdown } from '@/components/dropdown';
 import { createStaff, toggleStaffStatus, removeStaff, type ActionState } from './actions';
 
 interface StaffUser {
@@ -223,17 +224,21 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
               onChange={(e) => setSearch(e.target.value)}
               className="h-8.5 rounded-xl border border-slate-300 bg-white px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
-            <select
-              value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
-              className="h-8.5 rounded-xl border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-800 focus:border-teal-500 focus:outline-none"
-            >
-              <option value="all">All Roles</option>
-              <option value="owner">Property Owner</option>
-              <option value="manager">General Manager</option>
-              <option value="frontdesk">Front Desk</option>
-              <option value="housekeeping">Housekeeping</option>
-            </select>
+            <div className="w-44">
+              <CustomDropdown
+                value={roleFilter}
+                onChange={(val) => setRoleFilter(val)}
+                size="sm"
+                options={[
+                  { value: 'all', label: 'All Roles' },
+                  { value: 'owner', label: 'Property Owner' },
+                  { value: 'manager', label: 'General Manager' },
+                  { value: 'frontdesk', label: 'Front Desk' },
+                  { value: 'housekeeping', label: 'Housekeeping' },
+                ]}
+                aria-label="Filter staff by role"
+              />
+            </div>
           </div>
         )}
       </div>
@@ -566,51 +571,48 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-900">Delegated Role</label>
-                  <select
+                  <label className="block font-bold text-slate-900 mb-1">Delegated Role</label>
+                  <CustomDropdown
                     name="role"
                     required
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-2.5 font-bold text-slate-900 focus:border-teal-500 focus:outline-none"
-                  >
-                    {data.allowedRoles.includes('owner') && (
-                      <option value="owner">Property Owner / Co-Director</option>
-                    )}
-                    {data.allowedRoles.includes('manager') && (
-                      <option value="manager">General Manager (GM)</option>
-                    )}
-                    {data.allowedRoles.includes('frontdesk') && (
-                      <option value="frontdesk">Front Desk / Receptionist</option>
-                    )}
-                    {data.allowedRoles.includes('housekeeping') && (
-                      <option value="housekeeping">Housekeeping Attendant</option>
-                    )}
-                  </select>
+                    defaultValue={data.allowedRoles[0] || 'frontdesk'}
+                    size="sm"
+                    options={[
+                      ...(data.allowedRoles.includes('owner') ? [{ value: 'owner', label: 'Property Owner / Co-Director' }] : []),
+                      ...(data.allowedRoles.includes('manager') ? [{ value: 'manager', label: 'General Manager (GM)' }] : []),
+                      ...(data.allowedRoles.includes('frontdesk') ? [{ value: 'frontdesk', label: 'Front Desk / Receptionist' }] : []),
+                      ...(data.allowedRoles.includes('housekeeping') ? [{ value: 'housekeeping', label: 'Housekeeping Attendant' }] : []),
+                    ]}
+                    aria-label="Delegated Role"
+                  />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-900">Department</label>
+                  <label className="block font-bold text-slate-900 mb-1">Department</label>
                   <input
                     name="department"
                     defaultValue="Front Office"
                     placeholder="e.g. Front Office, F&B, Housekeeping"
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-3 font-medium text-slate-900 focus:border-teal-500 focus:outline-none"
+                    className="h-9 w-full rounded-xl border border-slate-300 px-3 font-medium text-slate-900 focus:border-teal-500 focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-900">Assigned Shift</label>
-                  <select
+                  <label className="block font-bold text-slate-900 mb-1">Assigned Shift</label>
+                  <CustomDropdown
                     name="shift"
                     defaultValue="Morning (07:00 - 15:30)"
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-2 font-medium text-slate-900 focus:border-teal-500 focus:outline-none"
-                  >
-                    <option value="Morning (07:00 - 15:30)">Morning (07:00 - 15:30)</option>
-                    <option value="Evening (15:00 - 23:30)">Evening (15:00 - 23:30)</option>
-                    <option value="Night (23:00 - 07:30)">Night (23:00 - 07:30)</option>
-                    <option value="General">General (09:00 - 18:00)</option>
-                  </select>
+                    size="sm"
+                    options={[
+                      { value: 'Morning (07:00 - 15:30)', label: 'Morning (07:00 - 15:30)' },
+                      { value: 'Evening (15:00 - 23:30)', label: 'Evening (15:00 - 23:30)' },
+                      { value: 'Night (23:00 - 07:30)', label: 'Night (23:00 - 07:30)' },
+                      { value: 'General', label: 'General (09:00 - 18:00)' },
+                    ]}
+                    aria-label="Assigned Shift"
+                  />
                 </div>
 
                 <div>

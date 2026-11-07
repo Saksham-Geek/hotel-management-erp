@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Banner, btnCls, btnGhostCls, EmptyState, inputCls, selectCls, StatCard, StatusBadge } from '@/components/ui';
+import { Banner, btnCls, btnGhostCls, CustomDropdown, EmptyState, inputCls, selectCls, StatCard, StatusBadge } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { formatStayDates, formatDate } from '@/lib/format';
 import { addFolioCharge, collectFolioPayment, issueInvoice } from './actions';
@@ -245,17 +245,22 @@ export function FolioView({
               <p className="text-xs text-muted">Post F&amp;B, Laundry, Minibar, or Extra Bed</p>
             </div>
 
-            <label className="block text-xs font-medium text-ink">
-              Service Category
-              <select name="category" defaultValue="FNB_ROOM_SERVICE" className={`${selectCls} mt-1.5`}>
-                <option value="ACCOMMODATION">Accommodation (SAC 996311 - 12%/18% GST)</option>
-                <option value="FNB_ROOM_SERVICE">Room Service (SAC 996331 - 5% GST)</option>
-                <option value="FNB_REST">Restaurant Dining (SAC 996331 - 5% GST)</option>
-                <option value="LAUNDRY">Guest Laundry (SAC 9997 - 18% GST)</option>
-                <option value="SPA">Spa &amp; Wellness (SAC 999721 - 18% GST)</option>
-                <option value="OTHER">Incidentals / Other (18% GST)</option>
-              </select>
-            </label>
+            <div>
+              <label className="block text-xs font-medium text-ink mb-1.5">Service Category</label>
+              <CustomDropdown
+                name="category"
+                defaultValue="FNB_ROOM_SERVICE"
+                options={[
+                  { value: 'ACCOMMODATION', label: 'Accommodation (SAC 996311 - 12%/18% GST)' },
+                  { value: 'FNB_ROOM_SERVICE', label: 'Room Service (SAC 996331 - 5% GST)' },
+                  { value: 'FNB_REST', label: 'Restaurant Dining (SAC 996331 - 5% GST)' },
+                  { value: 'LAUNDRY', label: 'Guest Laundry (SAC 9997 - 18% GST)' },
+                  { value: 'SPA', label: 'Spa & Wellness (SAC 999721 - 18% GST)' },
+                  { value: 'OTHER', label: 'Incidentals / Other (18% GST)' },
+                ]}
+                aria-label="Service Category"
+              />
+            </div>
 
             <label className="block text-xs font-medium text-ink">
               Item Description
@@ -293,22 +298,23 @@ export function FolioView({
               <p className="text-xs text-muted">Supports UPI, Card, Cash, and City Ledger</p>
             </div>
 
-            <label className="block text-xs font-medium text-ink">
-              Payment Method
-              <select
+            <div>
+              <label className="block text-xs font-medium text-ink mb-1.5">Payment Method</label>
+              <CustomDropdown
                 name="method"
                 value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                className={`${selectCls} mt-1.5`}
-              >
-                <option value="cash">Cash (INR)</option>
-                <option value="upi">UPI Dynamic QR / VPA</option>
-                <option value="pos_machine">POS Machine (Connected EDC Terminal - Card/UPI/Tap)</option>
-                <option value="card">Credit / Debit Card (Offline / Manual)</option>
-                <option value="bank_transfer">NEFT / RTGS Bank Transfer</option>
-                <option value="corporate_ledger">Corporate Direct Billing (City Ledger)</option>
-              </select>
-            </label>
+                onChange={(val) => setPaymentMethod(val)}
+                options={[
+                  { value: 'cash', label: 'Cash (INR)' },
+                  { value: 'upi', label: 'UPI Dynamic QR / VPA' },
+                  { value: 'pos_machine', label: 'POS Machine (Connected EDC Terminal - Card/UPI/Tap)' },
+                  { value: 'card', label: 'Credit / Debit Card (Offline / Manual)' },
+                  { value: 'bank_transfer', label: 'NEFT / RTGS Bank Transfer' },
+                  { value: 'corporate_ledger', label: 'Corporate Direct Billing (City Ledger)' },
+                ]}
+                aria-label="Payment Method"
+              />
+            </div>
 
             <label className="block text-xs font-medium text-ink">
               Amount (₹)
@@ -404,18 +410,19 @@ export function FolioView({
               <p className="text-xs text-muted">Generate 16-character statutory invoice with IRN</p>
             </div>
 
-            <label className="block text-xs font-medium text-ink">
-              Invoice Category
-              <select
+            <div>
+              <label className="block text-xs font-medium text-ink mb-1.5">Invoice Category</label>
+              <CustomDropdown
                 name="invoiceType"
                 value={invoiceType}
-                onChange={(e) => setInvoiceType(e.target.value)}
-                className={`${selectCls} mt-1.5`}
-              >
-                <option value="B2C">B2C (Individual Guest)</option>
-                <option value="B2B">B2B (Corporate / Company GSTIN)</option>
-              </select>
-            </label>
+                onChange={(val) => setInvoiceType(val as 'B2C' | 'B2B')}
+                options={[
+                  { value: 'B2C', label: 'B2C (Individual Guest)' },
+                  { value: 'B2B', label: 'B2B (Corporate / Company GSTIN)' },
+                ]}
+                aria-label="Invoice Category"
+              />
+            </div>
 
             {invoiceType === 'B2B' && (
               <>

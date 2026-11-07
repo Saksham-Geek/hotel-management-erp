@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
-import { Banner, btnCls, EmptyState, inputCls, selectCls, PageHeader } from '@/components/ui';
+import { Banner, btnCls, CustomDropdown, EmptyState, inputCls, selectCls, PageHeader } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { FolioView, type FolioData } from './folio-view';
 import { UpiReceiverBanner } from './upi-receiver-banner';
@@ -72,21 +72,21 @@ export default async function BillingPage({
           <label htmlFor="res-selector" className="text-xs font-semibold text-ink shrink-0">
             Select Reservation / Room:
           </label>
-          <select
-            id="res-selector"
-            name="reservationId"
-            defaultValue={reservationId ?? ''}
-            className={`${selectCls} max-w-md flex-1 text-xs`}
-          >
-            <option value="" disabled>
-              Choose an active stay to open folio…
-            </option>
-            {reservations.map((r) => (
-              <option key={r.id} value={r.id}>
-                Room {r.roomNumber} · {r.guestName} ({r.checkIn} → {r.checkOut}) [{r.status}]
-              </option>
-            ))}
-          </select>
+          <div className="max-w-md flex-1">
+            <CustomDropdown
+              id="res-selector"
+              name="reservationId"
+              defaultValue={reservationId ?? ''}
+              placeholder="Choose an active stay to open folio…"
+              size="sm"
+              options={reservations.map((r) => ({
+                value: r.id,
+                label: `Room ${r.roomNumber} · ${r.guestName} (${r.checkIn} → ${r.checkOut}) [${r.status}]`,
+                badge: `Rm ${r.roomNumber}`,
+              }))}
+              aria-label="Select Reservation"
+            />
+          </div>
           <button type="submit" className={btnCls}>
             Open Folio
           </button>

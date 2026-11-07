@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
-import { Banner, btnCls, EmptyState, inputCls, PageHeader } from '@/components/ui';
+import { Banner, btnCls, CustomDropdown, EmptyState, inputCls, PageHeader } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { saveGuest } from './actions';
@@ -39,7 +39,23 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
             <label className="text-xs font-medium text-ink">Phone <span className="text-danger">*</span><input name="phone" type="tel" required minLength={7} maxLength={30} pattern="\+?[0-9 ().-]{7,30}" title="Enter a valid phone number with 7 to 15 digits." placeholder="Phone number" className={`${inputCls} mt-1.5`} /></label>
             <label className="text-xs font-medium text-ink">Email<input name="email" type="email" placeholder="Email address" className={`${inputCls} mt-1.5`} /></label>
             <label className="text-xs font-medium text-ink">Nationality<input name="nationality" maxLength={60} placeholder="Nationality" className={`${inputCls} mt-1.5`} /></label>
-            <label className="text-xs font-medium text-ink">ID document type<select name="idType" defaultValue="" className={`${inputCls} mt-1.5`}><option value="">Select type (optional)</option><option value="aadhaar">Aadhaar</option><option value="passport">Passport</option><option value="driving_license">Driving licence</option><option value="voter_id">Voter ID</option><option value="other">Other</option></select></label>
+            <div>
+              <label className="block text-xs font-medium text-ink mb-1.5">ID document type</label>
+              <CustomDropdown
+                name="idType"
+                defaultValue=""
+                placeholder="Select type (optional)"
+                options={[
+                  { value: '', label: 'Select type (optional)' },
+                  { value: 'aadhaar', label: 'Aadhaar' },
+                  { value: 'passport', label: 'Passport' },
+                  { value: 'driving_license', label: 'Driving licence' },
+                  { value: 'voter_id', label: 'Voter ID' },
+                  { value: 'other', label: 'Other' },
+                ]}
+                aria-label="ID document type"
+              />
+            </div>
             <label className="text-xs font-medium text-ink">Identity number <span className="font-normal text-muted">(optional)</span><input name="idNumber" maxLength={60} placeholder="For Aadhaar, enter last 4 digits only" className={`${inputCls} mt-1.5`} /></label>
             <label className="text-xs font-medium text-ink sm:col-span-2">Guest notes / preferences<textarea name="notes" maxLength={1000} rows={2} placeholder="Optional preferences or notes" className={`${inputCls} mt-1.5`} /></label>
             <label className="flex min-h-10 items-center gap-2 self-end text-sm font-medium text-ink"><input name="vip" type="checkbox" className="h-4 w-4 accent-[hsl(var(--accent))]" /> Mark as VIP</label>
@@ -47,8 +63,36 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
             <div className="rounded-lg border border-dashed border-line bg-ground/40 p-3 sm:col-span-2 lg:col-span-3">
               <label className="block text-xs font-medium text-ink">Identity images <span className="font-normal text-muted">(optional)</span><input name="documents" type="file" accept="image/jpeg,image/png,image/webp" multiple className="mt-2 block w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-surface file:px-3 file:py-2 file:text-xs file:font-semibold" /></label>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="text-xs font-medium text-ink">Document category<select name="documentType" defaultValue="other" className={`${inputCls} mt-1.5`}><option value="aadhaar_masked">Masked Aadhaar image</option><option value="passport">Passport</option><option value="driving_license">Driving licence</option><option value="voter_id">Voter ID</option><option value="other">Other identity document</option></select></label>
-                <label className="text-xs font-medium text-ink">Consent recorded by<select name="consentMethod" defaultValue="" className={`${inputCls} mt-1.5`}><option value="" disabled>Select method when uploading</option><option value="written">Written</option><option value="verbal">Verbal</option><option value="digital">Digital</option></select></label>
+                <div>
+                  <label className="block text-xs font-medium text-ink mb-1.5">Document category</label>
+                  <CustomDropdown
+                    name="documentType"
+                    defaultValue="other"
+                    options={[
+                      { value: 'aadhaar_masked', label: 'Masked Aadhaar image' },
+                      { value: 'passport', label: 'Passport' },
+                      { value: 'driving_license', label: 'Driving licence' },
+                      { value: 'voter_id', label: 'Voter ID' },
+                      { value: 'other', label: 'Other identity document' },
+                    ]}
+                    aria-label="Document category"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-ink mb-1.5">Consent recorded by</label>
+                  <CustomDropdown
+                    name="consentMethod"
+                    defaultValue=""
+                    placeholder="Select method when uploading"
+                    options={[
+                      { value: '', label: 'Select method when uploading' },
+                      { value: 'written', label: 'Written' },
+                      { value: 'verbal', label: 'Verbal' },
+                      { value: 'digital', label: 'Digital' },
+                    ]}
+                    aria-label="Consent recorded by"
+                  />
+                </div>
               </div>
               <p className="mt-2 text-[10px] leading-4 text-muted">JPEG, PNG or WebP · maximum 5 MB each · up to 8 images. Tell the guest why the document is collected, how it will be used, and that an alternative ID may be provided. For Aadhaar, upload only a copy with the first eight digits masked. Uploads are encrypted at rest.</p>
               <label className="mt-3 flex items-start gap-2 text-xs leading-5 text-ink"><input name="consentGiven" type="checkbox" className="mt-1 h-4 w-4 accent-[hsl(var(--accent))]" /> I confirm the guest was informed and agreed to this identity document being stored for the stated purpose.</label>

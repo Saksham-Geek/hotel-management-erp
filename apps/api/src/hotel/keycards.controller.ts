@@ -58,11 +58,21 @@ export class KeycardsController {
     const input: UpdateRoomKeyStatusInput = parsed.data;
 
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
-      let timeUpdates = '';
-      if (input.status === 'issued_to_guest') {
-        timeUpdates = ', issued_at = now(), returned_at = null';
-      } else if (input.status === 'in_slot') {
-        timeUpdates = ', returned_at = now(), issued_to_reservation_id = null, issued_to_guest_name = null';
+      if (input.status === 'in_slot') {
+        const res = await c.query(
+          `update room_keys
+           set status = 'in_slot',
+               returned_at = now(),
+               issued_to_reservation_id = null,
+               issued_to_guest_name = null,
+               notes = coalesce($1, notes),
+               updated_at = now()
+           where id = $2
+           returning id, key_number as "keyNumber", status`,
+          [input.notes ?? null, id]
+        );
+        if (!res.rows[0]) throw new NotFoundException('Key record not found');
+        return res.rows[0];
       }
 
       const res = await c.query(
@@ -71,8 +81,9 @@ export class KeycardsController {
              issued_to_reservation_id = coalesce($2, issued_to_reservation_id),
              issued_to_guest_name = coalesce($3, issued_to_guest_name),
              notes = coalesce($4, notes),
+             issued_at = case when $1 = 'issued_to_guest' then now() else issued_at end,
+             returned_at = case when $1 = 'issued_to_guest' then null else returned_at end,
              updated_at = now()
-             ${timeUpdates}
          where id = $5
          returning id, key_number as "keyNumber", status`,
         [input.status, input.issuedToReservationId ?? null, input.issuedToGuestName ?? null, input.notes ?? null, id]

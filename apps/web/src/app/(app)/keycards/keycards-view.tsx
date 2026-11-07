@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { CustomDropdown } from '@/components/dropdown';
 import { updateRoomKeyStatusAction, encodeKeycardAction } from './actions';
 
 export interface RoomKeyDto {
@@ -37,9 +39,16 @@ export function KeycardsView({
   keys: RoomKeyDto[];
   activeStays: ActiveGuestStayDto[];
 }) {
+  const router = useRouter();
+  const [localKeys, setLocalKeys] = useState<RoomKeyDto[]>(keys);
   const [activeTab, setActiveTab] = useState<'brass_rack' | 'rfid_encoder' | 'digital_mobile'>('brass_rack');
   const [serialConnected, setSerialConnected] = useState(false);
   const [serialPortName, setSerialPortName] = useState<string | null>(null);
+
+  // Sync prop updates if parent re-renders
+  useEffect(() => {
+    setLocalKeys(keys);
+  }, [keys]);
 
   // Encode Modal State
   const [encodingKey, setEncodingKey] = useState<RoomKeyDto | null>(null);
@@ -55,8 +64,8 @@ export function KeycardsView({
 
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
-  const brassKeys = keys.filter((k) => k.keyType === 'physical_brass');
-  const rfidKeys = keys.filter((k) => k.keyType === 'rfid_mifare');
+  const brassKeys = localKeys.filter((k) => k.keyType === 'physical_brass');
+  const rfidKeys = localKeys.filter((k) => k.keyType === 'rfid_mifare');
 
   // Browser Web Serial API connection for USB RFID Reader / Encoder
   async function handleConnectSerialEncoder() {
@@ -115,6 +124,21 @@ export function KeycardsView({
         type: 'ok',
         text: `MIFARE Smart Keycard successfully written for Room ${stay.roomNumber} (${stay.guestName})!`,
       });
+      setLocalKeys((prev) =>
+        prev.map((k) =>
+          k.id === encodingKey.id
+            ? {
+                ...k,
+                status: 'issued_to_guest',
+                issuedToGuestName: stay.guestName,
+                issuedToReservationId: stay.reservationId,
+                issuedAt: new Date().toISOString(),
+                returnedAt: null,
+              }
+            : k
+        )
+      );
+      router.refresh();
       setTimeout(() => {
         setEncodingProgress('idle');
         setEncodingKey(null);
@@ -126,6 +150,21 @@ export function KeycardsView({
   }
 
   async function handleUpdateKeyStatus(keyId: string, status: RoomKeyDto['status'], guestName?: string, resId?: string) {
+    // Optimistic UI state flip
+    setLocalKeys((prev) =>
+      prev.map((k) =>
+        k.id === keyId
+          ? {
+              ...k,
+              status,
+              issuedToGuestName: status === 'in_slot' ? null : (guestName ?? k.issuedToGuestName),
+              issuedToReservationId: status === 'in_slot' ? null : (resId ?? k.issuedToReservationId),
+              returnedAt: status === 'in_slot' ? new Date().toISOString() : k.returnedAt,
+            }
+          : k
+      )
+    );
+
     const res = await updateRoomKeyStatusAction(keyId, {
       status,
       issuedToGuestName: guestName,
@@ -134,8 +173,11 @@ export function KeycardsView({
     if (res.ok) {
       setFeedbackMsg({ type: 'ok', text: `Key status updated to ${status.replace('_', ' ').toUpperCase()}` });
       setHandingKey(null);
+      router.refresh();
     } else {
       setFeedbackMsg({ type: 'err', text: res.error || 'Failed to update key status' });
+      // Revert to prop state on failure
+      setLocalKeys(keys);
     }
   }
 
@@ -511,30 +553,32 @@ export function KeycardsView({
             <div className="my-4 space-y-3.5 text-xs">
               <div>
                 <label className="block font-bold text-slate-500 mb-1">Select Guest Stay</label>
-                <select
+                <CustomDropdown
                   value={selectedStayId}
-                  onChange={(e) => setSelectedStayId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-800 dark:text-white focus:outline-none"
-                >
-                  {activeStays.map((s) => (
-                    <option key={s.reservationId} value={s.reservationId}>
-                      Room {s.roomNumber} — {s.guestName}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setSelectedStayId(val)}
+                  size="sm"
+                  options={activeStays.map((s) => ({
+                    value: s.reservationId,
+                    label: `Room ${s.roomNumber} — ${s.guestName}`,
+                    badge: `Room ${s.roomNumber}`,
+                  }))}
+                  aria-label="Select Guest Stay"
+                />
               </div>
 
               <div>
                 <label className="block font-bold text-slate-500 mb-1">Card Protocol &amp; Encryption</label>
-                <select
+                <CustomDropdown
                   value={encoderProtocol}
-                  onChange={(e) => setEncoderProtocol(e.target.value as any)}
-                  className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] px-3 py-2 text-xs font-bold text-slate-800 dark:text-white focus:outline-none"
-                >
-                  <option value="mifare_classic_1k">MIFARE Classic 1K (Crypto-1 Sector 1 Key A/B)</option>
-                  <option value="mifare_ultralight">MIFARE Ultralight C (3DES Contactless)</option>
-                  <option value="saflok_ascii">Saflok / Onity TCP ASCII Protocol</option>
-                </select>
+                  onChange={(val) => setEncoderProtocol(val as any)}
+                  size="sm"
+                  options={[
+                    { value: 'mifare_classic_1k', label: 'MIFARE Classic 1K (Crypto-1 Sector 1 Key A/B)' },
+                    { value: 'mifare_ultralight', label: 'MIFARE Ultralight C (3DES Contactless)' },
+                    { value: 'saflok_ascii', label: 'Saflok / Onity TCP ASCII Protocol' },
+                  ]}
+                  aria-label="Card Protocol & Encryption"
+                />
               </div>
 
               {/* Hardware Animation */}

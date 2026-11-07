@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { CustomDropdown } from '@/components/dropdown';
 import { formatDate, formatStayDates, formatMoney } from '@/lib/format';
 import {
   sendReviewRequest,
@@ -406,17 +407,21 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
               onChange={(e) => setCrmSearch(e.target.value)}
               className="h-9 w-full sm:w-80 rounded-xl border border-slate-300 px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none"
             />
-            <select
-              value={tierFilter}
-              onChange={(e) => setTierFilter(e.target.value)}
-              className="h-9 rounded-xl border border-slate-300 px-3 text-xs font-bold text-slate-900 focus:border-teal-500 focus:outline-none"
-            >
-              <option value="all">All Loyalty Tiers</option>
-              <option value="kohinoor">Kohinoor (Imperial)</option>
-              <option value="platinum">Taj Platinum</option>
-              <option value="gold">Gold Member</option>
-              <option value="silver">Silver Member</option>
-            </select>
+            <div className="w-full sm:w-48">
+              <CustomDropdown
+                value={tierFilter}
+                onChange={(val) => setTierFilter(val)}
+                size="sm"
+                options={[
+                  { value: 'all', label: 'All Loyalty Tiers' },
+                  { value: 'kohinoor', label: 'Kohinoor (Imperial)' },
+                  { value: 'platinum', label: 'Taj Platinum' },
+                  { value: 'gold', label: 'Gold Member' },
+                  { value: 'silver', label: 'Silver Member' },
+                ]}
+                aria-label="Filter loyalty tier"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -612,30 +617,34 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-900">Outreach Channel</label>
-                  <select
+                  <label className="block font-bold text-slate-900 mb-1">Outreach Channel</label>
+                  <CustomDropdown
                     name="channel"
                     value={reviewChannel}
-                    onChange={(e: any) => setReviewChannel(e.target.value)}
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-2.5 font-bold text-slate-900 focus:border-teal-500 focus:outline-none"
-                  >
-                    <option value="whatsapp">WhatsApp (Direct Chat)</option>
-                    <option value="email">Official Email</option>
-                    <option value="sms">SMS Text</option>
-                  </select>
+                    onChange={(val) => setReviewChannel(val as any)}
+                    size="sm"
+                    options={[
+                      { value: 'whatsapp', label: 'WhatsApp (Direct Chat)' },
+                      { value: 'email', label: 'Official Email' },
+                      { value: 'sms', label: 'SMS Text' },
+                    ]}
+                    aria-label="Outreach Channel"
+                  />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-900">Review Destination</label>
-                  <select
+                  <label className="block font-bold text-slate-900 mb-1">Review Destination</label>
+                  <CustomDropdown
                     name="platform"
                     value={reviewPlatform}
-                    onChange={(e: any) => setReviewPlatform(e.target.value)}
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-2.5 font-bold text-slate-900 focus:border-teal-500 focus:outline-none"
-                  >
-                    <option value="google">Google Maps & Business (5★)</option>
-                    <option value="tripadvisor">TripAdvisor Luxury Portal</option>
-                    <option value="direct_nps">Private Hotel NPS Survey</option>
-                  </select>
+                    onChange={(val) => setReviewPlatform(val as any)}
+                    size="sm"
+                    options={[
+                      { value: 'google', label: 'Google Maps & Business (5★)' },
+                      { value: 'tripadvisor', label: 'TripAdvisor Luxury Portal' },
+                      { value: 'direct_nps', label: 'Private Hotel NPS Survey' },
+                    ]}
+                    aria-label="Review Destination"
+                  />
                 </div>
               </div>
 
@@ -741,18 +750,20 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
               className="mt-4 space-y-3.5 text-xs"
             >
               <div>
-                <label className="block font-bold text-slate-900">Loyalty Status Tier</label>
-                <select
+                <label className="block font-bold text-slate-900 mb-1">Loyalty Status Tier</label>
+                <CustomDropdown
                   name="tier"
                   defaultValue={editingGuest.tier}
-                  className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-2.5 font-bold text-slate-900 focus:border-teal-500 focus:outline-none"
-                >
-                  <option value="kohinoor">👑 Kohinoor (Imperial VIP)</option>
-                  <option value="platinum">💎 Taj Platinum</option>
-                  <option value="gold">🥇 Gold Tier</option>
-                  <option value="silver">🥈 Silver Member</option>
-                  <option value="bronze">🥉 Bronze Standard</option>
-                </select>
+                  size="sm"
+                  options={[
+                    { value: 'kohinoor', label: '👑 Kohinoor (Imperial VIP)' },
+                    { value: 'platinum', label: '💎 Taj Platinum' },
+                    { value: 'gold', label: '🥇 Gold Tier' },
+                    { value: 'silver', label: '🥈 Silver Member' },
+                    { value: 'bronze', label: '🥉 Bronze Standard' },
+                  ]}
+                  aria-label="Loyalty Status Tier"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -878,45 +889,54 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-900">Campaign Type</label>
-                  <select
+                  <label className="block font-bold text-slate-900 mb-1">Campaign Type</label>
+                  <CustomDropdown
                     name="campaignType"
                     required
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-2.5 font-bold text-slate-900 focus:border-teal-500 focus:outline-none"
-                  >
-                    <option value="repeat_booking">Repeat Stay Privilege</option>
-                    <option value="inactive_reengagement">Inactive Guest Re-engagement</option>
-                    <option value="festive_offer">Festive / Weekend Discount</option>
-                    <option value="vip_loyalty">VIP Platinum Upgrade</option>
-                    <option value="corporate_renewal">Corporate B2B Renewal</option>
-                  </select>
+                    defaultValue="repeat_booking"
+                    size="sm"
+                    options={[
+                      { value: 'repeat_booking', label: 'Repeat Stay Privilege' },
+                      { value: 'inactive_reengagement', label: 'Inactive Guest Re-engagement' },
+                      { value: 'festive_offer', label: 'Festive / Weekend Discount' },
+                      { value: 'vip_loyalty', label: 'VIP Platinum Upgrade' },
+                      { value: 'corporate_renewal', label: 'Corporate B2B Renewal' },
+                    ]}
+                    aria-label="Campaign Type"
+                  />
                 </div>
 
                 <div>
-                  <label className="block font-bold text-slate-900">Audience Segment</label>
-                  <select
+                  <label className="block font-bold text-slate-900 mb-1">Audience Segment</label>
+                  <CustomDropdown
                     name="audienceSegment"
                     required
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-2.5 font-bold text-slate-900 focus:border-teal-500 focus:outline-none"
-                  >
-                    <option value="all_guests">All Registered Guests</option>
-                    <option value="inactive_90_days">Inactive Guests (&gt;90 days)</option>
-                    <option value="vip_platinum">VIP Platinum & Kohinoor Only</option>
-                    <option value="corporate">Corporate B2B Bookers</option>
-                  </select>
+                    defaultValue="all_guests"
+                    size="sm"
+                    options={[
+                      { value: 'all_guests', label: 'All Registered Guests' },
+                      { value: 'inactive_90_days', label: 'Inactive Guests (>90 days)' },
+                      { value: 'vip_platinum', label: 'VIP Platinum & Kohinoor Only' },
+                      { value: 'corporate', label: 'Corporate B2B Bookers' },
+                    ]}
+                    aria-label="Audience Segment"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-900">Channel</label>
-                  <select
+                  <label className="block font-bold text-slate-900 mb-1">Channel</label>
+                  <CustomDropdown
                     name="channel"
-                    className="mt-1 h-9 w-full rounded-xl border border-slate-300 px-2.5 font-bold text-slate-900 focus:border-teal-500 focus:outline-none"
-                  >
-                    <option value="whatsapp">WhatsApp Broadcast</option>
-                    <option value="email">Direct Email Campaign</option>
-                  </select>
+                    defaultValue="whatsapp"
+                    size="sm"
+                    options={[
+                      { value: 'whatsapp', label: 'WhatsApp Broadcast' },
+                      { value: 'email', label: 'Direct Email Campaign' },
+                    ]}
+                    aria-label="Channel"
+                  />
                 </div>
 
                 <div>

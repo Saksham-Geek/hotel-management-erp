@@ -5,6 +5,15 @@ import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
 import { updateRoomKeyStatusAction, encodeKeycardAction } from './actions';
 
+export interface RoomKeyCustodyLogDto {
+  id: string;
+  action: 'issued_to_guest' | 'returned_to_slot' | 'with_housekeeping' | 'lost';
+  recipientName: string;
+  recipientType: 'primary_guest' | 'companion' | 'housekeeping' | 'front_desk';
+  notes: string | null;
+  loggedAt: string;
+}
+
 export interface RoomKeyDto {
   id: string;
   roomId: string;
@@ -22,6 +31,7 @@ export interface RoomKeyDto {
   roomTypeName: string | null;
   guestCheckIn: string | null;
   guestCheckOut: string | null;
+  custodyLogs?: RoomKeyCustodyLogDto[];
 }
 
 export interface ActiveGuestStayDto {
@@ -63,6 +73,9 @@ export function KeycardsView({
 
   // Hand to Guest Modal
   const [handingKey, setHandingKey] = useState<RoomKeyDto | null>(null);
+
+  // Key Custody History Modal
+  const [historyKey, setHistoryKey] = useState<RoomKeyDto | null>(null);
 
   const [feedbackMsg, setFeedbackMsg] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
@@ -146,7 +159,7 @@ export function KeycardsView({
     }
   }
 
-  async function handleUpdateKeyStatus(keyId: string, status: RoomKeyDto['status'], guestName?: string, resId?: string) {
+  async function handleUpdateKeyStatus(keyId: string, status: RoomKeyDto['status'], guestName?: string, resId?: string, notes?: string) {
     // Optimistic UI state flip
     setLocalKeys((prev) =>
       prev.map((k) =>
@@ -157,6 +170,17 @@ export function KeycardsView({
               issuedToGuestName: status === 'in_slot' ? null : (guestName ?? k.issuedToGuestName),
               issuedToReservationId: status === 'in_slot' ? null : (resId ?? k.issuedToReservationId),
               returnedAt: status === 'in_slot' ? new Date().toISOString() : k.returnedAt,
+              custodyLogs: [
+                {
+                  id: 'temp-' + Date.now(),
+                  action: status === 'in_slot' ? ('returned_to_slot' as const) : status,
+                  recipientName: status === 'in_slot' ? 'Front Desk Key Slot' : (guestName || k.issuedToGuestName || 'Staff'),
+                  recipientType: status === 'in_slot' ? ('front_desk' as const) : status === 'with_housekeeping' ? ('housekeeping' as const) : ('primary_guest' as const),
+                  notes: notes || (status === 'lost' ? 'Reported lost' : status === 'in_slot' ? 'Returned to slot' : 'Handed to occupant'),
+                  loggedAt: new Date().toISOString(),
+                },
+                ...(k.custodyLogs || []),
+              ],
             }
           : k
       )
@@ -166,9 +190,10 @@ export function KeycardsView({
       status,
       issuedToGuestName: guestName,
       issuedToReservationId: resId,
+      notes,
     });
     if (res.ok) {
-      const label = status === 'in_slot' ? 'RETURNED TO SLOT' : status === 'issued_to_guest' ? `ISSUED TO ${guestName || 'GUEST'}` : 'WITH HOUSEKEEPING';
+      const label = status === 'in_slot' ? 'RETURNED TO SLOT' : status === 'issued_to_guest' ? `ISSUED TO ${guestName || 'GUEST'}` : status === 'lost' ? 'REPORTED LOST' : 'WITH HOUSEKEEPING';
       setFeedbackMsg({ type: 'ok', text: `Key status updated to ${label}` });
       setHandingKey(null);
       router.refresh();
@@ -311,6 +336,8 @@ export function KeycardsView({
                         ? 'border-[#8c6239] bg-[#3d2314] text-amber-100'
                         : key.status === 'issued_to_guest'
                         ? 'border-amber-400/80 bg-[#543019] text-white ring-1 ring-amber-400'
+                        : key.status === 'lost'
+                        ? 'border-rose-500/80 bg-[#3b1219] text-white ring-1 ring-rose-500'
                         : 'border-blue-400/80 bg-[#1d263b] text-white'
                     }`}
                   >
@@ -339,14 +366,28 @@ export function KeycardsView({
                               ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
                               : key.status === 'issued_to_guest'
                               ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
+                              : key.status === 'lost'
+                              ? 'bg-rose-950 text-rose-300 border border-rose-500/40'
                               : 'bg-blue-950 text-blue-300 border border-blue-500/40'
                           }`}
                         >
-                          {key.status === 'in_slot' ? '🟢 In Slot' : key.status === 'issued_to_guest' ? '🟡 Out with Guest' : '🧹 With Maid'}
+                          {key.status === 'in_slot'
+                            ? '🟢 In Slot'
+                            : key.status === 'issued_to_guest'
+                            ? '🟡 Out with Guest'
+                            : key.status === 'lost'
+                            ? '🚨 Lost Key'
+                            : '🧹 With Maid'}
                         </span>
                       </div>
 
                       {/* Occupant / Room Info */}
+                      {key.status === 'lost' && (
+                        <p className="text-[10px] text-rose-200 font-bold mt-1.5 truncate" title={`Lost. Last Holder: ${key.custodyLogs?.[0]?.recipientName || key.issuedToGuestName || 'Unknown'}`}>
+                          🚨 Last: {key.custodyLogs?.[0]?.recipientName || key.issuedToGuestName || 'Unknown'}
+                        </p>
+                      )}
+
                       {key.status === 'issued_to_guest' && (
                         <p className="text-[10px] text-amber-200 font-bold mt-1.5 truncate" title={`Guest: ${key.issuedToGuestName || 'In-House Guest'}`}>
                           👤 {key.issuedToGuestName || 'In-House Guest'}
@@ -405,6 +446,14 @@ export function KeycardsView({
                             </button>
                           )}
                         </div>
+                      ) : key.status === 'lost' ? (
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateKeyStatus(key.id, 'in_slot')}
+                          className="w-full rounded-lg bg-emerald-700 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-600 transition-colors cursor-pointer"
+                        >
+                          ✓ Found &amp; Return
+                        </button>
                       ) : (
                         <button
                           type="button"
@@ -414,6 +463,20 @@ export function KeycardsView({
                           ✓ Return to Slot
                         </button>
                       )}
+
+                      {/* Custody History & Lost Trace Button */}
+                      <button
+                        type="button"
+                        onClick={() => setHistoryKey(key)}
+                        className="w-full rounded-lg bg-black/40 hover:bg-black/60 py-1 text-[10px] font-bold text-amber-200/90 hover:text-white transition-colors cursor-pointer border border-white/10 flex items-center justify-center gap-1.5"
+                      >
+                        <span>📜 Custody Log</span>
+                        {key.custodyLogs && key.custodyLogs.length > 0 && (
+                          <span className="rounded-full bg-amber-400/25 text-amber-300 px-1.5 py-0.2 text-[9px] font-black">
+                            {key.custodyLogs.length}
+                          </span>
+                        )}
+                      </button>
                     </div>
                   </div>
                 );
@@ -505,13 +568,25 @@ export function KeycardsView({
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
+                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/10 space-y-1.5">
                     <button
                       type="button"
                       onClick={() => setEncodingKey(key)}
                       className="w-full rounded-xl bg-indigo-600 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <span>⚡ Write Sector 1 Keycard</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHistoryKey(key)}
+                      className="w-full rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/[0.08] py-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <span>📜 Custody Log</span>
+                      {key.custodyLogs && key.custodyLogs.length > 0 && (
+                        <span className="rounded-full bg-slate-200 dark:bg-white/10 px-1.5 py-0.2 text-[9px] font-black">
+                          {key.custodyLogs.length}
+                        </span>
+                      )}
                     </button>
                   </div>
                 </div>
@@ -897,6 +972,186 @@ export function KeycardsView({
           </div>
         </div>
       )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 4: KEY CUSTODY HISTORY & LOST KEY AUDIT */}
+      {/* ========================================================================= */}
+      {historyKey && (() => {
+        const logs = historyKey.custodyLogs || [];
+        const lastHolder = logs[0]?.recipientName || historyKey.issuedToGuestName || 'Front Desk Rack';
+        const isLost = historyKey.status === 'lost';
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+            <div className="relative flex w-full max-w-lg flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 max-h-[90vh] overflow-hidden">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
+                <div className="flex items-center gap-3">
+                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-500/20 text-amber-500 font-black text-lg">
+                    📜
+                  </span>
+                  <div>
+                    <h3 className="font-display text-base font-bold">
+                      Key Custody History · Room {historyKey.roomNumber}
+                    </h3>
+                    <p className="text-xs text-muted">
+                      {historyKey.keyType === 'physical_brass' ? 'Brass Key Tag' : 'MIFARE Contactless RFID Card'} · Active Stay Audit
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHistoryKey(null)}
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Current Custody / Lost Banner */}
+              <div className="my-4">
+                <div
+                  className={`rounded-2xl border p-4 text-xs ${
+                    isLost
+                      ? 'border-rose-500/40 bg-rose-50 dark:bg-rose-950/30 text-rose-950 dark:text-rose-200'
+                      : historyKey.status === 'issued_to_guest'
+                      ? 'border-amber-500/40 bg-amber-50 dark:bg-amber-950/30 text-amber-950 dark:text-amber-200'
+                      : historyKey.status === 'with_housekeeping'
+                      ? 'border-blue-500/40 bg-blue-50 dark:bg-blue-950/30 text-blue-950 dark:text-blue-200'
+                      : 'border-emerald-500/40 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-950 dark:text-emerald-200'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">
+                        {isLost ? '🚨 STATUS: KEY REPORTED LOST' : 'CURRENT CHAIN OF CUSTODY'}
+                      </p>
+                      <p className="text-sm font-extrabold mt-0.5">
+                        {isLost
+                          ? `Last Person in Possession: ${lastHolder}`
+                          : historyKey.status === 'issued_to_guest'
+                          ? `In Possession Of: ${historyKey.issuedToGuestName || lastHolder} (Guest)`
+                          : historyKey.status === 'with_housekeeping'
+                          ? `In Possession Of: ${historyKey.issuedToGuestName || 'Housekeeping Staff'}`
+                          : 'Key is currently in Front Desk Slot'}
+                      </p>
+                    </div>
+
+                    {/* Quick Report Lost / Found Toggle */}
+                    {isLost ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateKeyStatus(historyKey.id, 'in_slot');
+                          setHistoryKey(null);
+                        }}
+                        className="rounded-xl bg-emerald-600 hover:bg-emerald-500 px-3 py-1.5 text-xs font-bold text-white transition-colors cursor-pointer shadow-xs"
+                      >
+                        ✓ Found &amp; Return
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          handleUpdateKeyStatus(historyKey.id, 'lost', undefined, undefined, 'Reported missing by front desk');
+                          setHistoryKey(null);
+                        }}
+                        className="rounded-xl bg-rose-600 hover:bg-rose-500 px-3 py-1.5 text-xs font-bold text-white transition-colors cursor-pointer shadow-xs"
+                      >
+                        🚨 Mark as Lost
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Timeline List */}
+              <div className="flex-1 overflow-y-auto pr-1 space-y-3 max-h-[340px]">
+                {logs.length > 0 ? (
+                  <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200 dark:before:bg-white/10">
+                    {logs.map((log, idx) => (
+                      <div key={log.id} className="relative text-xs space-y-1">
+                        {/* Dot */}
+                        <div
+                          className={`absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-[#0c1222] shadow-xs ${
+                            idx === 0
+                              ? log.action === 'lost'
+                                ? 'bg-rose-500 ring-4 ring-rose-500/20'
+                                : 'bg-amber-400 ring-4 ring-amber-400/20'
+                              : log.action === 'returned_to_slot'
+                              ? 'bg-emerald-500'
+                              : log.action === 'with_housekeeping'
+                              ? 'bg-blue-500'
+                              : 'bg-slate-400'
+                          }`}
+                        />
+
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-ink flex items-center gap-1.5">
+                            {log.action === 'issued_to_guest'
+                              ? '👤 Handed to Guest'
+                              : log.action === 'returned_to_slot'
+                              ? '📥 Returned to Slot'
+                              : log.action === 'with_housekeeping'
+                              ? '🧹 Given to Housekeeping'
+                              : '🚨 Reported Lost'}
+                            {idx === 0 && (
+                              <span className="rounded-full bg-amber-400/20 text-amber-600 dark:text-amber-300 text-[9px] font-black px-1.5 py-0.2">
+                                LATEST
+                              </span>
+                            )}
+                          </span>
+                          <span className="text-[10px] text-muted">
+                            {new Date(log.loggedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })},{' '}
+                            {new Date(log.loggedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                          </span>
+                        </div>
+
+                        <div className="rounded-xl border border-slate-100 dark:border-white/5 bg-slate-50 dark:bg-white/[0.02] p-2.5">
+                          <div className="flex items-center justify-between">
+                            <span className="font-extrabold text-ink">
+                              {log.recipientName}
+                            </span>
+                            <span className="rounded bg-slate-200 dark:bg-white/10 px-1.5 py-0.5 text-[9px] font-semibold text-slate-700 dark:text-slate-300">
+                              {log.recipientType.replace('_', ' ').toUpperCase()}
+                            </span>
+                          </div>
+                          {log.notes && (
+                            <p className="text-[10px] text-muted mt-1 italic">
+                              "{log.notes}"
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-slate-200 dark:border-white/10 p-6 text-center text-xs text-muted">
+                    <p className="font-bold">No Key Movements Recorded Yet</p>
+                    <p className="text-[11px] mt-1">
+                      Key movements (handover to guest, companion, maid return) are logged here in real time during the stay.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Automatic Deletion Privacy Policy Notice */}
+              <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/10 flex items-center justify-between text-[11px] text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <span>🔒</span> Auto-Purge: All key history is permanently deleted upon final check-out.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setHistoryKey(null)}
+                  className="rounded-xl bg-slate-900 dark:bg-white text-white dark:text-slate-950 font-bold px-4 py-1.5 text-xs hover:opacity-90 transition-opacity cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );

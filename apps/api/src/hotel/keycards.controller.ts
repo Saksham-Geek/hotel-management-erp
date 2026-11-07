@@ -39,7 +39,17 @@ export class KeycardsController {
                 k.notes,
                 r.number as "roomNumber", r.floor,
                 rt.name as "roomTypeName",
-                res.check_in as "guestCheckIn", res.check_out as "guestCheckOut"
+                res.check_in as "guestCheckIn", res.check_out as "guestCheckOut",
+                (select coalesce(json_agg(json_build_object(
+                  'id', l.id,
+                  'action', l.action,
+                  'recipientName', l.recipient_name,
+                  'recipientType', l.recipient_type,
+                  'notes', l.notes,
+                  'loggedAt', l.logged_at::text
+                ) order by l.logged_at desc), '[]'::json)
+                 from room_key_logs l
+                 where l.key_id = k.id) as "custodyLogs"
          from room_keys k
          join rooms r on r.id = k.room_id
          left join room_types rt on rt.id = r.room_type_id
@@ -62,7 +72,9 @@ export class KeycardsController {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       // 1. Fetch key and associated room
       const keyRes = await c.query(
-        `select k.id, k.room_id as "roomId", r.number as "roomNumber"
+        `select k.id, k.room_id as "roomId", r.number as "roomNumber",
+                k.issued_to_reservation_id as "currentResId",
+                k.issued_to_guest_name as "currentGuestName"
          from room_keys k
          join rooms r on r.id = k.room_id
          where k.id = $1 and k.property_id = $2`,
@@ -84,11 +96,20 @@ export class KeycardsController {
            returning id, key_number as "keyNumber", status`,
           [input.notes ?? null, id, user.propertyId]
         );
+
+        // Record key return in custody audit log
+        await c.query(
+          `insert into room_key_logs (tenant_id, property_id, key_id, reservation_id, room_number, action, recipient_name, recipient_type, notes)
+           values ($1, $2, $3, $4, $5, 'returned_to_slot', 'Front Desk Key Slot', 'front_desk', $6)`,
+          [user.tenantId, user.propertyId, id, keyRoom.currentResId, keyRoom.roomNumber, input.notes || (keyRoom.currentGuestName ? `Returned by ${keyRoom.currentGuestName}` : 'Returned to key slot')]
+        );
+
         return res.rows[0];
       }
 
       let reservationId = input.issuedToReservationId ?? null;
       let guestName = input.issuedToGuestName ?? null;
+      let recipientType = 'primary_guest';
 
       if (input.status === 'issued_to_guest') {
         // Enforce room-to-guest integrity: keys can ONLY be issued to guests registered in this room
@@ -119,6 +140,18 @@ export class KeycardsController {
           if (!guestName) {
             guestName = reservation.guestName;
           }
+
+          // Check if recipient is a companion
+          const compCheck = await c.query(
+            `select rg.is_primary from reservation_guests rg
+             join guests g on g.id = rg.guest_id
+             join parties p on p.id = g.party_id
+             where rg.reservation_id = $1 and lower(trim(p.full_name)) = lower(trim($2)) limit 1`,
+            [reservationId, guestName]
+          );
+          if (compCheck.rows[0] && !compCheck.rows[0].is_primary) {
+            recipientType = 'companion';
+          }
         } else {
           // If no reservationId explicitly passed, lookup active checked-in stay for this room
           const activeRes = await c.query(
@@ -141,9 +174,34 @@ export class KeycardsController {
             guestName = activeRes.rows[0].guestName;
           }
         }
+
+        // Record key issuance in custody audit log
+        await c.query(
+          `insert into room_key_logs (tenant_id, property_id, key_id, reservation_id, room_number, action, recipient_name, recipient_type, notes)
+           values ($1, $2, $3, $4, $5, 'issued_to_guest', $6, $7, $8)`,
+          [user.tenantId, user.propertyId, id, reservationId, keyRoom.roomNumber, guestName, recipientType, input.notes || `Handed to ${recipientType === 'companion' ? 'companion' : 'primary occupant'}`]
+        );
+
       } else if (input.status === 'with_housekeeping') {
-        reservationId = null;
+        reservationId = keyRoom.currentResId ?? null;
         guestName = guestName || 'Housekeeping Staff';
+        recipientType = 'housekeeping';
+
+        // Record housekeeping handover in custody audit log
+        await c.query(
+          `insert into room_key_logs (tenant_id, property_id, key_id, reservation_id, room_number, action, recipient_name, recipient_type, notes)
+           values ($1, $2, $3, $4, $5, 'with_housekeeping', $6, 'housekeeping', $7)`,
+          [user.tenantId, user.propertyId, id, reservationId, keyRoom.roomNumber, guestName, input.notes || 'Taken for housekeeping / room cleaning']
+        );
+
+      } else if (input.status === 'lost') {
+        const lastHolder = keyRoom.currentGuestName || 'Unknown Occupant';
+        // Record lost event in custody audit log
+        await c.query(
+          `insert into room_key_logs (tenant_id, property_id, key_id, reservation_id, room_number, action, recipient_name, recipient_type, notes)
+           values ($1, $2, $3, $4, $5, 'lost', $6, 'front_desk', $7)`,
+          [user.tenantId, user.propertyId, id, keyRoom.currentResId, keyRoom.roomNumber, lastHolder, input.notes || `Reported lost. Last known holder in possession: ${lastHolder}`]
+        );
       }
 
       const res = await c.query(
@@ -221,6 +279,13 @@ export class KeycardsController {
              updated_at = now()
          where id = $5 and property_id = $6`,
         [cardUid, activeRes.rows[0].id, input.guestName, `Encoded via ${input.protocol.toUpperCase()}`, id, user.propertyId]
+      );
+
+      // Record card encoding in custody audit log
+      await c.query(
+        `insert into room_key_logs (tenant_id, property_id, key_id, reservation_id, room_number, action, recipient_name, recipient_type, notes)
+         values ($1, $2, $3, $4, $5, 'issued_to_guest', $6, 'primary_guest', $7)`,
+        [user.tenantId, user.propertyId, id, activeRes.rows[0].id, input.roomNumber, input.guestName, `Encoded via ${input.protocol.toUpperCase()}`]
       );
 
       return {

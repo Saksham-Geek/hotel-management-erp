@@ -233,6 +233,16 @@ export class ReservationsController {
            where room_id = $3 and status in ('in_slot', 'with_housekeeping')`,
           [id, guestName, cur.room_id]
         );
+
+        // Record initial key handover in custody logs
+        await c.query(
+          `insert into room_key_logs (tenant_id, property_id, key_id, reservation_id, room_number, action, recipient_name, recipient_type, notes)
+           select k.tenant_id, k.property_id, k.id, $1, ro.number, 'issued_to_guest', $2, 'primary_guest', 'Initial key issuance upon guest check-in'
+           from room_keys k
+           join rooms ro on ro.id = k.room_id
+           where k.room_id = $3 and k.property_id = $4`,
+          [id, guestName, cur.room_id, user.propertyId]
+        );
       } else if (target === 'checked_out' || target === 'cancelled') {
         await c.query(
           `update room_keys
@@ -243,6 +253,14 @@ export class ReservationsController {
                updated_at = now()
            where issued_to_reservation_id = $1
               or (room_id = $2 and status = 'issued_to_guest')`,
+          [id, cur.room_id]
+        );
+
+        // FINAL PURGE: Automatically and permanently delete all key custody history for this completed stay
+        await c.query(
+          `delete from room_key_logs
+           where reservation_id = $1
+              or key_id in (select id from room_keys where room_id = $2)`,
           [id, cur.room_id]
         );
       }

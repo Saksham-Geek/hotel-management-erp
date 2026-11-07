@@ -34,35 +34,37 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     ];
   } else if (role === 'frontdesk') {
     featureItems = [
-      { href: '/dashboard', label: 'Today', icon: 'today', group: 'Front Office' },
-      { href: '/tape-chart', label: 'Tape Chart', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Office' },
-      { href: '/reservations', label: 'Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Office' },
-      { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Front Office' },
-      { href: '/guests', label: 'Guests Master', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Office' },
-      { href: '/billing', label: 'Billing & Folios', icon: 'billing', feature: FEATURES.HOTEL_BILLING, group: 'Finance & Compliance' },
-      { href: '/compliance', label: 'Statutory BoI & Police', icon: 'compliance', feature: FEATURES.HOTEL_COMPLIANCE, group: 'Finance & Compliance' },
-      { href: '/housekeeping', label: 'Housekeeping', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Operations & Guest Services' },
-      { href: '/restaurant', label: 'Restaurant & Room Service POS', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Operations & Guest Services' },
-      { href: '/keycards', label: 'Room Keys & Keycards', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Operations & Guest Services' },
+      { href: '/dashboard', label: 'Today', icon: 'today', group: 'Operations' },
+      { href: '/tape-chart', label: 'Tape Chart', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Operations' },
+      { href: '/reservations', label: 'Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Operations' },
+      { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Operations' },
+      { href: '/guests', label: 'Guests Master', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Operations' },
+      { href: '/billing', label: 'Billing & Folios', icon: 'billing', feature: FEATURES.HOTEL_BILLING, group: 'Operations' },
+      { href: '/restaurant', label: 'Restaurant & Room Service POS', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Operations' },
+      { href: '/keycards', label: 'Room Keys & Keycards', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Operations' },
+      { href: '/compliance', label: 'Statutory BoI & Police', icon: 'compliance', feature: FEATURES.HOTEL_COMPLIANCE, group: 'Operations' },
+      { href: '/housekeeping', label: 'Housekeeping', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Operations' },
       { href: '/guide', label: 'SOP & Master Guide', icon: 'guide', group: 'Reference & Support' },
     ];
   } else {
     // General Manager & Property Owner
     featureItems = [
-      { href: '/dashboard', label: 'Today', icon: 'today', group: 'Front Office' },
-      { href: '/tape-chart', label: 'Tape Chart', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Office' },
-      { href: '/reservations', label: 'Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Office' },
-      { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Front Office' },
-      { href: '/guests', label: 'Guests Master', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Office' },
-      { href: '/billing', label: 'Billing & Folios', icon: 'billing', feature: FEATURES.HOTEL_BILLING, group: 'Finance & Compliance' },
-      { href: '/night-audit', label: 'Night Audit', icon: 'night-audit', feature: FEATURES.HOTEL_NIGHT_AUDIT, group: 'Finance & Compliance' },
-      { href: '/compliance', label: 'Statutory BoI & Police', icon: 'compliance', feature: FEATURES.HOTEL_COMPLIANCE, group: 'Finance & Compliance' },
-      { href: '/housekeeping', label: 'Housekeeping', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Operations & Growth' },
-      { href: '/restaurant', label: 'Restaurant & Room Service POS', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Operations & Growth' },
-      { href: '/keycards', label: 'Room Keys & Keycards', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Operations & Growth' },
-      { href: '/channel-manager', label: 'OTA Channel Manager', icon: 'channels', feature: FEATURES.HOTEL_CHANNEL_MANAGER, group: 'Operations & Growth' },
-      { href: '/marketing', label: 'Marketing & CRM', icon: 'marketing', feature: FEATURES.HOTEL_LOYALTY, group: 'Operations & Growth' },
-      { href: '/staff', label: 'Staff & Hierarchy', icon: 'staff', group: 'Executive & Admin' },
+      { href: '/dashboard', label: 'Today', icon: 'today', group: 'Operations' },
+      { href: '/tape-chart', label: 'Tape Chart', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Operations' },
+      { href: '/reservations', label: 'Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Operations' },
+      { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Operations' },
+      { href: '/guests', label: 'Guests Master', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Operations' },
+      { href: '/billing', label: 'Billing & Folios', icon: 'billing', feature: FEATURES.HOTEL_BILLING, group: 'Operations' },
+      { href: '/restaurant', label: 'Restaurant & Room Service POS', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Operations' },
+      { href: '/keycards', label: 'Room Keys & Keycards', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Operations' },
+      { href: '/compliance', label: 'Statutory BoI & Police', icon: 'compliance', feature: FEATURES.HOTEL_COMPLIANCE, group: 'Operations' },
+      { href: '/housekeeping', label: 'Housekeeping', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Operations' },
+      // Management & Setup Section (Manager & Owner)
+      { href: '/settings', label: 'Settings & Management Hub', icon: 'settings', group: 'Management & Setup' },
+      { href: '/staff', label: 'Staff & Hierarchy', icon: 'staff', group: 'Management & Setup' },
+      { href: '/channel-manager', label: 'OTA Channel Manager', icon: 'channels', feature: FEATURES.HOTEL_CHANNEL_MANAGER, group: 'Management & Setup' },
+      { href: '/marketing', label: 'Marketing & CRM', icon: 'marketing', feature: FEATURES.HOTEL_LOYALTY, group: 'Management & Setup' },
+      { href: '/night-audit', label: 'Night Audit', icon: 'night-audit', feature: FEATURES.HOTEL_NIGHT_AUDIT, group: 'Management & Setup' },
       ...(role === 'owner'
         ? [
             { href: '/income', label: 'Owner Income & Revenue', icon: 'income' as const, group: 'Executive & Admin' },
@@ -75,7 +77,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             { href: '/platform-admin', label: 'SaaS Founder HQ (MRR)', icon: 'plans' as const, group: 'Executive & Admin' },
           ]
         : []),
-      { href: '/guide', label: 'SOP & Master Guide', icon: 'guide', group: 'Executive & Admin' },
+      { href: '/guide', label: 'SOP & Master Guide', icon: 'guide', group: 'Reference & Support' },
     ];
   }
   const items = featureItems.map((item) => {

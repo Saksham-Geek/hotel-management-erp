@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
 import { KotPrintModal, type KotPrintData } from './kot-print-modal';
@@ -1421,6 +1422,12 @@ export function RestaurantPosView({
               >
                 <span>⚙️ Manage Floor Plan</span>
               </button>
+              <Link
+                href="/settings?tab=restaurant"
+                className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-900 hover:bg-emerald-100 transition-colors shadow-xs cursor-pointer"
+              >
+                <span>⚙️ Manage in Settings Hub &rarr;</span>
+              </Link>
             </div>
           </div>
 

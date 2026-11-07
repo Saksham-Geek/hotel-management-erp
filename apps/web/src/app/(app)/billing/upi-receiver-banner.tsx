@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { UpiSettingsModal } from './upi-settings-modal';
 
 interface UpiReceiverBannerProps {
@@ -56,16 +57,24 @@ export function UpiReceiverBanner({
 
         <div className="flex items-center gap-2">
           {isOwner ? (
-            <button
-              type="button"
-              onClick={() => setModalOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              <span>⚙️ Update Receiver UPI ID</span>
-              <span className="rounded-full bg-amber-400 text-slate-950 text-[9px] font-extrabold px-1.5 py-0.2">
-                Owner Only
-              </span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => setModalOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <span>⚙️ Quick Edit UPI ID</span>
+                <span className="rounded-full bg-amber-400 text-slate-950 text-[9px] font-extrabold px-1.5 py-0.2">
+                  Owner
+                </span>
+              </button>
+              <Link
+                href="/settings?tab=payments"
+                className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs font-bold text-indigo-950 shadow-2xs hover:bg-indigo-50 transition-colors"
+              >
+                <span>⚙️ Manage in Settings &rarr;</span>
+              </Link>
+            </>
           ) : (
             <div
               title="Protected Security Policy: Only the Property Owner can modify receiving bank details"

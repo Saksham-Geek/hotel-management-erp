@@ -112,8 +112,9 @@ export async function updateUpiSettingsAction(formData: FormData) {
   const upiId = String(formData.get('upiId') ?? '').trim().toLowerCase();
   const upiMerchantName = String(formData.get('upiMerchantName') ?? '').trim() || undefined;
   const reservationId = String(formData.get('reservationId') ?? '');
+  const back = String(formData.get('back') ?? '');
 
-  const redirectBase = reservationId ? `/billing?reservationId=${reservationId}` : '/billing';
+  const redirectBase = back || (reservationId ? `/billing?reservationId=${reservationId}` : '/billing');
 
   try {
     const res = await api<{ message: string }>('/hotel/upi-settings', {
@@ -121,6 +122,7 @@ export async function updateUpiSettingsAction(formData: FormData) {
       body: JSON.stringify({ upiId, upiMerchantName }),
     });
     revalidatePath('/billing');
+    revalidatePath('/settings');
     redirect(`${redirectBase}${redirectBase.includes('?') ? '&' : '?'}ok=${encodeURIComponent(res.message || 'Receiver UPI ID updated successfully')}`);
   } catch (err: any) {
     if ((err as any)?.digest?.startsWith('NEXT_REDIRECT')) throw err;
@@ -177,8 +179,9 @@ export async function createPosTerminalAction(formData: FormData) {
   const port = parseInt(String(formData.get('port') ?? '8080'), 10) || 8080;
   const isDefault = formData.get('isDefault') === 'on';
   const reservationId = String(formData.get('reservationId') ?? '');
+  const back = String(formData.get('back') ?? '');
 
-  const redirectBase = reservationId ? `/billing?reservationId=${reservationId}` : '/billing';
+  const redirectBase = back || (reservationId ? `/billing?reservationId=${reservationId}` : '/billing');
 
   try {
     await api('/hotel/pos/terminals', {
@@ -195,6 +198,7 @@ export async function createPosTerminalAction(formData: FormData) {
       }),
     });
     revalidatePath('/billing');
+    revalidatePath('/settings');
     redirect(`${redirectBase}${redirectBase.includes('?') ? '&' : '?'}ok=POS+terminal+registered+successfully`);
   } catch (err: any) {
     if ((err as any)?.digest?.startsWith('NEXT_REDIRECT')) throw err;

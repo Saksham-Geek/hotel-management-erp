@@ -7,16 +7,19 @@ import { ComplianceView, type FormCRecord, type PoliceReportData } from './compl
 export default async function CompliancePage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; ok?: string }>;
+  searchParams: Promise<{ error?: string; ok?: string; date?: string; tab?: string }>;
 }) {
-  const [me, { error, ok }, ent, policeData, formCList] = await Promise.all([
+  const { error, ok, date, tab } = await searchParams;
+  const targetDate = date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : new Date().toISOString().slice(0, 10);
+
+  const [me, ent, policeData, formCList] = await Promise.all([
     getMe(),
-    searchParams,
     requireFeature(FEATURES.HOTEL_COMPLIANCE),
-    api<PoliceReportData>('/hotel/compliance/police-report').catch(() => ({
+    api<PoliceReportData>(`/hotel/compliance/police-report?date=${targetDate}`).catch(() => ({
       property: { name: 'Hotel Property', timezone: 'Asia/Kolkata', currency: 'INR' },
-      reportDate: new Date().toISOString().slice(0, 10),
+      reportDate: targetDate,
       generatedAt: new Date().toISOString(),
+      isHistorical: targetDate !== new Date().toISOString().slice(0, 10),
       summary: { totalInHouse: 0, arrivalsToday: 0, departuresToday: 0 },
       inHouse: [],
       arrivals: [],
@@ -43,7 +46,13 @@ export default async function CompliancePage({
       />
       <Banner error={error} ok={ok} />
 
-      <ComplianceView policeData={policeData} formCList={formCList} readOnly={ent.readOnly} />
+      <ComplianceView
+        policeData={policeData}
+        formCList={formCList}
+        readOnly={ent.readOnly}
+        selectedDate={targetDate}
+        initialTab={tab === 'formC' ? 'formC' : 'police'}
+      />
     </>
   );
 }

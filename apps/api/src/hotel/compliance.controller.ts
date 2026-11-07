@@ -155,34 +155,44 @@ export class ComplianceController {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       const targetDate = reportDate && dateRegex.test(reportDate) ? reportDate : new Date().toISOString().slice(0, 10);
 
-      // In-house guests as of the report date
+      // In-house guests as of the report date (both primary guests and registered room companions)
       const inHouse = (
         await c.query(
           `SELECT ro.number AS "roomNumber", ro.floor, p.full_name AS "guestName", p.phone AS "guestPhone",
                   p.email AS "guestEmail", g.nationality, g.id_type AS "idType",
                   r.check_in AS "checkIn", r.check_out AS "checkOut", r.check_in_at AS "checkInAt",
-                  r.status, p.address
+                  r.status, p.address,
+                  coalesce(rg.is_primary, true) AS "isPrimary"
            FROM reservations r
            JOIN rooms ro ON ro.id = r.room_id
-           JOIN guests g ON g.id = r.guest_id
+           LEFT JOIN reservation_guests rg ON rg.reservation_id = r.id AND rg.tenant_id = r.tenant_id
+           JOIN guests g ON g.id = coalesce(rg.guest_id, r.guest_id)
            JOIN parties p ON p.id = g.party_id
-           WHERE r.tenant_id = $1 AND r.property_id = $2 AND r.status = 'checked_in'
-           ORDER BY ro.number ASC`,
-          [user.tenantId, user.propertyId],
+           WHERE r.tenant_id = $1 AND r.property_id = $2
+             AND (
+               ($3::date = current_date AND r.status = 'checked_in')
+               OR ($3::date <> current_date AND r.check_in <= $3::date AND r.check_out >= $3::date AND r.status IN ('checked_in', 'checked_out'))
+             )
+           ORDER BY ro.number ASC, coalesce(rg.is_primary, true) DESC, p.full_name ASC`,
+          [user.tenantId, user.propertyId, targetDate],
         )
       ).rows;
 
       // Arrivals on targetDate
       const arrivals = (
         await c.query(
-          `SELECT ro.number AS "roomNumber", p.full_name AS "guestName", p.phone AS "guestPhone",
-                  g.nationality, g.id_type AS "idType", r.check_in_at AS "checkInAt", r.status
+          `SELECT DISTINCT ON (r.id, g.id)
+                  ro.number AS "roomNumber", p.full_name AS "guestName", p.phone AS "guestPhone",
+                  g.nationality, g.id_type AS "idType", r.check_in_at AS "checkInAt", r.status,
+                  coalesce(rg.is_primary, true) AS "isPrimary"
            FROM reservations r
            JOIN rooms ro ON ro.id = r.room_id
-           JOIN guests g ON g.id = r.guest_id
+           LEFT JOIN reservation_guests rg ON rg.reservation_id = r.id AND rg.tenant_id = r.tenant_id
+           JOIN guests g ON g.id = coalesce(rg.guest_id, r.guest_id)
            JOIN parties p ON p.id = g.party_id
            WHERE r.tenant_id = $1 AND r.property_id = $2 AND r.check_in = $3::date
-           ORDER BY r.check_in_at ASC NULLS LAST`,
+             AND r.status NOT IN ('cancelled', 'no_show')
+           ORDER BY r.id, g.id, r.check_in_at ASC NULLS LAST`,
           [user.tenantId, user.propertyId, targetDate],
         )
       ).rows;
@@ -190,14 +200,18 @@ export class ComplianceController {
       // Departures on targetDate
       const departures = (
         await c.query(
-          `SELECT ro.number AS "roomNumber", p.full_name AS "guestName", p.phone AS "guestPhone",
-                  g.nationality, r.check_out_at AS "checkOutAt", r.status
+          `SELECT DISTINCT ON (r.id, g.id)
+                  ro.number AS "roomNumber", p.full_name AS "guestName", p.phone AS "guestPhone",
+                  g.nationality, r.check_out_at AS "checkOutAt", r.status,
+                  coalesce(rg.is_primary, true) AS "isPrimary"
            FROM reservations r
            JOIN rooms ro ON ro.id = r.room_id
-           JOIN guests g ON g.id = r.guest_id
+           LEFT JOIN reservation_guests rg ON rg.reservation_id = r.id AND rg.tenant_id = r.tenant_id
+           JOIN guests g ON g.id = coalesce(rg.guest_id, r.guest_id)
            JOIN parties p ON p.id = g.party_id
            WHERE r.tenant_id = $1 AND r.property_id = $2 AND r.check_out = $3::date
-           ORDER BY r.check_out_at ASC NULLS LAST`,
+             AND r.status NOT IN ('cancelled', 'no_show')
+           ORDER BY r.id, g.id, r.check_out_at ASC NULLS LAST`,
           [user.tenantId, user.propertyId, targetDate],
         )
       ).rows;
@@ -215,9 +229,10 @@ export class ComplianceController {
       });
 
       return {
-        property,
+        property: property ?? { name: 'Hotel Property', timezone: 'Asia/Kolkata', currency: 'INR' },
         reportDate: targetDate,
         generatedAt: new Date().toISOString(),
+        isHistorical: targetDate !== new Date().toISOString().slice(0, 10),
         summary: {
           totalInHouse: inHouse.length,
           arrivalsToday: arrivals.length,

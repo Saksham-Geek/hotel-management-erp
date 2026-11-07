@@ -766,7 +766,7 @@ export function KeycardsView({
                         {/* Registered Companions in this room (if any) */}
                         {Array.isArray(s.guests) &&
                           s.guests
-                            .filter((g) => g.name !== s.guestName)
+                            .filter((g) => g.name && g.name.trim().toLowerCase() !== s.guestName.trim().toLowerCase())
                             .map((comp) => (
                               <button
                                 key={comp.id}

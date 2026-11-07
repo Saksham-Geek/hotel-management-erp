@@ -495,7 +495,7 @@ export interface PosChargeResponse {
 }
 
 // -------------------------------------------------------------
-// Phase 2: Restaurant POS & KOT (Aura Dine) Schemas
+// Restaurant POS & KOT (Aura Dine) Schemas
 // -------------------------------------------------------------
 
 export const kotItemSchema = z.object({
@@ -587,7 +587,7 @@ export const chargeKotToRoomSchema = z.object({
 export type ChargeKotToRoomInput = z.infer<typeof chargeKotToRoomSchema>;
 
 // -------------------------------------------------------------
-// Phase 4: Room Keycard & Key Management Schemas
+// Room Keycard & Key Management Schemas
 // -------------------------------------------------------------
 
 export const updateRoomKeyStatusSchema = z.object({

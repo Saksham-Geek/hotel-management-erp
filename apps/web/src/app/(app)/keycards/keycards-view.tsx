@@ -482,12 +482,16 @@ export function KeycardsView({
                       <button
                         type="button"
                         onClick={() => setHistoryKey(key)}
-                        className="w-full rounded-lg bg-black/40 hover:bg-black/60 py-1 text-[10px] font-bold text-amber-200/90 hover:text-white transition-colors cursor-pointer border border-white/10 flex items-center justify-center gap-1.5"
+                        className="w-full rounded-lg bg-amber-500/20 hover:bg-amber-500/30 py-1.5 text-[11px] font-bold text-amber-200 hover:text-white transition-colors cursor-pointer border border-amber-400/40 flex items-center justify-center gap-1.5 shadow-xs"
                       >
                         <span>📜 Custody Log</span>
-                        {key.custodyLogs && key.custodyLogs.length > 0 && (
-                          <span className="rounded-full bg-amber-400/25 text-amber-300 px-1.5 py-0.2 text-[9px] font-black">
+                        {key.custodyLogs && key.custodyLogs.length > 0 ? (
+                          <span className="rounded-full bg-amber-400 text-slate-950 px-1.5 py-0.2 text-[9px] font-black">
                             {key.custodyLogs.length}
+                          </span>
+                        ) : (
+                          <span className="text-[9px] text-amber-300/70">
+                            (Audit)
                           </span>
                         )}
                       </button>
@@ -817,13 +821,28 @@ export function KeycardsView({
                     </p>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setHandingKey(null)}
-                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
-                >
-                  ✕
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const k = handingKey;
+                      setHandingKey(null);
+                      setHistoryKey(k);
+                    }}
+                    title="View Custody Log for this key"
+                    className="rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/30 px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300 transition-colors cursor-pointer flex items-center gap-1"
+                  >
+                    <span>📜</span>
+                    <span>Custody Log</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setHandingKey(null)}
+                    className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               {roomStays.length > 0 ? (

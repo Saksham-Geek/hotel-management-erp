@@ -219,7 +219,7 @@ export function KeycardsView({
                 Room Keys &amp; Door Lock Bridge
               </h1>
               <span className="rounded-full bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-slate-200 text-[11px] font-bold px-2.5 py-0.5 border border-slate-200 dark:border-white/10">
-                Phase 4 Enterprise Hardware
+                Smart Locks &amp; Key Cabinet
               </span>
             </div>
             <p className="text-xs text-muted mt-0.5">
@@ -341,7 +341,21 @@ export function KeycardsView({
                         : 'border-blue-400/80 bg-[#1d263b] text-white'
                     }`}
                   >
-                    <div className="text-center">
+                    <div className="relative text-center">
+                      {/* Top right quick audit pill */}
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHistoryKey(key);
+                        }}
+                        title="View Custody Log & Handover History"
+                        className="absolute right-0 top-0 rounded-md bg-amber-950/90 hover:bg-amber-900 border border-amber-400/50 px-1.5 py-0.5 text-[9px] font-black text-amber-200 transition-colors cursor-pointer flex items-center gap-1 shadow-xs z-10"
+                      >
+                        <span>📜</span>
+                        <span>Log</span>
+                      </button>
+
                       {/* Brass Key Peg / Hook */}
                       <div className="mx-auto mb-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 ring-2 ring-amber-600 shadow-inner">
                         <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />

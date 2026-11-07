@@ -1916,7 +1916,8 @@ export function RestaurantPosView({
                     options={checkedInRooms.map((r) => ({
                       value: r.number,
                       label: `Room ${r.number} — ${r.guestName}`,
-                      badge: `Rm ${r.number}`,
+                      badge: 'In-House',
+                      badgeColor: 'bg-blue-50 text-blue-900 border border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-600/40',
                     }))}
                     aria-label="Select Checked-In Room"
                   />
@@ -3571,7 +3572,8 @@ export function RestaurantPosView({
                           options={checkedInRooms.map((r) => ({
                             value: r.number,
                             label: `Room ${r.number} — ${r.guestName}`,
-                            badge: `Rm ${r.number}`,
+                            badge: 'In-House',
+                            badgeColor: 'bg-blue-50 text-blue-900 border border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-600/40',
                           }))}
                           aria-label="Select room for folio charge"
                         />

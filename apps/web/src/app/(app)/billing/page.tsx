@@ -76,8 +76,21 @@ export default async function BillingPage({
               size="sm"
               options={reservations.map((r) => ({
                 value: r.id,
-                label: `Room ${r.roomNumber} · ${r.guestName} (${r.checkIn} → ${r.checkOut}) [${r.status}]`,
-                badge: `Rm ${r.roomNumber}`,
+                label: `Room ${r.roomNumber} · ${r.guestName} (${r.checkIn} → ${r.checkOut})`,
+                badge:
+                  r.status === 'checked_in'
+                    ? 'In House'
+                    : r.status === 'reserved'
+                    ? 'Booked'
+                    : r.status === 'checked_out'
+                    ? 'Checked Out'
+                    : 'Cancelled',
+                badgeColor:
+                  r.status === 'checked_in'
+                    ? 'bg-blue-50 text-blue-900 border border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-600/40'
+                    : r.status === 'reserved'
+                    ? 'bg-emerald-50 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-600/40'
+                    : 'bg-slate-100 text-slate-800 border border-slate-300 dark:bg-white/10 dark:text-slate-300 dark:border-white/20',
               }))}
               aria-label="Select Reservation"
             />

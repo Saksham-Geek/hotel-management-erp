@@ -11,6 +11,7 @@ import {
   CustomDropdown,
   EmptyState,
 } from '@/components/ui';
+import { getRoomTypeTheme } from '@/lib/room-types';
 import {
   createRoomSetting,
   createRoomTypeSetting,
@@ -541,11 +542,20 @@ export function SettingsView({
                       name="roomTypeId"
                       required
                       placeholder="Choose a room type"
-                      options={types.map((type) => ({
-                        value: type.id,
-                        label: `${type.name} (${money(type.baseRate, currency)}/night)`,
-                        badge: `${type.capacity} Guests`,
-                      }))}
+                      options={types.map((type) => {
+                        const theme = getRoomTypeTheme(type.name);
+                        return {
+                          value: type.id,
+                          label: `${type.name} (${money(type.baseRate, currency)}/night)`,
+                          badge: `${type.capacity} Guests`,
+                          icon: (
+                            <span
+                              className={`inline-block h-2.5 w-2.5 rounded-full ${theme.dot} shrink-0`}
+                              title={`Category Identity: ${theme.colorName}`}
+                            />
+                          ),
+                        };
+                      })}
                       aria-label="Room type selector"
                     />
                   </div>
@@ -617,25 +627,34 @@ export function SettingsView({
             <div className="space-y-3 pt-4 border-t border-slate-100">
               <h3 className="text-sm font-bold text-slate-900">Configured Room Types &amp; Default Tariffs</h3>
               <div className="grid gap-4 xl:grid-cols-2">
-                {types.map((type) => (
-                  <details
-                    key={type.id}
-                    className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors"
-                  >
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-bold text-slate-900">{type.name}</p>
-                        <p className="text-xs text-slate-500 mt-0.5">
-                          {type.capacity} Guests · {money(type.baseRate, currency)} / night
-                          {type.hourlyRate != null
-                            ? ` · ${money(type.hourlyRate, currency)} / hr`
-                            : ' · hourly fallback ÷ 24'}
-                        </p>
-                      </div>
-                      <span className="text-xs font-semibold text-slate-400 group-open:rotate-180 transition-transform">
-                        ▼
-                      </span>
-                    </summary>
+                {types.map((type) => {
+                  const theme = getRoomTypeTheme(type.name);
+                  return (
+                    <details
+                      key={type.id}
+                      className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors"
+                    >
+                      <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`h-2.5 w-2.5 rounded-full ${theme.dot} shadow-2xs`} />
+                            <p className="text-sm font-bold text-slate-900">{type.name}</p>
+                            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${theme.badge}`}>
+                              <span>{theme.icon}</span>
+                              <span>{theme.colorName}</span>
+                            </span>
+                          </div>
+                          <p className="text-xs text-slate-500 mt-1">
+                            {type.capacity} Guests · {money(type.baseRate, currency)} / night
+                            {type.hourlyRate != null
+                              ? ` · ${money(type.hourlyRate, currency)} / hr`
+                              : ' · hourly fallback ÷ 24'}
+                          </p>
+                        </div>
+                        <span className="text-xs font-semibold text-slate-400 group-open:rotate-180 transition-transform">
+                          ▼
+                        </span>
+                      </summary>
                     <form
                       action={updateRoomTypeSetting}
                       className="mt-4 grid gap-3 border-t border-slate-100 pt-3 sm:grid-cols-2"
@@ -705,7 +724,8 @@ export function SettingsView({
                       </button>
                     </form>
                   </details>
-                ))}
+                );
+              })}
               </div>
             </div>
           )}

@@ -12,6 +12,7 @@ export interface Room {
   id: string;
   number: string;
   roomType: string;
+  status?: string;
   baseRate?: number;
   hourlyRate?: number | null;
 }

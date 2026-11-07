@@ -1,12 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CustomDropdown, inputCls } from '@/components/ui';
+import { ROOM_STATUSES, type RoomStatus } from '@erp/shared';
+import { CustomDropdown, inputCls, STATUS_META } from '@/components/ui';
+import { getRoomTypeTheme } from '@/lib/room-types';
 
-interface RoomOption {
+export interface RoomOption {
   id: string;
   number: string;
   roomType: string;
+  status?: string;
   baseRate?: number;
   hourlyRate?: number | null;
 }
@@ -55,11 +58,37 @@ export function ReservationPricingFields({
             value={roomId}
             onChange={(val) => setRoomId(val)}
             placeholder="Choose a room"
-            options={rooms.map((room) => ({
-              value: room.id,
-              label: `${room.number} · ${room.roomType}`,
-              badge: `Rm ${room.number}`,
-            }))}
+            options={rooms.map((room) => {
+              const theme = getRoomTypeTheme(room.roomType);
+              const rawStatus = (room.status ?? 'available').toLowerCase();
+              const roomStatus: RoomStatus = (ROOM_STATUSES as readonly string[]).includes(rawStatus)
+                ? (rawStatus as RoomStatus)
+                : 'available';
+              const meta = STATUS_META[roomStatus];
+
+              // Color scheme matches Live Room Board cards
+              const statusBadgeColor =
+                roomStatus === 'occupied'
+                  ? 'bg-blue-50 text-blue-900 border border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-600/40'
+                  : roomStatus === 'cleaning'
+                  ? 'bg-amber-50 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-600/40'
+                  : roomStatus === 'maintenance'
+                  ? 'bg-slate-100 text-slate-800 border border-slate-300 dark:bg-white/10 dark:text-slate-300 dark:border-white/20'
+                  : 'bg-emerald-50 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-600/40';
+
+              return {
+                value: room.id,
+                label: `${room.number} · ${room.roomType}`,
+                badge: meta.label,
+                badgeColor: statusBadgeColor,
+                icon: (
+                  <span
+                    className={`inline-block h-2.5 w-2.5 rounded-full ${theme.dot} shadow-2xs shrink-0`}
+                    title={`Category: ${room.roomType} (${theme.colorName})`}
+                  />
+                ),
+              };
+            })}
             aria-label="Room"
           />
         </div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -27,6 +27,8 @@ import {
   deleteRestaurantTableAction,
   createMenuCategoryAction,
   createMenuItemAction,
+  deleteMenuItemAction,
+  toggleMenuItemStockAction,
 } from '../restaurant/actions';
 
 export interface RoomTypeRecord {
@@ -68,9 +70,16 @@ export interface MenuItemDto {
   id: string;
   categoryId: string;
   name: string;
+  itemCode?: string;
+  description?: string | null;
   price: number;
-  foodType?: string;
+  foodType?: 'veg' | 'non_veg' | 'egg' | string;
   isVeg?: boolean;
+  sacCode?: string;
+  gstRate?: number;
+  isAvailable?: boolean;
+  isOutOfStock?: boolean;
+  kitchenStation?: string | null;
 }
 
 export interface MenuCategoryDto {
@@ -151,6 +160,160 @@ export function SettingsView({
   const [deleteReassignTarget, setDeleteReassignTarget] = useState<string>('Main AC Hall');
   const [zoneToDeleteDropdown, setZoneToDeleteDropdown] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
+
+  // Local Menu & Tables state for instantaneous UI updates & Petpooja controls
+  const [localMenu, setLocalMenu] = useState<MenuCategoryDto[]>(menu);
+  const [localTables, setLocalTables] = useState<TableDto[]>(tables);
+  const [menuSearchQuery, setMenuSearchQuery] = useState('');
+  const [menuDietaryFilter, setMenuDietaryFilter] = useState<'all' | 'veg' | 'non_veg' | 'egg'>('all');
+  const [menuCatFilter, setMenuCatFilter] = useState<string>('all');
+  const [menuStockFilter, setMenuStockFilter] = useState<'all' | 'in_stock' | 'out_of_stock'>('all');
+  const [tableZoneFilter, setTableZoneFilter] = useState<string>('all');
+  const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  useEffect(() => {
+    setLocalMenu(menu);
+  }, [menu]);
+
+  useEffect(() => {
+    setLocalTables(tables);
+  }, [tables]);
+
+  const allDishes = useMemo(() => {
+    return localMenu.flatMap((cat) =>
+      (cat.items || []).map((it) => {
+        const foodType = (it.foodType as 'veg' | 'non_veg' | 'egg') || (it.isVeg ? 'veg' : 'non_veg');
+        return {
+          ...it,
+          categoryName: cat.name,
+          foodType,
+        };
+      })
+    );
+  }, [localMenu]);
+
+  const vegDishesCount = useMemo(() => allDishes.filter((d) => d.foodType === 'veg').length, [allDishes]);
+  const nonVegDishesCount = useMemo(() => allDishes.filter((d) => d.foodType === 'non_veg').length, [allDishes]);
+  const eggDishesCount = useMemo(() => allDishes.filter((d) => d.foodType === 'egg').length, [allDishes]);
+
+  const filteredDishes = useMemo(() => {
+    return allDishes.filter((dish) => {
+      if (menuDietaryFilter !== 'all' && dish.foodType !== menuDietaryFilter) return false;
+      if (menuCatFilter !== 'all' && dish.categoryId !== menuCatFilter) return false;
+      if (menuStockFilter === 'in_stock' && dish.isOutOfStock) return false;
+      if (menuStockFilter === 'out_of_stock' && !dish.isOutOfStock) return false;
+      if (menuSearchQuery.trim()) {
+        const q = menuSearchQuery.toLowerCase();
+        const matchName = dish.name.toLowerCase().includes(q);
+        const matchCode = (dish.itemCode || '').toLowerCase().includes(q);
+        const matchCat = dish.categoryName.toLowerCase().includes(q);
+        if (!matchName && !matchCode && !matchCat) return false;
+      }
+      return true;
+    });
+  }, [allDishes, menuDietaryFilter, menuCatFilter, menuStockFilter, menuSearchQuery]);
+
+  const filteredTablesList = useMemo(() => {
+    if (tableZoneFilter === 'all') return localTables;
+    return localTables.filter((t) => (t.section || 'Main AC Hall') === tableZoneFilter);
+  }, [localTables, tableZoneFilter]);
+
+  const handleDeleteDish = async (dishId: string, dishName: string) => {
+    if (!confirm(`Are you sure you want to permanently delete "${dishName}" from the menu?`)) return;
+    setSubmitting(true);
+    try {
+      const res = await deleteMenuItemAction(dishId);
+      if (res.ok) {
+        setLocalMenu((prev) =>
+          prev.map((cat) => ({
+            ...cat,
+            items: (cat.items || []).filter((item) => item.id !== dishId),
+          }))
+        );
+        setMsg({ type: 'ok', text: `Dish "${dishName}" removed from menu successfully.` });
+        router.refresh();
+      } else {
+        setMsg({ type: 'error', text: res.error || 'Failed to delete dish.' });
+      }
+    } catch {
+      setMsg({ type: 'error', text: 'An unexpected error occurred while deleting dish.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleToggleDishStock = async (dishId: string, currentStockState?: boolean) => {
+    const nextOutOfStock = !currentStockState;
+    setSubmitting(true);
+    try {
+      const res = await toggleMenuItemStockAction(dishId, { isOutOfStock: nextOutOfStock });
+      if (res.ok) {
+        setLocalMenu((prev) =>
+          prev.map((cat) => ({
+            ...cat,
+            items: (cat.items || []).map((item) =>
+              item.id === dishId ? { ...item, isOutOfStock: nextOutOfStock } : item
+            ),
+          }))
+        );
+        setMsg({
+          type: 'ok',
+          text: `Dish marked as ${nextOutOfStock ? '86 (Out of Stock)' : 'In Stock'}.`,
+        });
+        router.refresh();
+      } else {
+        setMsg({ type: 'error', text: res.error || 'Failed to update stock.' });
+      }
+    } catch {
+      setMsg({ type: 'error', text: 'Error updating stock.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleDeleteTable = async (tableId: string, tableNumber: string) => {
+    if (!confirm(`Are you sure you want to delete table "${tableNumber}"?`)) return;
+    setSubmitting(true);
+    try {
+      const res = await deleteRestaurantTableAction(tableId);
+      if (res.ok) {
+        setLocalTables((prev) => prev.filter((t) => t.id !== tableId));
+        setMsg({ type: 'ok', text: `Table "${tableNumber}" removed successfully.` });
+        router.refresh();
+      } else {
+        setMsg({ type: 'error', text: res.error || 'Failed to delete table.' });
+      }
+    } catch {
+      setMsg({ type: 'error', text: 'Error deleting table.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleAddCategory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    setSubmitting(true);
+    try {
+      const res = await createMenuCategoryAction({
+        name: newCategoryName.trim(),
+        sortOrder: localMenu.length + 1,
+      });
+      if (res.ok) {
+        setMsg({ type: 'ok', text: `Category "${newCategoryName.trim()}" created successfully.` });
+        setNewCategoryName('');
+        setIsAddCategoryOpen(false);
+        router.refresh();
+      } else {
+        setMsg({ type: 'error', text: res.error || 'Failed to create category.' });
+      }
+    } catch {
+      setMsg({ type: 'error', text: 'Error creating category.' });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // Selected outlet for table creation
   const defaultOutletId = outlets[0]?.id || '';
@@ -1182,6 +1345,7 @@ export function SettingsView({
                     options={[
                       { value: 'veg', label: '🟢 Vegetarian' },
                       { value: 'non_veg', label: '🔴 Non-Vegetarian' },
+                      { value: 'egg', label: '🥚 Contains Egg' },
                     ]}
                     aria-label="Dietary tag"
                   />
@@ -1197,6 +1361,385 @@ export function SettingsView({
                 + Add Dish to Menu
               </button>
             </form>
+          </div>
+
+          {/* ========================================================================= */}
+          {/* SUB-SECTION 3: PETPOOJA-INSPIRED MASTER MENU DISHES CATALOG & DELETION */}
+          {/* ========================================================================= */}
+          <div className="space-y-4 pt-6 border-t border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white font-bold text-sm shadow-xs">
+                    📋
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-display text-base font-black text-slate-950">
+                        Menu Dishes Master &amp; Dietary Catalog
+                      </h3>
+                      <span className="rounded-full bg-slate-100 border border-slate-300 px-2 py-0.5 text-[10px] font-black text-slate-700">
+                        {allDishes.length} Total
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Filter by Veg / Non-Veg / Egg, live 86 out-of-stock toggle, and dish deletion.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsAddCategoryOpen((prev) => !prev)}
+                  className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>📁</span>
+                  <span>{isAddCategoryOpen ? 'Cancel' : '+ New Category'}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Collapsible Add Category Card */}
+            {isAddCategoryOpen && (
+              <form onSubmit={handleAddCategory} className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4 space-y-3 animate-in fade-in-50 duration-200">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-emerald-950 flex items-center gap-1.5">
+                    <span>✨</span> Create New Menu Category
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => setIsAddCategoryOpen(false)}
+                    className="text-xs text-slate-400 hover:text-slate-700"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <input
+                    type="text"
+                    required
+                    value={newCategoryName}
+                    onChange={(e) => setNewCategoryName(e.target.value)}
+                    placeholder="e.g. Tandoori Starters, Biryani, Italian Breads, Mocktails"
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs flex-1 min-w-[240px]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={submitting || !newCategoryName.trim()}
+                    className="rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    {submitting ? 'Creating...' : '+ Save Category'}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Petpooja-Style Filter Controls Bar */}
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
+              {/* Left: Dietary Filters */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setMenuDietaryFilter('all')}
+                  className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                    menuDietaryFilter === 'all'
+                      ? 'bg-slate-950 text-white shadow-xs font-black'
+                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                  }`}
+                >
+                  All ({allDishes.length})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMenuDietaryFilter('veg')}
+                  className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    menuDietaryFilter === 'veg'
+                      ? 'bg-emerald-700 text-white shadow-xs font-black ring-2 ring-emerald-500/30'
+                      : 'bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50'
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full bg-emerald-500 inline-block" />
+                  <span>Pure Veg ({vegDishesCount})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMenuDietaryFilter('non_veg')}
+                  className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    menuDietaryFilter === 'non_veg'
+                      ? 'bg-rose-700 text-white shadow-xs font-black ring-2 ring-rose-500/30'
+                      : 'bg-white text-rose-800 border border-rose-300 hover:bg-rose-50'
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full bg-rose-500 inline-block" />
+                  <span>Non-Veg ({nonVegDishesCount})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMenuDietaryFilter('egg')}
+                  className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                    menuDietaryFilter === 'egg'
+                      ? 'bg-amber-600 text-white shadow-xs font-black ring-2 ring-amber-500/30'
+                      : 'bg-white text-amber-800 border border-amber-300 hover:bg-amber-50'
+                  }`}
+                >
+                  <span className="h-2 w-2 rounded-full bg-amber-500 inline-block" />
+                  <span>Egg ({eggDishesCount})</span>
+                </button>
+              </div>
+
+              {/* Right: Search, Category, Stock Filters */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative w-full sm:w-56">
+                  <input
+                    type="text"
+                    value={menuSearchQuery}
+                    onChange={(e) => setMenuSearchQuery(e.target.value)}
+                    placeholder="Search dish or code..."
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+                  />
+                  {menuSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setMenuSearchQuery('')}
+                      className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div className="w-48">
+                  <CustomDropdown
+                    size="sm"
+                    value={menuCatFilter}
+                    onChange={(val) => setMenuCatFilter(val)}
+                    options={[
+                      { value: 'all', label: `All Categories (${allDishes.length})` },
+                      ...localMenu.map((cat) => ({
+                        value: cat.id,
+                        label: `${cat.name} (${cat.items?.length || 0})`,
+                      })),
+                    ]}
+                    aria-label="Filter dishes by category"
+                  />
+                </div>
+
+                <div className="w-36">
+                  <CustomDropdown
+                    size="sm"
+                    value={menuStockFilter}
+                    onChange={(val) => setMenuStockFilter(val as any)}
+                    options={[
+                      { value: 'all', label: 'All Stock' },
+                      { value: 'in_stock', label: '✓ In Stock' },
+                      { value: 'out_of_stock', label: '⚠️ 86 Out of Stock' },
+                    ]}
+                    aria-label="Filter dishes by stock"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Menu Items Table */}
+            {filteredDishes.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center space-y-2">
+                <span className="text-2xl">🍽️</span>
+                <p className="text-xs font-bold text-slate-700">No dishes match the selected dietary or category filters.</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuDietaryFilter('all');
+                    setMenuCatFilter('all');
+                    setMenuStockFilter('all');
+                    setMenuSearchQuery('');
+                  }}
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Reset Filters
+                </button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
+                <table className="w-full text-left text-xs" aria-label="Menu dishes catalog">
+                  <thead className="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
+                    <tr>
+                      <th scope="col" className="px-4 py-3">Code</th>
+                      <th scope="col" className="px-4 py-3">Dish Particulars</th>
+                      <th scope="col" className="px-4 py-3">Dietary</th>
+                      <th scope="col" className="px-4 py-3">Category</th>
+                      <th scope="col" className="px-4 py-3">Tariff</th>
+                      <th scope="col" className="px-4 py-3">GST Slab</th>
+                      <th scope="col" className="px-4 py-3 text-center">Live Stock (86)</th>
+                      <th scope="col" className="px-4 py-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                    {filteredDishes.map((dish) => (
+                      <tr key={dish.id} className="hover:bg-slate-50/70 transition-colors">
+                        <td className="px-4 py-3 font-mono font-bold text-slate-900">
+                          {dish.itemCode || 'DISH'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <p className="font-bold text-slate-950 text-sm">{dish.name}</p>
+                          {dish.description && (
+                            <p className="text-[11px] text-slate-500 line-clamp-1">{dish.description}</p>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          {dish.foodType === 'veg' ? (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 border border-emerald-300 px-2 py-0.5 text-[11px] font-bold text-emerald-900 shadow-2xs">
+                              <span className="h-2 w-2 rounded-full bg-emerald-600 inline-block" />
+                              <span>Pure Veg</span>
+                            </span>
+                          ) : dish.foodType === 'non_veg' ? (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 border border-rose-300 px-2 py-0.5 text-[11px] font-bold text-rose-900 shadow-2xs">
+                              <span className="h-2 w-2 rounded-full bg-rose-600 inline-block" />
+                              <span>Non-Veg</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 border border-amber-300 px-2 py-0.5 text-[11px] font-bold text-amber-900 shadow-2xs">
+                              <span className="h-2 w-2 rounded-full bg-amber-600 inline-block" />
+                              <span>Egg</span>
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="rounded-lg bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                            {dish.categoryName}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-bold text-slate-950 text-sm">
+                          ₹{Number(dish.price).toFixed(2)}
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[11px] text-slate-500">
+                          SAC 996331 (5%)
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            type="button"
+                            disabled={readOnly || submitting}
+                            onClick={() => handleToggleDishStock(dish.id, dish.isOutOfStock)}
+                            className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all cursor-pointer shadow-2xs disabled:opacity-50 ${
+                              dish.isOutOfStock
+                                ? 'bg-rose-100 text-rose-900 border border-rose-300 hover:bg-rose-200'
+                                : 'bg-emerald-100 text-emerald-900 border border-emerald-300 hover:bg-emerald-200'
+                            }`}
+                            title={dish.isOutOfStock ? 'Item is 86 (Out of Stock). Click to mark In Stock.' : 'Item is In Stock. Click to 86.'}
+                          >
+                            {dish.isOutOfStock ? '⚠️ 86 (Out of Stock)' : '✓ In Stock'}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            disabled={readOnly || submitting}
+                            onClick={() => handleDeleteDish(dish.id, dish.name)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition-all shadow-2xs cursor-pointer disabled:opacity-40"
+                            title={`Delete "${dish.name}" from menu`}
+                            aria-label={`Delete dish ${dish.name}`}
+                          >
+                            <span>🗑️</span>
+                            <span>Delete</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* ========================================================================= */}
+          {/* SUB-SECTION 4: DINING TABLES MASTER INVENTORY & DELETION                  */}
+          {/* ========================================================================= */}
+          <div className="space-y-4 pt-6 border-t border-slate-200">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white font-bold text-sm shadow-xs">
+                  🪑
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-display text-base font-black text-slate-950">
+                      Dining Tables Master &amp; Floor Inventory
+                    </h3>
+                    <span className="rounded-full bg-slate-100 border border-slate-300 px-2 py-0.5 text-[10px] font-black text-slate-700">
+                      {localTables.length} Tables
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 font-medium">
+                    View active dining tables, check seating covers, filter by zone, or delete vacant tables.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-600">Filter Zone:</span>
+                <div className="w-52">
+                  <CustomDropdown
+                    size="sm"
+                    value={tableZoneFilter}
+                    onChange={(val) => setTableZoneFilter(val)}
+                    options={[
+                      { value: 'all', label: `All Zones (${localTables.length} tables)` },
+                      ...zones.map((z) => ({
+                        value: z,
+                        label: `${z} (${localTables.filter((t) => (t.section || 'Main AC Hall') === z).length})`,
+                      })),
+                    ]}
+                    aria-label="Filter tables by zone"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {filteredTablesList.map((t) => {
+                const isVacant = !t.status || t.status === 'vacant';
+                return (
+                  <div
+                    key={t.id}
+                    className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xs flex flex-col justify-between space-y-2.5 hover:border-slate-300 transition-all"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <p className="font-display text-base font-black text-slate-950">{t.tableNumber}</p>
+                        <p className="text-[10px] font-bold text-slate-500 truncate max-w-[90px]">{t.section || 'Main AC Hall'}</p>
+                      </div>
+                      <span
+                        className={`rounded-full px-2 py-0.2 text-[9px] font-black uppercase tracking-wider ${
+                          isVacant
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                            : 'bg-amber-100 text-amber-900 border border-amber-300'
+                        }`}
+                      >
+                        {isVacant ? 'Vacant' : 'Occupied'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+                      <span className="text-slate-500 font-medium text-[11px]">👥 {t.capacity} Covers</span>
+                      <button
+                        type="button"
+                        disabled={!isVacant || readOnly || submitting}
+                        onClick={() => handleDeleteTable(t.id, t.tableNumber)}
+                        className="rounded-lg p-1 text-slate-400 hover:bg-rose-50 hover:text-rose-700 transition-colors disabled:opacity-20 cursor-pointer"
+                        title={isVacant ? `Delete Table ${t.tableNumber}` : 'Cannot delete an occupied table with active order'}
+                        aria-label={`Delete table ${t.tableNumber}`}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
       )}

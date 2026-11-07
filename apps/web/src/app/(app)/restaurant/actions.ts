@@ -202,6 +202,7 @@ export async function deleteRestaurantTableAction(id: string) {
       method: 'DELETE',
     });
     revalidatePath('/restaurant');
+    revalidatePath('/settings');
     return { ok: true, data: res };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };
@@ -215,6 +216,7 @@ export async function createMenuCategoryAction(input: CreateMenuCategoryInput) {
       body: JSON.stringify(input),
     });
     revalidatePath('/restaurant');
+    revalidatePath('/settings');
     return { ok: true, data: res };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };
@@ -228,6 +230,33 @@ export async function createMenuItemAction(input: CreateMenuItemInput) {
       body: JSON.stringify(input),
     });
     revalidatePath('/restaurant');
+    revalidatePath('/settings');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function deleteMenuItemAction(id: string) {
+  try {
+    const res = await api<any>(`/hotel/restaurant/menu/items/${id}`, {
+      method: 'DELETE',
+    });
+    revalidatePath('/restaurant');
+    revalidatePath('/settings');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function deleteMenuCategoryAction(id: string) {
+  try {
+    const res = await api<any>(`/hotel/restaurant/menu/categories/${id}`, {
+      method: 'DELETE',
+    });
+    revalidatePath('/restaurant');
+    revalidatePath('/settings');
     return { ok: true, data: res };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };
@@ -254,6 +283,7 @@ export async function toggleMenuItemStockAction(id: string, input: ToggleMenuIte
       body: JSON.stringify(input),
     });
     revalidatePath('/restaurant');
+    revalidatePath('/settings');
     return { ok: true, data: res };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };

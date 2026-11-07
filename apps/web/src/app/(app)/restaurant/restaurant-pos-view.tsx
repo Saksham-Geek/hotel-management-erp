@@ -23,6 +23,7 @@ import {
   deleteRestaurantTableAction,
   createMenuCategoryAction,
   createMenuItemAction,
+  deleteMenuItemAction,
   toggleMenuItemStockAction,
   updateAggregatorOrderStatusAction,
   simulateAggregatorOrderAction,
@@ -193,8 +194,9 @@ export function RestaurantPosView({
   const aggregatorOrders = kots.filter((k) => k.aggregatorBrand && k.aggregatorBrand !== 'none');
   const incomingAggregatorsCount = aggregatorOrders.filter((k) => k.aggregatorStatus === 'incoming').length;
 
-  // Kitchen KDS Station Filter
+  // Kitchen KDS Station & Dietary Filter
   const [kdsStation, setKdsStation] = useState<'all' | 'tandoor' | 'main_kitchen' | 'bar' | 'pantry'>('all');
+  const [platedItems, setPlatedItems] = useState<Record<string, boolean>>({});
 
   // Shift & Cashier Z-Report State
   const [currentShift, setCurrentShift] = useState<ShiftDto | null>(initialShift || null);
@@ -301,7 +303,8 @@ export function RestaurantPosView({
 
   // Menu Navigation & Filters
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
-  const [dietaryFilter, setDietaryFilter] = useState<'all' | 'veg' | 'non_veg'>('all');
+  const [dietaryFilter, setDietaryFilter] = useState<'all' | 'veg' | 'non_veg' | 'egg'>('all');
+  const [kdsDietaryFilter, setKdsDietaryFilter] = useState<'all' | 'veg' | 'non_veg'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Cart / Order State
@@ -399,6 +402,7 @@ export function RestaurantPosView({
       }
       if (dietaryFilter === 'veg' && it.foodType !== 'veg') return false;
       if (dietaryFilter === 'non_veg' && it.foodType !== 'non_veg') return false;
+      if (dietaryFilter === 'egg' && it.foodType !== 'egg') return false;
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         return it.name.toLowerCase().includes(q) || it.itemCode.toLowerCase().includes(q);
@@ -920,6 +924,20 @@ export function RestaurantPosView({
       router.refresh();
     } else {
       setFeedbackMsg({ type: 'err', text: res.error || 'Failed to update item stock' });
+    }
+  }
+
+  // Delete Dish from Menu
+  async function handleDeleteDish(itemId: string, itemName: string) {
+    if (!confirm(`Are you sure you want to permanently delete "${itemName}" from the menu catalog?`)) return;
+    setSubmitting(true);
+    const res = await deleteMenuItemAction(itemId);
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({ type: 'ok', text: `Dish "${itemName}" deleted successfully.` });
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to delete dish.' });
     }
   }
 
@@ -1685,6 +1703,17 @@ export function RestaurantPosView({
                     }`}
                   >
                     <span>🔴</span> Non-Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDietaryFilter('egg')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
+                      dietaryFilter === 'egg'
+                        ? 'bg-amber-600 text-white shadow-xs'
+                        : 'text-amber-800 hover:text-amber-950'
+                    }`}
+                  >
+                    <span>🥚</span> Egg
                   </button>
                 </div>
               </div>
@@ -2533,107 +2562,205 @@ export function RestaurantPosView({
               </p>
             </div>
 
-            {/* Station Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-bold text-slate-500 mr-1">Kitchen Station:</span>
-              {[
-                { id: 'all', label: 'All Stations' },
-                { id: 'tandoor', label: '🔥 Tandoor' },
-                { id: 'main_kitchen', label: '🍳 Main Curry' },
-                { id: 'bar', label: '🍸 Bar' },
-                { id: 'pantry', label: '🥗 Pantry' },
-              ].map((st) => (
+            {/* Petpooja KDS Station & Dietary Filter Controls */}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Dietary Filter */}
+              <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
                 <button
-                  key={st.id}
                   type="button"
-                  onClick={() => setKdsStation(st.id as any)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all ${
-                    kdsStation === st.id
+                  onClick={() => setKdsDietaryFilter('all')}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all cursor-pointer ${
+                    kdsDietaryFilter === 'all'
                       ? 'bg-slate-950 text-white shadow-xs'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      : 'text-slate-600 hover:text-slate-950'
                   }`}
                 >
-                  {st.label}
+                  All Food
                 </button>
-              ))}
+                <button
+                  type="button"
+                  onClick={() => setKdsDietaryFilter('veg')}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    kdsDietaryFilter === 'veg'
+                      ? 'bg-emerald-700 text-white shadow-xs font-black'
+                      : 'text-emerald-800 hover:text-emerald-950'
+                  }`}
+                >
+                  <span>🟢</span> Pure Veg
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setKdsDietaryFilter('non_veg')}
+                  className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    kdsDietaryFilter === 'non_veg'
+                      ? 'bg-rose-700 text-white shadow-xs font-black'
+                      : 'text-rose-800 hover:text-rose-950'
+                  }`}
+                >
+                  <span>🔴</span> Non-Veg
+                </button>
+              </div>
+
+              {/* Station Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {[
+                  { id: 'all', label: 'All Stations' },
+                  { id: 'tandoor', label: '🔥 Tandoor' },
+                  { id: 'main_kitchen', label: '🍳 Main Curry' },
+                  { id: 'bar', label: '🍸 Bar' },
+                  { id: 'pantry', label: '🥗 Pantry' },
+                ].map((st) => (
+                  <button
+                    key={st.id}
+                    type="button"
+                    onClick={() => setKdsStation(st.id as any)}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all ${
+                      kdsStation === st.id
+                        ? 'bg-slate-950 text-white shadow-xs'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {kots
               .filter((k) => {
-                if (kdsStation === 'all') return true;
-                return k.items.some((i) => (i.kitchenStation || 'main_kitchen') === kdsStation);
+                if (kdsStation !== 'all') {
+                  const hasStation = k.items.some((i) => (i.kitchenStation || 'main_kitchen') === kdsStation);
+                  if (!hasStation) return false;
+                }
+                if (kdsDietaryFilter === 'veg') {
+                  const hasVeg = k.items.some((i) => i.foodType === 'veg');
+                  if (!hasVeg) return false;
+                }
+                if (kdsDietaryFilter === 'non_veg') {
+                  const hasNonVeg = k.items.some((i) => i.foodType === 'non_veg');
+                  if (!hasNonVeg) return false;
+                }
+                return true;
               })
-              .map((kot) => (
-                <div
-                  key={kot.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3"
-                >
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-base font-black text-slate-950">
-                          {kot.kotNumber}
-                        </span>
-                        {kot.aggregatorBrand && kot.aggregatorBrand !== 'none' && (
+              .map((kot) => {
+                const elapsedMins = Math.max(0, Math.floor((Date.now() - new Date(kot.createdAt).getTime()) / 60000));
+                const isOverdue = elapsedMins >= 20;
+                const isDelayed = elapsedMins >= 10 && elapsedMins < 20;
+
+                return (
+                  <div
+                    key={kot.id}
+                    className={`rounded-2xl border bg-white p-5 shadow-xs space-y-3 transition-all ${
+                      isOverdue
+                        ? 'border-rose-400 ring-2 ring-rose-400/30 bg-rose-50/10'
+                        : isDelayed
+                        ? 'border-amber-300 ring-1 ring-amber-300/30'
+                        : 'border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-base font-black text-slate-950">
+                            {kot.kotNumber}
+                          </span>
+                          {/* Elapsed Timer Urgency Indicator */}
                           <span
-                            className={`rounded px-1.5 py-0.2 text-[9px] font-black uppercase text-white ${
-                              kot.aggregatorBrand === 'swiggy' ? 'bg-orange-600' : 'bg-rose-600'
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider flex items-center gap-0.5 ${
+                              isOverdue
+                                ? 'bg-rose-100 text-rose-900 border border-rose-300 animate-pulse'
+                                : isDelayed
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
                             }`}
                           >
-                            {kot.aggregatorBrand}
+                            <span>⏱️</span>
+                            <span>{elapsedMins}m {isOverdue ? 'Overdue' : isDelayed ? 'Prep' : 'Fresh'}</span>
                           </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 font-bold">
-                        {kot.orderType === 'dine_in'
-                          ? `Table ${kot.tableNumber || ''} (${kot.tableSection || 'Hall'})`
-                          : kot.orderType === 'delivery'
-                          ? `Delivery: ${kot.guestName || 'Online Order'}`
-                          : `Room Service: ${kot.roomNumber || ''}`}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
-                        kot.status === 'ready'
-                          ? 'bg-emerald-100 text-emerald-900'
-                          : kot.status === 'preparing'
-                          ? 'bg-blue-100 text-blue-900'
-                          : 'bg-amber-100 text-amber-900'
-                      }`}
-                    >
-                      {kot.status}
-                    </span>
-                  </div>
-
-                  {/* Items Filtered by Station */}
-                  <div className="space-y-1.5 text-xs">
-                    {kot.items
-                      .filter((i) => {
-                        if (kdsStation === 'all') return true;
-                        return (i.kitchenStation || 'main_kitchen') === kdsStation;
-                      })
-                      .map((i, idx) => (
-                        <div key={idx} className="flex justify-between font-medium">
-                          <span>
-                            {i.foodType === 'veg' ? '🟢' : '🔴'} {i.quantity}x {i.itemName}
-                          </span>
-                          {i.specialNotes && (
-                            <span className="text-[10px] text-amber-800 italic truncate max-w-[120px]">
-                              {i.specialNotes}
+                          {kot.aggregatorBrand && kot.aggregatorBrand !== 'none' && (
+                            <span
+                              className={`rounded px-1.5 py-0.2 text-[9px] font-black uppercase text-white ${
+                                kot.aggregatorBrand === 'swiggy' ? 'bg-orange-600' : 'bg-rose-600'
+                              }`}
+                            >
+                              {kot.aggregatorBrand}
                             </span>
                           )}
                         </div>
-                      ))}
-                  </div>
+                        <p className="text-[11px] text-slate-500 font-bold">
+                          {kot.orderType === 'dine_in'
+                            ? `Table ${kot.tableNumber || ''} (${kot.tableSection || 'Hall'})`
+                            : kot.orderType === 'delivery'
+                            ? `Delivery: ${kot.guestName || 'Online Order'}`
+                            : `Room Service: ${kot.roomNumber || ''}`}
+                        </p>
+                      </div>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
+                          kot.status === 'ready'
+                            ? 'bg-emerald-100 text-emerald-900'
+                            : kot.status === 'preparing'
+                            ? 'bg-blue-100 text-blue-900'
+                            : 'bg-amber-100 text-amber-900'
+                        }`}
+                      >
+                        {kot.status}
+                      </span>
+                    </div>
 
-                  {/* KDS Status Actions */}
-                  <div className="pt-2 border-t border-slate-100 flex gap-2">
-                    {kot.status === 'pending' && (
-                      <button
-                        type="button"
-                        onClick={() => updateKotStatusAction(kot.id, 'preparing')}
+                    {/* Items Filtered by Station & Plating Strike-through */}
+                    <div className="space-y-1.5 text-xs">
+                      {kot.items
+                        .filter((i) => {
+                          if (kdsStation !== 'all' && (i.kitchenStation || 'main_kitchen') !== kdsStation) return false;
+                          if (kdsDietaryFilter === 'veg' && i.foodType !== 'veg') return false;
+                          if (kdsDietaryFilter === 'non_veg' && i.foodType !== 'non_veg') return false;
+                          return true;
+                        })
+                        .map((i, idx) => {
+                          const itemKey = `${kot.id}-${idx}-${i.itemName}`;
+                          const isPlated = Boolean(platedItems[itemKey]);
+
+                          return (
+                            <div
+                              key={idx}
+                              onClick={() =>
+                                setPlatedItems((prev) => ({
+                                  ...prev,
+                                  [itemKey]: !prev[itemKey],
+                                }))
+                              }
+                              className={`flex items-center justify-between font-medium p-1 rounded-lg cursor-pointer transition-all ${
+                                isPlated ? 'bg-emerald-50/70 text-slate-400 line-through' : 'hover:bg-slate-50 text-slate-900'
+                              }`}
+                              title="Click to check off plated item"
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <span className={`text-[11px] ${isPlated ? 'text-emerald-600 font-bold' : 'text-slate-300'}`}>
+                                  {isPlated ? '✓' : '○'}
+                                </span>
+                                <span>
+                                  {i.foodType === 'veg' ? '🟢' : i.foodType === 'egg' ? '🥚' : '🔴'} {i.quantity}x {i.itemName}
+                                </span>
+                              </div>
+                              {i.specialNotes && (
+                                <span className="text-[10px] text-amber-800 italic truncate max-w-[120px]">
+                                  {i.specialNotes}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })}
+                    </div>
+
+                    {/* KDS Status Actions */}
+                    <div className="pt-2 border-t border-slate-100 flex gap-2">
+                      {kot.status === 'pending' && (
+                        <button
+                          type="button"
+                          onClick={() => updateKotStatusAction(kot.id, 'preparing')}
                         className="flex-1 rounded-xl bg-blue-600 py-1.5 text-xs font-bold text-white hover:bg-blue-700 cursor-pointer"
                       >
                         Start Cooking 🍳
@@ -2659,7 +2786,8 @@ export function RestaurantPosView({
                     )}
                   </div>
                 </div>
-              ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -3012,6 +3140,75 @@ export function RestaurantPosView({
                 </div>
               </div>
 
+              {/* Petpooja-Style Filter Controls: Dietary & Search */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  <button
+                    type="button"
+                    onClick={() => setDietaryFilter('all')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                      dietaryFilter === 'all'
+                        ? 'bg-slate-950 text-white shadow-xs font-black'
+                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                    }`}
+                  >
+                    All Types
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDietaryFilter('veg')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      dietaryFilter === 'veg'
+                        ? 'bg-emerald-700 text-white shadow-xs font-black'
+                        : 'bg-white text-emerald-800 border border-emerald-200 hover:bg-emerald-50'
+                    }`}
+                  >
+                    <span>🟢</span> Pure Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDietaryFilter('non_veg')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      dietaryFilter === 'non_veg'
+                        ? 'bg-rose-700 text-white shadow-xs font-black'
+                        : 'bg-white text-rose-800 border border-rose-200 hover:bg-rose-50'
+                    }`}
+                  >
+                    <span>🔴</span> Non-Veg
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setDietaryFilter('egg')}
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                      dietaryFilter === 'egg'
+                        ? 'bg-amber-600 text-white shadow-xs font-black'
+                        : 'bg-white text-amber-800 border border-amber-200 hover:bg-amber-50'
+                    }`}
+                  >
+                    <span>🥚</span> Egg
+                  </button>
+                </div>
+
+                <div className="relative w-full sm:w-64">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search dish or code..."
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-2xs focus:border-slate-950 focus:outline-none"
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-700 cursor-pointer"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              </div>
+
               {/* Unique Categories Filter */}
               <div className="flex flex-wrap gap-2 items-center">
                 <button
@@ -3019,7 +3216,7 @@ export function RestaurantPosView({
                   onClick={() => setSelectedCategory('all')}
                   className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                     selectedCategory === 'all'
-                      ? 'bg-slate-950 text-white shadow-xs'
+                      ? 'bg-slate-950 text-white shadow-xs font-black'
                       : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                   }`}
                 >
@@ -3032,7 +3229,7 @@ export function RestaurantPosView({
                     onClick={() => setSelectedCategory(c.id)}
                     className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                       selectedCategory === c.id
-                        ? 'bg-slate-950 text-white shadow-xs'
+                        ? 'bg-slate-950 text-white shadow-xs font-black'
                         : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                     }`}
                   >
@@ -3052,7 +3249,8 @@ export function RestaurantPosView({
                       <th className="px-4 py-3">Base Tariff</th>
                       <th className="px-4 py-3">GST Slab</th>
                       <th className="px-4 py-3">Kitchen Station</th>
-                      <th className="px-4 py-3 text-right">Live Stock Status</th>
+                      <th className="px-4 py-3 text-center">Live Stock</th>
+                      <th className="px-4 py-3 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
@@ -3072,10 +3270,12 @@ export function RestaurantPosView({
                             className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
                               it.foodType === 'veg'
                                 ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                                : it.foodType === 'egg'
+                                ? 'bg-amber-50 text-amber-800 border border-amber-200'
                                 : 'bg-rose-50 text-rose-800 border border-rose-200'
                             }`}
                           >
-                            {it.foodType === 'veg' ? '🟢 Veg' : '🔴 Non-Veg'}
+                            {it.foodType === 'veg' ? '🟢 Veg' : it.foodType === 'egg' ? '🥚 Egg' : '🔴 Non-Veg'}
                           </span>
                         </td>
                         <td className="px-4 py-3 font-bold text-slate-950">
@@ -3089,7 +3289,7 @@ export function RestaurantPosView({
                             {it.kitchenStation ? it.kitchenStation.replace('_', ' ') : 'Main Kitchen'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right">
+                        <td className="px-4 py-3 text-center">
                           <button
                             type="button"
                             onClick={() => handleToggleItemStock(it.id, it.isOutOfStock)}
@@ -3100,6 +3300,18 @@ export function RestaurantPosView({
                             }`}
                           >
                             {it.isOutOfStock ? '⚠️ 86 (Out of Stock)' : '✓ In Stock'}
+                          </button>
+                        </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            disabled={submitting}
+                            onClick={() => handleDeleteDish(it.id, it.name)}
+                            className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1 text-xs font-bold text-rose-700 hover:bg-rose-600 hover:text-white transition-all shadow-2xs cursor-pointer disabled:opacity-40"
+                            title={`Delete "${it.name}" from menu`}
+                          >
+                            <span>🗑️</span>
+                            <span>Delete</span>
                           </button>
                         </td>
                       </tr>

@@ -1185,6 +1185,47 @@ export class RestaurantController {
     });
   }
 
+  @Delete('menu/items/:id')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async deleteMenuItem(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const existing = await c.query(
+        `select id, name from menu_items where id = $1 and property_id = $2`,
+        [id, user.propertyId]
+      );
+      if (existing.rows.length === 0) throw new NotFoundException('Menu item not found');
+
+      const dishName = existing.rows[0].name;
+      await c.query(`delete from menu_items where id = $1 and property_id = $2`, [id, user.propertyId]);
+
+      return {
+        success: true,
+        message: `Dish "${dishName}" removed from menu successfully.`,
+      };
+    });
+  }
+
+  @Delete('menu/categories/:id')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async deleteMenuCategory(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const existing = await c.query(
+        `select id, name from menu_categories where id = $1 and property_id = $2`,
+        [id, user.propertyId]
+      );
+      if (existing.rows.length === 0) throw new NotFoundException('Menu category not found');
+
+      const catName = existing.rows[0].name;
+      await c.query(`delete from menu_items where category_id = $1 and property_id = $2`, [id, user.propertyId]);
+      await c.query(`delete from menu_categories where id = $1 and property_id = $2`, [id, user.propertyId]);
+
+      return {
+        success: true,
+        message: `Menu category "${catName}" removed successfully.`,
+      };
+    });
+  }
+
   // -------------------------------------------------------------
   // Outlet Management
   // -------------------------------------------------------------

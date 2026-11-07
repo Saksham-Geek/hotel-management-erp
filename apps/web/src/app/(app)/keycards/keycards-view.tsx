@@ -28,8 +28,11 @@ export interface ActiveGuestStayDto {
   reservationId: string;
   roomNumber: string;
   guestName: string;
+  guests?: { id: string; name: string }[];
   checkIn: string;
   checkOut: string;
+  checkInFormatted?: string;
+  checkOutFormatted?: string;
 }
 
 export function KeycardsView({
@@ -52,7 +55,6 @@ export function KeycardsView({
 
   // Encode Modal State
   const [encodingKey, setEncodingKey] = useState<RoomKeyDto | null>(null);
-  const [selectedStayId, setSelectedStayId] = useState<string>(activeStays[0]?.reservationId || '');
   const [encoderProtocol, setEncoderProtocol] = useState<'mifare_classic_1k' | 'mifare_ultralight' | 'saflok_ascii'>('mifare_classic_1k');
   const [encodingProgress, setEncodingProgress] = useState<'idle' | 'writing' | 'success'>('idle');
 
@@ -96,13 +98,8 @@ export function KeycardsView({
     }
   }
 
-  async function handleExecuteEncode() {
+  async function handleExecuteEncodeForStay(stay: ActiveGuestStayDto) {
     if (!encodingKey) return;
-    const stay = activeStays.find((s) => s.reservationId === selectedStayId);
-    if (!stay) {
-      setFeedbackMsg({ type: 'err', text: 'Please select an active guest stay to encode.' });
-      return;
-    }
 
     setEncodingProgress('writing');
 
@@ -171,7 +168,8 @@ export function KeycardsView({
       issuedToReservationId: resId,
     });
     if (res.ok) {
-      setFeedbackMsg({ type: 'ok', text: `Key status updated to ${status.replace('_', ' ').toUpperCase()}` });
+      const label = status === 'in_slot' ? 'RETURNED TO SLOT' : status === 'issued_to_guest' ? `ISSUED TO ${guestName || 'GUEST'}` : 'WITH HOUSEKEEPING';
+      setFeedbackMsg({ type: 'ok', text: `Key status updated to ${label}` });
       setHandingKey(null);
       router.refresh();
     } else {
@@ -277,7 +275,7 @@ export function KeycardsView({
                 </span>
               </h2>
               <p className="text-xs text-muted">
-                Visual representation of the physical front desk key cabinet. Track keys in slot, handed to guests, or with housekeeping maids.
+                Visual representation of the physical front desk key cabinet. Keys are securely bound to their assigned room and active checked-in occupants.
               </p>
             </div>
 
@@ -300,78 +298,126 @@ export function KeycardsView({
           {/* Wooden Rack Grid */}
           <div className="rounded-3xl border-4 border-[#4a2e18] bg-[#2b180d] p-6 shadow-2xl">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {brassKeys.map((key) => (
-                <div
-                  key={key.id}
-                  className={`flex flex-col justify-between rounded-2xl border p-4 shadow-md transition-all ${
-                    key.status === 'in_slot'
-                      ? 'border-[#8c6239] bg-[#3d2314] text-amber-100'
-                      : key.status === 'issued_to_guest'
-                      ? 'border-amber-400/80 bg-[#543019] text-white ring-1 ring-amber-400'
-                      : 'border-blue-400/80 bg-[#1d263b] text-white'
-                  }`}
-                >
-                  <div className="text-center">
-                    {/* Brass Key Peg / Hook */}
-                    <div className="mx-auto mb-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 ring-2 ring-amber-600 shadow-inner">
-                      <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+              {brassKeys.map((key) => {
+                const stay = activeStays.find(
+                  (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim()
+                );
+
+                return (
+                  <div
+                    key={key.id}
+                    className={`flex flex-col justify-between rounded-2xl border p-4 shadow-md transition-all ${
+                      key.status === 'in_slot'
+                        ? 'border-[#8c6239] bg-[#3d2314] text-amber-100'
+                        : key.status === 'issued_to_guest'
+                        ? 'border-amber-400/80 bg-[#543019] text-white ring-1 ring-amber-400'
+                        : 'border-blue-400/80 bg-[#1d263b] text-white'
+                    }`}
+                  >
+                    <div className="text-center">
+                      {/* Brass Key Peg / Hook */}
+                      <div className="mx-auto mb-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 ring-2 ring-amber-600 shadow-inner">
+                        <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                      </div>
+
+                      {/* Room Number Engraved Brass Plate */}
+                      <div className="rounded-xl border border-amber-400/60 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-3 py-2 text-slate-950 shadow-md">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-amber-950">ROOM</p>
+                        <p className="font-display text-2xl font-black tracking-tight leading-none">
+                          {key.roomNumber}
+                        </p>
+                        <p className="text-[8px] font-bold text-amber-900 mt-0.5 truncate">
+                          {key.roomTypeName || 'Deluxe'}
+                        </p>
+                      </div>
+
+                      {/* Status Badge */}
+                      <div className="mt-2.5">
+                        <span
+                          className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${
+                            key.status === 'in_slot'
+                              ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
+                              : key.status === 'issued_to_guest'
+                              ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
+                              : 'bg-blue-950 text-blue-300 border border-blue-500/40'
+                          }`}
+                        >
+                          {key.status === 'in_slot' ? '🟢 In Slot' : key.status === 'issued_to_guest' ? '🟡 Out with Guest' : '🧹 With Maid'}
+                        </span>
+                      </div>
+
+                      {/* Occupant / Room Info */}
+                      {key.status === 'issued_to_guest' && (
+                        <p className="text-[10px] text-amber-200 font-bold mt-1.5 truncate" title={`Guest: ${key.issuedToGuestName || 'In-House Guest'}`}>
+                          👤 {key.issuedToGuestName || 'In-House Guest'}
+                        </p>
+                      )}
+
+                      {key.status === 'with_housekeeping' && (
+                        <p className="text-[10px] text-blue-200 font-bold mt-1.5 truncate">
+                          🧹 {key.issuedToGuestName || 'Housekeeping Staff'}
+                        </p>
+                      )}
+
+                      {key.status === 'in_slot' && (
+                        stay ? (
+                          <p className="text-[10px] text-emerald-300 font-bold mt-1.5 truncate" title={`In-House: ${stay.guestName}`}>
+                            👤 {stay.guestName}
+                          </p>
+                        ) : (
+                          <p className="text-[10px] text-amber-100/60 font-medium mt-1.5 truncate">
+                            🚪 Vacant Room
+                          </p>
+                        )
+                      )}
                     </div>
 
-                    {/* Room Number Engraved Brass Plate */}
-                    <div className="rounded-xl border border-amber-400/60 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-3 py-2 text-slate-950 shadow-md">
-                      <p className="text-[9px] font-black uppercase tracking-widest text-amber-950">ROOM</p>
-                      <p className="font-display text-2xl font-black tracking-tight leading-none">
-                        {key.roomNumber}
-                      </p>
-                      <p className="text-[8px] font-bold text-amber-900 mt-0.5 truncate">
-                        {key.roomTypeName || 'Deluxe'}
-                      </p>
+                    {/* Quick Action Buttons */}
+                    <div className="mt-4 pt-2.5 border-t border-white/10 space-y-1.5">
+                      {key.status === 'in_slot' ? (
+                        <button
+                          type="button"
+                          onClick={() => setHandingKey(key)}
+                          className={`w-full rounded-lg py-1.5 text-[11px] font-black transition-colors cursor-pointer shadow-xs ${
+                            stay
+                              ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
+                              : 'bg-slate-700/80 text-amber-100 hover:bg-slate-600'
+                          }`}
+                        >
+                          {stay ? 'Hand to Guest →' : 'Key Actions →'}
+                        </button>
+                      ) : key.status === 'with_housekeeping' ? (
+                        <div className="space-y-1">
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateKeyStatus(key.id, 'in_slot')}
+                            className="w-full rounded-lg bg-emerald-700 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-600 transition-colors cursor-pointer"
+                          >
+                            ✓ Return to Slot
+                          </button>
+                          {stay && (
+                            <button
+                              type="button"
+                              onClick={() => setHandingKey(key)}
+                              className="w-full rounded-lg bg-amber-400 py-1 text-[10px] font-bold text-slate-950 hover:bg-amber-300 transition-colors cursor-pointer"
+                            >
+                              Hand to Guest →
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleUpdateKeyStatus(key.id, 'in_slot')}
+                          className="w-full rounded-lg bg-emerald-700 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-600 transition-colors cursor-pointer"
+                        >
+                          ✓ Return to Slot
+                        </button>
+                      )}
                     </div>
-
-                    {/* Status Badge */}
-                    <div className="mt-2.5">
-                      <span
-                        className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${
-                          key.status === 'in_slot'
-                            ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
-                            : key.status === 'issued_to_guest'
-                            ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
-                            : 'bg-blue-950 text-blue-300 border border-blue-500/40'
-                        }`}
-                      >
-                        {key.status === 'in_slot' ? '🟢 In Slot' : key.status === 'issued_to_guest' ? '🟡 Out with Guest' : '🧹 With Maid'}
-                      </span>
-                    </div>
-
-                    {key.status === 'issued_to_guest' && key.issuedToGuestName && (
-                      <p className="text-[10px] text-amber-200 font-bold mt-1.5 truncate">
-                        👤 {key.issuedToGuestName}
-                      </p>
-                    )}
                   </div>
-
-                  {/* Quick Action Buttons */}
-                  <div className="mt-4 pt-2.5 border-t border-white/10 space-y-1.5">
-                    {key.status === 'in_slot' ? (
-                      <button
-                        type="button"
-                        onClick={() => setHandingKey(key)}
-                        className="w-full rounded-lg bg-amber-400 py-1.5 text-[11px] font-black text-slate-950 hover:bg-amber-300 transition-colors cursor-pointer shadow-xs"
-                      >
-                        Hand to Guest →
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => handleUpdateKeyStatus(key.id, 'in_slot')}
-                        className="w-full rounded-lg bg-emerald-700 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-600 transition-colors cursor-pointer"
-                      >
-                        ✓ Return to Slot
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
@@ -415,58 +461,62 @@ export function KeycardsView({
 
           {/* RFID Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {rfidKeys.map((key) => (
-              <div
-                key={key.id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-white/10 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-[#0d1424] dark:to-[#070b14] p-5 shadow-md"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-slate-400">
-                      NFC / RFID 13.56MHz
-                    </span>
-                    <span className="text-xl">💳</span>
-                  </div>
+            {rfidKeys.map((key) => {
+              const stay = activeStays.find(
+                (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim()
+              );
 
-                  <div className="mt-4">
-                    <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">ROOM NUMBER</p>
-                    <p className="font-display text-2xl font-black text-ink">{key.roomNumber}</p>
-                    <p className="text-[11px] text-muted">{key.roomTypeName}</p>
-                  </div>
-
-                  <div className="mt-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] p-2.5 font-mono text-[10px] space-y-1">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">CARD UID:</span>
-                      <span className="font-bold text-ink">{key.cardUid || '04:A2:4B:91'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">STATUS:</span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                        {key.status.replace('_', ' ').toUpperCase()}
+              return (
+                <div
+                  key={key.id}
+                  className="flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-white/10 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-[#0d1424] dark:to-[#070b14] p-5 shadow-md"
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xs font-bold text-slate-400">
+                        NFC / RFID 13.56MHz
                       </span>
+                      <span className="text-xl">💳</span>
                     </div>
-                    {key.issuedToGuestName && (
+
+                    <div className="mt-4">
+                      <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">ROOM NUMBER</p>
+                      <p className="font-display text-2xl font-black text-ink">{key.roomNumber}</p>
+                      <p className="text-[11px] text-muted">{key.roomTypeName}</p>
+                    </div>
+
+                    <div className="mt-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] p-2.5 font-mono text-[10px] space-y-1">
                       <div className="flex justify-between">
-                        <span className="text-slate-500">GUEST:</span>
-                        <span className="font-bold text-ink truncate max-w-[120px]">
-                          {key.issuedToGuestName}
+                        <span className="text-slate-500">CARD UID:</span>
+                        <span className="font-bold text-ink">{key.cardUid || '04:A2:4B:91'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">STATUS:</span>
+                        <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                          {key.status.replace('_', ' ').toUpperCase()}
                         </span>
                       </div>
-                    )}
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">OCCUPANT:</span>
+                        <span className="font-bold text-ink truncate max-w-[120px]">
+                          {stay ? stay.guestName : key.issuedToGuestName ? key.issuedToGuestName : 'Vacant'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => setEncodingKey(key)}
+                      className="w-full rounded-xl bg-indigo-600 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <span>⚡ Write Sector 1 Keycard</span>
+                    </button>
                   </div>
                 </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/10">
-                  <button
-                    type="button"
-                    onClick={() => setEncodingKey(key)}
-                    className="w-full rounded-xl bg-indigo-600 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <span>⚡ Write Sector 1 Keycard</span>
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -503,7 +553,7 @@ export function KeycardsView({
                     {stay.guestName}
                   </h3>
                   <p className="text-xs text-muted mt-0.5">
-                    Stay: {new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                    Stay: {stay.checkInFormatted || new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {stay.checkOutFormatted || new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                   </p>
                 </div>
 
@@ -511,7 +561,7 @@ export function KeycardsView({
                   <button
                     type="button"
                     onClick={() => {
-                      const matchKey = keys.find((k) => k.roomNumber === stay.roomNumber);
+                      const matchKey = keys.find((k) => String(k.roomNumber).trim() === String(stay.roomNumber).trim());
                       if (matchKey) setMobilePassKey(matchKey);
                     }}
                     className="w-full rounded-xl bg-slate-900 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors cursor-pointer"
@@ -526,138 +576,306 @@ export function KeycardsView({
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL 1: ENCODE RFID CARD MODAL */}
+      {/* MODAL 1: ENCODE RFID CARD MODAL (ROOM-BOUND) */}
       {/* ========================================================================= */}
-      {encodingKey && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
-          <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10">
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
-              <div className="flex items-center gap-2">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm">
-                  💳
-                </span>
-                <div>
-                  <h3 className="font-display text-sm font-bold">Encode Contactless RFID Keycard</h3>
-                  <p className="text-[11px] text-muted">Room {encodingKey.roomNumber} ({encodingKey.roomTypeName})</p>
+      {encodingKey && (() => {
+        const roomStays = activeStays.filter(
+          (s) => String(s.roomNumber).trim() === String(encodingKey.roomNumber).trim()
+        );
+        const stay = roomStays[0];
+
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+            <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
+                <div className="flex items-center gap-2">
+                  <span className="grid h-8 w-8 place-items-center rounded-xl bg-indigo-100 text-indigo-700 font-bold text-sm">
+                    💳
+                  </span>
+                  <div>
+                    <h3 className="font-display text-sm font-bold">Encode Contactless RFID Keycard</h3>
+                    <p className="text-[11px] text-muted">Room {encodingKey.roomNumber} ({encodingKey.roomTypeName || 'Room'})</p>
+                  </div>
                 </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setEncodingKey(null)}
-                className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="my-4 space-y-3.5 text-xs">
-              <div>
-                <label className="block font-bold text-slate-500 mb-1">Select Guest Stay</label>
-                <CustomDropdown
-                  value={selectedStayId}
-                  onChange={(val) => setSelectedStayId(val)}
-                  size="sm"
-                  options={activeStays.map((s) => ({
-                    value: s.reservationId,
-                    label: `Room ${s.roomNumber} — ${s.guestName}`,
-                    badge: `Room ${s.roomNumber}`,
-                  }))}
-                  aria-label="Select Guest Stay"
-                />
+                <button
+                  type="button"
+                  onClick={() => setEncodingKey(null)}
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
+                >
+                  ✕
+                </button>
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-500 mb-1">Card Protocol &amp; Encryption</label>
-                <CustomDropdown
-                  value={encoderProtocol}
-                  onChange={(val) => setEncoderProtocol(val as any)}
-                  size="sm"
-                  options={[
-                    { value: 'mifare_classic_1k', label: 'MIFARE Classic 1K (Crypto-1 Sector 1 Key A/B)' },
-                    { value: 'mifare_ultralight', label: 'MIFARE Ultralight C (3DES Contactless)' },
-                    { value: 'saflok_ascii', label: 'Saflok / Onity TCP ASCII Protocol' },
-                  ]}
-                  aria-label="Card Protocol & Encryption"
-                />
-              </div>
+              {stay ? (
+                <div className="my-4 space-y-3.5 text-xs">
+                  <div className="rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/20 p-3 text-xs">
+                    <p className="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400 tracking-wider">
+                      Verified Room Occupant
+                    </p>
+                    <p className="text-sm font-bold text-ink mt-0.5">{stay.guestName}</p>
+                    <p className="text-[11px] text-muted">
+                      Stay: {stay.checkInFormatted || new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {stay.checkOutFormatted || new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                    </p>
+                  </div>
 
-              {/* Hardware Animation */}
-              <div className="rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/20 p-4 text-center">
-                {encodingProgress === 'writing' ? (
-                  <div className="space-y-2">
-                    <span className="inline-block animate-spin text-2xl">⏳</span>
-                    <p className="font-bold text-indigo-900 dark:text-indigo-200">Writing Sector 1 Data to RFID Card...</p>
-                    <p className="text-[10px] text-slate-500">Hold card steady on the USB encoder reader</p>
+                  <div>
+                    <label className="block font-bold text-slate-500 mb-1">Card Protocol &amp; Encryption</label>
+                    <CustomDropdown
+                      value={encoderProtocol}
+                      onChange={(val) => setEncoderProtocol(val as any)}
+                      size="sm"
+                      options={[
+                        { value: 'mifare_classic_1k', label: 'MIFARE Classic 1K (Crypto-1 Sector 1 Key A/B)' },
+                        { value: 'mifare_ultralight', label: 'MIFARE Ultralight C (3DES Contactless)' },
+                        { value: 'saflok_ascii', label: 'Saflok / Onity TCP ASCII Protocol' },
+                      ]}
+                      aria-label="Card Protocol & Encryption"
+                    />
                   </div>
-                ) : encodingProgress === 'success' ? (
-                  <div className="space-y-1">
-                    <span className="text-2xl">✅</span>
-                    <p className="font-bold text-emerald-800 dark:text-emerald-300">RFID Keycard Encoded Successfully!</p>
+
+                  {/* Hardware Animation */}
+                  <div className="rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/20 p-4 text-center">
+                    {encodingProgress === 'writing' ? (
+                      <div className="space-y-2">
+                        <span className="inline-block animate-spin text-2xl">⏳</span>
+                        <p className="font-bold text-indigo-900 dark:text-indigo-200">Writing Sector 1 Data to RFID Card...</p>
+                        <p className="text-[10px] text-slate-500">Hold card steady on the USB encoder reader</p>
+                      </div>
+                    ) : encodingProgress === 'success' ? (
+                      <div className="space-y-1">
+                        <span className="text-2xl">✅</span>
+                        <p className="font-bold text-emerald-800 dark:text-emerald-300">RFID Keycard Encoded Successfully!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-1">
+                        <span className="text-2xl">📡</span>
+                        <p className="font-bold text-slate-800 dark:text-slate-200">Place Blank MIFARE Card on Reader</p>
+                        <p className="text-[10px] text-slate-500">Encoder will authenticate Sector 1 and burn Room {encodingKey.roomNumber} credentials</p>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="space-y-1">
-                    <span className="text-2xl">📡</span>
-                    <p className="font-bold text-slate-800 dark:text-slate-200">Place Blank MIFARE Card on Reader</p>
-                    <p className="text-[10px] text-slate-500">Encoder will authenticate Sector 1 and burn room validity</p>
+                </div>
+              ) : (
+                <div className="my-5 space-y-4 text-xs">
+                  <div className="rounded-2xl border border-amber-500/30 bg-amber-50/70 dark:bg-amber-950/30 p-4 text-amber-900 dark:text-amber-200 space-y-1.5">
+                    <p className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300 text-sm">
+                      <span>⚠️</span> Room {encodingKey.roomNumber} is Currently Vacant
+                    </p>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                      MIFARE Smart Keycards can only be encoded for active in-house guests checked into Room {encodingKey.roomNumber}.
+                    </p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEncodingKey(null);
+                      router.push('/reservations');
+                    }}
+                    className="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 transition-colors cursor-pointer"
+                  >
+                    Check In Guest for Room {encodingKey.roomNumber} →
+                  </button>
+                </div>
+              )}
+
+              <div className="flex gap-2 border-t border-slate-100 dark:border-white/10 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setEncodingKey(null)}
+                  className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                {stay && (
+                  <button
+                    type="button"
+                    disabled={encodingProgress !== 'idle'}
+                    onClick={() => handleExecuteEncodeForStay(stay)}
+                    className="flex-1 rounded-xl bg-indigo-600 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                  >
+                    Encode Card Now
+                  </button>
                 )}
               </div>
             </div>
-
-            <div className="flex gap-2 border-t border-slate-100 dark:border-white/10 pt-4">
-              <button
-                type="button"
-                onClick={() => setEncodingKey(null)}
-                className="flex-1 rounded-xl border border-slate-200 dark:border-white/10 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 transition-colors cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={encodingProgress !== 'idle'}
-                onClick={handleExecuteEncode}
-                className="flex-1 rounded-xl bg-indigo-600 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                Encode Card Now
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ========================================================================= */}
-      {/* MODAL 2: HAND TO GUEST MODAL (BRASS KEY) */}
+      {/* MODAL 2: HAND TO GUEST MODAL (BRASS KEY - ROOM-BOUND) */}
       {/* ========================================================================= */}
-      {handingKey && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
-          <div className="relative flex w-full max-w-sm flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10">
-            <h3 className="font-display text-base font-bold">Hand Brass Key #{handingKey.roomNumber} to Guest</h3>
-            <p className="text-xs text-muted mt-1">Select the guest taking possession of the physical key tag.</p>
+      {handingKey && (() => {
+        const roomStays = activeStays.filter(
+          (s) => String(s.roomNumber).trim() === String(handingKey.roomNumber).trim()
+        );
+        const stay = roomStays[0];
 
-            <div className="my-4 space-y-2">
-              {activeStays.map((s) => (
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+            <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10">
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-10 w-10 place-items-center rounded-2xl bg-amber-400 text-slate-950 font-black text-base shadow-xs">
+                    🗝️
+                  </span>
+                  <div>
+                    <h3 className="font-display text-base font-bold">
+                      Brass Key #{handingKey.roomNumber}
+                    </h3>
+                    <p className="text-xs text-muted">
+                      {handingKey.roomTypeName || 'Room'} · Physical Brass Tag
+                    </p>
+                  </div>
+                </div>
                 <button
-                  key={s.reservationId}
                   type="button"
-                  onClick={() => handleUpdateKeyStatus(handingKey.id, 'issued_to_guest', s.guestName, s.reservationId)}
-                  className="w-full text-left rounded-xl border border-slate-200 dark:border-white/10 p-3 hover:border-amber-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all cursor-pointer"
+                  onClick={() => setHandingKey(null)}
+                  className="text-slate-400 hover:text-slate-700 dark:hover:text-white cursor-pointer"
                 >
-                  <p className="text-xs font-bold text-ink">Room {s.roomNumber} — {s.guestName}</p>
-                  <p className="text-[10px] text-muted">Checked in</p>
+                  ✕
                 </button>
-              ))}
-            </div>
+              </div>
 
-            <button
-              type="button"
-              onClick={() => setHandingKey(null)}
-              className="rounded-xl border border-slate-200 dark:border-white/10 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 transition-colors cursor-pointer"
-            >
-              Cancel
-            </button>
+              {stay ? (
+                /* Active In-House Guest(s) Registered for this Room */
+                <div className="my-5 space-y-4">
+                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-50/60 dark:bg-emerald-950/30 p-3.5 text-xs text-emerald-900 dark:text-emerald-200">
+                    <p className="font-bold flex items-center gap-1.5">
+                      <span>🛡️</span> Verified Room Occupant Binding
+                    </p>
+                    <p className="text-[11px] text-emerald-700 dark:text-emerald-300 mt-0.5">
+                      For guest privacy and hotel security, keys can only be issued to guests registered in Room {handingKey.roomNumber}.
+                    </p>
+                  </div>
+
+                  {/* Primary Guest Card */}
+                  <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.03] p-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <span className="grid h-10 w-10 place-items-center rounded-full bg-amber-100 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300 font-bold text-sm">
+                          👤
+                        </span>
+                        <div>
+                          <p className="text-sm font-bold text-ink">{stay.guestName}</p>
+                          <span className="inline-block rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold px-2 py-0.5 mt-0.5">
+                            Primary In-House Guest
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-xl bg-white dark:bg-[#080d19] border border-slate-200/80 dark:border-white/10 p-2.5 text-[11px] grid grid-cols-2 gap-2 text-slate-600 dark:text-slate-300">
+                      <div>
+                        <span className="block text-[9px] font-bold text-slate-400 uppercase">Check-In</span>
+                        <span className="font-semibold">{stay.checkInFormatted || new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+                      </div>
+                      <div>
+                        <span className="block text-[9px] font-bold text-slate-400 uppercase">Check-Out</span>
+                        <span className="font-semibold">{stay.checkOutFormatted || new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateKeyStatus(handingKey.id, 'issued_to_guest', stay.guestName, stay.reservationId)}
+                      className="w-full rounded-xl bg-amber-400 py-2.5 text-xs font-black text-slate-950 hover:bg-amber-300 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>Hand Key to {stay.guestName} →</span>
+                    </button>
+                  </div>
+
+                  {/* Registered Companions (if any) */}
+                  {Array.isArray(stay.guests) && stay.guests.filter((g) => g.name !== stay.guestName).length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                        Registered Companions in Room {handingKey.roomNumber}
+                      </p>
+                      {stay.guests
+                        .filter((g) => g.name !== stay.guestName)
+                        .map((comp) => (
+                          <div
+                            key={comp.id}
+                            className="flex items-center justify-between rounded-xl border border-slate-200 dark:border-white/10 p-3 bg-white dark:bg-white/[0.02]"
+                          >
+                            <div>
+                              <p className="text-xs font-bold text-ink">{comp.name}</p>
+                              <p className="text-[10px] text-muted">Registered Room Companion</p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleUpdateKeyStatus(handingKey.id, 'issued_to_guest', comp.name, stay.reservationId)}
+                              className="rounded-lg bg-amber-400 px-3 py-1.5 text-[11px] font-bold text-slate-950 hover:bg-amber-300 transition-colors cursor-pointer"
+                            >
+                              Hand Key →
+                            </button>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Housekeeping Option */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateKeyStatus(handingKey.id, 'with_housekeeping', 'Housekeeping Staff')}
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <span>🧹 Hand to Housekeeping / Service Staff</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* Room is VACANT - No Active Guest */
+                <div className="my-5 space-y-4">
+                  <div className="rounded-2xl border border-amber-500/30 bg-amber-50/70 dark:bg-amber-950/30 p-4 text-xs text-amber-900 dark:text-amber-200 space-y-1.5">
+                    <p className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300 text-sm">
+                      <span>⚠️</span> Room {handingKey.roomNumber} is Currently Vacant
+                    </p>
+                    <p className="text-[11px] text-amber-700 dark:text-amber-300 leading-relaxed">
+                      No active checked-in guest is registered for Room {handingKey.roomNumber}.
+                      For hotel security and guest safety, room keys <strong>cannot</strong> be handed to guests staying in other rooms.
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] p-4 space-y-3">
+                    <p className="text-xs font-bold text-ink">Permitted Front Desk Operations:</p>
+
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateKeyStatus(handingKey.id, 'with_housekeeping', 'Housekeeping Staff')}
+                      className="w-full rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/70 dark:bg-blue-950/30 py-2.5 text-xs font-bold text-blue-900 dark:text-blue-200 hover:bg-blue-100 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>🧹 Hand to Housekeeping / Cleaning Staff</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setHandingKey(null);
+                        router.push('/reservations');
+                      }}
+                      className="w-full rounded-xl bg-slate-900 py-2.5 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      <span>🛎️ Go to Reservations &amp; Check In Guest →</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="border-t border-slate-100 dark:border-white/10 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setHandingKey(null)}
+                  className="w-full rounded-xl border border-slate-200 dark:border-white/10 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ========================================================================= */}
       {/* MODAL 3: DIGITAL MOBILE PASS QR */}

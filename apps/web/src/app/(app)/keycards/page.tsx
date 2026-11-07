@@ -13,13 +13,21 @@ export default async function KeycardsPage() {
     api<any[]>('/hotel/reservations?status=checked_in').catch(() => []),
   ]);
 
-  const activeStays: ActiveGuestStayDto[] = reservations
+  const activeStays: ActiveGuestStayDto[] = (reservations || [])
+    .filter((r) => Boolean(r && r.roomNumber))
     .map((r) => ({
       reservationId: r.id,
-      roomNumber: r.roomNumber || '101',
+      roomNumber: String(r.roomNumber).trim(),
       guestName: r.guestName || 'In-House Guest',
-      checkIn: r.checkIn ? new Date(r.checkIn).toLocaleDateString('en-IN') : 'Today',
-      checkOut: r.checkOut ? new Date(r.checkOut).toLocaleDateString('en-IN') : 'Tomorrow',
+      guests: Array.isArray(r.guests) ? r.guests : [],
+      checkIn: r.checkIn ? new Date(r.checkIn).toISOString() : new Date().toISOString(),
+      checkOut: r.checkOut ? new Date(r.checkOut).toISOString() : new Date().toISOString(),
+      checkInFormatted: r.checkIn
+        ? new Date(r.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+        : 'Today',
+      checkOutFormatted: r.checkOut
+        ? new Date(r.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+        : 'Tomorrow',
     }));
 
   return (

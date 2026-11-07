@@ -60,6 +60,17 @@ export class KeycardsController {
     const input: UpdateRoomKeyStatusInput = parsed.data;
 
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      // 1. Fetch key and associated room
+      const keyRes = await c.query(
+        `select k.id, k.room_id as "roomId", r.number as "roomNumber"
+         from room_keys k
+         join rooms r on r.id = k.room_id
+         where k.id = $1 and k.property_id = $2`,
+        [id, user.propertyId]
+      );
+      if (!keyRes.rows[0]) throw new NotFoundException('Key record not found');
+      const keyRoom = keyRes.rows[0];
+
       if (input.status === 'in_slot') {
         const res = await c.query(
           `update room_keys
@@ -73,25 +84,82 @@ export class KeycardsController {
            returning id, key_number as "keyNumber", status`,
           [input.notes ?? null, id, user.propertyId]
         );
-        if (!res.rows[0]) throw new NotFoundException('Key record not found');
         return res.rows[0];
+      }
+
+      let reservationId = input.issuedToReservationId ?? null;
+      let guestName = input.issuedToGuestName ?? null;
+
+      if (input.status === 'issued_to_guest') {
+        // Enforce room-to-guest integrity: keys can ONLY be issued to guests registered in this room
+        if (reservationId) {
+          const resCheck = await c.query(
+            `select res.id, res.room_id as "roomId", r.number as "roomNumber", res.status, p.full_name as "guestName"
+             from reservations res
+             join rooms r on r.id = res.room_id
+             join guests g on g.id = res.guest_id
+             join parties p on p.id = g.party_id
+             where res.id = $1 and res.property_id = $2`,
+            [reservationId, user.propertyId]
+          );
+          if (!resCheck.rows[0]) {
+            throw new BadRequestException('Reservation not found for this property.');
+          }
+          const reservation = resCheck.rows[0];
+          if (reservation.roomId !== keyRoom.roomId) {
+            throw new BadRequestException(
+              `Security Restriction: Room ${keyRoom.roomNumber} key cannot be issued to guest staying in Room ${reservation.roomNumber}. Keys can only be handed to occupants of Room ${keyRoom.roomNumber}.`
+            );
+          }
+          if (reservation.status !== 'checked_in') {
+            throw new BadRequestException(
+              `Cannot issue room key: Reservation is in status '${reservation.status}'. Only checked-in guests can receive room keys.`
+            );
+          }
+          if (!guestName) {
+            guestName = reservation.guestName;
+          }
+        } else {
+          // If no reservationId explicitly passed, lookup active checked-in stay for this room
+          const activeRes = await c.query(
+            `select res.id, p.full_name as "guestName"
+             from reservations res
+             join guests g on g.id = res.guest_id
+             join parties p on p.id = g.party_id
+             where res.room_id = $1 and res.property_id = $2 and res.status = 'checked_in'
+             order by res.check_in desc
+             limit 1`,
+            [keyRoom.roomId, user.propertyId]
+          );
+          if (!activeRes.rows[0]) {
+            throw new BadRequestException(
+              `Security Restriction: Room ${keyRoom.roomNumber} is currently vacant. Key cannot be issued to a guest because there is no active checked-in reservation for this room.`
+            );
+          }
+          reservationId = activeRes.rows[0].id;
+          if (!guestName) {
+            guestName = activeRes.rows[0].guestName;
+          }
+        }
+      } else if (input.status === 'with_housekeeping') {
+        reservationId = null;
+        guestName = guestName || 'Housekeeping Staff';
       }
 
       const res = await c.query(
         `update room_keys
          set status = $1,
-             issued_to_reservation_id = case when $1 = 'issued_to_guest' then coalesce($2, issued_to_reservation_id) else null end,
-             issued_to_guest_name = case when $1 = 'issued_to_guest' then coalesce($3, issued_to_guest_name) else null end,
+             issued_to_reservation_id = $2,
+             issued_to_guest_name = $3,
              notes = coalesce($4, notes),
              issued_at = case when $1 = 'issued_to_guest' then now() else issued_at end,
              returned_at = case when $1 = 'in_slot' then now() else returned_at end,
              updated_at = now()
          where id = $5 and property_id = $6
          returning id, key_number as "keyNumber", status`,
-        [input.status, input.issuedToReservationId ?? null, input.issuedToGuestName ?? null, input.notes ?? null, id, user.propertyId]
+        [input.status, reservationId, guestName, input.notes ?? null, id, user.propertyId]
       );
 
-      if (!res.rows[0]) throw new NotFoundException('Key record not found');
       return res.rows[0];
     });
   }
@@ -104,6 +172,40 @@ export class KeycardsController {
     const input: EncodeKeycardInput = parsed.data;
 
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      // 1. Fetch key and associated room
+      const keyRes = await c.query(
+        `select k.id, k.room_id as "roomId", r.number as "roomNumber"
+         from room_keys k
+         join rooms r on r.id = k.room_id
+         where k.id = $1 and k.property_id = $2`,
+        [id, user.propertyId]
+      );
+      if (!keyRes.rows[0]) throw new NotFoundException('Key record not found');
+      const keyRoom = keyRes.rows[0];
+
+      if (String(keyRoom.roomNumber).trim() !== String(input.roomNumber).trim()) {
+        throw new BadRequestException(
+          `Security Restriction: Room ${keyRoom.roomNumber} keycard cannot be encoded for Room ${input.roomNumber}. Keycards can only be encoded for their assigned room.`
+        );
+      }
+
+      // 2. Verify that room has an active checked-in reservation
+      const activeRes = await c.query(
+        `select res.id, p.full_name as "guestName"
+         from reservations res
+         join guests g on g.id = res.guest_id
+         join parties p on p.id = g.party_id
+         where res.room_id = $1 and res.property_id = $2 and res.status = 'checked_in'
+         order by res.check_in desc
+         limit 1`,
+        [keyRoom.roomId, user.propertyId]
+      );
+      if (!activeRes.rows[0]) {
+        throw new BadRequestException(
+          `Security Restriction: Room ${keyRoom.roomNumber} is currently vacant. Keycards can only be encoded for active in-house guests.`
+        );
+      }
+
       // Generate simulated NFC / MIFARE Sector 1 data payload
       const sectorPayload = `ROOM=${input.roomNumber}|GUEST=${encodeURIComponent(input.guestName)}|EXP=${new Date(input.checkOut).getTime()}|PROP=${user.propertyId}`;
       const cardUid = input.cardUid || `04:${Math.random().toString(16).substring(2, 10).toUpperCase()}`;
@@ -112,12 +214,13 @@ export class KeycardsController {
         `update room_keys
          set status = 'issued_to_guest',
              card_uid = $1,
-             issued_to_guest_name = $2,
+             issued_to_reservation_id = $2,
+             issued_to_guest_name = $3,
              issued_at = now(),
-             notes = $3,
+             notes = $4,
              updated_at = now()
-         where id = $4 and property_id = $5`,
-        [cardUid, input.guestName, `Encoded via ${input.protocol.toUpperCase()}`, id, user.propertyId]
+         where id = $5 and property_id = $6`,
+        [cardUid, activeRes.rows[0].id, input.guestName, `Encoded via ${input.protocol.toUpperCase()}`, id, user.propertyId]
       );
 
       return {

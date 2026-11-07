@@ -36,6 +36,8 @@ import {
   closeShiftSchema,
   simulateAggregatorOrderSchema,
   updateOutletAggregatorConfigSchema,
+  updateRoomKeyStatusSchema,
+  encodeKeycardSchema,
   FEATURES,
   HOSPITALITY_PLAN_TIERS,
   PERMISSIONS,
@@ -1164,6 +1166,67 @@ test('Aura Dine Aggregator Credentials schema and Migration 024 validate Swiggy/
   assert.match(migration, /zomato_resid/);
   assert.match(migration, /zomato_api_key/);
   assert.match(migration, /aggregator_webhook_token/);
+});
+
+test('Room Key and Keycard Schemas enforce valid operational statuses and room encoding integrity', () => {
+  // Test valid status transitions
+  assert.equal(
+    updateRoomKeyStatusSchema.safeParse({
+      status: 'in_slot',
+      notes: 'Returned by guest before excursion',
+    }).success,
+    true,
+  );
+
+  assert.equal(
+    updateRoomKeyStatusSchema.safeParse({
+      status: 'with_housekeeping',
+      issuedToGuestName: 'Housekeeping Staff',
+    }).success,
+    true,
+  );
+
+  assert.equal(
+    updateRoomKeyStatusSchema.safeParse({
+      status: 'issued_to_guest',
+      issuedToReservationId: 'b78a9c80-60b5-4b2a-bf31-9a74c10a1234',
+      issuedToGuestName: 'Vikram Malhotra',
+    }).success,
+    true,
+  );
+
+  // Reject invalid statuses
+  assert.equal(
+    updateRoomKeyStatusSchema.safeParse({
+      status: 'unauthorized_status',
+    }).success,
+    false,
+  );
+
+  // Test encode keycard schema
+  assert.equal(
+    encodeKeycardSchema.safeParse({
+      keyId: 'b78a9c80-60b5-4b2a-bf31-9a74c10a1234',
+      roomNumber: '101',
+      guestName: 'Vikram Malhotra',
+      checkIn: new Date().toISOString(),
+      checkOut: new Date(Date.now() + 86400000).toISOString(),
+      protocol: 'mifare_classic_1k',
+    }).success,
+    true,
+  );
+
+  // Reject missing roomNumber or guestName
+  assert.equal(
+    encodeKeycardSchema.safeParse({
+      keyId: 'b78a9c80-60b5-4b2a-bf31-9a74c10a1234',
+      roomNumber: '',
+      guestName: '',
+      checkIn: 'Today',
+      checkOut: 'Tomorrow',
+    }).success,
+    false,
+  );
 });
 
 

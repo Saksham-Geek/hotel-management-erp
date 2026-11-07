@@ -602,8 +602,8 @@ export const encodeKeycardSchema = z.object({
   keyId: z.string().uuid(),
   roomNumber: z.string().trim().min(1),
   guestName: z.string().trim().min(1),
-  checkIn: z.string().datetime(),
-  checkOut: z.string().datetime(),
+  checkIn: z.string().min(1),
+  checkOut: z.string().min(1),
   cardUid: z.string().trim().optional(),
   protocol: z.enum(['mifare_classic_1k', 'mifare_ultralight', 'saflok_ascii', 'salto_virtual']).default('mifare_classic_1k'),
 });

@@ -14,7 +14,7 @@ type Guest = {
 };
 
 type NewCompanion = {
-  clientKey?: string;
+  clientKey: string;
   fullName: string;
   phone?: string;
   email?: string;
@@ -22,8 +22,6 @@ type NewCompanion = {
   idType?: string;
   idNumber?: string;
 };
-
-const emptyCompanion: NewCompanion = { fullName: '' };
 
 const documentTypes = [
   ['aadhaar_masked', 'Masked Aadhaar'],
@@ -41,42 +39,290 @@ const identityTypes = [
   ['other', 'Other'],
 ] as const;
 
-function IdentityUploadFields({ prefix, required = false }: { prefix: string; required?: boolean }) {
+function IdentityUploadFields({
+  prefix,
+  required = false,
+  defaultDocumentType = '',
+}: {
+  prefix: string;
+  required?: boolean;
+  defaultDocumentType?: string;
+}) {
   return (
-    <div className="mt-3 space-y-2 rounded-lg border border-dashed border-line bg-surface p-3 sm:col-span-2">
-      <p className="text-xs font-semibold text-ink">Identity document {required ? '(required)' : '(optional)'}</p>
-      <div className="grid gap-2 sm:grid-cols-2">
-        <CustomDropdown
-          name={`${prefix}DocumentType`}
-          defaultValue=""
+    <div className="mt-3 space-y-2.5 rounded-2xl border border-dashed border-slate-300 dark:border-white/20 bg-slate-50/70 dark:bg-white/[0.02] p-4 sm:col-span-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+          <span>📄</span> Identity document {required ? <span className="text-rose-500 font-semibold">(required)</span> : <span className="text-slate-400 font-normal">(optional)</span>}
+        </p>
+        <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 dark:text-slate-400">
+          Statutory KYC
+        </span>
+      </div>
+
+      <div className="grid gap-2.5 sm:grid-cols-2">
+        <div>
+          <label htmlFor={`${prefix}-document-type`} className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Uploaded document type {required && <span className="text-rose-500" aria-hidden="true">*</span>}
+          </label>
+          <CustomDropdown
+            id={`${prefix}-document-type`}
+            name={`${prefix}DocumentType`}
+            defaultValue={defaultDocumentType || ''}
+            required={required}
+            size="sm"
+            placeholder={`Uploaded document type${required ? ' (required)' : ''}`}
+            options={[
+              { value: '', label: `Uploaded document type${required ? ' (required)' : ''}` },
+              ...documentTypes.map(([value, label]) => ({ value, label })),
+            ]}
+            aria-label="Identity document type"
+          />
+        </div>
+
+        <div>
+          <label htmlFor={`${prefix}-consent-method`} className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Consent method {required && <span className="text-rose-500" aria-hidden="true">*</span>}
+          </label>
+          <CustomDropdown
+            id={`${prefix}-consent-method`}
+            name={`${prefix}ConsentMethod`}
+            defaultValue="written"
+            required={required}
+            size="sm"
+            placeholder={`Consent method${required ? ' (required)' : ' (when uploading)'}`}
+            options={[
+              { value: '', label: `Consent method${required ? ' (required)' : ' (when uploading)'}` },
+              { value: 'written', label: 'Written' },
+              { value: 'verbal', label: 'Verbal' },
+              { value: 'digital', label: 'Digital' },
+            ]}
+            aria-label="Consent method"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label htmlFor={`${prefix}-file-input`} className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
+          Document file {required && <span className="text-rose-500" aria-hidden="true">*</span>}
+        </label>
+        <input
+          id={`${prefix}-file-input`}
+          name={`${prefix}Documents`}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
           required={required}
-          size="sm"
-          placeholder={`Uploaded document type${required ? ' (required)' : ''}`}
-          options={[
-            { value: '', label: `Uploaded document type${required ? ' (required)' : ''}` },
-            ...documentTypes.map(([value, label]) => ({ value, label })),
-          ]}
-          aria-label="Identity document type"
-        />
-        <CustomDropdown
-          name={`${prefix}ConsentMethod`}
-          defaultValue=""
-          required={required}
-          size="sm"
-          placeholder={`Consent method${required ? ' (required)' : ' (when uploading)'}`}
-          options={[
-            { value: '', label: `Consent method${required ? ' (required)' : ' (when uploading)'}` },
-            { value: 'written', label: 'Written' },
-            { value: 'verbal', label: 'Verbal' },
-            { value: 'digital', label: 'Digital' },
-          ]}
-          aria-label="Consent method"
+          aria-label="Upload identity document file"
+          className="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:rounded-xl file:border file:border-slate-300 dark:file:border-white/15 file:bg-white dark:file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-800 dark:file:text-white file:shadow-2xs hover:file:bg-slate-50 dark:hover:file:bg-white/15 cursor-pointer"
         />
       </div>
-      <input name={`${prefix}Documents`} type="file" accept="image/jpeg,image/png,image/webp" required={required} aria-label="Upload identity document" className="block w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-ground file:px-3 file:py-2 file:text-xs file:font-semibold" />
-      <label className="flex items-start gap-2 text-[11px] leading-4 text-muted"><input name={`${prefix}ConsentGiven`} type="checkbox" required={required} className="mt-0.5 h-4 w-4" /> Guest was informed about the purpose, agrees to storage, and was told an alternative ID may be provided.</label>
-      <label className="flex items-start gap-2 text-[11px] leading-4 text-muted"><input name={`${prefix}AadhaarMasked`} type="checkbox" className="mt-0.5 h-4 w-4" /> If Aadhaar, first eight digits are masked.</label>
-      <p className="text-[10px] leading-4 text-muted">JPEG, PNG or WebP · up to 5 MB. Aadhaar images must be masked before upload.</p>
+
+      <div className="space-y-1.5 pt-1">
+        <label htmlFor={`${prefix}-consent`} className="flex items-start gap-2 text-[11px] leading-4 text-slate-600 dark:text-slate-400 cursor-pointer">
+          <input
+            id={`${prefix}-consent`}
+            name={`${prefix}ConsentGiven`}
+            type="checkbox"
+            required={required}
+            defaultChecked={true}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-950 dark:border-white/20 dark:bg-white/10"
+          />
+          <span>Guest was informed about the purpose, agrees to storage, and was told an alternative ID may be provided.</span>
+        </label>
+
+        <label htmlFor={`${prefix}-aadhaar-masked`} className="flex items-start gap-2 text-[11px] leading-4 text-slate-600 dark:text-slate-400 cursor-pointer">
+          <input
+            id={`${prefix}-aadhaar-masked`}
+            name={`${prefix}AadhaarMasked`}
+            type="checkbox"
+            defaultChecked={true}
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-950 dark:border-white/20 dark:bg-white/10"
+          />
+          <span>If Aadhaar, first eight digits are masked.</span>
+        </label>
+      </div>
+
+      <p className="text-[10px] leading-4 text-slate-500 dark:text-slate-400">
+        JPEG, PNG or WebP · up to 5 MB. Aadhaar images must be masked before upload.
+      </p>
+    </div>
+  );
+}
+
+function CompanionCard({
+  guest,
+  index,
+  onUpdate,
+  onRemove,
+}: {
+  guest: NewCompanion;
+  index: number;
+  onUpdate: (updates: Partial<NewCompanion>) => void;
+  onRemove: () => void;
+}) {
+  const nameId = `companion-${guest.clientKey}-name`;
+  const phoneId = `companion-${guest.clientKey}-phone`;
+  const emailId = `companion-${guest.clientKey}-email`;
+  const nationalityId = `companion-${guest.clientKey}-nat`;
+  const idTypeId = `companion-${guest.clientKey}-id-type`;
+  const idNumberId = `companion-${guest.clientKey}-id-num`;
+
+  const mappedDocType =
+    guest.idType === 'aadhaar'
+      ? 'aadhaar_masked'
+      : guest.idType === 'passport'
+      ? 'passport'
+      : guest.idType === 'driving_license'
+      ? 'driving_license'
+      : guest.idType === 'voter_id'
+      ? 'voter_id'
+      : guest.idType === 'other'
+      ? 'other'
+      : '';
+
+  return (
+    <div className="space-y-3.5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/70 dark:bg-white/[0.02] p-4 sm:p-5 shadow-2xs">
+      {/* Header with Companion Index & Remove Button */}
+      <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 dark:border-white/5 pb-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-900 text-[10px] font-bold text-white dark:bg-amber-400 dark:text-slate-950">
+            {index + 1}
+          </span>
+          <p className="text-xs font-bold text-slate-900 dark:text-white">
+            Companion Guest #{index + 1}
+          </p>
+          <span className="text-[11px] text-slate-500 font-normal">
+            (Sharing room with primary guest)
+          </span>
+        </div>
+
+        <button
+          type="button"
+          onClick={onRemove}
+          className="inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+          title="Remove this companion"
+        >
+          ✕ Remove
+        </button>
+      </div>
+
+      {/* Companion Personal & ID Details */}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label htmlFor={nameId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Full Name <span className="text-rose-500" aria-hidden="true">*</span>
+          </label>
+          <input
+            id={nameId}
+            name={`companion_${guest.clientKey}_fullName`}
+            value={guest.fullName}
+            onChange={(e) => onUpdate({ fullName: e.target.value })}
+            required
+            minLength={1}
+            maxLength={120}
+            placeholder="e.g. Priyadarshini Rathore"
+            className={inputCls}
+          />
+        </div>
+
+        <div>
+          <label htmlFor={phoneId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Phone Number <span className="text-rose-500" aria-hidden="true">*</span>
+          </label>
+          <input
+            id={phoneId}
+            name={`companion_${guest.clientKey}_phone`}
+            value={guest.phone ?? ''}
+            onChange={(e) => onUpdate({ phone: e.target.value })}
+            type="tel"
+            required
+            minLength={7}
+            maxLength={30}
+            pattern="\+?[0-9 ().-]{7,30}"
+            title="Enter a valid phone number with 7 to 15 digits."
+            placeholder="+91 98765 43210"
+            className={inputCls}
+          />
+        </div>
+
+        <div>
+          <label htmlFor={emailId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Email Address <span className="text-slate-400 font-normal">(optional)</span>
+          </label>
+          <input
+            id={emailId}
+            name={`companion_${guest.clientKey}_email`}
+            value={guest.email ?? ''}
+            onChange={(e) => onUpdate({ email: e.target.value })}
+            type="email"
+            maxLength={200}
+            placeholder="e.g. companion@example.com"
+            className={inputCls}
+          />
+        </div>
+
+        <div>
+          <label htmlFor={nationalityId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Nationality <span className="text-slate-400 font-normal">(optional)</span>
+          </label>
+          <input
+            id={nationalityId}
+            name={`companion_${guest.clientKey}_nationality`}
+            value={guest.nationality ?? ''}
+            onChange={(e) => onUpdate({ nationality: e.target.value })}
+            maxLength={60}
+            placeholder="e.g. Indian"
+            className={inputCls}
+          />
+        </div>
+
+        <div>
+          <label htmlFor={idTypeId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            Identity Type <span className="text-rose-500" aria-hidden="true">*</span>
+          </label>
+          <CustomDropdown
+            id={idTypeId}
+            name={`companion_${guest.clientKey}_idType`}
+            value={guest.idType ?? ''}
+            onChange={(val) => onUpdate({ idType: val })}
+            required
+            placeholder="Select identity type"
+            options={[
+              { value: '', label: 'Select identity type' },
+              ...identityTypes.map(([value, label]) => ({ value, label })),
+            ]}
+            aria-label={`Companion ${index + 1} identity type`}
+          />
+        </div>
+
+        <div>
+          <label htmlFor={idNumberId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            ID Number <span className="text-rose-500" aria-hidden="true">*</span>
+          </label>
+          <input
+            id={idNumberId}
+            name={`companion_${guest.clientKey}_idNumber`}
+            value={guest.idNumber ?? ''}
+            onChange={(e) => onUpdate({ idNumber: e.target.value })}
+            required
+            maxLength={60}
+            placeholder="Aadhaar: last 4 digits only"
+            className={inputCls}
+          />
+        </div>
+
+        {/* Identity Document Section - Identical to Main Guest KYC */}
+        <div className="sm:col-span-2">
+          <IdentityUploadFields
+            prefix={`companion_${guest.clientKey}`}
+            required
+            defaultDocumentType={mappedDocType}
+          />
+        </div>
+      </div>
+
+      <p className="text-[11px] text-slate-500">
+        🔒 ID numbers are encrypted with AES-256-GCM. Identity documents are stored securely for police midnight verification and statutory compliance.
+      </p>
     </div>
   );
 }
@@ -282,9 +528,32 @@ export function GuestPicker() {
   const [lead, setLead] = useState<Guest | null>(null);
   const [companions, setCompanions] = useState<Guest[]>([]);
   const [newCompanions, setNewCompanions] = useState<NewCompanion[]>([]);
-  const [draft, setDraft] = useState<NewCompanion>(emptyCompanion);
-  const [addingNew, setAddingNew] = useState(false);
-  const [draftError, setDraftError] = useState('');
+
+  const handleAddCompanion = () => {
+    if (companions.length + newCompanions.length >= 19) return;
+    setNewCompanions((previous) => [
+      ...previous,
+      {
+        clientKey: crypto.randomUUID(),
+        fullName: '',
+        phone: '',
+        email: '',
+        nationality: '',
+        idType: 'aadhaar',
+        idNumber: '',
+      },
+    ]);
+  };
+
+  const handleUpdateCompanion = (clientKey: string, updates: Partial<NewCompanion>) => {
+    setNewCompanions((previous) =>
+      previous.map((c) => (c.clientKey === clientKey ? { ...c, ...updates } : c)),
+    );
+  };
+
+  const handleRemoveCompanion = (clientKey: string) => {
+    setNewCompanions((previous) => previous.filter((c) => c.clientKey !== clientKey));
+  };
 
   return (
     <>
@@ -305,26 +574,36 @@ export function GuestPicker() {
         />
 
         {lead ? (
-          <div className="space-y-3 rounded-lg border border-lagoon/30 bg-lagoon-tint p-3">
+          <div className="space-y-3 rounded-2xl border border-lagoon/30 bg-lagoon-tint p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold">{lead.fullName}</p>
+                <p className="text-sm font-bold text-slate-900 dark:text-white">{lead.fullName}</p>
                 <p className="text-xs text-muted">{[lead.phone, lead.email].filter(Boolean).join(' · ')}</p>
-                <p className="text-xs font-medium text-lagoon-dark">Existing profile selected{lead.hasIdentityDocument ? ' · ID on file' : ' · ID image required'}</p>
+                <p className="text-xs font-semibold text-lagoon-dark">
+                  Existing profile selected{lead.hasIdentityDocument ? ' · ✓ ID on file' : ' · ⚠️ ID image required'}
+                </p>
               </div>
-              <button type="button" className="text-xs font-semibold underline" onClick={() => setLead(null)}>Change</button>
+              <button
+                type="button"
+                className="text-xs font-semibold text-slate-700 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white underline cursor-pointer"
+                onClick={() => setLead(null)}
+              >
+                Change
+              </button>
               <input type="hidden" name="guestId" value={lead.id} />
             </div>
             {!lead.hasIdentityDocument && <IdentityUploadFields prefix={`existing_${lead.id}`} required />}
           </div>
         ) : (
-          <div className="space-y-3 rounded-lg border border-line p-3">
-            <p className="text-xs font-semibold">
-              New guest details{' '}
-              <span className="font-normal text-muted">
-                (only if no matching profile exists)
-              </span>
-            </p>
+          <div className="space-y-3.5 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/70 dark:bg-white/[0.02] p-4 sm:p-5 shadow-2xs">
+            <div>
+              <p className="text-xs font-bold text-slate-900 dark:text-white">
+                New guest details{' '}
+                <span className="font-normal text-muted">
+                  (only if no matching profile exists)
+                </span>
+              </p>
+            </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div>
@@ -381,7 +660,7 @@ export function GuestPicker() {
                 <CustomDropdown
                   id="new-guest-id-type"
                   name="guestIdType"
-                  defaultValue=""
+                  defaultValue="aadhaar"
                   required={!lead}
                   placeholder="Select identity type"
                   options={[
@@ -407,51 +686,76 @@ export function GuestPicker() {
               </div>
 
               <div className="sm:col-span-2">
-                <IdentityUploadFields prefix="guest" required={!lead} />
+                <IdentityUploadFields prefix="guest" required={!lead} defaultDocumentType="aadhaar_masked" />
               </div>
             </div>
           </div>
         )}
       </div>
 
-      <div className="space-y-2 border-t border-line pt-3">
-        <h4 className="text-xs font-semibold">
-          Other guests sharing this room
-        </h4>
+      <div className="space-y-3.5 border-t border-slate-200/80 dark:border-white/10 pt-4">
+        <div>
+          <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+            Other guests sharing this room
+          </h4>
+          <p className="text-xs text-slate-500 font-normal">
+            Every adult occupant sharing the room must have identity details and KYC document recorded for police midnight beat reporting.
+          </p>
+        </div>
 
+        {/* Existing returning companions */}
         {companions.map((guest) => (
-          <div key={guest.id} className="space-y-2 rounded-lg bg-surface p-3 text-sm">
-            <div className="flex items-center justify-between">
-              <span>
-                {guest.fullName}<span className="ml-2 text-xs text-muted">{guest.phone}</span>
+          <div
+            key={guest.id}
+            className="space-y-2 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-slate-50/60 dark:bg-white/[0.02] p-3 text-sm shadow-2xs"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold text-slate-900 dark:text-white">
+                  {guest.fullName}
+                </span>
+                <span className="text-xs text-muted">
+                  {[guest.phone, guest.email].filter(Boolean).join(' · ')}
+                </span>
+                <span
+                  className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    guest.hasIdentityDocument
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
+                      : 'bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
+                  }`}
+                >
+                  {guest.hasIdentityDocument ? '✓ ID on file' : '⚠️ ID image required'}
+                </span>
                 <input type="hidden" name="guestIds" value={guest.id} />
-              </span>
-              <button type="button" className="text-xs underline" onClick={() => setCompanions((previous) => previous.filter((item) => item.id !== guest.id))}>Remove</button>
+              </div>
+
+              <button
+                type="button"
+                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 transition-colors cursor-pointer"
+                onClick={() =>
+                  setCompanions((previous) => previous.filter((item) => item.id !== guest.id))
+                }
+                title="Remove companion"
+              >
+                ✕ Remove
+              </button>
             </div>
-            {!guest.hasIdentityDocument && <IdentityUploadFields prefix={`existing_${guest.id}`} required />}
+
+            {!guest.hasIdentityDocument && (
+              <IdentityUploadFields prefix={`existing_${guest.id}`} required />
+            )}
           </div>
         ))}
 
+        {/* New registered companions with full KYC document upload */}
         {newCompanions.map((guest, index) => (
-          <div
-            key={guest.clientKey ?? `new-${index}`}
-            className="grid gap-2 rounded-lg border border-line bg-surface p-3 text-sm sm:grid-cols-[1fr_auto]"
-          >
-            <span>
-              {guest.fullName}
-              <span className="ml-2 text-xs text-muted">
-                {[guest.phone, guest.email].filter(Boolean).join(' · ') || 'New guest'}
-              </span>
-            </span>
-            <button
-              type="button"
-              className="text-xs underline"
-              onClick={() => setNewCompanions((previous) => previous.filter((_, i) => i !== index))}
-            >
-              Remove
-            </button>
-            <IdentityUploadFields prefix={`companion_${guest.clientKey ?? index}`} required />
-          </div>
+          <CompanionCard
+            key={guest.clientKey}
+            guest={guest}
+            index={index}
+            onUpdate={(updates) => handleUpdateCompanion(guest.clientKey, updates)}
+            onRemove={() => handleRemoveCompanion(guest.clientKey)}
+          />
         ))}
 
         <input
@@ -459,133 +763,54 @@ export function GuestPicker() {
           name="newCompanions"
           value={JSON.stringify(newCompanions)}
         />
-        <input
-          type="hidden"
-          name="newCompanionDraft"
-          value={addingNew && draft.fullName.trim() ? JSON.stringify(draft) : ''}
-        />
 
-        {addingNew ? (
-          <div className="space-y-3 rounded-lg border border-line bg-surface p-3">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-semibold">Register a new companion</p>
-              <button type="button" className="text-xs underline" onClick={() => { setAddingNew(false); setDraft(emptyCompanion); setDraftError(''); }}>
-                Cancel
-              </button>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <input
-                value={draft.fullName}
-                onChange={(event) => setDraft((value) => ({ ...value, fullName: event.target.value }))}
-                required
-                minLength={1}
-                maxLength={120}
-                placeholder="Full name (required)"
-                aria-label="New companion full name"
-                className={inputCls}
-              />
-              <input
-                value={draft.phone ?? ''}
-                onChange={(event) => setDraft((value) => ({ ...value, phone: event.target.value }))}
-                type="tel"
-                required
-                minLength={7}
-                maxLength={30}
-                pattern="\+?[0-9 ().-]{7,30}"
-                title="Enter a valid phone number with 7 to 15 digits."
-                placeholder="Phone number (required)"
-                aria-label="New companion phone"
-                className={inputCls}
-              />
-              <input
-                value={draft.email ?? ''}
-                onChange={(event) => setDraft((value) => ({ ...value, email: event.target.value }))}
-                type="email"
-                maxLength={200}
-                placeholder="Email (optional)"
-                aria-label="New companion email"
-                className={inputCls}
-              />
-              <input
-                value={draft.nationality ?? ''}
-                onChange={(event) => setDraft((value) => ({ ...value, nationality: event.target.value }))}
-                maxLength={60}
-                placeholder="Nationality (optional)"
-                aria-label="New companion nationality"
-                className={inputCls}
-              />
-              <CustomDropdown
-                value={draft.idType ?? ''}
-                onChange={(val) => setDraft((value) => ({ ...value, idType: val }))}
-                placeholder="ID type (required)"
-                options={[
-                  { value: '', label: 'ID type (required)' },
-                  ...identityTypes.map(([value, label]) => ({ value, label })),
-                ]}
-                aria-label="New companion ID type"
-              />
-              <input
-                value={draft.idNumber ?? ''}
-                onChange={(event) => setDraft((value) => ({ ...value, idNumber: event.target.value }))}
-                maxLength={60}
-                required
-                placeholder="ID number (Aadhaar: last 4 digits only)"
-                aria-label="New companion ID number"
-                className={inputCls}
-              />
-            </div>
-            <p className="text-xs text-muted">ID numbers are encrypted when saved. The new profile will be attached to this reservation and consolidated bill.</p>
+        {/* Action button to add a new companion */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+          {companions.length + newCompanions.length < 19 ? (
             <button
               type="button"
-              className="text-xs font-semibold text-lagoon underline"
-              onClick={() => {
-                const fullName = draft.fullName.trim();
-                const phone = draft.phone?.trim() ?? '';
-                const digits = phone.replace(/\D/g, '').length;
-                if (!fullName) { setDraftError('Enter the companion’s full name.'); return; }
-                if (!/^\+?[0-9 ().-]{7,30}$/.test(phone) || digits < 7 || digits > 15) { setDraftError('Enter a valid companion phone number with 7 to 15 digits.'); return; }
-                if (draft.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(draft.email)) { setDraftError('Enter a valid email address or leave it blank.'); return; }
-                if (!draft.idType || !draft.idNumber?.trim()) { setDraftError('Enter the guest’s ID type and ID number.'); return; }
-                if (!identityTypes.some(([value]) => value === draft.idType)) { setDraftError('Select a valid identity type.'); return; }
-                if (draft.idType?.toLowerCase() === 'aadhaar' && draft.idNumber && !/^\d{4}$/.test(draft.idNumber.trim())) { setDraftError('For Aadhaar, enter only the last four digits.'); return; }
-                if (companions.length + newCompanions.length >= 19) return;
-                setNewCompanions((previous) => [...previous, { ...draft, fullName, clientKey: crypto.randomUUID() }]);
-                setDraft(emptyCompanion);
-                setDraftError('');
-                setAddingNew(false);
-              }}
+              onClick={handleAddCompanion}
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-[#0c1222] px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-900 dark:hover:border-white hover:text-slate-950 dark:hover:text-white transition-all cursor-pointer"
             >
-              Add companion
+              <svg className="h-4 w-4 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              {newCompanions.length === 0 ? '+ Register a new companion' : '+ Register another companion'}
             </button>
-            {draftError && <p className="text-xs text-danger" role="alert">{draftError}</p>}
-          </div>
-        ) : companions.length + newCompanions.length < 19 ? (
-          <button type="button" className="text-xs font-semibold text-lagoon underline" onClick={() => setAddingNew(true)}>
-            + Register a new companion
-          </button>
-        ) : <p className="text-xs text-muted">Maximum of 20 guests per reservation reached.</p>}
+          ) : (
+            <p className="text-xs text-muted">Maximum of 20 guests per reservation reached.</p>
+          )}
 
-        <GuestSearch
-          label="Add existing companion"
-          placeholder="Search companion by phone, name or email…"
-          onSelect={(guest) =>
-            setCompanions((previous) =>
-              previous.length + newCompanions.length >= 19 ||
-              previous.some((item) => item.id === guest.id) ||
-              guest.id === lead?.id
-                ? previous
-                : [...previous, guest],
-            )
-          }
-          excludeIds={[
-            ...(lead ? [lead.id] : []),
-            ...companions.map((guest) => guest.id),
-          ]}
-        />
+          <span className="text-[11px] text-muted">
+            All registered guests will be linked to room folio & statutory register
+          </span>
+        </div>
+
+        {/* Search returning companion */}
+        <div className="pt-2">
+          <GuestSearch
+            inputId="companion-guest-search-input"
+            label="Add existing companion"
+            placeholder="Search companion by phone, name or email…"
+            onSelect={(guest) =>
+              setCompanions((previous) =>
+                previous.length + newCompanions.length >= 19 ||
+                previous.some((item) => item.id === guest.id) ||
+                guest.id === lead?.id
+                  ? previous
+                  : [...previous, guest],
+              )
+            }
+            excludeIds={[
+              ...(lead ? [lead.id] : []),
+              ...companions.map((guest) => guest.id),
+            ]}
+          />
+        </div>
 
         <p className="text-xs text-muted">
-          All selected guests share one reservation and one
-          consolidated bill by default.
+          All selected guests share one reservation and one consolidated bill by default.
         </p>
       </div>
     </>

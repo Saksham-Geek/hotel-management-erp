@@ -55,6 +55,31 @@ export async function createReservation(fd: FormData) {
       throw new Error('Companion details could not be read. Please check them and try again.');
     }
 
+    // Enrich/sync companion details from individual form fields if present (e.g. browser autofill)
+    newCompanions = (newCompanions as Array<Record<string, unknown>>).map((c) => {
+      const key = typeof c.clientKey === 'string' ? c.clientKey : '';
+      if (!key) return c;
+      return {
+        ...c,
+        fullName: String(fd.get(`companion_${key}_fullName`) ?? c.fullName ?? '').trim(),
+        phone: String(fd.get(`companion_${key}_phone`) ?? c.phone ?? '').trim(),
+        email: String(fd.get(`companion_${key}_email`) ?? c.email ?? '').trim() || undefined,
+        nationality: String(fd.get(`companion_${key}_nationality`) ?? c.nationality ?? '').trim() || undefined,
+        idType: String(fd.get(`companion_${key}_idType`) ?? c.idType ?? '').trim() || undefined,
+        idNumber: String(fd.get(`companion_${key}_idNumber`) ?? c.idNumber ?? '').trim() || undefined,
+      };
+    });
+
+    // Filter out completely untouched companion cards so an accidentally opened card without data doesn't block submission
+    newCompanions = (newCompanions as Array<Record<string, unknown>>).filter((c) => {
+      const name = typeof c.fullName === 'string' ? c.fullName.trim() : '';
+      const phone = typeof c.phone === 'string' ? c.phone.trim() : '';
+      const idNum = typeof c.idNumber === 'string' ? c.idNumber.trim() : '';
+      const fileVal = typeof c.clientKey === 'string' ? fd.get(`companion_${c.clientKey}Documents`) : null;
+      const hasFile = fileVal instanceof File && fileVal.size > 0;
+      return Boolean(name || phone || idNum || hasFile);
+    });
+
     if (newCompanions.length > 19) {
       throw new Error('A reservation can include up to 20 guests.');
     }

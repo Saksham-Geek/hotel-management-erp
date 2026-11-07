@@ -11,7 +11,15 @@ import {
   CustomDropdown,
   EmptyState,
 } from '@/components/ui';
-import { createRoom, createRoomType, updateRoomType } from '../rooms/actions';
+import {
+  createRoomSetting,
+  createRoomTypeSetting,
+  updateRoomTypeSetting,
+  updateUpiSetting,
+  createPosTerminalSetting,
+  saveChannelConnectionSetting,
+  onboardStaffSetting,
+} from './actions';
 import {
   createRestaurantTableAction,
   updateRestaurantTableAction,
@@ -19,11 +27,56 @@ import {
   createMenuCategoryAction,
   createMenuItemAction,
 } from '../restaurant/actions';
-import { updateUpiSettingsAction, createPosTerminalAction } from '../billing/actions';
-import { saveChannelConnection } from '../channel-manager/actions';
-import { createStaff } from '../staff/actions';
-import type { RoomRecord, RoomTypeRecord } from '../rooms/room-inventory';
-import type { OutletDto, TableDto, MenuCategoryDto } from '../restaurant/restaurant-pos-view';
+
+export interface RoomTypeRecord {
+  id: string;
+  name: string;
+  baseRate: number;
+  hourlyRate?: number | null;
+  capacity: number;
+  description?: string | null;
+}
+
+export interface RoomRecord {
+  id: string;
+  roomTypeId: string;
+  number: string;
+  floor: number;
+  status: string;
+  baseRate?: number | null;
+  hourlyRate?: number | null;
+}
+
+export interface OutletDto {
+  id: string;
+  name: string;
+  code: string;
+  outletType: string;
+}
+
+export interface TableDto {
+  id: string;
+  outletId: string;
+  tableNumber: string;
+  capacity: number;
+  section?: string | null;
+  status?: string;
+}
+
+export interface MenuItemDto {
+  id: string;
+  categoryId: string;
+  name: string;
+  price: number;
+  foodType?: string;
+  isVeg?: boolean;
+}
+
+export interface MenuCategoryDto {
+  id: string;
+  name: string;
+  items?: MenuItemDto[];
+}
 
 interface SettingsViewProps {
   initialTab: string;
@@ -313,7 +366,7 @@ export function SettingsView({
           <div className="grid gap-6 xl:grid-cols-2">
             {/* 01 Add Room Type Form */}
             <form
-              action={createRoomType}
+              action={createRoomTypeSetting}
               className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
             >
               <input type="hidden" name="back" value="/settings?tab=rooms" />
@@ -397,7 +450,7 @@ export function SettingsView({
 
             {/* 02 Add Room Form */}
             <form
-              action={createRoom}
+              action={createRoomSetting}
               className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
             >
               <input type="hidden" name="back" value="/settings?tab=rooms" />
@@ -515,7 +568,7 @@ export function SettingsView({
                       </span>
                     </summary>
                     <form
-                      action={updateRoomType}
+                      action={updateRoomTypeSetting}
                       className="mt-4 grid gap-3 border-t border-slate-100 pt-3 sm:grid-cols-2"
                     >
                       <input type="hidden" name="id" value={type.id} />
@@ -1003,10 +1056,9 @@ export function SettingsView({
 
               {isOwner && (
                 <form
-                  action={updateUpiSettingsAction}
+                  action={updateUpiSetting}
                   className="space-y-3 pt-2 border-t border-indigo-100"
                 >
-                  <input type="hidden" name="back" value="/settings?tab=payments" />
                   <label className="block text-xs font-bold text-slate-700">
                     Update Receiver UPI ID
                     <input
@@ -1085,7 +1137,7 @@ export function SettingsView({
 
               {isOwner && (
                 <form
-                  action={createPosTerminalAction}
+                  action={createPosTerminalSetting}
                   className="space-y-3 pt-3 border-t border-slate-200"
                 >
                   <input type="hidden" name="back" value="/settings?tab=payments" />
@@ -1185,7 +1237,7 @@ export function SettingsView({
           <div className="grid gap-6 xl:grid-cols-2">
             {/* OTA Connection Setup Form */}
             <form
-              action={saveChannelConnection}
+              action={saveChannelConnectionSetting}
               className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
             >
               <div className="flex items-center gap-3">
@@ -1360,15 +1412,7 @@ export function SettingsView({
           <div className="grid gap-6 xl:grid-cols-2">
             {/* Quick Invite Staff Form */}
             <form
-              action={async (fd) => {
-                const res = await createStaff(null, fd);
-                if (res?.error) {
-                  setMsg({ type: 'error', text: res.error });
-                } else if (res?.success) {
-                  setMsg({ type: 'ok', text: res.success });
-                  router.refresh();
-                }
-              }}
+              action={onboardStaffSetting}
               className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
             >
               <div className="flex items-center gap-3">

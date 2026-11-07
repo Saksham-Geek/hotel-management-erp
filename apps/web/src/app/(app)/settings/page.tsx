@@ -2,9 +2,14 @@ import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, PageHeader } from '@/components/ui';
 import { api, getMe, getEntitlements } from '@/lib/api';
-import { SettingsView } from './settings-view';
-import type { RoomRecord, RoomTypeRecord } from '../rooms/room-inventory';
-import type { OutletDto, TableDto, MenuCategoryDto } from '../restaurant/restaurant-pos-view';
+import {
+  SettingsView,
+  type RoomRecord,
+  type RoomTypeRecord,
+  type OutletDto,
+  type TableDto,
+  type MenuCategoryDto,
+} from './settings-view';
 
 export default async function SettingsHubPage({
   searchParams,

@@ -102,7 +102,18 @@ export const getEntitlements = cache(async (): Promise<EntitlementsDto> => {
   return ent;
 });
 
-export const getPlans = cache(() => api<{ currentPlan: PlanKey; tiers: PlanTierConfig[] }>('/entitlements/plans'));
+let plansCache: { data: { currentPlan: PlanKey; tiers: PlanTierConfig[] }; timestamp: number } | null = null;
+const PLANS_CACHE_TTL_MS = 300_000; // 5 minutes reference data cache
+
+export const getPlans = cache(async () => {
+  const now = Date.now();
+  if (plansCache && now - plansCache.timestamp < PLANS_CACHE_TTL_MS) {
+    return plansCache.data;
+  }
+  const data = await api<{ currentPlan: PlanKey; tiers: PlanTierConfig[] }>('/entitlements/plans');
+  plansCache = { data, timestamp: now };
+  return data;
+});
 
 /** Page-level gate. The API enforces the same rule; this just sends people somewhere helpful. */
 export async function requireFeature(feature: FeatureKey) {

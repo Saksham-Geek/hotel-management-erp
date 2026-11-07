@@ -20,6 +20,7 @@
     "@nestjs/platform-express": "^10.4.7",
     "@nestjs/throttler": "^6.2.1",
     "bcryptjs": "^2.4.3",
+    "compression": "^1.8.2",
     "dotenv": "^16.4.5",
     "helmet": "^8.0.0",
     "pg": "^8.13.1",
@@ -30,6 +31,7 @@
   "devDependencies": {
     "@nestjs/cli": "^10.4.7",
     "@types/bcryptjs": "^2.4.6",
+    "@types/compression": "^1.8.1",
     "@types/express": "^5.0.0",
     "@types/node": "^22.9.0",
     "@types/pg": "^8.11.10",

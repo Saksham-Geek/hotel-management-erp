@@ -5,6 +5,7 @@ import { Banner, btnCls, CustomDropdown, EmptyState, inputCls, selectCls, PageHe
 import { api, getMe, requireFeature } from '@/lib/api';
 import { FolioView, type FolioData } from './folio-view';
 import { UpiReceiverBanner } from './upi-receiver-banner';
+import { StatutoryExportButtons } from './statutory-export-buttons';
 
 interface ReservationQuickPick {
   id: string;
@@ -50,7 +51,9 @@ export default async function BillingPage({
         title="Billing &amp; Cashiering"
         eyebrow="Financial Operations"
         description="Indian GST invoicing, multi-folio management, payment collection, and cashier settlements."
-      />
+      >
+        <StatutoryExportButtons />
+      </PageHeader>
       <Banner error={error} ok={ok} />
 
       {/* Receiver UPI Configuration Bar */}

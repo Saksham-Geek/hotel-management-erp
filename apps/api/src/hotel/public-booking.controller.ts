@@ -223,4 +223,276 @@ export class PublicBookingController {
       };
     });
   }
+
+  @Public()
+  @Get('room-service/:tenantSlug/:roomNumber')
+  async getRoomServiceProfile(
+    @Param('tenantSlug') tenantSlug: string,
+    @Param('roomNumber') roomNumber: string,
+  ) {
+    const tenantRes = await this.db.query(
+      `SELECT id, slug, name, currency FROM tenants WHERE slug = $1`,
+      [tenantSlug],
+    );
+    if (!tenantRes.rows[0]) {
+      throw new NotFoundException(`Hotel portfolio '${tenantSlug}' not found.`);
+    }
+    const tenant = tenantRes.rows[0];
+
+    return this.db.withTenant(tenant.id, null, async (c) => {
+      const propRes = await c.query(
+        `SELECT id, name FROM properties WHERE tenant_id = $1 AND status = 'active' ORDER BY is_default DESC LIMIT 1`,
+        [tenant.id]
+      );
+      if (!propRes.rows[0]) throw new NotFoundException('Active property not found.');
+      const property = propRes.rows[0];
+
+      const roomRes = await c.query(
+        `SELECT id, number, floor FROM rooms WHERE tenant_id = $1 AND property_id = $2 AND number = $3`,
+        [tenant.id, property.id, roomNumber]
+      );
+      if (!roomRes.rows[0]) {
+        throw new NotFoundException(`Room ${roomNumber} not found in this hotel.`);
+      }
+      const room = roomRes.rows[0];
+
+      const stayRes = await c.query(
+        `SELECT r.id, r.check_in as "checkIn", r.check_out as "checkOut", p.full_name as "guestName", p.phone as "guestPhone"
+         FROM reservations r
+         JOIN guests g ON g.id = r.guest_id
+         JOIN parties p ON p.id = g.party_id
+         WHERE r.tenant_id = $1 AND r.property_id = $2 AND r.room_id = $3 AND r.status = 'checked_in'
+         ORDER BY r.check_in_at DESC LIMIT 1`,
+        [tenant.id, property.id, room.id]
+      );
+
+      const activeStay = stayRes.rows[0] || null;
+
+      const catRes = await c.query(
+        `SELECT id, name FROM menu_categories WHERE property_id = $1 ORDER BY sort_order ASC, name ASC`,
+        [property.id]
+      );
+      const itemsRes = await c.query(
+        `SELECT id, category_id as "categoryId", name, item_code as "itemCode",
+                description, price::float8, food_type as "foodType", gst_rate::float8 as "gstRate"
+         FROM menu_items
+         WHERE property_id = $1 AND is_available = true
+         ORDER BY name ASC`,
+        [property.id]
+      );
+
+      const categories = catRes.rows.map((cat: any) => ({
+        ...cat,
+        items: itemsRes.rows.filter((it: any) => it.categoryId === cat.id),
+      }));
+
+      return {
+        hotelName: tenant.name,
+        currency: tenant.currency ?? 'INR',
+        roomNumber: room.number,
+        floor: room.floor,
+        hasActiveStay: !!activeStay,
+        guestName: activeStay?.guestName ?? null,
+        reservationId: activeStay?.id ?? null,
+        categories,
+      };
+    });
+  }
+
+  @Public()
+  @Post('room-service/order')
+  async placeRoomServiceOrder(
+    @Body()
+    body: {
+      tenantSlug: string;
+      roomNumber: string;
+      items: Array<{ menuItemId: string; quantity: number; specialNotes?: string }>;
+      guestInstructions?: string;
+    },
+  ) {
+    if (!body?.tenantSlug || !body?.roomNumber || !Array.isArray(body?.items) || body.items.length === 0) {
+      throw new BadRequestException('Missing required fields or empty item cart.');
+    }
+
+    const tenantRes = await this.db.query(
+      `SELECT id, slug, name, currency FROM tenants WHERE slug = $1`,
+      [body.tenantSlug],
+    );
+    if (!tenantRes.rows[0]) throw new NotFoundException('Hotel portfolio not found.');
+    const tenant = tenantRes.rows[0];
+
+    return this.db.withTenant(tenant.id, null, async (c) => {
+      const propRes = await c.query(
+        `SELECT id, name FROM properties WHERE tenant_id = $1 AND status = 'active' ORDER BY is_default DESC LIMIT 1`,
+        [tenant.id]
+      );
+      const property = propRes.rows[0];
+
+      const roomRes = await c.query(
+        `SELECT id, number FROM rooms WHERE tenant_id = $1 AND property_id = $2 AND number = $3`,
+        [tenant.id, property.id, body.roomNumber]
+      );
+      if (!roomRes.rows[0]) throw new NotFoundException(`Room ${body.roomNumber} not found.`);
+      const room = roomRes.rows[0];
+
+      const stayRes = await c.query(
+        `SELECT r.id, p.full_name as "guestName"
+         FROM reservations r
+         JOIN guests g ON g.id = r.guest_id
+         JOIN parties p ON p.id = g.party_id
+         WHERE r.tenant_id = $1 AND r.property_id = $2 AND r.room_id = $3 AND r.status = 'checked_in'
+         ORDER BY r.check_in_at DESC LIMIT 1`,
+        [tenant.id, property.id, room.id]
+      );
+
+      if (!stayRes.rows[0]) {
+        throw new BadRequestException('Room is not currently occupied by an active checked-in guest.');
+      }
+      const stay = stayRes.rows[0];
+
+      const outletRes = await c.query(
+        `SELECT id, name FROM restaurant_outlets WHERE property_id = $1 ORDER BY (case when outlet_type = 'room_service' then 0 else 1 end) LIMIT 1`,
+        [property.id]
+      );
+      const outlet = outletRes.rows[0];
+
+      const itemIds = body.items.map((i) => i.menuItemId);
+      const dbItemsRes = await c.query(
+        `SELECT id, name, price::float8, gst_rate::float8 as "gstRate", food_type as "foodType", sac_code as "sacCode"
+         FROM menu_items WHERE id = ANY($1::uuid[]) AND property_id = $2`,
+        [itemIds, property.id]
+      );
+      const dbItemsMap = new Map<string, any>();
+      for (const it of dbItemsRes.rows) {
+        dbItemsMap.set(it.id, it);
+      }
+
+      let subtotal = 0;
+      let totalGst = 0;
+      const orderItemsToInsert: any[] = [];
+
+      for (const reqItem of body.items) {
+        const item = dbItemsMap.get(reqItem.menuItemId);
+        if (!item) continue;
+        const qty = Math.max(1, Number(reqItem.quantity) || 1);
+        const linePrice = item.price * qty;
+        const gstAmount = linePrice * (item.gstRate / 100);
+
+        subtotal += linePrice;
+        totalGst += gstAmount;
+
+        orderItemsToInsert.push({
+          menuItemId: item.id,
+          itemName: item.name,
+          quantity: qty,
+          unitPrice: item.price,
+          gstRate: item.gstRate,
+          foodType: item.foodType,
+          specialNotes: reqItem.specialNotes || null,
+        });
+      }
+
+      const totalAmount = Math.round((subtotal + totalGst) * 100) / 100;
+      const kotNumber = `RS-${body.roomNumber}-${Date.now().toString().slice(-4)}`;
+
+      const kotInsert = await c.query(
+        `INSERT INTO kot_orders (
+           tenant_id, property_id, outlet_id, room_id, reservation_id, kot_number,
+           order_type, status, payment_status, guest_name, subtotal, tax_amount, total_amount,
+           special_instructions, round_number
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, 'room_service', 'pending', 'charged_to_room', $7, $8, $9, $10, $11, 1)
+         RETURNING id, kot_number as "kotNumber"`,
+        [
+          tenant.id,
+          property.id,
+          outlet?.id || null,
+          room.id,
+          stay.id,
+          kotNumber,
+          stay.guestName,
+          subtotal,
+          totalGst,
+          totalAmount,
+          body.guestInstructions || null,
+        ]
+      );
+      const kot = kotInsert.rows[0];
+
+      for (const oi of orderItemsToInsert) {
+        await c.query(
+          `INSERT INTO kot_order_items (
+             order_id, menu_item_id, item_name, quantity, unit_price, gst_rate, food_type, special_notes, status
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'queued')`,
+          [kot.id, oi.menuItemId, oi.itemName, oi.quantity, oi.unitPrice, oi.gstRate, oi.foodType, oi.specialNotes]
+        );
+
+        // Auto-deplete raw materials if recipes configured
+        if (oi.menuItemId) {
+          const recRes = await c.query(
+            `SELECT raw_material_id, quantity_per_portion FROM dish_recipes WHERE property_id = $1 AND menu_item_id = $2`,
+            [property.id, oi.menuItemId]
+          );
+          for (const rec of recRes.rows) {
+            const consumed = Number(rec.quantity_per_portion) * oi.quantity;
+            await c.query(
+              `UPDATE raw_materials
+               SET current_stock = GREATEST(0, current_stock - $1), updated_at = now()
+               WHERE id = $2 AND property_id = $3`,
+              [consumed, rec.raw_material_id, property.id]
+            );
+            await c.query(
+              `INSERT INTO stock_movements (tenant_id, property_id, raw_material_id, movement_type, quantity, reference_id, notes)
+               VALUES ($1, $2, $3, 'CONSUMPTION', $4, $5, $6)`,
+              [tenant.id, property.id, rec.raw_material_id, consumed, kotNumber, `Room service ${oi.quantity}x ${oi.itemName}`]
+            );
+          }
+        }
+      }
+
+      const folioRes = await c.query(
+        `SELECT id FROM reservation_folios WHERE tenant_id = $1 AND reservation_id = $2 AND status = 'open' LIMIT 1`,
+        [tenant.id, stay.id]
+      );
+
+      if (folioRes.rows[0]) {
+        const folioId = folioRes.rows[0].id;
+        const cgst = Math.round((totalGst / 2) * 100) / 100;
+        const sgst = totalGst - cgst;
+
+        await c.query(
+          `INSERT INTO folio_items (
+             tenant_id, folio_id, description, quantity, unit_price, tax_rate, line_total,
+             tax_category_code, hsn_sac, cgst_amount, sgst_amount, igst_amount, is_interstate
+           )
+           VALUES ($1, $2, $3, 1, $4, 5.0, $5, 'FNB', '996331', $6, $7, 0, false)`,
+          [tenant.id, folioId, `In-Room Dining (KOT #${kotNumber})`, subtotal, totalAmount, cgst, sgst]
+        );
+
+        await c.query(
+          `UPDATE reservation_folios SET
+             subtotal = subtotal + $1,
+             tax_total = tax_total + $2,
+             total = total + $3
+           WHERE id = $4`,
+          [subtotal, totalGst, totalAmount, folioId]
+        );
+      }
+
+      return {
+        success: true,
+        orderId: kot.id,
+        kotNumber: kot.kotNumber,
+        roomNumber: body.roomNumber,
+        guestName: stay.guestName,
+        itemCount: orderItemsToInsert.length,
+        subtotal,
+        totalGst,
+        totalAmount,
+        estimatedMinutes: 25,
+        message: `Order #${kot.kotNumber} placed successfully! Routed to kitchen and charged to Room ${body.roomNumber} folio.`,
+      };
+    });
+  }
 }

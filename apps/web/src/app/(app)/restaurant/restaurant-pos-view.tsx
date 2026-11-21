@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
 import { KotPrintModal, type KotPrintData } from './kot-print-modal';
 import { BillPrintModal, type BillPrintData } from './bill-print-modal';
+import { BulkImporterModal } from '@/components/bulk-importer-modal';
+import { KitchenInventoryView } from './kitchen-inventory-view';
 import {
   createKotOrderAction,
   updateKotStatusAction,
@@ -186,8 +188,8 @@ export function RestaurantPosView({
   // Operating Mode: Hotel Integrated vs Standalone Restaurant
   const [operatingMode, setOperatingMode] = useState<'hotel' | 'standalone'>('hotel');
 
-  // Navigation Tabs: Floor Plan, Touch POS, Swiggy/Zomato Aggregators, Kitchen KDS, Cashier Shifts, Settings
-  const [activeTab, setActiveTab] = useState<'tables' | 'pos' | 'aggregators' | 'kds' | 'shifts' | 'settings'>('tables');
+  // Navigation Tabs: Floor Plan, Touch POS, Swiggy/Zomato Aggregators, Kitchen KDS, Cashier Shifts, Inventory, Settings
+  const [activeTab, setActiveTab] = useState<'tables' | 'pos' | 'aggregators' | 'kds' | 'shifts' | 'inventory' | 'settings'>('tables');
   const [settingsSubTab, setSettingsSubTab] = useState<'tables' | 'menu' | 'aggregators' | 'hardware' | 'sop'>('tables');
 
   // Aggregator Orders
@@ -209,6 +211,7 @@ export function RestaurantPosView({
 
   // New Dish Station State
   const [newDishStation, setNewDishStation] = useState<'tandoor' | 'main_kitchen' | 'bar' | 'pantry' | 'bakery'>('main_kitchen');
+  const [isMenuBulkImportOpen, setIsMenuBulkImportOpen] = useState(false);
 
   // Active Outlet Selection: prefer dine_in outlets or first outlet that has tables
   const preferredOutlet =
@@ -1361,6 +1364,21 @@ export function RestaurantPosView({
 
         <button
           type="button"
+          onClick={() => setActiveTab('inventory')}
+          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            activeTab === 'inventory'
+              ? 'border-b-2 border-emerald-600 text-emerald-950 font-black'
+              : 'text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span>📦 Kitchen Inventory &amp; Recipes</span>
+          <span className="rounded-full bg-emerald-50 text-emerald-800 px-2 py-0.5 text-xs font-bold border border-emerald-200">
+            BOM
+          </span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('settings')}
           className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
             activeTab === 'settings'
@@ -1373,6 +1391,16 @@ export function RestaurantPosView({
             Setup
           </span>
         </button>
+
+        <Link
+          href="/restaurant/captain"
+          className="pb-3 text-amber-700 hover:text-amber-900 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ml-auto"
+        >
+          <span className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold flex items-center gap-1 shadow-2xs">
+            <span>📱</span>
+            <span>Captain Handheld Mode</span>
+          </span>
+        </Link>
       </div>
 
       {/* ============================================================== */}
@@ -2884,6 +2912,13 @@ export function RestaurantPosView({
       )}
 
       {/* ============================================================== */}
+      {/* TAB: KITCHEN RAW MATERIAL INVENTORY & RECIPES BOM             */}
+      {/* ============================================================== */}
+      {activeTab === 'inventory' && (
+        <KitchenInventoryView categories={categories} />
+      )}
+
+      {/* ============================================================== */}
       {/* TAB 6: F&B SETTINGS & HARDWARE CONTROL CENTER                  */}
       {/* ============================================================== */}
       {activeTab === 'settings' && (
@@ -3120,6 +3155,14 @@ export function RestaurantPosView({
                   </p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsMenuBulkImportOpen(true)}
+                    className="rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors shadow-2xs cursor-pointer flex items-center gap-1.5"
+                  >
+                    <span>📁</span>
+                    <span>Bulk CSV Import</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => {
@@ -5526,6 +5569,14 @@ export function RestaurantPosView({
           onClose={() => setPrintCustomerBill(null)}
         />
       )}
+
+      {/* Menu Bulk CSV Importer Modal */}
+      <BulkImporterModal
+        type="menu"
+        isOpen={isMenuBulkImportOpen}
+        onClose={() => setIsMenuBulkImportOpen(false)}
+        onSuccess={() => window.location.reload()}
+      />
     </div>
   );
 }

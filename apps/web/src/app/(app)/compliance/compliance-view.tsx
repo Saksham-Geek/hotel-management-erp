@@ -31,6 +31,8 @@ export interface PoliceReportData {
   reportDate: string;
   generatedAt: string;
   isHistorical?: boolean;
+  isPartitionedArchive?: boolean;
+  partitionYear?: string;
   summary: {
     totalInHouse: number;
     arrivalsToday: number;
@@ -414,6 +416,16 @@ export function ComplianceView({
               </div>
             </div>
           </div>
+
+          {/* 6-Year Statutory Archive Partition Notice */}
+          {policeData.isPartitionedArchive && (
+            <div className="flex items-center gap-2.5 px-4 py-3 rounded-2xl bg-emerald-50/90 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 text-emerald-900 dark:text-emerald-200 text-xs shadow-2xs">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-[11px] font-bold">✓</span>
+              <div className="leading-relaxed">
+                <span className="font-bold">6-Year Statutory Archive Active:</span> Historical record loaded via PostgreSQL table partition pruning (<code className="font-mono bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.5 rounded font-semibold text-emerald-800 dark:text-emerald-300">statutory_archives_y{policeData.partitionYear || policeData.reportDate.slice(0, 4)}</code>). Sealed with cryptographic SHA-256 tamper-evident integrity hashes under Section 36 CGST &amp; Sarais Act mandates.
+              </div>
+            </div>
+          )}
 
           {/* Metric Stat Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

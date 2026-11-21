@@ -9,7 +9,11 @@ import {
   Patch,
   Post,
   ForbiddenException,
+  Sse,
+  MessageEvent,
 } from '@nestjs/common';
+import { Observable, Subject, interval, merge } from 'rxjs';
+import { map, filter } from 'rxjs/operators';
 import {
   CollectFolioPaymentInput,
   CreateCorporateAccountInput,
@@ -33,6 +37,20 @@ import { EntitlementsService } from '../entitlements/entitlements.service';
 import { RequireFeature } from '../entitlements/require-feature';
 import { calculateGstTax } from './tax-calculator';
 import { createHash } from 'node:crypto';
+
+interface PaymentEvent {
+  tenantId: string;
+  propertyId: string;
+  folioId: string;
+  paymentId: string;
+  amount: number;
+  method: string;
+  reference?: string;
+  balanceDue: number;
+  timestamp: string;
+}
+
+const paymentEvents$ = new Subject<PaymentEvent>();
 
 @Controller('hotel')
 @RequireFeature(FEATURES.HOTEL_BILLING)
@@ -458,7 +476,154 @@ export class BillingController {
         meta: { amount: b.amount, method: b.method, nextStatus },
       });
 
+      const currentBalanceDue = Math.max(0, Math.round((total - paid) * 100) / 100);
+      paymentEvents$.next({
+        tenantId: user.tenantId,
+        propertyId: user.propertyId,
+        folioId,
+        paymentId: payment.id,
+        amount: Number(payment.amount),
+        method: payment.method,
+        reference: payment.reference || undefined,
+        balanceDue: currentBalanceDue,
+        timestamp: new Date().toISOString(),
+      });
+
       return payment;
+    });
+  }
+
+  @Sse('folios/:folioId/payment-stream')
+  @RequirePermission(PERMISSIONS.BILLING_READ)
+  paymentStream(
+    @CurrentUser() user: AuthUser,
+    @Param('folioId', ParseUUIDPipe) folioId: string,
+  ): Observable<MessageEvent> {
+    const events$ = paymentEvents$.pipe(
+      filter((e) => e.folioId === folioId && e.tenantId === user.tenantId),
+      map((event) => ({ data: { type: 'PAYMENT_RECEIVED', ...event } } as MessageEvent)),
+    );
+
+    const heartbeat$ = interval(15000).pipe(
+      map(() => ({ data: { type: 'HEARTBEAT', timestamp: new Date().toISOString() } } as MessageEvent)),
+    );
+
+    return merge(events$, heartbeat$);
+  }
+
+  @Get('folios/:folioId/payment-status')
+  @RequirePermission(PERMISSIONS.BILLING_READ)
+  async getPaymentStatus(
+    @CurrentUser() user: AuthUser,
+    @Param('folioId', ParseUUIDPipe) folioId: string,
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const folio = (
+        await c.query(`SELECT id, total::float8, status FROM reservation_folios WHERE id = $1`, [folioId])
+      ).rows[0];
+      if (!folio) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Folio not found' });
+
+      const payments = (
+        await c.query(
+          `SELECT id, amount::float8, method, reference, status, created_at AS "createdAt"
+           FROM folio_payments WHERE folio_id = $1 AND status = 'captured'
+           ORDER BY created_at DESC`,
+          [folioId],
+        )
+      ).rows;
+
+      const paidTotal = payments.reduce((sum: number, p: any) => sum + Number(p.amount), 0);
+      const balanceDue = Math.max(0, Math.round((Number(folio.total) - paidTotal) * 100) / 100);
+
+      return {
+        folioId,
+        total: Number(folio.total),
+        paidTotal,
+        balanceDue,
+        isSettled: balanceDue <= 0,
+        latestPayment: payments[0] ?? null,
+        paymentsCount: payments.length,
+      };
+    });
+  }
+
+  @Post('folios/:folioId/simulate-upi-webhook')
+  @RequirePermission(PERMISSIONS.BILLING_PAYMENT_COLLECT)
+  async simulateUpiWebhook(
+    @CurrentUser() user: AuthUser,
+    @Param('folioId', ParseUUIDPipe) folioId: string,
+    @Body() body: { amount?: number; utr?: string; vpa?: string },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const folio = (
+        await c.query(`SELECT id, reservation_id, total, status FROM reservation_folios WHERE id = $1 FOR UPDATE`, [
+          folioId,
+        ])
+      ).rows[0];
+
+      if (!folio) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Folio not found' });
+      if (folio.status === 'void') {
+        throw new BadRequestException({ code: 'FOLIO_VOID', message: 'Cannot record payment on a void folio' });
+      }
+
+      const paidResult = (
+        await c.query(`SELECT coalesce(sum(amount), 0)::float8 AS paid FROM folio_payments WHERE folio_id = $1 AND status = 'captured'`, [
+          folioId,
+        ])
+      ).rows[0];
+      const currentPaid = Number(paidResult.paid);
+      const total = Number(folio.total);
+      const remainingBalance = Math.max(0, Math.round((total - currentPaid) * 100) / 100);
+
+      const payAmount = body.amount && body.amount > 0 ? body.amount : remainingBalance > 0 ? remainingBalance : 100;
+      const utr = body.utr || `UPI/${new Date().getFullYear()}${(new Date().getMonth() + 1).toString().padStart(2, '0')}/${Math.floor(100000000 + Math.random() * 900000000)}/NPCI`;
+
+      const payment = (
+        await c.query(
+          `INSERT INTO folio_payments (
+             tenant_id, property_id, folio_id, amount, method, reference, status, notes
+           )
+           VALUES ($1, $2, $3, $4, 'upi', $5, 'captured', $6)
+           RETURNING id, amount::float8, method, reference, status, created_at AS "createdAt"`,
+          [
+            user.tenantId,
+            user.propertyId,
+            folioId,
+            payAmount,
+            utr,
+            `NPCI Live Instant Webhook Settlement (${body.vpa || 'Customer PhonePe/GPay'})`,
+          ],
+        )
+      ).rows[0];
+
+      const newPaid = currentPaid + payAmount;
+      const nextStatus = newPaid >= total ? 'paid' : 'part_paid';
+      await c.query(`UPDATE reservation_folios SET status = $2, updated_at = now() WHERE id = $1`, [
+        folioId,
+        nextStatus,
+      ]);
+
+      const balanceDue = Math.max(0, Math.round((total - newPaid) * 100) / 100);
+
+      paymentEvents$.next({
+        tenantId: user.tenantId,
+        propertyId: user.propertyId,
+        folioId,
+        paymentId: payment.id,
+        amount: payAmount,
+        method: 'upi',
+        reference: utr,
+        balanceDue,
+        timestamp: new Date().toISOString(),
+      });
+
+      return {
+        success: true,
+        payment,
+        balanceDue,
+        isSettled: balanceDue <= 0,
+        message: `Instant UPI payment of ₹${payAmount} captured via simulated NPCI webhook.`,
+      };
     });
   }
 

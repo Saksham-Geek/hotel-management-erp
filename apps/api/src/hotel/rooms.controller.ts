@@ -97,6 +97,100 @@ export class RoomsController {
     });
   }
 
+  @Post('rooms/bulk-import')
+  @RequirePermission(PERMISSIONS.ROOM_CONFIGURATION_WRITE)
+  async bulkImportRooms(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { rooms: Array<{ number: string | number; floor?: number; roomType?: string; baseRate?: number; hourlyRate?: number }> },
+  ) {
+    if (!body?.rooms || !Array.isArray(body.rooms) || body.rooms.length === 0) {
+      throw new BadRequestException('Invalid payload. Expected a non-empty array of rooms.');
+    }
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      // 1. Fetch room types
+      const rtRes = await c.query(
+        `select id, lower(trim(name)) as norm_name, name from room_types where tenant_id = $1`,
+        [user.tenantId]
+      );
+      const rtMap = new Map<string, string>();
+      for (const rt of rtRes.rows) {
+        rtMap.set(rt.norm_name, rt.id);
+      }
+
+      let createdRoomTypes = 0;
+      for (const r of body.rooms) {
+        const typeName = (r.roomType || 'Standard').trim();
+        const norm = typeName.toLowerCase();
+        if (!rtMap.has(norm)) {
+          const insertRt = await c.query(
+            `insert into room_types (tenant_id, property_id, name, base_rate, hourly_rate, capacity, description)
+             values ($1, $2, $3, $4, $5, 2, 'Auto-provisioned via Bulk CSV Import')
+             returning id`,
+            [user.tenantId, user.propertyId, typeName, r.baseRate || 2500, r.hourlyRate || 350]
+          );
+          const newId = insertRt.rows[0].id;
+          rtMap.set(norm, newId);
+          createdRoomTypes++;
+        }
+      }
+
+      // 2. Limit check
+      const countRes = await c.query(
+        `select count(*)::int as count from rooms where tenant_id = $1 and property_id = $2`,
+        [user.tenantId, user.propertyId]
+      );
+      const currentRooms = Number(countRes.rows[0]?.count ?? 0);
+      await this.entitlements.assertWithinLimit(user.tenantId, user.propertyId, FEATURES.HOTEL_ROOMS, currentRooms + body.rooms.length);
+
+      // 3. Upsert rooms
+      const imported: any[] = [];
+      for (const r of body.rooms) {
+        const roomNum = String(r.number).trim();
+        if (!roomNum) continue;
+        const norm = (r.roomType || 'Standard').trim().toLowerCase();
+        const rtId = rtMap.get(norm)!;
+        const floorNum = r.floor != null ? Number(r.floor) : (parseInt(roomNum.charAt(0), 10) || 1);
+        const baseRate = r.baseRate != null ? Number(r.baseRate) : null;
+        const hourlyRate = r.hourlyRate != null ? Number(r.hourlyRate) : null;
+
+        const row = (
+          await c.query(
+            `insert into rooms (tenant_id, property_id, room_type_id, number, floor, base_rate, hourly_rate, status)
+             values ($1, $2, $3, $4, $5, $6, $7, 'available')
+             on conflict (tenant_id, property_id, number)
+             do update set
+               room_type_id = excluded.room_type_id,
+               floor = excluded.floor,
+               base_rate = coalesce(excluded.base_rate, rooms.base_rate),
+               hourly_rate = coalesce(excluded.hourly_rate, rooms.hourly_rate)
+             returning id, number, floor, status`,
+            [user.tenantId, user.propertyId, rtId, roomNum, floorNum, baseRate, hourlyRate]
+          )
+        ).rows[0];
+
+        imported.push(row);
+      }
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'room.bulk_import',
+        entity: 'room',
+        entityId: user.propertyId,
+        meta: { count: imported.length, createdRoomTypes },
+      });
+
+      return {
+        success: true,
+        count: imported.length,
+        createdRoomTypes,
+        rooms: imported,
+        message: `Successfully imported ${imported.length} rooms (${createdRoomTypes} new room categories provisioned).`,
+      };
+    });
+  }
+
   @Patch('rooms/:id')
   @RequirePermission(PERMISSIONS.ROOM_CONFIGURATION_WRITE)
   updateRoom(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string, @Body(new ZodPipe(updateRoomSchema)) b: UpdateRoomInput) {

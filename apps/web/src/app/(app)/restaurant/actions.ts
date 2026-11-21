@@ -354,3 +354,60 @@ export async function closeShiftAction(input: CloseShiftInput) {
     return { ok: false, error: errorMessage(err) };
   }
 }
+
+export async function getRawMaterialsAction() {
+  try {
+    const res = await api<any[]>('/hotel/restaurant/inventory/raw-materials');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err), data: [] };
+  }
+}
+
+export async function createRawMaterialAction(data: { name: string; category?: string; unit?: string; currentStock?: number; minimumAlertStock?: number; costPerUnit?: number }) {
+  try {
+    const res = await api<any>('/hotel/restaurant/inventory/raw-materials', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    revalidatePath('/restaurant');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function restockRawMaterialAction(id: string, data: { quantity: number; costPerUnit?: number; notes?: string }) {
+  try {
+    const res = await api<any>(`/hotel/restaurant/inventory/raw-materials/${id}/restock`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    revalidatePath('/restaurant');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function getDishRecipeAction(menuItemId: string) {
+  try {
+    const res = await api<any[]>(`/hotel/restaurant/inventory/recipes/${menuItemId}`);
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err), data: [] };
+  }
+}
+
+export async function configureDishRecipeAction(menuItemId: string, ingredients: Array<{ rawMaterialId: string; quantityPerPortion: number }>) {
+  try {
+    const res = await api<any>('/hotel/restaurant/inventory/recipes', {
+      method: 'POST',
+      body: JSON.stringify({ menuItemId, ingredients }),
+    });
+    revalidatePath('/restaurant');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}

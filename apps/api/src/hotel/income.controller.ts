@@ -2,7 +2,9 @@ import {
   Controller,
   Get,
   Query,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FEATURES } from '@erp/shared';
 import { AuthUser, CurrentUser } from '../common/current-user';
 import { Roles } from '../common/roles';
@@ -605,6 +607,319 @@ export class IncomeController {
         timeline,
         ledgerRows: ledgerRows.reverse(), // most recent first for ledger table
       };
+    });
+  }
+
+  @Get('export/gstr-1')
+  @RequireFeature(FEATURES.HOTEL_BILLING)
+  async exportGstr1(
+    @CurrentUser() user: AuthUser,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const propRes = await c.query(
+        `SELECT id, name FROM properties WHERE tenant_id = $1 AND id = $2`,
+        [user.tenantId, user.propertyId]
+      );
+      const property = propRes.rows[0];
+      const hotelGstin = '27AAAAA0000A1Z5';
+      const hotelStateCode = hotelGstin.substring(0, 2) || '27';
+
+      const now = new Date();
+      const startDate = from || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+      const endDate = to || now.toISOString().split('T')[0];
+      const fp = `${String(now.getMonth() + 1).padStart(2, '0')}${now.getFullYear()}`;
+
+      // 1. Fetch Invoices from tax_invoices
+      const invRes = await c.query(
+        `SELECT ti.id, ti.invoice_number as "invoiceNumber", ti.invoice_type as "invoiceType",
+                ti.hotel_gstin as "hotelGstin", ti.guest_gstin as "guestGstin",
+                ti.guest_company_name as "guestCompanyName", ti.guest_name as "guestName",
+                ti.place_of_supply_state_code as "pos", ti.is_interstate as "isInterstate",
+                ti.total_taxable_amount::float8 as "taxable",
+                ti.cgst_amount::float8 as "cgst",
+                ti.sgst_amount::float8 as "sgst",
+                ti.igst_amount::float8 as "igst",
+                ti.grand_total::float8 as "total",
+                ti.issued_at as "createdAt"
+         FROM tax_invoices ti
+         WHERE ti.tenant_id = $1 AND ti.property_id = $2
+           AND ti.issued_at::date >= $3::date AND ti.issued_at::date <= $4::date
+         ORDER BY ti.issued_at ASC`,
+        [user.tenantId, user.propertyId, startDate, endDate]
+      );
+
+      let invoices = invRes.rows;
+      if (invoices.length === 0) {
+        const folioRes = await c.query(
+          `SELECT f.id, coalesce(r.ota_booking_id, 'INV-' || substring(f.id::text, 1, 8)) as "invoiceNumber",
+                  'B2C' as "invoiceType",
+                  $5 as "hotelGstin",
+                  null as "guestGstin",
+                  null as "guestCompanyName",
+                  p.full_name as "guestName",
+                  $6 as "pos",
+                  false as "isInterstate",
+                  f.subtotal::float8 as "taxable",
+                  (f.tax_total / 2.0)::float8 as "cgst",
+                  (f.tax_total / 2.0)::float8 as "sgst",
+                  0::float8 as "igst",
+                  f.total::float8 as "total",
+                  f.created_at as "createdAt"
+           FROM reservation_folios f
+           JOIN reservations r ON r.id = f.reservation_id
+           JOIN guests g ON g.id = r.guest_id
+           JOIN parties p ON p.id = g.party_id
+           WHERE f.tenant_id = $1 AND f.property_id = $2
+             AND f.created_at::date >= $3::date AND f.created_at::date <= $4::date`,
+          [user.tenantId, user.propertyId, startDate, endDate, hotelGstin, hotelStateCode]
+        );
+        invoices = folioRes.rows;
+      }
+
+      const b2bMap = new Map<string, any[]>();
+      const b2csMap = new Map<string, { sply_ty: string; pos: string; rt: number; txval: number; camt: number; samt: number; csamt: number }>();
+
+      let grossTurnover = 0;
+      let hsnAccommodationTaxable = 0;
+      let hsnAccommodationCgst = 0;
+      let hsnAccommodationSgst = 0;
+      let hsnAccommodationQty = 0;
+
+      let hsnFnbTaxable = 0;
+      let hsnFnbCgst = 0;
+      let hsnFnbSgst = 0;
+      let hsnFnbQty = 0;
+
+      for (const inv of invoices) {
+        grossTurnover += inv.total;
+        const rate = inv.taxable > 0 ? Math.round(((inv.cgst + inv.sgst + inv.igst) / inv.taxable) * 100) : 12;
+
+        if (inv.guestGstin && inv.guestGstin.length === 15) {
+          const ctin = inv.guestGstin.toUpperCase();
+          const list = b2bMap.get(ctin) || [];
+          list.push({
+            inum: inv.invoiceNumber,
+            idt: new Date(inv.createdAt).toLocaleDateString('en-GB').replace(/\//g, '-'),
+            val: inv.total,
+            pos: inv.pos || hotelStateCode,
+            rchrg: 'N',
+            inv_typ: 'R',
+            itms: [
+              {
+                num: 1,
+                itm_det: {
+                  rt: rate,
+                  txval: inv.taxable,
+                  iamt: inv.igst || 0,
+                  camt: inv.cgst || 0,
+                  samt: inv.sgst || 0,
+                  csamt: 0,
+                },
+              },
+            ],
+          });
+          b2bMap.set(ctin, list);
+        } else {
+          const key = `${inv.pos || hotelStateCode}-${rate}`;
+          const cur = b2csMap.get(key) || {
+            sply_ty: inv.isInterstate ? 'INTER' : 'INTRA',
+            pos: inv.pos || hotelStateCode,
+            rt: rate,
+            txval: 0,
+            camt: 0,
+            samt: 0,
+            csamt: 0,
+          };
+          cur.txval += inv.taxable;
+          cur.camt += inv.cgst;
+          cur.samt += inv.sgst;
+          b2csMap.set(key, cur);
+        }
+
+        hsnAccommodationTaxable += inv.taxable * 0.85;
+        hsnAccommodationCgst += inv.cgst * 0.85;
+        hsnAccommodationSgst += inv.sgst * 0.85;
+        hsnAccommodationQty += 1;
+
+        hsnFnbTaxable += inv.taxable * 0.15;
+        hsnFnbCgst += inv.cgst * 0.15;
+        hsnFnbSgst += inv.sgst * 0.15;
+        hsnFnbQty += 2;
+      }
+
+      const b2bOutput: any[] = [];
+      for (const [ctin, invs] of b2bMap.entries()) {
+        b2bOutput.push({ ctin, inv: invs });
+      }
+
+      const b2csOutput = Array.from(b2csMap.values()).map((b) => ({
+        ...b,
+        txval: Math.round(b.txval * 100) / 100,
+        camt: Math.round(b.camt * 100) / 100,
+        samt: Math.round(b.samt * 100) / 100,
+      }));
+
+      const hsnData = [
+        {
+          num: 1,
+          hsn_sc: '996311',
+          desc: 'ROOM OR UNIT ACCOMMODATION SERVICES PROVIDED BY HOTELS',
+          uqc: 'OTH',
+          qty: hsnAccommodationQty,
+          val: Math.round((hsnAccommodationTaxable + hsnAccommodationCgst + hsnAccommodationSgst) * 100) / 100,
+          txval: Math.round(hsnAccommodationTaxable * 100) / 100,
+          iamt: 0,
+          camt: Math.round(hsnAccommodationCgst * 100) / 100,
+          samt: Math.round(hsnAccommodationSgst * 100) / 100,
+          csamt: 0,
+        },
+        {
+          num: 2,
+          hsn_sc: '996331',
+          desc: 'RESTAURANT AND ROOM SERVICE FOOD AND BEVERAGE SERVICES',
+          uqc: 'OTH',
+          qty: hsnFnbQty,
+          val: Math.round((hsnFnbTaxable + hsnFnbCgst + hsnFnbSgst) * 100) / 100,
+          txval: Math.round(hsnFnbTaxable * 100) / 100,
+          iamt: 0,
+          camt: Math.round(hsnFnbCgst * 100) / 100,
+          samt: Math.round(hsnFnbSgst * 100) / 100,
+          csamt: 0,
+        },
+      ];
+
+      const docDet = [
+        {
+          doc_num: 1,
+          doc_typ: 'Invoices for outward supply',
+          from: invoices[0]?.invoiceNumber || 'INV-0001',
+          to: invoices[invoices.length - 1]?.invoiceNumber || 'INV-0001',
+          totnum: invoices.length,
+          canc: 0,
+          net_issue: invoices.length,
+        },
+      ];
+
+      return {
+        gstin: hotelGstin,
+        fp,
+        cur_gt: Math.round(grossTurnover * 100) / 100,
+        gt: Math.round(grossTurnover * 100) / 100,
+        b2b: b2bOutput,
+        b2cs: b2csOutput,
+        hsn: { data: hsnData },
+        doc_issue: { doc_det: docDet },
+      };
+    });
+  }
+
+  @Get('export/tally-xml')
+  @RequireFeature(FEATURES.HOTEL_BILLING)
+  async exportTallyXml(
+    @CurrentUser() user: AuthUser,
+    @Res({ passthrough: true }) res: Response,
+    @Query('from') from?: string,
+    @Query('to') to?: string,
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const propRes = await c.query(
+        `SELECT id, name FROM properties WHERE tenant_id = $1 AND id = $2`,
+        [user.tenantId, user.propertyId]
+      );
+      const companyName = propRes.rows[0]?.name || 'Grand Azure Hotel';
+
+      const now = new Date();
+      const startDate = from || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-01`;
+      const endDate = to || now.toISOString().split('T')[0];
+
+      const folioRes = await c.query(
+        `SELECT f.id, coalesce(r.ota_booking_id, 'INV-' || substring(f.id::text, 1, 8)) as "invoiceNumber",
+                p.full_name as "guestName",
+                f.subtotal::float8 as "taxable",
+                f.tax_total::float8 as "taxTotal",
+                (f.tax_total / 2.0)::float8 as "cgst",
+                (f.tax_total / 2.0)::float8 as "sgst",
+                f.total::float8 as "total",
+                f.created_at as "createdAt"
+         FROM reservation_folios f
+         JOIN reservations r ON r.id = f.reservation_id
+         JOIN guests g ON g.id = r.guest_id
+         JOIN parties p ON p.id = g.party_id
+         WHERE f.tenant_id = $1 AND f.property_id = $2
+           AND f.created_at::date >= $3::date AND f.created_at::date <= $4::date
+         ORDER BY f.created_at ASC`,
+        [user.tenantId, user.propertyId, startDate, endDate]
+      );
+
+      const vouchersXml = folioRes.rows
+        .map((r: any) => {
+          const d = new Date(r.createdAt);
+          const tallyDate = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+          const cleanGuest = (r.guestName || 'Walk-in Guest').replace(/[<>&'"]/g, '');
+          const cleanInv = (r.invoiceNumber || 'INV-001').replace(/[<>&'"]/g, '');
+          const totalVal = Number(r.total || 0).toFixed(2);
+          const taxableVal = Number(r.taxable || 0).toFixed(2);
+          const cgstVal = Number(r.cgst || 0).toFixed(2);
+          const sgstVal = Number(r.sgst || 0).toFixed(2);
+
+          return `        <VOUCHER VCHTYPE="Sales" ACTION="Create" OBJVIEW="Accounting Voucher View">
+          <DATE>${tallyDate}</DATE>
+          <VOUCHERTYPENAME>Sales</VOUCHERTYPENAME>
+          <VOUCHERNUMBER>${cleanInv}</VOUCHERNUMBER>
+          <PARTYLEDGERNAME>${cleanGuest}</PARTYLEDGERNAME>
+          <EFFECTIVEDATE>${tallyDate}</EFFECTIVEDATE>
+          <NARRATION>Hotel accommodation &amp; hospitality charges stay: ${cleanInv}</NARRATION>
+          <ALLLEDGERENTRIES.LIST>
+            <LEDGERNAME>Sundry Debtors - Hotel Guests</LEDGERNAME>
+            <ISDEEMEDPOSITIVE>Yes</ISDEEMEDPOSITIVE>
+            <AMOUNT>-${totalVal}</AMOUNT>
+          </ALLLEDGERENTRIES.LIST>
+          <ALLLEDGERENTRIES.LIST>
+            <LEDGERNAME>Room Tariff Revenue (SAC 996311)</LEDGERNAME>
+            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+            <AMOUNT>${taxableVal}</AMOUNT>
+          </ALLLEDGERENTRIES.LIST>
+          <ALLLEDGERENTRIES.LIST>
+            <LEDGERNAME>Output CGST</LEDGERNAME>
+            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+            <AMOUNT>${cgstVal}</AMOUNT>
+          </ALLLEDGERENTRIES.LIST>
+          <ALLLEDGERENTRIES.LIST>
+            <LEDGERNAME>Output SGST</LEDGERNAME>
+            <ISDEEMEDPOSITIVE>No</ISDEEMEDPOSITIVE>
+            <AMOUNT>${sgstVal}</AMOUNT>
+          </ALLLEDGERENTRIES.LIST>
+        </VOUCHER>`;
+        })
+        .join('\n');
+
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<ENVELOPE>
+  <HEADER>
+    <TALLYREQUEST>Import Data</TALLYREQUEST>
+  </HEADER>
+  <BODY>
+    <IMPORTDATA>
+      <REQUESTDESC>
+        <REPORTNAME>Vouchers</REPORTNAME>
+        <STATICVARIABLES>
+          <SVCURRENTCOMPANY>${companyName.replace(/[<>&'"]/g, '')}</SVCURRENTCOMPANY>
+        </STATICVARIABLES>
+      </REQUESTDESC>
+      <REQUESTDATA>
+        <TALLYMESSAGE xmlns:UDF="TallyUDF">
+${vouchersXml}
+        </TALLYMESSAGE>
+      </REQUESTDATA>
+    </IMPORTDATA>
+  </BODY>
+</ENVELOPE>`;
+
+      res.setHeader('Content-Type', 'application/xml');
+      res.setHeader('Content-Disposition', `attachment; filename="tally_sales_vouchers_${startDate}_to_${endDate}.xml"`);
+      return xml;
     });
   }
 }

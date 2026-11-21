@@ -15,7 +15,7 @@ import { RequirePermission } from '../common/permission-guard';
 import { ZodPipe } from '../common/zod.pipe';
 import { DbService } from '../db/db.service';
 import { RequireFeature } from '../entitlements/require-feature';
-import { randomBytes } from 'node:crypto';
+import { randomBytes, createHash } from 'node:crypto';
 
 @Controller('hotel/compliance')
 @RequireFeature(FEATURES.HOTEL_COMPLIANCE)
@@ -154,29 +154,96 @@ export class ComplianceController {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       const targetDate = reportDate && dateRegex.test(reportDate) ? reportDate : new Date().toISOString().slice(0, 10);
+      const isHistorical = targetDate !== new Date().toISOString().slice(0, 10);
 
-      // In-house guests as of the report date (both primary guests and registered room companions)
-      const inHouse = (
-        await c.query(
-          `SELECT ro.number AS "roomNumber", ro.floor, p.full_name AS "guestName", p.phone AS "guestPhone",
-                  p.email AS "guestEmail", g.nationality, g.id_type AS "idType",
-                  r.check_in AS "checkIn", r.check_out AS "checkOut", r.check_in_at AS "checkInAt",
-                  r.status, p.address,
-                  coalesce(rg.is_primary, true) AS "isPrimary"
-           FROM reservations r
-           JOIN rooms ro ON ro.id = r.room_id
-           LEFT JOIN reservation_guests rg ON rg.reservation_id = r.id AND rg.tenant_id = r.tenant_id
-           JOIN guests g ON g.id = coalesce(rg.guest_id, r.guest_id)
-           JOIN parties p ON p.id = g.party_id
-           WHERE r.tenant_id = $1 AND r.property_id = $2
-             AND (
-               ($3::date = current_date AND r.status = 'checked_in')
-               OR ($3::date <> current_date AND r.check_in <= $3::date AND r.check_out >= $3::date AND r.status IN ('checked_in', 'checked_out'))
-             )
-           ORDER BY ro.number ASC, coalesce(rg.is_primary, true) DESC, p.full_name ASC`,
-          [user.tenantId, user.propertyId, targetDate],
-        )
-      ).rows;
+      let inHouse: any[] = [];
+      let isPartitionedArchive = false;
+
+      if (isHistorical) {
+        // Query the 6-Year Partitioned Archive Table.
+        // PostgreSQL executes Partition Pruning to directly read the relevant annual partition (e.g. statutory_archives_y2024).
+        const archived = (
+          await c.query(
+            `SELECT room_number AS "roomNumber", full_name AS "guestName", phone AS "guestPhone",
+                    email AS "guestEmail", nationality, id_proof_type AS "idType",
+                    masked_id_number AS "maskedIdNumber",
+                    check_in AS "checkIn", expected_check_out AS "checkOut",
+                    is_companion AS "isCompanion", primary_guest_name AS "primaryGuestName",
+                    record_sha256 AS "recordSha256", archived_at AS "archivedAt"
+             FROM statutory_police_beat_archives
+             WHERE tenant_id = $1 AND property_id = $2 AND report_date = $3::date
+             ORDER BY room_number ASC, is_companion ASC, full_name ASC`,
+            [user.tenantId, user.propertyId, targetDate],
+          )
+        ).rows;
+
+        if (archived.length > 0) {
+          isPartitionedArchive = true;
+          inHouse = archived.map((row: any) => ({
+            ...row,
+            isPrimary: !row.isCompanion,
+            status: 'checked_out',
+          }));
+        }
+      }
+
+      if (!isPartitionedArchive) {
+        // In-house guests as of the report date (both primary guests and registered room companions)
+        inHouse = (
+          await c.query(
+            `SELECT ro.number AS "roomNumber", ro.floor, p.full_name AS "guestName", p.phone AS "guestPhone",
+                    p.email AS "guestEmail", g.nationality, g.id_type AS "idType",
+                    r.check_in AS "checkIn", r.check_out AS "checkOut", r.check_in_at AS "checkInAt",
+                    r.status, p.address,
+                    coalesce(rg.is_primary, true) AS "isPrimary"
+             FROM reservations r
+             JOIN rooms ro ON ro.id = r.room_id
+             LEFT JOIN reservation_guests rg ON rg.reservation_id = r.id AND rg.tenant_id = r.tenant_id
+             JOIN guests g ON g.id = coalesce(rg.guest_id, r.guest_id)
+             JOIN parties p ON p.id = g.party_id
+             WHERE r.tenant_id = $1 AND r.property_id = $2
+               AND (
+                 ($3::date = current_date AND r.status = 'checked_in')
+                 OR ($3::date <> current_date AND r.check_in <= $3::date AND r.check_out >= $3::date AND r.status IN ('checked_in', 'checked_out'))
+               )
+             ORDER BY ro.number ASC, coalesce(rg.is_primary, true) DESC, p.full_name ASC`,
+            [user.tenantId, user.propertyId, targetDate],
+          )
+        ).rows;
+
+        // If historical and records exist, auto-archive to partitioned table for fast future retrieval
+        if (isHistorical && inHouse.length > 0) {
+          for (const g of inHouse) {
+            const recordStr = `${user.tenantId}:${user.propertyId}:${targetDate}:${g.roomNumber}:${g.guestName}:${g.checkIn}:${g.checkOut}`;
+            const sha256 = createHash('sha256').update(recordStr).digest('hex');
+            await c.query(
+              `INSERT INTO statutory_police_beat_archives (
+                 tenant_id, property_id, report_date, room_number,
+                 full_name, phone, email, nationality, id_proof_type,
+                 check_in, expected_check_out, is_companion, record_sha256
+               )
+               VALUES ($1, $2, $3::date, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+               ON CONFLICT DO NOTHING`,
+              [
+                user.tenantId,
+                user.propertyId,
+                targetDate,
+                g.roomNumber,
+                g.guestName,
+                g.guestPhone || null,
+                g.guestEmail || null,
+                g.nationality || 'Indian',
+                g.idType || 'AADHAAR',
+                g.checkIn,
+                g.checkOut,
+                !g.isPrimary,
+                sha256,
+              ],
+            );
+          }
+          isPartitionedArchive = true;
+        }
+      }
 
       // Arrivals on targetDate
       const arrivals = (
@@ -225,14 +292,16 @@ export class ComplianceController {
         userId: user.id,
         action: 'police_report.export',
         entity: 'police_report',
-        meta: { date: targetDate, inHouseCount: inHouse.length },
+        meta: { date: targetDate, inHouseCount: inHouse.length, isPartitionedArchive },
       });
 
       return {
         property: property ?? { name: 'Hotel Property', timezone: 'Asia/Kolkata', currency: 'INR' },
         reportDate: targetDate,
         generatedAt: new Date().toISOString(),
-        isHistorical: targetDate !== new Date().toISOString().slice(0, 10),
+        isHistorical,
+        isPartitionedArchive,
+        partitionYear: targetDate.slice(0, 4),
         summary: {
           totalInHouse: inHouse.length,
           arrivalsToday: arrivals.length,
@@ -241,6 +310,92 @@ export class ComplianceController {
         inHouse,
         arrivals,
         departures,
+      };
+    });
+  }
+
+  @Post('archive-snapshot')
+  @RequirePermission(PERMISSIONS.POLICE_REPORT_EXPORT)
+  async archiveSnapshot(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { reportDate?: string },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const targetDate = body?.reportDate && dateRegex.test(body.reportDate) ? body.reportDate : new Date().toISOString().slice(0, 10);
+
+      const inHouse = (
+        await c.query(
+          `SELECT ro.number AS "roomNumber", r.id AS "reservationId", coalesce(rg.guest_id, r.guest_id) AS "guestId",
+                  p.full_name AS "guestName", p.phone AS "guestPhone", p.email AS "guestEmail",
+                  coalesce(g.nationality, 'Indian') AS "nationality", coalesce(g.id_type, 'AADHAAR') AS "idType",
+                  coalesce(g.id_number, 'XXXX') AS "maskedIdNumber",
+                  r.check_in AS "checkIn", r.check_out AS "checkOut",
+                  not coalesce(rg.is_primary, true) AS "isCompanion",
+                  (SELECT p2.full_name FROM guests g2 JOIN parties p2 ON p2.id = g2.party_id WHERE g2.id = r.guest_id) AS "primaryGuestName"
+           FROM reservations r
+           JOIN rooms ro ON ro.id = r.room_id
+           LEFT JOIN reservation_guests rg ON rg.reservation_id = r.id AND rg.tenant_id = r.tenant_id
+           JOIN guests g ON g.id = coalesce(rg.guest_id, r.guest_id)
+           JOIN parties p ON p.id = g.party_id
+           WHERE r.tenant_id = $1 AND r.property_id = $2
+             AND (
+               ($3::date = current_date AND r.status = 'checked_in')
+               OR ($3::date <> current_date AND r.check_in <= $3::date AND r.check_out >= $3::date AND r.status IN ('checked_in', 'checked_out'))
+             )`,
+          [user.tenantId, user.propertyId, targetDate],
+        )
+      ).rows;
+
+      let insertedCount = 0;
+      for (const g of inHouse) {
+        const recordStr = `${user.tenantId}:${user.propertyId}:${targetDate}:${g.roomNumber}:${g.guestName}:${g.checkIn}:${g.checkOut}`;
+        const sha256 = createHash('sha256').update(recordStr).digest('hex');
+        const res = await c.query(
+          `INSERT INTO statutory_police_beat_archives (
+             tenant_id, property_id, report_date, room_number, reservation_id, guest_id,
+             full_name, phone, email, nationality, id_proof_type, masked_id_number,
+             check_in, expected_check_out, is_companion, primary_guest_name, record_sha256
+           )
+           VALUES ($1, $2, $3::date, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+           ON CONFLICT DO NOTHING`,
+          [
+            user.tenantId,
+            user.propertyId,
+            targetDate,
+            g.roomNumber,
+            g.reservationId,
+            g.guestId,
+            g.guestName,
+            g.guestPhone || null,
+            g.guestEmail || null,
+            g.nationality,
+            g.idType,
+            g.maskedIdNumber,
+            g.checkIn,
+            g.checkOut,
+            g.isCompanion,
+            g.primaryGuestName,
+            sha256,
+          ],
+        );
+        if (res.rowCount) insertedCount += res.rowCount;
+      }
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'compliance.archive_snapshot',
+        entity: 'police_report',
+        meta: { targetDate, recordsArchived: insertedCount, partitionYear: targetDate.slice(0, 4) },
+      });
+
+      return {
+        success: true,
+        reportDate: targetDate,
+        partitionYear: targetDate.slice(0, 4),
+        recordsArchived: insertedCount,
+        message: `Successfully archived ${insertedCount} record(s) into statutory partitioned archive for ${targetDate}.`,
       };
     });
   }

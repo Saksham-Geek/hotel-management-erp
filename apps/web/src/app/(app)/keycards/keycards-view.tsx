@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
+import { getRoomTypeTheme } from '@/lib/room-types';
 import { updateRoomKeyStatusAction, encodeKeycardAction } from './actions';
 
 export interface RoomKeyCustodyLogDto {
@@ -81,6 +82,27 @@ export function KeycardsView({
 
   const brassKeys = localKeys.filter((k) => k.keyType === 'physical_brass');
   const rfidKeys = localKeys.filter((k) => k.keyType === 'rfid_mifare');
+
+  const [brassCategoryFilter, setBrassCategoryFilter] = useState<string>('all');
+  const [rfidCategoryFilter, setRfidCategoryFilter] = useState<string>('all');
+
+  const brassCategories = Array.from(
+    new Set(brassKeys.map((k) => k.roomTypeName || 'Deluxe')),
+  ).filter(Boolean);
+
+  const filteredBrassKeys =
+    brassCategoryFilter === 'all'
+      ? brassKeys
+      : brassKeys.filter((k) => (k.roomTypeName || 'Deluxe') === brassCategoryFilter);
+
+  const rfidCategories = Array.from(
+    new Set(rfidKeys.map((k) => k.roomTypeName || 'Deluxe')),
+  ).filter(Boolean);
+
+  const filteredRfidKeys =
+    rfidCategoryFilter === 'all'
+      ? rfidKeys
+      : rfidKeys.filter((k) => (k.roomTypeName || 'Deluxe') === rfidCategoryFilter);
 
   // Browser Web Serial API connection for USB RFID Reader / Encoder
   async function handleConnectSerialEncoder() {
@@ -301,156 +323,216 @@ export function KeycardsView({
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 1: TRADITIONAL BRASS KEY TAG RACK */}
+      {/* TAB 1: FRONT DESK KEY TAG CABINET & BRASS TAGS */}
       {/* ========================================================================= */}
       {activeTab === 'brass_rack' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h2 className="font-display text-lg font-bold text-ink flex items-center gap-2">
-                <span>Traditional Wooden Key Rack &amp; Brass Keychains</span>
-                <span className="rounded-full bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300 text-[10px] font-bold px-2 py-0.5 border border-amber-300">
-                  Ideal for Small Hotels &amp; Heritage Havelis
+              <h2 className="font-display text-lg font-bold text-slate-950 dark:text-white flex items-center gap-2">
+                <span>Front Desk Key Cabinet</span>
+                <span className="rounded-full bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-slate-200 text-[10px] font-bold px-2.5 py-0.5 border border-slate-200 dark:border-white/10">
+                  Physical Brass Keychains
                 </span>
               </h2>
-              <p className="text-xs text-muted">
-                Visual representation of the physical front desk key cabinet. Keys are securely bound to their assigned room and active checked-in occupants.
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Physical front desk key cabinet with live occupancy tracking, guest custody verification, and audit logs.
               </p>
             </div>
 
-            <div className="flex items-center gap-3 text-xs font-bold">
-              <span className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+            <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+              <span className="flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/40 px-3 py-1 text-emerald-800 dark:text-emerald-300 shadow-2xs">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
                 In Slot ({brassKeys.filter((k) => k.status === 'in_slot').length})
               </span>
-              <span className="flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
-                <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
+              <span className="flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/40 px-3 py-1 text-amber-800 dark:text-amber-300 shadow-2xs">
+                <span className="h-2 w-2 rounded-full bg-amber-500 animate-pulse" />
                 With Guest ({brassKeys.filter((k) => k.status === 'issued_to_guest').length})
               </span>
-              <span className="flex items-center gap-1.5 text-blue-700 dark:text-blue-400">
-                <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
+              <span className="flex items-center gap-1.5 rounded-full bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/40 px-3 py-1 text-sky-800 dark:text-sky-300 shadow-2xs">
+                <span className="h-2 w-2 rounded-full bg-sky-500" />
                 Housekeeping ({brassKeys.filter((k) => k.status === 'with_housekeeping').length})
               </span>
+              {brassKeys.some((k) => k.status === 'lost') && (
+                <span className="flex items-center gap-1.5 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/40 px-3 py-1 text-rose-800 dark:text-rose-300 shadow-2xs">
+                  <span className="h-2 w-2 rounded-full bg-rose-500" />
+                  Lost ({brassKeys.filter((k) => k.status === 'lost').length})
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Wooden Rack Grid */}
-          <div className="rounded-3xl border-4 border-[#4a2e18] bg-[#2b180d] p-6 shadow-2xl">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {brassKeys.map((key) => {
-                const stay = activeStays.find(
-                  (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim()
+          {/* Room Category Quick Filter Bar */}
+          {brassCategories.length > 1 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">
+                Filter Category:
+              </span>
+              <button
+                type="button"
+                onClick={() => setBrassCategoryFilter('all')}
+                className={`rounded-full px-3 py-1 text-xs font-bold transition-all shadow-2xs cursor-pointer ${
+                  brassCategoryFilter === 'all'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs'
+                    : 'bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
+                }`}
+              >
+                All Categories ({brassKeys.length})
+              </button>
+              {brassCategories.map((cat) => {
+                const theme = getRoomTypeTheme(cat);
+                const count = brassKeys.filter(
+                  (k) => (k.roomTypeName || 'Deluxe') === cat,
+                ).length;
+                const isSelected = brassCategoryFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setBrassCategoryFilter(cat)}
+                    className={`rounded-full px-3 py-1 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 border cursor-pointer ${
+                      isSelected
+                        ? `${theme.badge} ring-2 ring-slate-900/15 dark:ring-white/20 scale-[1.02]`
+                        : 'bg-white dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
+                    }`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${theme.dot}`} />
+                    <span>{theme.icon}</span>
+                    <span>{cat}</span>
+                    <span className="opacity-70">({count})</span>
+                  </button>
                 );
+              })}
+            </div>
+          )}
+
+          {/* Key Cabinet Grid matching Site Theme */}
+          <div className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+              {filteredBrassKeys.map((key) => {
+                const stay = activeStays.find(
+                  (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim(),
+                );
+                const roomTheme = getRoomTypeTheme(key.roomTypeName);
 
                 return (
                   <div
                     key={key.id}
-                    className={`flex flex-col justify-between rounded-2xl border p-4 shadow-md transition-all ${
+                    className={`min-w-0 relative flex flex-col justify-between rounded-2xl border transition-all duration-200 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-md ${roomTheme.lightBg} ${
                       key.status === 'in_slot'
-                        ? 'border-[#8c6239] bg-[#3d2314] text-amber-100'
+                        ? 'border-slate-200/90 dark:border-white/10 hover:border-slate-300'
                         : key.status === 'issued_to_guest'
-                        ? 'border-amber-400/80 bg-[#543019] text-white ring-1 ring-amber-400'
+                        ? 'border-amber-400/90 dark:border-amber-500/60 ring-2 ring-amber-400/20'
                         : key.status === 'lost'
-                        ? 'border-rose-500/80 bg-[#3b1219] text-white ring-1 ring-rose-500'
-                        : 'border-blue-400/80 bg-[#1d263b] text-white'
+                        ? 'border-rose-400/90 dark:border-rose-500/60 ring-2 ring-rose-400/20'
+                        : 'border-sky-400/90 dark:border-sky-500/60 ring-2 ring-sky-400/20'
                     }`}
                   >
-                    <div className="relative text-center">
-                      {/* Top right quick audit pill */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setHistoryKey(key);
-                        }}
-                        title="View Custody Log & Handover History"
-                        className="absolute right-0 top-0 rounded-md bg-amber-950/90 hover:bg-amber-900 border border-amber-400/50 px-1.5 py-0.5 text-[9px] font-black text-amber-200 transition-colors cursor-pointer flex items-center gap-1 shadow-xs z-10"
-                      >
-                        <span>📜</span>
-                        <span>Log</span>
-                      </button>
-
-                      {/* Brass Key Peg / Hook */}
-                      <div className="mx-auto mb-2 flex h-5 w-5 items-center justify-center rounded-full bg-amber-400 ring-2 ring-amber-600 shadow-inner">
-                        <div className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+                    <div>
+                      {/* Top Header: Category Dash Accent & Custody Log Pill */}
+                      <div className="flex items-center justify-between gap-1 mb-2">
+                        <span className={`h-1.5 w-6 rounded-full ${roomTheme.dash} block shadow-2xs`} />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setHistoryKey(key);
+                          }}
+                          title="View Custody Log & Handover History"
+                          className="rounded-md border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-white/10 px-1.5 py-0.5 text-[9px] font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white shadow-2xs transition-colors cursor-pointer flex items-center gap-1"
+                        >
+                          <span>📜</span>
+                          <span>Log</span>
+                        </button>
                       </div>
 
-                      {/* Room Number Engraved Brass Plate */}
-                      <div className="rounded-xl border border-amber-400/60 bg-gradient-to-b from-amber-300 via-amber-400 to-amber-600 px-3 py-2 text-slate-950 shadow-md">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-amber-950">ROOM</p>
-                        <p className="font-display text-2xl font-black tracking-tight leading-none">
+                      {/* Brass Key Peg / Hook Accent */}
+                      <div className="mx-auto my-1 flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-b from-amber-200 via-amber-300 to-amber-500 border border-amber-400/80 text-amber-950 shadow-inner">
+                        <div className="h-1.5 w-1.5 rounded-full bg-slate-900/80" />
+                      </div>
+
+                      {/* Room Plate with Category Styling */}
+                      <div className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0c1222]/90 backdrop-blur-xs p-2.5 text-center shadow-2xs space-y-1">
+                        <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                          ROOM
+                        </p>
+                        <p className="font-display text-2xl font-black font-mono tracking-tight text-slate-950 dark:text-white leading-none">
                           {key.roomNumber}
                         </p>
-                        <p className="text-[8px] font-bold text-amber-900 mt-0.5 truncate">
-                          {key.roomTypeName || 'Deluxe'}
-                        </p>
+                        <div className="pt-0.5">
+                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${roomTheme.badge} max-w-full truncate`}>
+                            <span>{roomTheme.icon}</span>
+                            <span className="truncate">{key.roomTypeName || 'Deluxe'}</span>
+                          </span>
+                        </div>
                       </div>
 
                       {/* Status Badge */}
-                      <div className="mt-2.5">
-                        <span
-                          className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-black uppercase tracking-wider ${
-                            key.status === 'in_slot'
-                              ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
-                              : key.status === 'issued_to_guest'
-                              ? 'bg-amber-950 text-amber-300 border border-amber-500/40'
-                              : key.status === 'lost'
-                              ? 'bg-rose-950 text-rose-300 border border-rose-500/40'
-                              : 'bg-blue-950 text-blue-300 border border-blue-500/40'
-                          }`}
-                        >
-                          {key.status === 'in_slot'
-                            ? '🟢 In Slot'
-                            : key.status === 'issued_to_guest'
-                            ? '🟡 Out with Guest'
-                            : key.status === 'lost'
-                            ? '🚨 Lost Key'
-                            : '🧹 With Maid'}
-                        </span>
+                      <div className="mt-2.5 flex justify-center">
+                        {key.status === 'in_slot' ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 text-[10px] font-bold shadow-2xs">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                            <span>In Slot</span>
+                          </span>
+                        ) : key.status === 'issued_to_guest' ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 px-2.5 py-0.5 text-[10px] font-bold shadow-2xs">
+                            <span className="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            <span>Out with Guest</span>
+                          </span>
+                        ) : key.status === 'with_housekeeping' ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-sky-50 text-sky-900 border border-sky-300 dark:bg-sky-950/60 dark:text-sky-300 dark:border-sky-700 px-2.5 py-0.5 text-[10px] font-bold shadow-2xs">
+                            <span className="h-1.5 w-1.5 rounded-full bg-sky-500" />
+                            <span>Housekeeping</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-700 px-2.5 py-0.5 text-[10px] font-bold shadow-2xs">
+                            <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+                            <span>Lost Key</span>
+                          </span>
+                        )}
                       </div>
 
                       {/* Occupant / Room Info */}
-                      {key.status === 'lost' && (
-                        <p className="text-[10px] text-rose-200 font-bold mt-1.5 truncate" title={`Lost. Last Holder: ${key.custodyLogs?.[0]?.recipientName || key.issuedToGuestName || 'Unknown'}`}>
-                          🚨 Last: {key.custodyLogs?.[0]?.recipientName || key.issuedToGuestName || 'Unknown'}
-                        </p>
-                      )}
-
-                      {key.status === 'issued_to_guest' && (
-                        <p className="text-[10px] text-amber-200 font-bold mt-1.5 truncate" title={`Guest: ${key.issuedToGuestName || 'In-House Guest'}`}>
-                          👤 {key.issuedToGuestName || 'In-House Guest'}
-                        </p>
-                      )}
-
-                      {key.status === 'with_housekeeping' && (
-                        <p className="text-[10px] text-blue-200 font-bold mt-1.5 truncate">
-                          🧹 {key.issuedToGuestName || 'Housekeeping Staff'}
-                        </p>
-                      )}
-
-                      {key.status === 'in_slot' && (
-                        stay ? (
-                          <p className="text-[10px] text-emerald-300 font-bold mt-1.5 truncate" title={`In-House: ${stay.guestName}`}>
-                            👤 {stay.guestName}
+                      <div className="mt-2 text-center min-h-[20px]">
+                        {key.status === 'lost' ? (
+                          <p className="text-[10px] text-rose-700 dark:text-rose-300 font-bold truncate flex items-center justify-center gap-1" title={`Lost. Last Holder: ${key.custodyLogs?.[0]?.recipientName || key.issuedToGuestName || 'Unknown'}`}>
+                            <span>🚨</span>
+                            <span className="truncate">Last: {key.custodyLogs?.[0]?.recipientName || key.issuedToGuestName || 'Unknown'}</span>
+                          </p>
+                        ) : key.status === 'issued_to_guest' ? (
+                          <p className="text-[10px] text-slate-800 dark:text-slate-200 font-bold truncate flex items-center justify-center gap-1" title={`Guest: ${key.issuedToGuestName || 'In-House Guest'}`}>
+                            <span>👤</span>
+                            <span className="truncate">{key.issuedToGuestName || 'In-House Guest'}</span>
+                          </p>
+                        ) : key.status === 'with_housekeeping' ? (
+                          <p className="text-[10px] text-sky-800 dark:text-sky-300 font-semibold truncate flex items-center justify-center gap-1">
+                            <span>🧹</span>
+                            <span className="truncate">{key.issuedToGuestName || 'Housekeeping Staff'}</span>
+                          </p>
+                        ) : stay ? (
+                          <p className="text-[10px] text-emerald-800 dark:text-emerald-300 font-bold truncate flex items-center justify-center gap-1" title={`In-House: ${stay.guestName}`}>
+                            <span>👤</span>
+                            <span className="truncate">{stay.guestName}</span>
                           </p>
                         ) : (
-                          <p className="text-[10px] text-amber-100/60 font-medium mt-1.5 truncate">
-                            🚪 Vacant Room
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate flex items-center justify-center gap-1">
+                            <span>🚪</span>
+                            <span>Vacant Room</span>
                           </p>
-                        )
-                      )}
+                        )}
+                      </div>
                     </div>
 
                     {/* Quick Action Buttons */}
-                    <div className="mt-4 pt-2.5 border-t border-white/10 space-y-1.5">
+                    <div className="mt-3 pt-2.5 border-t border-slate-200/80 dark:border-white/10 space-y-1.5">
                       {key.status === 'in_slot' ? (
                         <button
                           type="button"
                           onClick={() => setHandingKey(key)}
-                          className={`w-full rounded-lg py-1.5 text-[11px] font-black transition-colors cursor-pointer shadow-xs ${
+                          className={`w-full rounded-xl py-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
                             stay
-                              ? 'bg-amber-400 text-slate-950 hover:bg-amber-300'
-                              : 'bg-slate-700/80 text-amber-100 hover:bg-slate-600'
+                              ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200'
+                              : 'bg-white dark:bg-white/10 border border-slate-200 dark:border-white/15 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/15'
                           }`}
                         >
                           {stay ? 'Hand to Guest →' : 'Key Actions →'}
@@ -460,7 +542,7 @@ export function KeycardsView({
                           <button
                             type="button"
                             onClick={() => handleUpdateKeyStatus(key.id, 'in_slot')}
-                            className="w-full rounded-lg bg-emerald-700 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-600 transition-colors cursor-pointer"
+                            className="w-full rounded-xl bg-emerald-600 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors shadow-2xs cursor-pointer"
                           >
                             ✓ Return to Slot
                           </button>
@@ -468,43 +550,35 @@ export function KeycardsView({
                             <button
                               type="button"
                               onClick={() => setHandingKey(key)}
-                              className="w-full rounded-lg bg-amber-400 py-1 text-[10px] font-bold text-slate-950 hover:bg-amber-300 transition-colors cursor-pointer"
+                              className="w-full rounded-xl bg-slate-900 py-1 text-[11px] font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 transition-colors cursor-pointer shadow-2xs"
                             >
                               Hand to Guest →
                             </button>
                           )}
                         </div>
-                      ) : key.status === 'lost' ? (
-                        <button
-                          type="button"
-                          onClick={() => handleUpdateKeyStatus(key.id, 'in_slot')}
-                          className="w-full rounded-lg bg-emerald-700 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-600 transition-colors cursor-pointer"
-                        >
-                          ✓ Found &amp; Return
-                        </button>
                       ) : (
                         <button
                           type="button"
                           onClick={() => handleUpdateKeyStatus(key.id, 'in_slot')}
-                          className="w-full rounded-lg bg-emerald-700 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-600 transition-colors cursor-pointer"
+                          className="w-full rounded-xl bg-emerald-600 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 transition-colors shadow-2xs cursor-pointer"
                         >
-                          ✓ Return to Slot
+                          {key.status === 'lost' ? '✓ Found & Return' : '✓ Return to Slot'}
                         </button>
                       )}
 
-                      {/* Custody History & Lost Trace Button */}
+                      {/* Custody History Button */}
                       <button
                         type="button"
                         onClick={() => setHistoryKey(key)}
-                        className="w-full rounded-lg bg-amber-500/20 hover:bg-amber-500/30 py-1.5 text-[11px] font-bold text-amber-200 hover:text-white transition-colors cursor-pointer border border-amber-400/40 flex items-center justify-center gap-1.5 shadow-xs"
+                        className="w-full rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/80 hover:bg-slate-50 dark:bg-white/5 dark:hover:bg-white/10 py-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                       >
                         <span>📜 Custody Log</span>
                         {key.custodyLogs && key.custodyLogs.length > 0 ? (
-                          <span className="rounded-full bg-amber-400 text-slate-950 px-1.5 py-0.2 text-[9px] font-black">
+                          <span className="rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-950 px-1.5 py-0.2 text-[9px] font-bold">
                             {key.custodyLogs.length}
                           </span>
                         ) : (
-                          <span className="text-[9px] text-amber-300/70">
+                          <span className="text-[9px] text-slate-400">
                             (Audit)
                           </span>
                         )}
@@ -554,36 +628,91 @@ export function KeycardsView({
             </button>
           </div>
 
+          {/* Room Category Quick Filter Bar for RFID */}
+          {rfidCategories.length > 1 && (
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 mr-1">
+                Filter Category:
+              </span>
+              <button
+                type="button"
+                onClick={() => setRfidCategoryFilter('all')}
+                className={`rounded-full px-3 py-1 text-xs font-bold transition-all shadow-2xs cursor-pointer ${
+                  rfidCategoryFilter === 'all'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs'
+                    : 'bg-white dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
+                }`}
+              >
+                All Categories ({rfidKeys.length})
+              </button>
+              {rfidCategories.map((cat) => {
+                const theme = getRoomTypeTheme(cat);
+                const count = rfidKeys.filter(
+                  (k) => (k.roomTypeName || 'Deluxe') === cat,
+                ).length;
+                const isSelected = rfidCategoryFilter === cat;
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setRfidCategoryFilter(cat)}
+                    className={`rounded-full px-3 py-1 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 border cursor-pointer ${
+                      isSelected
+                        ? `${theme.badge} ring-2 ring-slate-900/15 dark:ring-white/20 scale-[1.02]`
+                        : 'bg-white dark:bg-white/5 border-slate-200/80 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10'
+                    }`}
+                  >
+                    <span className={`h-2 w-2 rounded-full ${theme.dot}`} />
+                    <span>{theme.icon}</span>
+                    <span>{cat}</span>
+                    <span className="opacity-70">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
           {/* RFID Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {rfidKeys.map((key) => {
+            {filteredRfidKeys.map((key) => {
               const stay = activeStays.find(
-                (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim()
+                (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim(),
               );
+              const roomTheme = getRoomTypeTheme(key.roomTypeName);
 
               return (
                 <div
                   key={key.id}
-                  className="flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-white/10 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-[#0d1424] dark:to-[#070b14] p-5 shadow-md"
+                  className={`flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-white/10 ${roomTheme.lightBg} p-5 shadow-sm hover:shadow-md transition-all`}
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs font-bold text-slate-400">
-                        NFC / RFID 13.56MHz
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`h-1.5 w-6 rounded-full ${roomTheme.dash} block shadow-2xs`} />
+                        <span className="font-mono text-[10px] font-bold text-slate-400">
+                          NFC / RFID 13.56MHz
+                        </span>
+                      </div>
                       <span className="text-xl">💳</span>
                     </div>
 
-                    <div className="mt-4">
+                    <div className="mt-3">
                       <p className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">ROOM NUMBER</p>
-                      <p className="font-display text-2xl font-black text-ink">{key.roomNumber}</p>
-                      <p className="text-[11px] text-muted">{key.roomTypeName}</p>
+                      <p className="font-display text-2xl font-black font-mono text-slate-950 dark:text-white leading-tight">
+                        {key.roomNumber}
+                      </p>
+                      <div className="mt-1">
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${roomTheme.badge}`}>
+                          <span>{roomTheme.icon}</span>
+                          <span>{key.roomTypeName || 'Deluxe'}</span>
+                        </span>
+                      </div>
                     </div>
 
-                    <div className="mt-3 rounded-xl bg-slate-100 dark:bg-white/[0.04] p-2.5 font-mono text-[10px] space-y-1">
+                    <div className="mt-3 rounded-xl bg-white/80 dark:bg-white/[0.04] border border-slate-200/60 dark:border-white/5 p-2.5 font-mono text-[10px] space-y-1">
                       <div className="flex justify-between">
                         <span className="text-slate-500">CARD UID:</span>
-                        <span className="font-bold text-ink">{key.cardUid || '04:A2:4B:91'}</span>
+                        <span className="font-bold text-slate-900 dark:text-white">{key.cardUid || '04:A2:4B:91'}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">STATUS:</span>
@@ -593,29 +722,29 @@ export function KeycardsView({
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">OCCUPANT:</span>
-                        <span className="font-bold text-ink truncate max-w-[120px]">
+                        <span className="font-bold text-slate-900 dark:text-white truncate max-w-[120px]">
                           {stay ? stay.guestName : key.issuedToGuestName ? key.issuedToGuestName : 'Vacant'}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-slate-200 dark:border-white/10 space-y-1.5">
+                  <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-white/10 space-y-1.5">
                     <button
                       type="button"
                       onClick={() => setEncodingKey(key)}
-                      className="w-full rounded-xl bg-indigo-600 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full rounded-xl bg-slate-900 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <span>⚡ Write Sector 1 Keycard</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setHistoryKey(key)}
-                      className="w-full rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/[0.05] dark:hover:bg-white/[0.08] py-1.5 text-[11px] font-bold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                      className="w-full rounded-xl bg-white hover:bg-slate-50 dark:bg-white/[0.05] dark:hover:bg-white/[0.08] border border-slate-200/80 dark:border-white/10 py-1.5 text-[11px] font-semibold text-slate-700 dark:text-slate-300 transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-2xs"
                     >
                       <span>📜 Custody Log</span>
                       {key.custodyLogs && key.custodyLogs.length > 0 && (
-                        <span className="rounded-full bg-slate-200 dark:bg-white/10 px-1.5 py-0.2 text-[9px] font-black">
+                        <span className="rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-950 px-1.5 py-0.2 text-[9px] font-bold">
                           {key.custodyLogs.length}
                         </span>
                       )}
@@ -634,50 +763,63 @@ export function KeycardsView({
       {activeTab === 'digital_mobile' && (
         <div className="space-y-4">
           <div>
-            <h2 className="font-display text-lg font-bold text-ink">
+            <h2 className="font-display text-lg font-bold text-slate-950 dark:text-white">
               📱 Digital Mobile QR Keycards
             </h2>
-            <p className="text-xs text-muted">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               Instant keyless smartphone passes for checked-in guests. Guests scan QR code at the room door reader or front desk.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {activeStays.map((stay) => (
-              <div
-                key={stay.reservationId}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1222] p-5 shadow-sm"
-              >
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">
-                      ACTIVE STAY
-                    </span>
-                    <span className="font-mono text-xs text-slate-400">Room {stay.roomNumber}</span>
+            {activeStays.map((stay) => {
+              const matchKey = keys.find(
+                (k) => String(k.roomNumber).trim() === String(stay.roomNumber).trim(),
+              );
+              const roomTheme = getRoomTypeTheme(matchKey?.roomTypeName);
+
+              return (
+                <div
+                  key={stay.reservationId}
+                  className={`flex flex-col justify-between rounded-2xl border border-slate-200/90 dark:border-white/10 ${roomTheme.lightBg} p-5 shadow-sm hover:shadow-md transition-all`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">
+                        ACTIVE STAY
+                      </span>
+                      <span className="font-mono text-xs font-bold text-slate-500">Room {stay.roomNumber}</span>
+                    </div>
+
+                    <div className="mt-3">
+                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${roomTheme.badge}`}>
+                        <span>{roomTheme.icon}</span>
+                        <span>{matchKey?.roomTypeName || 'Deluxe'}</span>
+                      </span>
+                    </div>
+
+                    <h3 className="font-display text-base font-bold text-slate-950 dark:text-white mt-2">
+                      {stay.guestName}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Stay: {stay.checkInFormatted || new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {stay.checkOutFormatted || new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                    </p>
                   </div>
 
-                  <h3 className="font-display text-base font-bold text-ink mt-3">
-                    {stay.guestName}
-                  </h3>
-                  <p className="text-xs text-muted mt-0.5">
-                    Stay: {stay.checkInFormatted || new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {stay.checkOutFormatted || new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
-                  </p>
+                  <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-white/10 space-y-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (matchKey) setMobilePassKey(matchKey);
+                      }}
+                      className="w-full rounded-xl bg-slate-900 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
+                    >
+                      View Digital Pass QR
+                    </button>
+                  </div>
                 </div>
-
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/10 space-y-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const matchKey = keys.find((k) => String(k.roomNumber).trim() === String(stay.roomNumber).trim());
-                      if (matchKey) setMobilePassKey(matchKey);
-                    }}
-                    className="w-full rounded-xl bg-slate-900 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors cursor-pointer"
-                  >
-                    View Digital Pass QR
-                  </button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import {
   Get,
   Post,
 } from '@nestjs/common';
+import { createHash } from 'node:crypto';
 import { FEATURES, PERMISSIONS } from '@erp/shared';
 import { AuditService } from '../audit/audit.service';
 import { AuthUser, CurrentUser } from '../common/current-user';
@@ -72,6 +73,7 @@ export class NightAuditController {
         pendingArrivals,
         pendingDepartures,
         occupancyRate,
+        overdueNoShowsCount: pendingArrivals,
       };
     });
   }
@@ -174,6 +176,127 @@ export class NightAuditController {
         taxPosted += tax.taxTotal;
       }
 
+      // 1.5 Automated No-Show Auto-Release: Room Lifecycle Guard
+      // Identifies unarrived reservations for today or earlier that were never checked in,
+      // marks them as cancelled with audit rationale, releases room keys, and restores rooms to available inventory.
+      const overdueReservations = (
+        await c.query(
+          `SELECT r.id, r.room_id AS "roomId", r.check_in::text AS "checkIn",
+                  ro.number AS "roomNumber", p.full_name AS "guestName"
+           FROM reservations r
+           JOIN rooms ro ON ro.id = r.room_id
+           JOIN guests g ON g.id = r.guest_id
+           JOIN parties p ON p.id = g.party_id
+           WHERE r.tenant_id = $1 AND r.property_id = $2
+             AND r.status = 'reserved'
+             AND r.check_in <= $3::date`,
+          [user.tenantId, user.propertyId, businessDate],
+        )
+      ).rows;
+
+      const releasedRooms: string[] = [];
+      for (const noShow of overdueReservations) {
+        await c.query(
+          `UPDATE reservations
+           SET status = 'cancelled'
+           WHERE id = $1`,
+          [noShow.id],
+        );
+
+        await c.query(
+          `UPDATE room_keys
+           SET status = 'in_slot',
+               issued_to_reservation_id = null,
+               issued_to_guest_name = null,
+               returned_at = now(),
+               updated_at = now()
+           WHERE issued_to_reservation_id = $1`,
+          [noShow.id],
+        );
+
+        const activeStays = (
+          await c.query(
+            `SELECT 1 FROM reservations WHERE room_id = $1 AND status = 'checked_in' LIMIT 1`,
+            [noShow.roomId],
+          )
+        ).rowCount;
+
+        if (!activeStays) {
+          await c.query(
+            `UPDATE rooms SET status = 'available' WHERE id = $1`,
+            [noShow.roomId],
+          );
+          releasedRooms.push(noShow.roomNumber);
+        }
+
+        await this.audit.log(c, {
+          tenantId: user.tenantId,
+          userId: user.id,
+          action: 'reservation.no_show_auto_release',
+          entity: 'reservation',
+          entityId: noShow.id,
+          meta: {
+            guestName: noShow.guestName,
+            roomNumber: noShow.roomNumber,
+            businessDate,
+          },
+        });
+      }
+
+      // 1.6 Snapshot Police Beat Sheet into 6-Year Partitioned Statutory Archive
+      const beatSheetGuests = (
+        await c.query(
+          `SELECT ro.number AS "roomNumber", r.id AS "reservationId", coalesce(rg.guest_id, r.guest_id) AS "guestId",
+                  p.full_name AS "guestName", p.phone AS "guestPhone", p.email AS "guestEmail",
+                  coalesce(g.nationality, 'Indian') AS "nationality", coalesce(g.id_type, 'AADHAAR') AS "idType",
+                  coalesce(g.id_number, 'XXXX') AS "maskedIdNumber",
+                  r.check_in AS "checkIn", r.check_out AS "checkOut",
+                  not coalesce(rg.is_primary, true) AS "isCompanion",
+                  (SELECT p2.full_name FROM guests g2 JOIN parties p2 ON p2.id = g2.party_id WHERE g2.id = r.guest_id) AS "primaryGuestName"
+           FROM reservations r
+           JOIN rooms ro ON ro.id = r.room_id
+           LEFT JOIN reservation_guests rg ON rg.reservation_id = r.id AND rg.tenant_id = r.tenant_id
+           JOIN guests g ON g.id = coalesce(rg.guest_id, r.guest_id)
+           JOIN parties p ON p.id = g.party_id
+           WHERE r.tenant_id = $1 AND r.property_id = $2
+             AND r.status = 'checked_in'`,
+          [user.tenantId, user.propertyId],
+        )
+      ).rows;
+
+      for (const bg of beatSheetGuests) {
+        const recordStr = `${user.tenantId}:${user.propertyId}:${businessDate}:${bg.roomNumber}:${bg.guestName}:${bg.checkIn}:${bg.checkOut}`;
+        const sha256 = createHash('sha256').update(recordStr).digest('hex');
+        await c.query(
+          `INSERT INTO statutory_police_beat_archives (
+             tenant_id, property_id, report_date, room_number, reservation_id, guest_id,
+             full_name, phone, email, nationality, id_proof_type, masked_id_number,
+             check_in, expected_check_out, is_companion, primary_guest_name, record_sha256
+           )
+           VALUES ($1, $2, $3::date, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+           ON CONFLICT DO NOTHING`,
+          [
+            user.tenantId,
+            user.propertyId,
+            businessDate,
+            bg.roomNumber,
+            bg.reservationId,
+            bg.guestId,
+            bg.guestName,
+            bg.guestPhone || null,
+            bg.guestEmail || null,
+            bg.nationality,
+            bg.idType,
+            bg.maskedIdNumber,
+            bg.checkIn,
+            bg.checkOut,
+            bg.isCompanion,
+            bg.primaryGuestName,
+            sha256,
+          ],
+        );
+      }
+
       // 2. Compute summary KPIs
       const totalRooms = Number((await c.query(`SELECT count(*)::int AS n FROM rooms WHERE tenant_id = $1 AND property_id = $2`, [user.tenantId, user.propertyId])).rows[0]?.n ?? 0);
       const roomsOccupied = checkedInReservations.length;
@@ -234,9 +357,11 @@ export class NightAuditController {
       });
 
       return {
-        message: `Night audit completed for ${businessDate}. Business date rolled to ${nextDate}.`,
+        message: `Night audit completed for ${businessDate}. Business date rolled to ${nextDate}.${overdueReservations.length > 0 ? ` ${overdueReservations.length} unarrived reservation(s) auto-released as No-Show and returned to inventory.` : ''}`,
         closedBusinessDate: businessDate,
         newBusinessDate: nextDate,
+        noShowsAutoReleased: overdueReservations.length,
+        releasedRooms,
         kpis: {
           roomsTotal: totalRooms,
           roomsOccupied,

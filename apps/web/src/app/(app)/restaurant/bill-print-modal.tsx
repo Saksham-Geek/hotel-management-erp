@@ -1,6 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { generateBillEscPos } from '@/lib/escpos';
+import { sendEscPosToPrinter, pulseDrawerOrBuzzer } from '@/lib/escpos-printer';
 
 export interface BillPrintData {
   invoiceNumber: string;
@@ -39,6 +41,10 @@ export function BillPrintModal({
   data: BillPrintData;
   onClose: () => void;
 }) {
+  const [width, setWidth] = useState<'80mm' | '58mm'>('80mm');
+  const [isPrintingDirect, setIsPrintingDirect] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<string | null>(null);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -52,6 +58,7 @@ export function BillPrintModal({
   const formattedTime = new Date(data.createdAt).toLocaleTimeString('en-IN', {
     hour: '2-digit',
     minute: '2-digit',
+    second: '2-digit',
   });
 
   const formattedDate = new Date(data.createdAt).toLocaleDateString('en-IN', {
@@ -60,7 +67,33 @@ export function BillPrintModal({
     year: 'numeric',
   });
 
-  function handlePrint() {
+  async function handleDirectEscPosPrint() {
+    setIsPrintingDirect(true);
+    setStatusMsg(null);
+    try {
+      const bytes = generateBillEscPos(data, width);
+      const res = await sendEscPosToPrinter(bytes);
+      setStatusMsg(res.message);
+      if (res.success && res.method !== 'BrowserDialog') {
+        setTimeout(() => onClose(), 1200);
+      }
+    } catch (err: any) {
+      setStatusMsg(err?.message || 'Direct printing failed');
+    } finally {
+      setIsPrintingDirect(false);
+    }
+  }
+
+  async function handleOpenDrawer() {
+    try {
+      const res = await pulseDrawerOrBuzzer();
+      setStatusMsg(res.message);
+    } catch (err: any) {
+      setStatusMsg('Cash drawer trigger failed');
+    }
+  }
+
+  function handleStandardPrint() {
     window.print();
   }
 
@@ -74,149 +107,218 @@ export function BillPrintModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="bill-print-dialog-title"
-        className="relative flex w-full max-w-md flex-col rounded-2xl bg-white shadow-2xl overflow-hidden text-slate-900"
+        className="relative flex w-full max-w-lg flex-col rounded-2xl bg-white shadow-2xl overflow-hidden text-slate-900"
       >
-        
         {/* Modal Controls Header (Hidden in Print) */}
-        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5 print:hidden">
+        <div className="flex flex-wrap items-center justify-between border-b border-slate-200 bg-slate-50 px-5 py-3.5 gap-2 print:hidden">
           <div className="flex items-center gap-2">
             <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-100 text-emerald-800 font-bold text-xs" aria-hidden="true">
               BILL
             </span>
             <div>
-              <p id="bill-print-dialog-title" className="text-xs font-bold text-slate-900">Customer Tax Bill (Aura Dine 80mm ESC/POS)</p>
+              <p id="bill-print-dialog-title" className="text-xs font-bold text-slate-900">
+                Customer Tax Bill ({width} ESC/POS)
+              </p>
               <p className="text-[10px] text-slate-500 font-mono">{data.invoiceNumber}</p>
             </div>
           </div>
+
+          {/* Width Selector */}
+          <div className="flex items-center rounded-lg border border-slate-200 bg-white p-0.5">
+            <button
+              type="button"
+              onClick={() => setWidth('80mm')}
+              className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition ${
+                width === '80mm' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              80mm Roll
+            </button>
+            <button
+              type="button"
+              onClick={() => setWidth('58mm')}
+              className={`rounded-md px-2.5 py-1 text-[11px] font-bold transition ${
+                width === '58mm' ? 'bg-slate-900 text-white shadow-2xs' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              58mm Mini
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close dialog"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* Action Top Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 bg-emerald-50/50 px-5 py-2.5 print:hidden">
           <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition-colors cursor-pointer"
+              disabled={isPrintingDirect}
+              onClick={handleDirectEscPosPrint}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 transition active:scale-95 disabled:opacity-50 cursor-pointer"
             >
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
-                <path d="M6 14h12v8H6z" />
-              </svg>
-              Print Bill
+              <span>⚡</span>
+              <span>{isPrintingDirect ? 'Streaming Bytes...' : 'Direct ESC/POS Print (Thermal)'}</span>
             </button>
             <button
               type="button"
-              onClick={onClose}
-              aria-label="Close dialog"
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-700 transition-colors cursor-pointer"
+              onClick={handleOpenDrawer}
+              title="Pulse Pin 2 to open cash drawer"
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs cursor-pointer"
             >
-              ✕
+              💵 Drawer Kick
             </button>
           </div>
+
+          <button
+            type="button"
+            onClick={handleStandardPrint}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 shadow-2xs cursor-pointer"
+          >
+            🖨️ Browser Dialog
+          </button>
         </div>
 
-        {/* 80mm Thermal Receipt Layout */}
-        <div className="max-h-[80vh] overflow-y-auto p-6 bg-slate-100 print:max-h-none print:p-0 print:bg-white">
-          <div className="mx-auto w-[290px] border border-dashed border-slate-300 bg-white p-5 font-mono text-[11px] leading-tight shadow-md print:w-full print:border-none print:p-0 print:shadow-none">
-            
+        {statusMsg && (
+          <div className="border-b border-emerald-100 bg-emerald-50 px-5 py-1.5 text-center text-xs font-semibold text-emerald-900 print:hidden">
+            {statusMsg}
+          </div>
+        )}
+
+        {/* Thermal Receipt Layout */}
+        <div className="max-h-[70vh] overflow-y-auto p-6 bg-slate-100 print:max-h-none print:p-0 print:bg-white flex justify-center">
+          <div
+            className={`border border-dashed border-slate-300 bg-white p-5 font-mono text-[11px] leading-tight shadow-md print:w-full print:border-none print:p-0 print:shadow-none ${
+              width === '58mm' ? 'w-[230px]' : 'w-[290px]'
+            }`}
+          >
             {/* Header */}
             <div className="text-center border-b border-black pb-2">
               <p className="text-[15px] font-black uppercase tracking-wider">{data.outletName}</p>
               {data.address && <p className="text-[10px] text-slate-600 mt-0.5">{data.address}</p>}
-              {data.contactPhone && <p className="text-[10px] text-slate-600">Ph: {data.contactPhone}</p>}
-              <div className="mt-1 flex justify-center gap-2 text-[9px] text-slate-700">
-                {data.gstin && <span>GSTIN: {data.gstin}</span>}
-                {data.fssaiNumber && <span>FSSAI: {data.fssaiNumber}</span>}
-              </div>
-              <p className="text-[11px] font-black uppercase mt-1.5 bg-black text-white px-2 py-0.5 inline-block">
-                TAX INVOICE / RESTAURANT BILL
+              {data.contactPhone && <p className="text-[10px] text-slate-600">Tel: {data.contactPhone}</p>}
+              {data.gstin && <p className="text-[10px] font-bold mt-1">GSTIN: {data.gstin}</p>}
+              {data.fssaiNumber && <p className="text-[9px] text-slate-600">FSSAI Lic: {data.fssaiNumber}</p>}
+              <p className="text-[11px] font-extrabold uppercase mt-1 bg-black text-white py-0.5 tracking-wider">
+                TAX INVOICE
               </p>
             </div>
 
-            {/* Bill Details */}
+            {/* Bill Meta */}
             <div className="my-2 border-b border-dashed border-black pb-2 text-[10px] space-y-0.5">
-              <div className="flex justify-between">
-                <span>Bill No: <strong className="font-mono text-black">{data.invoiceNumber}</strong></span>
+              <div className="flex justify-between font-bold">
+                <span>INVOICE: #{data.invoiceNumber}</span>
                 <span>{formattedDate} {formattedTime}</span>
               </div>
               <div className="flex justify-between">
-                <span>Type: <strong className="uppercase">{data.orderType.replace('_', ' ')}</strong></span>
-                <span>Captain: {data.serverName || 'Captain'}</span>
+                <span>TYPE: {data.orderType.toUpperCase()}</span>
+                {data.tableNumber && <span className="font-bold">TABLE: {data.tableNumber}</span>}
+                {data.roomNumber && <span className="font-bold">ROOM: {data.roomNumber}</span>}
               </div>
-              {data.tableNumber && (
-                <div className="text-[12px] font-bold">TABLE: {data.tableNumber}</div>
-              )}
-              {data.roomNumber && (
-                <div className="text-[12px] font-bold">IN-ROOM DINING: ROOM {data.roomNumber}</div>
-              )}
               {data.customerName && (
-                <div>Guest: <strong>{data.customerName}</strong> {data.customerPhone && `(${data.customerPhone})`}</div>
+                <div className="flex justify-between">
+                  <span>GUEST: {data.customerName}</span>
+                  {data.customerPhone && <span>{data.customerPhone}</span>}
+                </div>
+              )}
+              {data.serverName && (
+                <div className="flex justify-between text-slate-600">
+                  <span>STEWARD:</span>
+                  <span>{data.serverName}</span>
+                </div>
               )}
             </div>
 
-            {/* Items Header */}
-            <div className="border-b border-black pb-1 font-bold text-[10px] flex justify-between">
-              <span className="w-1/2">ITEM [SAC 996331]</span>
-              <span className="w-12 text-center">QTY</span>
-              <span className="w-12 text-right">RATE</span>
-              <span className="w-14 text-right">AMT</span>
+            {/* Itemized Table */}
+            <div className="my-2 border-b border-black pb-2">
+              <div className="flex justify-between font-extrabold border-b border-black pb-1 mb-1 text-[10px]">
+                <span className="flex-1 text-left">ITEM</span>
+                <span className="w-8 text-center">QTY</span>
+                <span className="w-12 text-right">RATE</span>
+                <span className="w-14 text-right">AMT</span>
+              </div>
+              <div className="space-y-1">
+                {data.items.map((it, idx) => (
+                  <div key={idx} className="flex justify-between items-baseline text-[11px]">
+                    <span className="flex-1 text-left font-bold truncate pr-1">{it.itemName}</span>
+                    <span className="w-8 text-center">{it.quantity}</span>
+                    <span className="w-12 text-right text-slate-600">{it.unitPrice.toFixed(0)}</span>
+                    <span className="w-14 text-right font-black">{it.totalPrice.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* Line Items */}
-            <div className="border-b border-dashed border-black py-1.5 space-y-1">
-              {data.items.map((item, idx) => (
-                <div key={idx} className="flex justify-between text-[10.5px]">
-                  <span className="w-1/2 truncate font-medium">{item.itemName}</span>
-                  <span className="w-12 text-center">{item.quantity}</span>
-                  <span className="w-12 text-right">₹{item.unitPrice}</span>
-                  <span className="w-14 text-right font-bold">₹{item.totalPrice}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Totals & Tax Breakdown */}
-            <div className="py-2 border-b border-black space-y-1 text-[10.5px]">
+            {/* Tax & Totals */}
+            <div className="my-2 border-b-2 border-black pb-2 text-[11px] space-y-1">
               <div className="flex justify-between">
                 <span>Subtotal:</span>
-                <span>₹{data.subtotal.toFixed(2)}</span>
+                <span className="font-bold">₹{data.subtotal.toFixed(2)}</span>
               </div>
-              {!!data.discountAmount && data.discountAmount > 0 && (
-                <div className="flex justify-between text-emerald-800 font-bold">
+              {data.discountAmount != null && data.discountAmount > 0 && (
+                <div className="flex justify-between text-rose-700 font-semibold">
                   <span>Discount:</span>
                   <span>-₹{data.discountAmount.toFixed(2)}</span>
                 </div>
               )}
-              {!!data.serviceChargeAmount && data.serviceChargeAmount > 0 && (
+              {data.serviceChargeAmount != null && data.serviceChargeAmount > 0 && (
                 <div className="flex justify-between">
                   <span>Service Charge:</span>
-                  <span>+₹{data.serviceChargeAmount.toFixed(2)}</span>
+                  <span>₹{data.serviceChargeAmount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between text-[10px] text-slate-700">
-                <span>CGST (2.5% SAC 996331):</span>
+                <span>CGST (2.5%):</span>
                 <span>₹{data.cgstAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-[10px] text-slate-700">
-                <span>SGST (2.5% SAC 996331):</span>
+                <span>SGST (2.5%):</span>
                 <span>₹{data.sgstAmount.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between items-center text-[14px] font-black border-t-2 border-black pt-1.5 mt-1">
+              <div className="flex justify-between text-[14px] font-black border-t-2 border-black pt-1.5 mt-1.5">
                 <span>NET TOTAL:</span>
-                <span>₹{data.netTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span>₹{data.netTotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-[10px] text-slate-600">
+                <span>PAYMENT MODE:</span>
+                <span className="font-bold uppercase">{data.paymentMethod}</span>
               </div>
             </div>
 
-            {/* Tender Mode */}
-            <div className="py-2 border-b border-dashed border-black text-center text-[11px] font-bold">
-              PAYMENT: <span className="uppercase text-emerald-800">{data.paymentMethod.replace('_', ' ')}</span>
-            </div>
+            {/* UPI QR Pay Info */}
+            {data.upiId && upiPayUrl && (
+              <div className="my-2 border-b border-dashed border-black pb-2 text-center">
+                <p className="text-[10px] font-bold">UPI ID: {data.upiId}</p>
+                <p className="text-[9px] text-slate-500">Scan via GPay / PhonePe / Paytm / BHIM</p>
+              </div>
+            )}
 
             {/* Footer */}
-            <div className="pt-2 text-center space-y-1 text-[9.5px] text-slate-600">
-              <p className="font-bold">*** THANK YOU! VISIT AGAIN ***</p>
-              <p>Powered by Aura Dine &amp; Aura PMS</p>
-              <p>Food &amp; Beverage GST @ 5% (SAC 996331)</p>
+            <div className="text-center text-[10px] text-slate-600 space-y-0.5 mt-2">
+              <p className="font-bold">Thank you for dining with us!</p>
+              <p>Please visit again.</p>
+              <p className="text-[8px] text-slate-400 mt-1">SAC: 996331 (Restaurant Service)</p>
             </div>
-
           </div>
         </div>
 
+        {/* Modal Footer (Hidden in Print) */}
+        <div className="border-t border-slate-200 bg-slate-50 px-5 py-3 text-right print:hidden">
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+          >
+            Close Viewer
+          </button>
+        </div>
       </div>
     </div>
   );

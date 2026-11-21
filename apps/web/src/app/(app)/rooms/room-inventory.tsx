@@ -5,6 +5,7 @@ import { useFormStatus } from 'react-dom';
 import { ROOM_STATUSES, type RoomStatus } from '@erp/shared';
 import { btnGhostCls, CustomDropdown, EmptyState, inputCls, selectCls, STATUS_META, StatusBadge } from '@/components/ui';
 import { getRoomTypeTheme } from '@/lib/room-types';
+import { BulkImporterModal } from '@/components/bulk-importer-modal';
 import { setRoomStatus, updateRoom } from './actions';
 
 export interface RoomRecord {
@@ -44,6 +45,7 @@ export function RoomInventory({
 }) {
   const [query, setQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const canManage = role === 'owner' || role === 'manager';
   const statuses = [...new Set(rooms.map((room) => room.status))];
   const visibleRooms = useMemo(() => {
@@ -57,7 +59,19 @@ export function RoomInventory({
     <section aria-labelledby="inventory-title" className="mt-8">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="inventory-title" className="font-display text-lg font-bold text-ink">Room inventory</h2>
+          <div className="flex items-center gap-3">
+            <h2 id="inventory-title" className="font-display text-lg font-bold text-ink">Room inventory</h2>
+            {canManage && !readOnly && (
+              <button
+                type="button"
+                onClick={() => setIsImportOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs hover:bg-emerald-100 transition active:scale-95 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300"
+              >
+                <span>📁</span>
+                <span>Bulk CSV Onboard</span>
+              </button>
+            )}
+          </div>
           <p className="mt-1 text-xs text-muted">{visibleRooms.length} of {rooms.length} rooms · configuration and operational status</p>
         </div>
         <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-[minmax(210px,1fr)_180px]">
@@ -181,6 +195,13 @@ export function RoomInventory({
           })}
         </div>
       )}
+
+      <BulkImporterModal
+        type="rooms"
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onSuccess={() => window.location.reload()}
+      />
     </section>
   );
 }

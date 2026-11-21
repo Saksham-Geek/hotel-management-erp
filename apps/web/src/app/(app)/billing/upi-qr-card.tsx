@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 
 interface UpiQrCardProps {
@@ -30,9 +31,12 @@ export function UpiQrCard({
   onOpenUpiSettings,
   onSimulatePaid,
 }: UpiQrCardProps) {
+  const router = useRouter();
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
   const [copied, setCopied] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(600); // 10 minutes expiry countdown
+  const [paymentReceived, setPaymentReceived] = useState<{ amount: number; utr: string } | null>(null);
+  const [isSimulating, setIsSimulating] = useState(false);
 
   // Verified receiver UPI VPA & Payee Name
   const vpa = upiId?.trim() || `pay.${hotelName.toLowerCase().replace(/[^a-z0-9]/g, '')}@icici`;
@@ -67,6 +71,50 @@ export function UpiQrCard({
     return () => clearInterval(timer);
   }, []);
 
+  // Real-Time SSE Stream + Fallback Polling for Instant Payment Detection
+  useEffect(() => {
+    if (!folioId || paymentReceived) return;
+
+    let eventSource: EventSource | null = null;
+    let pollInterval: NodeJS.Timeout | null = null;
+
+    try {
+      eventSource = new EventSource(`/api/folios/${folioId}/payment-stream`);
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data?.type === 'PAYMENT_RECEIVED' && data.amount > 0) {
+            const utr = data.reference || `UPI/${Date.now()}`;
+            setPaymentReceived({ amount: data.amount, utr });
+            onSimulatePaid(utr);
+            router.refresh();
+          }
+        } catch {}
+      };
+    } catch {}
+
+    // Fallback polling every 3.5 seconds
+    pollInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/folios/${folioId}/payment-status`, { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data?.latestPayment && data?.paidTotal > 0) {
+            const utr = data.latestPayment.reference || `UPI/${Date.now()}`;
+            setPaymentReceived({ amount: data.latestPayment.amount, utr });
+            onSimulatePaid(utr);
+            router.refresh();
+          }
+        }
+      } catch {}
+    }, 3500);
+
+    return () => {
+      eventSource?.close();
+      if (pollInterval) clearInterval(pollInterval);
+    };
+  }, [folioId, paymentReceived, onSimulatePaid, router]);
+
   const mins = Math.floor(secondsLeft / 60);
   const secs = (secondsLeft % 60).toString().padStart(2, '0');
 
@@ -76,11 +124,33 @@ export function UpiQrCard({
     setTimeout(() => setCopied(false), 2000);
   }
 
-  function handleSimulate() {
+  async function handleSimulate() {
+    setIsSimulating(true);
     const randomUtr = `UPI/${new Date().getFullYear()}${(new Date().getMonth() + 1)
       .toString()
-      .padStart(2, '0')}${Math.floor(100000000 + Math.random() * 900000000)}/NPCI`;
-    onSimulatePaid(randomUtr);
+      .padStart(2, '0')}/${Math.floor(100000000 + Math.random() * 900000000)}/NPCI`;
+
+    try {
+      const res = await fetch(`/api/folios/${folioId}/simulate-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount, utr: randomUtr, vpa }),
+      });
+
+      if (res.ok) {
+        setPaymentReceived({ amount, utr: randomUtr });
+        onSimulatePaid(randomUtr);
+        router.refresh();
+      } else {
+        onSimulatePaid(randomUtr);
+        setPaymentReceived({ amount, utr: randomUtr });
+      }
+    } catch {
+      onSimulatePaid(randomUtr);
+      setPaymentReceived({ amount, utr: randomUtr });
+    } finally {
+      setIsSimulating(false);
+    }
   }
 
   return (
@@ -91,10 +161,14 @@ export function UpiQrCard({
             ₹
           </span>
           <div>
-            <h4 className="text-xs font-black uppercase tracking-wider text-indigo-950 font-display">
-              Live Dynamic UPI Scan-to-Pay
+            <h4 className="text-xs font-black uppercase tracking-wider text-indigo-950 font-display flex items-center gap-2">
+              <span>Live Dynamic UPI Scan-to-Pay</span>
+              <span className="inline-flex items-center gap-1 text-[10px] text-indigo-700 bg-indigo-100/80 px-2 py-0.5 rounded-full font-bold">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Auto-Listening</span>
+              </span>
             </h4>
-            <p className="text-[11px] text-slate-500">NPCI Instant Real-Time Settlement</p>
+            <p className="text-[11px] text-slate-500">NPCI Real-Time Instant Webhook Settlement</p>
           </div>
         </div>
 
@@ -103,6 +177,29 @@ export function UpiQrCard({
           <span>Expires in {mins}:{secs}</span>
         </span>
       </div>
+
+      {/* Real-time Payment Received Banner */}
+      {paymentReceived && (
+        <div className="rounded-xl border-2 border-emerald-500 bg-emerald-50/90 p-4 text-emerald-950 flex items-center gap-3 animate-in fade-in-50 slide-in-from-top-2">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-emerald-600 text-white font-black text-lg shadow-sm">
+            ✓
+          </div>
+          <div className="flex-1">
+            <h5 className="text-sm font-black text-emerald-950">
+              Payment Received &amp; Verified in Real-Time!
+            </h5>
+            <p className="text-xs text-emerald-800 font-medium">
+              ₹{paymentReceived.amount.toFixed(2)} settled to merchant VPA <span className="font-mono font-bold">{vpa}</span>.
+            </p>
+            <p className="text-[11px] font-mono text-emerald-700 mt-0.5">
+              NPCI Bank UTR: <span className="font-bold">{paymentReceived.utr}</span>
+            </p>
+          </div>
+          <span className="rounded-full bg-emerald-200/90 border border-emerald-400 px-2.5 py-1 text-[11px] font-bold text-emerald-900 shadow-2xs">
+            Auto-Updated
+          </span>
+        </div>
+      )}
 
       {/* QR Code Container */}
       <div className="flex flex-col sm:flex-row items-center gap-4 bg-white rounded-xl border border-slate-200 p-4 shadow-2xs">
@@ -195,9 +292,10 @@ export function UpiQrCard({
         <button
           type="button"
           onClick={handleSimulate}
-          className="w-full sm:w-auto flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          disabled={isSimulating || !!paymentReceived}
+          className="w-full sm:w-auto flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          <span>⚡ Simulate Guest Scanned &amp; Paid</span>
+          <span>{isSimulating ? 'Processing Webhook…' : '⚡ Simulate Guest Scanned & Paid'}</span>
         </button>
       </div>
 

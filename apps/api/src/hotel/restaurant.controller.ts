@@ -322,6 +322,28 @@ export class RestaurantController {
             item.specialNotes ?? null,
           ]
         );
+
+        // Auto-deplete raw materials for this menu item if recipe exists
+        if (item.menuItemId) {
+          const recRes = await c.query(
+            `select raw_material_id, quantity_per_portion from dish_recipes where property_id = $1 and menu_item_id = $2`,
+            [user.propertyId, item.menuItemId]
+          );
+          for (const rec of recRes.rows) {
+            const consumed = Number(rec.quantity_per_portion) * item.quantity;
+            await c.query(
+              `update raw_materials
+               set current_stock = greatest(0, current_stock - $1), updated_at = now()
+               where id = $2 and property_id = $3`,
+              [consumed, rec.raw_material_id, user.propertyId]
+            );
+            await c.query(
+              `insert into stock_movements (tenant_id, property_id, raw_material_id, movement_type, quantity, reference_id, notes)
+               values ($1, $2, $3, 'CONSUMPTION', $4, $5, $6)`,
+              [user.tenantId, user.propertyId, rec.raw_material_id, consumed, newOrder.kotNumber, `KOT order ${item.quantity}x ${item.itemName}`]
+            );
+          }
+        }
       }
 
       if (input.tableId) {
@@ -400,6 +422,28 @@ export class RestaurantController {
             item.specialNotes ? `[Round ${nextRound}] ${item.specialNotes}` : `[Round ${nextRound}]`,
           ]
         );
+
+        // Auto-deplete raw materials for this menu item if recipe exists
+        if (item.menuItemId) {
+          const recRes = await c.query(
+            `select raw_material_id, quantity_per_portion from dish_recipes where property_id = $1 and menu_item_id = $2`,
+            [user.propertyId, item.menuItemId]
+          );
+          for (const rec of recRes.rows) {
+            const consumed = Number(rec.quantity_per_portion) * item.quantity;
+            await c.query(
+              `update raw_materials
+               set current_stock = greatest(0, current_stock - $1), updated_at = now()
+               where id = $2 and property_id = $3`,
+              [consumed, rec.raw_material_id, user.propertyId]
+            );
+            await c.query(
+              `insert into stock_movements (tenant_id, property_id, raw_material_id, movement_type, quantity, reference_id, notes)
+               values ($1, $2, $3, 'CONSUMPTION', $4, $5, $6)`,
+              [user.tenantId, user.propertyId, rec.raw_material_id, consumed, `${kot.kot_number}-R${nextRound}`, `Round ${nextRound} order ${item.quantity}x ${item.itemName}`]
+            );
+          }
+        }
       }
 
       const newSubtotal = Number(kot.subtotal) + roundSubtotal;
@@ -1185,6 +1229,113 @@ export class RestaurantController {
     });
   }
 
+  @Post('menu/items/bulk-import')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async bulkImportMenuItems(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { items: Array<{ name: string; categoryName?: string; price: number | string; foodType?: string; description?: string; itemCode?: string; gstRate?: number | string; sacCode?: string }> },
+  ) {
+    if (!body?.items || !Array.isArray(body.items) || body.items.length === 0) {
+      throw new BadRequestException('Invalid payload. Expected a non-empty array of menu items.');
+    }
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      // 1. Fetch categories
+      const catRes = await c.query(
+        `select id, lower(trim(name)) as norm_name, name from menu_categories where property_id = $1`,
+        [user.propertyId]
+      );
+      const catMap = new Map<string, string>();
+      for (const cat of catRes.rows) {
+        catMap.set(cat.norm_name, cat.id);
+      }
+
+      let createdCategories = 0;
+      for (const item of body.items) {
+        const catName = (item.categoryName || 'General').trim();
+        const norm = catName.toLowerCase();
+        if (!catMap.has(norm)) {
+          const insertCat = await c.query(
+            `insert into menu_categories (tenant_id, property_id, name, sort_order)
+             values ($1, $2, $3, (select coalesce(max(sort_order), 0) + 1 from menu_categories where property_id = $2))
+             returning id`,
+            [user.tenantId, user.propertyId, catName]
+          );
+          const newId = insertCat.rows[0].id;
+          catMap.set(norm, newId);
+          createdCategories++;
+        }
+      }
+
+      const countRes = await c.query(
+        `select count(*)::int as count from menu_items where property_id = $1`,
+        [user.propertyId]
+      );
+      let currentItemCount = Number(countRes.rows[0]?.count ?? 0);
+
+      const imported: any[] = [];
+      for (const item of body.items) {
+        const name = (item.name || '').trim();
+        if (!name) continue;
+        currentItemCount++;
+        const catNorm = (item.categoryName || 'General').trim().toLowerCase();
+        const categoryId = catMap.get(catNorm)!;
+        const itemCode = item.itemCode?.trim() || `DISH-${currentItemCount.toString().padStart(3, '0')}`;
+        const rawType = (item.foodType || 'veg').trim().toLowerCase();
+        const foodType = rawType === 'non_veg' || rawType === 'nonveg' || rawType === 'non-veg' ? 'non_veg' : (rawType === 'egg' ? 'egg' : 'veg');
+        const price = Math.max(0, Number(item.price) || 0);
+        const sacCode = item.sacCode || '996331';
+        const gstRate = item.gstRate != null ? Number(item.gstRate) : 5.0;
+
+        // Check if item exists by item_code or exact name in this property
+        const existCheck = await c.query(
+          `select id from menu_items where property_id = $1 and (lower(name) = lower($2) or item_code = $3) limit 1`,
+          [user.propertyId, name, itemCode]
+        );
+
+        let row;
+        if (existCheck.rows.length > 0) {
+          row = (
+            await c.query(
+              `update menu_items set
+                 name = $1,
+                 category_id = $2,
+                 price = $3,
+                 food_type = $4,
+                 description = coalesce($5, description),
+                 gst_rate = $6,
+                 sac_code = $7,
+                 is_available = true,
+                 updated_at = now()
+               where id = $8 and property_id = $9
+               returning id, name, item_code as "itemCode", price, food_type as "foodType"`,
+              [name, categoryId, price, foodType, item.description || null, gstRate, sacCode, existCheck.rows[0].id, user.propertyId]
+            )
+          ).rows[0];
+        } else {
+          row = (
+            await c.query(
+              `insert into menu_items (
+                 tenant_id, property_id, category_id, name, item_code, description, price, food_type, sac_code, gst_rate, is_available
+               ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
+               returning id, name, item_code as "itemCode", price, food_type as "foodType"`,
+              [user.tenantId, user.propertyId, categoryId, name, itemCode, item.description || null, price, foodType, sacCode, gstRate]
+            )
+          ).rows[0];
+        }
+        imported.push(row);
+      }
+
+      return {
+        success: true,
+        count: imported.length,
+        createdCategories,
+        items: imported,
+        message: `Successfully imported ${imported.length} menu items (${createdCategories} new categories auto-created).`,
+      };
+    });
+  }
+
   @Delete('menu/items/:id')
   @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
   async deleteMenuItem(@CurrentUser() user: AuthUser, @Param('id') id: string) {
@@ -1711,6 +1862,151 @@ export class RestaurantController {
         },
         message: `Shift closed. Z-Report generated with variance of ₹${cashVariance.toFixed(2)}.`,
       };
+    });
+  }
+
+  @Get('inventory/raw-materials')
+  @RequirePermission(PERMISSIONS.RESTAURANT_VIEW)
+  async getRawMaterials(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select id, name, category, unit,
+                current_stock::float8 as "currentStock",
+                minimum_alert_stock::float8 as "minimumAlertStock",
+                cost_per_unit::float8 as "costPerUnit",
+                (current_stock <= minimum_alert_stock) as "isLowStock",
+                last_restocked_at as "lastRestockedAt"
+         from raw_materials
+         where property_id = $1
+         order by (case when current_stock <= minimum_alert_stock then 0 else 1 end), name asc`,
+        [user.propertyId]
+      );
+      return res.rows;
+    });
+  }
+
+  @Post('inventory/raw-materials')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async createRawMaterial(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { name: string; category?: string; unit?: string; currentStock?: number; minimumAlertStock?: number; costPerUnit?: number },
+  ) {
+    if (!body?.name) throw new BadRequestException('Raw material name is required.');
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `insert into raw_materials (
+           tenant_id, property_id, name, category, unit, current_stock, minimum_alert_stock, cost_per_unit
+         ) values ($1, $2, $3, $4, $5, $6, $7, $8)
+         on conflict (property_id, name)
+         do update set
+           current_stock = excluded.current_stock,
+           cost_per_unit = excluded.cost_per_unit,
+           updated_at = now()
+         returning id, name, category, unit,
+                   current_stock::float8 as "currentStock",
+                   minimum_alert_stock::float8 as "minimumAlertStock",
+                   cost_per_unit::float8 as "costPerUnit"`,
+        [
+          user.tenantId,
+          user.propertyId,
+          body.name.trim(),
+          body.category || 'Grocery',
+          body.unit || 'kg',
+          body.currentStock || 0,
+          body.minimumAlertStock || 5,
+          body.costPerUnit || 0,
+        ]
+      );
+      return { success: true, item: res.rows[0], message: `Raw material "${body.name}" configured.` };
+    });
+  }
+
+  @Post('inventory/raw-materials/:id/restock')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async restockRawMaterial(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body() body: { quantity: number; costPerUnit?: number; notes?: string },
+  ) {
+    const qty = Number(body?.quantity) || 0;
+    if (qty <= 0) throw new BadRequestException('Restock quantity must be greater than zero.');
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const updated = (
+        await c.query(
+          `update raw_materials
+           set current_stock = current_stock + $1,
+               cost_per_unit = coalesce($2, cost_per_unit),
+               last_restocked_at = now(),
+               updated_at = now()
+           where id = $3 and property_id = $4
+           returning id, name, unit, current_stock::float8 as "currentStock"`,
+          [qty, body.costPerUnit ?? null, id, user.propertyId]
+        )
+      ).rows[0];
+
+      if (!updated) throw new NotFoundException('Raw material not found');
+
+      await c.query(
+        `insert into stock_movements (tenant_id, property_id, raw_material_id, movement_type, quantity, reference_id, notes)
+         values ($1, $2, $3, 'RESTOCK', $4, $5, $6)`,
+        [user.tenantId, user.propertyId, id, qty, 'MANUAL_RESTOCK', body.notes || `Incoming purchase restock of ${qty} ${updated.unit}`]
+      );
+
+      return {
+        success: true,
+        item: updated,
+        message: `Restocked ${qty} ${updated.unit} of "${updated.name}". New Stock: ${updated.currentStock} ${updated.unit}.`,
+      };
+    });
+  }
+
+  @Get('inventory/recipes/:menuItemId')
+  @RequirePermission(PERMISSIONS.RESTAURANT_VIEW)
+  async getDishRecipe(
+    @CurrentUser() user: AuthUser,
+    @Param('menuItemId') menuItemId: string,
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select r.id, r.raw_material_id as "rawMaterialId", m.name as "materialName",
+                m.unit, r.quantity_per_portion::float8 as "quantityPerPortion",
+                m.cost_per_unit::float8 as "costPerUnit",
+                (r.quantity_per_portion * m.cost_per_unit)::float8 as "ingredientCost"
+         from dish_recipes r
+         join raw_materials m on m.id = r.raw_material_id
+         where r.property_id = $1 and r.menu_item_id = $2
+         order by m.name asc`,
+        [user.propertyId, menuItemId]
+      );
+      return res.rows;
+    });
+  }
+
+  @Post('inventory/recipes')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async configureDishRecipe(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { menuItemId: string; ingredients: Array<{ rawMaterialId: string; quantityPerPortion: number }> },
+  ) {
+    if (!body?.menuItemId || !Array.isArray(body?.ingredients)) {
+      throw new BadRequestException('Invalid recipe payload.');
+    }
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      await c.query(
+        `delete from dish_recipes where property_id = $1 and menu_item_id = $2`,
+        [user.propertyId, body.menuItemId]
+      );
+
+      for (const ing of body.ingredients) {
+        if (!ing.rawMaterialId || Number(ing.quantityPerPortion) <= 0) continue;
+        await c.query(
+          `insert into dish_recipes (tenant_id, property_id, menu_item_id, raw_material_id, quantity_per_portion)
+           values ($1, $2, $3, $4, $5)`,
+          [user.tenantId, user.propertyId, body.menuItemId, ing.rawMaterialId, Number(ing.quantityPerPortion)]
+        );
+      }
+
+      return { success: true, count: body.ingredients.length, message: 'Dish recipe BOM updated successfully.' };
     });
   }
 }

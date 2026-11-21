@@ -15,6 +15,7 @@ interface NightAuditStatus {
   pendingArrivals: number;
   pendingDepartures: number;
   occupancyRate: number;
+  overdueNoShowsCount?: number;
 }
 
 interface NightAuditLog {
@@ -98,6 +99,29 @@ export default async function NightAuditPage({
               </FormSubmit>
             </form>
           )}
+        </div>
+
+        {/* Room Lifecycle Guard & No-Show Auto-Release Banner */}
+        <div className="mx-6 mt-4 flex items-center justify-between rounded-xl border border-indigo-200/80 bg-indigo-50/60 p-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-600 text-white font-black text-sm shadow-xs">
+              🛡️
+            </span>
+            <div>
+              <p className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
+                Automated Room Lifecycle Guard: Active
+              </p>
+              <p className="text-xs text-indigo-900/80">
+                {status.pendingArrivals > 0
+                  ? `${status.pendingArrivals} overdue unarrived reservation(s) will be automatically released as No-Show and returned to inventory.`
+                  : 'All rooms reconciled. Zero inventory locks detected for the next business day.'}
+              </p>
+            </div>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white border border-indigo-200 px-3 py-1 text-xs font-bold text-indigo-900 shadow-2xs">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span>Auto-Release Guard Active</span>
+          </span>
         </div>
 
         {/* Audit Readiness Indicators */}

@@ -28,6 +28,11 @@ export interface CustomDropdownProps {
   'aria-label'?: string;
   'aria-describedby'?: string;
   'aria-invalid'?: boolean | 'true' | 'false';
+  footerAction?: {
+    label: string;
+    icon?: ReactNode;
+    onClick: () => void;
+  };
 }
 
 export function CustomDropdown({
@@ -47,6 +52,7 @@ export function CustomDropdown({
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedby,
   'aria-invalid': ariaInvalid,
+  footerAction,
 }: CustomDropdownProps) {
   const autoId = useId();
   const triggerId = externalId || `dropdown-trigger-${autoId}`;
@@ -418,6 +424,29 @@ export function CustomDropdown({
               );
             })}
           </div>
+
+          {footerAction && (
+            <div className="mt-1 pt-1 border-t border-slate-100 dark:border-white/10">
+              <button
+                type="button"
+                tabIndex={-1}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsOpen(false);
+                  footerAction.onClick();
+                }}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-bold text-amber-700 hover:bg-amber-50 hover:text-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/40 transition-colors cursor-pointer"
+              >
+                {footerAction.icon || (
+                  <svg className="h-3.5 w-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                  </svg>
+                )}
+                <span>{footerAction.label}</span>
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

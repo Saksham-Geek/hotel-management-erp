@@ -270,6 +270,33 @@ export async function createRestaurantOutletAction(input: CreateRestaurantOutlet
       body: JSON.stringify(input),
     });
     revalidatePath('/restaurant');
+    revalidatePath('/settings');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function deleteRestaurantOutletAction(id: string) {
+  try {
+    const res = await api<any>(`/hotel/restaurant/outlets/${id}`, {
+      method: 'DELETE',
+    });
+    revalidatePath('/restaurant');
+    revalidatePath('/settings');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function reactivateRestaurantOutletAction(id: string) {
+  try {
+    const res = await api<any>(`/hotel/restaurant/outlets/${id}/reactivate`, {
+      method: 'PATCH',
+    });
+    revalidatePath('/restaurant');
+    revalidatePath('/settings');
     return { ok: true, data: res };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };

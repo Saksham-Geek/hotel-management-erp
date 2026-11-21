@@ -64,7 +64,7 @@ export class RestaurantController {
 
   @Get('outlets')
   @RequirePermission(PERMISSIONS.RESTAURANT_VIEW)
-  async getOutlets(@CurrentUser() user: AuthUser) {
+  async getOutlets(@CurrentUser() user: AuthUser, @Query('includeInactive') includeInactive?: string) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const res = await c.query(
         `select id, name, code, outlet_type as "outletType", is_active as "isActive",
@@ -83,9 +83,9 @@ export class RestaurantController {
                 zomato_default_prep_minutes as "zomatoDefaultPrepMinutes",
                 aggregator_webhook_token as "aggregatorWebhookToken"
          from restaurant_outlets
-         where property_id = $1
+         where property_id = $1 and ($2::boolean = true or is_active = true)
          order by (case when outlet_type = 'dine_in' then 0 else 1 end), name asc`,
-        [user.propertyId]
+        [user.propertyId, includeInactive === 'true']
       );
       return res.rows;
     });
@@ -1418,6 +1418,100 @@ export class RestaurantController {
         success: true,
         outlet: res.rows[0],
         message: `Dining outlet "${input.name}" created successfully.`,
+      };
+    });
+  }
+
+  @Delete('outlets/:id')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async deleteOutlet(@CurrentUser() user: AuthUser, @Param('id') outletId: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const existing = await c.query(
+        `select id, name, is_active as "isActive" from restaurant_outlets where id = $1 and property_id = $2`,
+        [outletId, user.propertyId]
+      );
+      if (existing.rows.length === 0) {
+        throw new NotFoundException('Restaurant outlet not found');
+      }
+      const outlet = existing.rows[0];
+
+      // Check active un-settled KOT orders
+      const activeOrders = await c.query(
+        `select count(*)::int as count from kot_orders where outlet_id = $1 and property_id = $2 and status in ('pending', 'preparing', 'ready', 'served')`,
+        [outletId, user.propertyId]
+      );
+      if (activeOrders.rows[0].count > 0) {
+        throw new BadRequestException(
+          `Cannot remove outlet "${outlet.name}" because it currently has ${activeOrders.rows[0].count} active or in-kitchen KOT order(s). Please complete, settle, or cancel them first.`
+        );
+      }
+
+      // Check occupied tables
+      const activeTables = await c.query(
+        `select count(*)::int as count from restaurant_tables where outlet_id = $1 and property_id = $2 and (status != 'vacant' or active_kot_id is not null)`,
+        [outletId, user.propertyId]
+      );
+      if (activeTables.rows[0].count > 0) {
+        throw new BadRequestException(
+          `Cannot remove outlet "${outlet.name}" because it has ${activeTables.rows[0].count} occupied table(s). Please clear all tables first.`
+        );
+      }
+
+      // Check total active outlets - prevent deleting the last active outlet
+      const totalActive = await c.query(
+        `select count(*)::int as count from restaurant_outlets where property_id = $1 and is_active = true`,
+        [user.propertyId]
+      );
+      if (outlet.isActive && totalActive.rows[0].count <= 1) {
+        throw new BadRequestException('Cannot remove the only active restaurant outlet for this hotel property.');
+      }
+
+      // Check if there are historical orders or cashier shifts
+      const histOrders = await c.query(
+        `select count(*)::int as count from kot_orders where outlet_id = $1 and property_id = $2`,
+        [outletId, user.propertyId]
+      );
+      const histShifts = await c.query(
+        `select count(*)::int as count from restaurant_shifts where outlet_id = $1 and property_id = $2`,
+        [outletId, user.propertyId]
+      );
+
+      if (histOrders.rows[0].count > 0 || histShifts.rows[0].count > 0) {
+        // Safe soft-delete / archive to preserve statutory GST audit trail
+        await c.query(
+          `update restaurant_outlets set is_active = false, updated_at = now() where id = $1 and property_id = $2`,
+          [outletId, user.propertyId]
+        );
+        return {
+          success: true,
+          archived: true,
+          message: `Outlet "${outlet.name}" has historical sales/tax records and has been deactivated/archived safely to protect statutory GST audit trails.`,
+        };
+      } else {
+        // Clean removal
+        await c.query(`delete from restaurant_tables where outlet_id = $1 and property_id = $2`, [outletId, user.propertyId]);
+        await c.query(`delete from restaurant_outlets where id = $1 and property_id = $2`, [outletId, user.propertyId]);
+        return {
+          success: true,
+          archived: false,
+          message: `Outlet "${outlet.name}" and its table configuration removed successfully.`,
+        };
+      }
+    });
+  }
+
+  @Patch('outlets/:id/reactivate')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async reactivateOutlet(@CurrentUser() user: AuthUser, @Param('id') outletId: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `update restaurant_outlets set is_active = true, updated_at = now() where id = $1 and property_id = $2 returning id, name`,
+        [outletId, user.propertyId]
+      );
+      if (res.rows.length === 0) throw new NotFoundException('Restaurant outlet not found');
+      return {
+        success: true,
+        message: `Outlet "${res.rows[0].name}" reactivated successfully.`,
       };
     });
   }

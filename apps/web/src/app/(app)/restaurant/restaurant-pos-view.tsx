@@ -32,6 +32,9 @@ import {
   updateOutletAggregatorConfigAction,
   openShiftAction,
   closeShiftAction,
+  createRestaurantOutletAction,
+  deleteRestaurantOutletAction,
+  reactivateRestaurantOutletAction,
 } from './actions';
 
 export interface OutletDto {
@@ -190,7 +193,22 @@ export function RestaurantPosView({
 
   // Navigation Tabs: Floor Plan, Touch POS, Swiggy/Zomato Aggregators, Kitchen KDS, Cashier Shifts, Inventory, Settings
   const [activeTab, setActiveTab] = useState<'tables' | 'pos' | 'aggregators' | 'kds' | 'shifts' | 'inventory' | 'settings'>('tables');
-  const [settingsSubTab, setSettingsSubTab] = useState<'tables' | 'menu' | 'aggregators' | 'hardware' | 'sop'>('tables');
+  const [settingsSubTab, setSettingsSubTab] = useState<'outlets' | 'tables' | 'menu' | 'aggregators' | 'hardware' | 'sop'>('tables');
+
+  // Outlets Management State
+  const [isAddOutletModalOpen, setIsAddOutletModalOpen] = useState(false);
+  const [outletToDelete, setOutletToDelete] = useState<OutletDto | null>(null);
+  const [newOutletName, setNewOutletName] = useState('');
+  const [newOutletCode, setNewOutletCode] = useState('');
+  const [newOutletType, setNewOutletType] = useState<
+    'dine_in' | 'bar' | 'cafe' | 'room_service' | 'banquet' | 'takeaway'
+  >('dine_in');
+  const [newOutletIsStandalone, setNewOutletIsStandalone] = useState(false);
+  const [newOutletServiceCharge, setNewOutletServiceCharge] = useState('5.0');
+  const [newOutletFssai, setNewOutletFssai] = useState('');
+  const [newOutletGstin, setNewOutletGstin] = useState('');
+  const [newOutletPhone, setNewOutletPhone] = useState('');
+  const [newOutletAddress, setNewOutletAddress] = useState('');
 
   // Aggregator Orders
   const aggregatorOrders = kots.filter((k) => k.aggregatorBrand && k.aggregatorBrand !== 'none');
@@ -734,6 +752,94 @@ export function RestaurantPosView({
     }
   }
 
+  async function handleCreateOutlet(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newOutletName.trim()) {
+      setFeedbackMsg({ type: 'err', text: 'Outlet name is required.' });
+      return;
+    }
+    const generatedCode =
+      newOutletCode.trim() ||
+      newOutletName
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '')
+        .slice(0, 6) + '-01';
+
+    setSubmitting(true);
+    const res = await createRestaurantOutletAction({
+      name: newOutletName.trim(),
+      code: generatedCode,
+      outletType: newOutletType,
+      isStandalone: newOutletIsStandalone,
+      serviceChargePercent: Number(newOutletServiceCharge) || 0,
+      fssaiNumber: newOutletFssai.trim() || undefined,
+      gstin: newOutletGstin.trim() || undefined,
+      contactPhone: newOutletPhone.trim() || undefined,
+      address: newOutletAddress.trim() || undefined,
+    });
+    setSubmitting(false);
+
+    if (res.ok) {
+      setFeedbackMsg({
+        type: 'ok',
+        text: `🎉 Outlet "${newOutletName.trim()}" created successfully! You can now add dining tables to it.`,
+      });
+      setIsAddOutletModalOpen(false);
+      setNewOutletName('');
+      setNewOutletCode('');
+      setNewOutletFssai('');
+      setNewOutletGstin('');
+      setNewOutletPhone('');
+      setNewOutletAddress('');
+      if (res.data?.outlet?.id) {
+        setSelectedOutletId(res.data.outlet.id);
+        setNewTableOutletId(res.data.outlet.id);
+      }
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to create restaurant outlet' });
+    }
+  }
+
+  async function handleDeleteOutlet(outlet: OutletDto) {
+    setSubmitting(true);
+    const res = await deleteRestaurantOutletAction(outlet.id);
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({
+        type: 'ok',
+        text: res.data?.message || `Outlet "${outlet.name}" removed successfully.`,
+      });
+      setOutletToDelete(null);
+      if (selectedOutletId === outlet.id) {
+        const remaining = outlets.filter((o) => o.id !== outlet.id);
+        if (remaining.length > 0) {
+          setSelectedOutletId(remaining[0].id);
+          setNewTableOutletId(remaining[0].id);
+        }
+      }
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to remove restaurant outlet' });
+    }
+  }
+
+  async function handleReactivateOutlet(outlet: OutletDto) {
+    setSubmitting(true);
+    const res = await reactivateRestaurantOutletAction(outlet.id);
+    setSubmitting(false);
+    if (res.ok) {
+      setFeedbackMsg({
+        type: 'ok',
+        text: res.data?.message || `Outlet "${outlet.name}" reactivated successfully.`,
+      });
+      router.refresh();
+    } else {
+      setFeedbackMsg({ type: 'err', text: res.error || 'Failed to reactivate outlet' });
+    }
+  }
+
   async function handleUpdateTable(e: React.FormEvent) {
     e.preventDefault();
     if (!tableToEdit) return;
@@ -1234,19 +1340,47 @@ export function RestaurantPosView({
             </button>
           </div>
 
-          {/* Outlet Selector Dropdown */}
-          <div className="w-52">
-            <CustomDropdown
-              value={selectedOutletId}
-              onChange={(val) => setSelectedOutletId(val)}
-              size="sm"
-              options={outlets.map((o) => ({
-                value: o.id,
-                label: o.name,
-                badge: o.isStandalone ? 'Bistro' : 'Hotel',
-              }))}
-              aria-label="Select Restaurant Outlet"
-            />
+          {/* Outlet Selector Dropdown & Outlet Manager */}
+          <div className="flex items-center gap-1.5">
+            <div className="w-56">
+              <CustomDropdown
+                value={selectedOutletId}
+                onChange={(val) => {
+                  setSelectedOutletId(val);
+                  setNewTableOutletId(val);
+                }}
+                size="sm"
+                options={outlets.filter((o) => o.isActive !== false).map((o) => ({
+                  value: o.id,
+                  label: o.name,
+                  badge: o.isStandalone ? 'Bistro' : 'Hotel',
+                }))}
+                footerAction={{
+                  label: '+ Add Restaurant / Outlet',
+                  onClick: () => setIsAddOutletModalOpen(true),
+                }}
+                aria-label="Select Restaurant Outlet"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsAddOutletModalOpen(true)}
+              title="Add New Restaurant or Dining Outlet"
+              className="flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+            >
+              <span>+ Add</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveTab('settings');
+                setSettingsSubTab('outlets');
+              }}
+              title="Manage Restaurant Outlets & Tables"
+              className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+            >
+              <span>🏢 Outlets</span>
+            </button>
           </div>
         </div>
       </div>
@@ -2966,6 +3100,20 @@ export function RestaurantPosView({
           <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200 gap-1 overflow-x-auto">
             <button
               type="button"
+              onClick={() => setSettingsSubTab('outlets')}
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+                settingsSubTab === 'outlets'
+                  ? 'bg-white text-slate-950 shadow-xs font-black'
+                  : 'text-slate-600 hover:text-slate-950'
+              }`}
+            >
+              <span>🏢 Outlets &amp; Restaurants</span>
+              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                {outlets.length}
+              </span>
+            </button>
+            <button
+              type="button"
               onClick={() => setSettingsSubTab('tables')}
               className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
                 settingsSubTab === 'tables'
@@ -3029,6 +3177,216 @@ export function RestaurantPosView({
               <span>📖 SOP &amp; User Manual</span>
             </button>
           </div>
+
+          {/* SUB-PANEL 0: DINING OUTLETS & RESTAURANTS MASTER */}
+          {settingsSubTab === 'outlets' && (
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+                <div>
+                  <h3 className="font-display text-base font-black text-slate-950">
+                    Dining Outlets &amp; Multi-Restaurant Management
+                  </h3>
+                  <p className="mt-0.5 text-xs text-slate-500 font-medium">
+                    Configure multiple restaurants, bars, rooftop grills, bakeries, or room service kitchens. Each outlet maintains its own tables, kitchen routing, and cashier shifts.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsAddOutletModalOpen(true)}
+                  className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
+                >
+                  <span>+ Add Restaurant / Outlet</span>
+                </button>
+              </div>
+
+              {/* Outlets Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {outlets.map((outlet) => {
+                  const outletTables = tables.filter((t) => t.outletId === outlet.id);
+                  const activeTablesCount = outletTables.filter((t) => t.status === 'occupied').length;
+                  const activeOrdersCount = kots.filter((k) => k.outletName === outlet.name && ['pending', 'preparing', 'ready', 'served'].includes(k.status)).length;
+                  const isCurrent = outlet.id === selectedOutletId;
+
+                  const getOutletIcon = (type: string) => {
+                    switch (type) {
+                      case 'bar': return '🍸';
+                      case 'cafe': return '☕';
+                      case 'room_service': return '🛎️';
+                      case 'banquet': return '🎪';
+                      case 'takeaway': return '🥡';
+                      default: return '🍽️';
+                    }
+                  };
+
+                  const getOutletTypeName = (type: string) => {
+                    switch (type) {
+                      case 'bar': return 'Bar & Lounge';
+                      case 'cafe': return 'Cafe & Bakery';
+                      case 'room_service': return 'In-Room Dining';
+                      case 'banquet': return 'Banquet & Events';
+                      case 'takeaway': return 'Cloud Kitchen / Takeaway';
+                      default: return 'Full Service Dine-In';
+                    }
+                  };
+
+                  return (
+                    <div
+                      key={outlet.id}
+                      className={`relative flex flex-col justify-between rounded-3xl border p-5 transition-all shadow-xs ${
+                        isCurrent
+                          ? 'border-amber-400 bg-amber-50/20 ring-2 ring-amber-400/20'
+                          : outlet.isActive === false
+                          ? 'border-slate-200 bg-slate-50 opacity-70'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div>
+                        {/* Header Badge */}
+                        <div className="flex items-start justify-between gap-3 mb-3">
+                          <div className="flex items-center gap-2.5">
+                            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-slate-100 text-xl font-bold">
+                              {getOutletIcon(outlet.outletType)}
+                            </span>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h4 className="font-display text-sm font-black text-slate-950">
+                                  {outlet.name}
+                                </h4>
+                                {isCurrent && (
+                                  <span className="rounded-full bg-amber-100 text-amber-800 text-[9px] font-black px-2 py-0.5 uppercase tracking-wider">
+                                    Active View
+                                  </span>
+                                )}
+                              </div>
+                              <span className="text-[11px] font-bold text-slate-400">
+                                Code: {outlet.code}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col items-end gap-1">
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
+                                outlet.isStandalone
+                                  ? 'bg-purple-100 text-purple-800 border border-purple-200'
+                                  : 'bg-blue-100 text-blue-800 border border-blue-200'
+                              }`}
+                            >
+                              {outlet.isStandalone ? 'Standalone POS' : 'Hotel Integrated'}
+                            </span>
+                            <span className="text-[10px] font-bold text-slate-500">
+                              {getOutletTypeName(outlet.outletType)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Details Grid */}
+                        <div className="rounded-2xl bg-slate-50 border border-slate-100 p-3 text-xs space-y-1.5 my-3">
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span className="font-medium">Configured Tables:</span>
+                            <span className="font-bold text-slate-900">
+                              {outletTables.length} table{outletTables.length === 1 ? '' : 's'}
+                              {activeTablesCount > 0 && (
+                                <span className="ml-1 text-amber-600">({activeTablesCount} occupied)</span>
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span className="font-medium">Active KOT Orders:</span>
+                            <span className={`font-bold ${activeOrdersCount > 0 ? 'text-amber-600' : 'text-slate-900'}`}>
+                              {activeOrdersCount} in kitchen
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-slate-600">
+                            <span className="font-medium">Service Charge:</span>
+                            <span className="font-bold text-slate-900">
+                              {Number(outlet.serviceChargePercent || 0).toFixed(1)}%
+                            </span>
+                          </div>
+                          {outlet.fssaiNumber && (
+                            <div className="flex items-center justify-between text-slate-600">
+                              <span className="font-medium">FSSAI No:</span>
+                              <span className="font-mono text-[11px] font-semibold text-slate-800">
+                                {outlet.fssaiNumber}
+                              </span>
+                            </div>
+                          )}
+                          {outlet.gstin && (
+                            <div className="flex items-center justify-between text-slate-600">
+                              <span className="font-medium">GSTIN:</span>
+                              <span className="font-mono text-[11px] font-semibold text-slate-800">
+                                {outlet.gstin}
+                              </span>
+                            </div>
+                          )}
+                          {outlet.address && (
+                            <div className="flex items-center justify-between text-slate-600">
+                              <span className="font-medium">Location:</span>
+                              <span className="font-medium text-slate-800 truncate max-w-[150px]">
+                                {outlet.address}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Card Footer Actions */}
+                      <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 mt-2">
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedOutletId(outlet.id);
+                              setNewTableOutletId(outlet.id);
+                              setActiveTab('tables');
+                            }}
+                            className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
+                              isCurrent
+                                ? 'bg-amber-600 text-white hover:bg-amber-700'
+                                : 'bg-slate-950 text-white hover:bg-slate-800'
+                            }`}
+                          >
+                            {isCurrent ? 'Viewing in POS' : 'Switch POS Here'}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedOutletId(outlet.id);
+                              setNewTableOutletId(outlet.id);
+                              setIsAddTableModalOpen(true);
+                            }}
+                            className="rounded-xl border border-slate-300 bg-white px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer"
+                          >
+                            + Add Table
+                          </button>
+                        </div>
+
+                        {outlet.isActive === false ? (
+                          <button
+                            type="button"
+                            onClick={() => handleReactivateOutlet(outlet)}
+                            className="rounded-xl border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors cursor-pointer"
+                          >
+                            Reactivate
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setOutletToDelete(outlet)}
+                            disabled={outlets.filter((o) => o.isActive !== false).length <= 1}
+                            title={outlets.filter((o) => o.isActive !== false).length <= 1 ? 'At least one outlet required' : 'Remove Outlet'}
+                            className="rounded-xl border border-rose-200 bg-white px-2.5 py-1.5 text-xs font-bold text-rose-600 hover:bg-rose-50 hover:text-rose-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                          >
+                            🗑️ Remove
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* SUB-PANEL 1: FLOOR & TABLES MASTER */}
           {settingsSubTab === 'tables' && (
@@ -5577,6 +5935,271 @@ export function RestaurantPosView({
         onClose={() => setIsMenuBulkImportOpen(false)}
         onSuccess={() => window.location.reload()}
       />
+
+      {/* ADD RESTAURANT OUTLET MODAL */}
+      {isAddOutletModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-lg flex-col rounded-3xl bg-white p-6 shadow-2xl text-slate-900 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 className="font-display text-base font-black text-slate-950">
+                  🏢 Add Restaurant / Dining Outlet
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Create a new dining outlet for this hotel. You can add tables to it immediately.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddOutletModalOpen(false)}
+                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateOutlet} className="space-y-4">
+              <div>
+                <label className="text-xs font-bold text-slate-700 mb-1 block">
+                  Outlet Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Skyline Rooftop Grill, The Golden Dragon, Poolside Bar"
+                  value={newOutletName}
+                  onChange={(e) => {
+                    setNewOutletName(e.target.value);
+                    if (!newOutletCode || newOutletCode.endsWith('-01')) {
+                      const code = e.target.value
+                        .trim()
+                        .toUpperCase()
+                        .replace(/[^A-Z0-9]/g, '')
+                        .slice(0, 6);
+                      if (code) setNewOutletCode(code + '-01');
+                    }
+                  }}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-slate-950 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 mb-1 block">
+                    Outlet Short Code
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. SRG-01"
+                    value={newOutletCode}
+                    onChange={(e) => setNewOutletCode(e.target.value.toUpperCase())}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-mono font-semibold focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 mb-1 block">
+                    Outlet Type
+                  </label>
+                  <CustomDropdown
+                    value={newOutletType}
+                    onChange={(val) => setNewOutletType(val as any)}
+                    size="sm"
+                    options={[
+                      { value: 'dine_in', label: '🍽️ Full Service Dine-In' },
+                      { value: 'bar', label: '🍸 Bar & Lounge' },
+                      { value: 'cafe', label: '☕ Cafe & Bakery' },
+                      { value: 'room_service', label: '🛎️ In-Room Dining' },
+                      { value: 'banquet', label: '🎪 Banquet & Events' },
+                      { value: 'takeaway', label: '🥡 Cloud Kitchen / Takeaway' },
+                    ]}
+                    aria-label="Select Outlet Type"
+                  />
+                </div>
+              </div>
+
+              {/* Operating Mode */}
+              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 space-y-2">
+                <label className="text-xs font-bold text-slate-800 block">
+                  Operating Mode &amp; Hotel Integration
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setNewOutletIsStandalone(false)}
+                    className={`rounded-xl p-2.5 text-left border text-xs transition-all cursor-pointer ${
+                      !newOutletIsStandalone
+                        ? 'bg-white border-blue-500 shadow-xs ring-2 ring-blue-500/10'
+                        : 'border-slate-200 hover:bg-white text-slate-600'
+                    }`}
+                  >
+                    <div className="font-bold text-slate-900">🏨 Hotel Integrated</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">Post bills directly to guest room folios</div>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setNewOutletIsStandalone(true)}
+                    className={`rounded-xl p-2.5 text-left border text-xs transition-all cursor-pointer ${
+                      newOutletIsStandalone
+                        ? 'bg-white border-purple-500 shadow-xs ring-2 ring-purple-500/10'
+                        : 'border-slate-200 hover:bg-white text-slate-600'
+                    }`}
+                  >
+                    <div className="font-bold text-slate-900">🍽️ Standalone POS</div>
+                    <div className="text-[11px] text-slate-500 mt-0.5">Independent high-street billing &amp; shifts</div>
+                  </button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 mb-1 block">
+                    Service Charge %
+                  </label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    max="30"
+                    value={newOutletServiceCharge}
+                    onChange={(e) => setNewOutletServiceCharge(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 mb-1 block">
+                    Contact Phone / Ext.
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. +91 98200 12345 or Ext 104"
+                    value={newOutletPhone}
+                    onChange={(e) => setNewOutletPhone(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 mb-1 block">
+                    FSSAI License No.
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="14-digit FSSAI (optional)"
+                    value={newOutletFssai}
+                    onChange={(e) => setNewOutletFssai(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 mb-1 block">
+                    GSTIN
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="15-char GSTIN (optional)"
+                    value={newOutletGstin}
+                    onChange={(e) => setNewOutletGstin(e.target.value.toUpperCase())}
+                    className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-mono font-semibold focus:border-slate-950 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-700 mb-1 block">
+                  Physical Location / Floor
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 5th Floor Rooftop Terrace, Poolside, Lobby Level"
+                  value={newOutletAddress}
+                  onChange={(e) => setNewOutletAddress(e.target.value)}
+                  className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-xs font-semibold focus:border-slate-950 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+                <button
+                  type="button"
+                  onClick={() => setIsAddOutletModalOpen(false)}
+                  className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="rounded-xl bg-slate-950 px-5 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+                >
+                  {submitting ? 'Creating Outlet…' : 'Create Outlet & Start Adding Tables →'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE RESTAURANT OUTLET CONFIRMATION MODAL */}
+      {outletToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
+          <div className="relative flex w-full max-w-md flex-col rounded-3xl bg-white p-6 shadow-2xl text-slate-900 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+              <div className="flex items-center gap-2 text-rose-600">
+                <span className="text-xl">⚠️</span>
+                <h3 className="font-display text-base font-black text-slate-950">
+                  Remove Restaurant Outlet
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOutletToDelete(null)}
+                className="rounded-full p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs text-slate-600">
+              <p>
+                Are you sure you want to remove <strong className="text-slate-950">{outletToDelete.name}</strong> ({outletToDelete.code})?
+              </p>
+              <div className="rounded-2xl bg-amber-50 border border-amber-200 p-3 space-y-1.5 text-amber-900">
+                <div className="font-bold flex items-center gap-1.5">
+                  <span>🛡️</span> Statutory GST &amp; Accounting Guard:
+                </div>
+                <ul className="list-disc pl-4 space-y-1 text-[11px]">
+                  <li>If this outlet has past settled dining orders or tax invoices, it will be <strong>safely archived/deactivated</strong> to preserve legal GST audit trails.</li>
+                  <li>If it is newly created with no orders, it and its vacant tables will be removed cleanly.</li>
+                  <li>Cannot be removed if there are active tables or unserved KOT orders in the kitchen.</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200">
+              <button
+                type="button"
+                onClick={() => setOutletToDelete(null)}
+                className="rounded-xl border border-slate-300 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+              >
+                Keep Outlet
+              </button>
+              <button
+                type="button"
+                disabled={submitting}
+                onClick={() => handleDeleteOutlet(outletToDelete)}
+                className="rounded-xl bg-rose-600 px-4 py-2 text-xs font-bold text-white hover:bg-rose-700 disabled:opacity-50 transition-colors shadow-xs cursor-pointer"
+              >
+                {submitting ? 'Removing…' : 'Confirm Remove'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,23 @@
 import { Body, Controller, Get, HttpCode, Patch, Post } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { changePasswordSchema, loginSchema, requestEmailChangeSchema, requestPasswordResetSchema, resetPasswordSchema, updateOwnProfileSchema, verifyEmailChangeSchema, type ChangePasswordInput, type RequestEmailChangeInput, type RequestPasswordResetInput, type ResetPasswordInput, type UpdateOwnProfileInput } from '@erp/shared';
+import {
+  changePasswordSchema,
+  loginSchema,
+  requestEmailChangeSchema,
+  requestPasswordResetSchema,
+  resetPasswordSchema,
+  sendEmailOtpSchema,
+  updateOwnProfileSchema,
+  verifyEmailChangeSchema,
+  verifyEmailOtpSchema,
+  type ChangePasswordInput,
+  type RequestEmailChangeInput,
+  type RequestPasswordResetInput,
+  type ResetPasswordInput,
+  type SendEmailOtpInput,
+  type UpdateOwnProfileInput,
+  type VerifyEmailOtpInput,
+} from '@erp/shared';
 import { z } from 'zod';
 import { AuthUser, CurrentUser } from '../common/current-user';
 import { ZodPipe } from '../common/zod.pipe';
@@ -17,6 +34,22 @@ export class AuthController {
   @Post('login')
   login(@Body(new ZodPipe(loginSchema)) body: { tenant: string; email: string; password: string }) {
     return this.auth.login(body.tenant, body.email, body.password);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('email-otp/send')
+  sendEmailOtp(@Body(new ZodPipe(sendEmailOtpSchema)) body: SendEmailOtpInput) {
+    return this.auth.sendEmailOtp(body.tenant, body.email);
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 15, ttl: 60_000 } })
+  @HttpCode(200)
+  @Post('email-otp/verify')
+  verifyEmailOtp(@Body(new ZodPipe(verifyEmailOtpSchema)) body: VerifyEmailOtpInput) {
+    return this.auth.verifyEmailOtp(body.tenant, body.email, body.otp);
   }
 
   @Post('select-property')

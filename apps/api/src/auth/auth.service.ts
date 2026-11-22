@@ -1,5 +1,6 @@
 import { BadRequestException, ConflictException, Injectable, ServiceUnavailableException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { createHash, randomInt } from 'node:crypto';
 import { compare, hash, hashSync } from 'bcryptjs';
 import type { MeDto } from '@erp/shared';
 import type { UpdateOwnProfileInput } from '@erp/shared';
@@ -329,6 +330,190 @@ export class AuthService {
       });
       return { message: 'Password reset. Sign in with your new password.' };
     });
+  }
+
+  async sendEmailOtp(tenantSlug: string, email: string) {
+    const tenant = (
+      await this.db.query(`select id, name, status from tenants where slug = $1`, [
+        tenantSlug.toLowerCase().trim(),
+      ])
+    ).rows[0];
+    if (!tenant || tenant.status !== 'active') {
+      throw new BadRequestException({
+        code: 'BAD_CREDENTIALS',
+        message: 'No active hotel organization found for that property code.',
+      });
+    }
+
+    const user = await this.db.withTenant(tenant.id, null, async (c) => (
+      await c.query(
+        `select id, email, full_name, is_active from users where tenant_id = $1 and lower(trim(email)) = $2 and is_active`,
+        [tenant.id, email.toLowerCase().trim()],
+      )
+    ).rows[0]);
+
+    if (!user) {
+      throw new BadRequestException({
+        code: 'USER_NOT_FOUND',
+        message: 'No active staff account found with this email for the property code.',
+      });
+    }
+
+    // Rate limiting: maximum 3 requests within 10 minutes
+    const recentCount = (
+      await this.db.query(
+        `select count(*)::int as count from email_login_otps
+         where tenant_id = $1 and user_id = $2 and created_at > now() - interval '10 minutes'`,
+        [tenant.id, user.id],
+      )
+    ).rows[0]?.count ?? 0;
+
+    if (recentCount >= 3) {
+      throw new BadRequestException({
+        code: 'TOO_MANY_OTP_REQUESTS',
+        message: 'Too many OTP requests in a short time. Please wait a few minutes before trying again.',
+      });
+    }
+
+    // Invalidate previous unconsumed OTPs for this user
+    await this.db.query(
+      `update email_login_otps set consumed_at = now() where tenant_id = $1 and user_id = $2 and consumed_at is null`,
+      [tenant.id, user.id],
+    );
+
+    // Generate cryptographic 6-digit OTP
+    const otp = randomInt(100000, 999999).toString();
+    const otpHash = createHash('sha256').update(`${otp}:${user.id}`).digest('hex');
+
+    await this.db.query(
+      `insert into email_login_otps (tenant_id, user_id, email, otp_hash, expires_at)
+       values ($1, $2, $3, $4, now() + interval '10 minutes')`,
+      [tenant.id, user.id, user.email, otpHash],
+    );
+
+    // Send email via Resend if credentials are present, else log to dev console
+    if (env.resendApiKey && env.emailFrom) {
+      try {
+        await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${env.resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            from: env.emailFrom,
+            to: [user.email],
+            subject: `Your ${tenant.name} Login Code: ${otp}`,
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 16px; background: #ffffff;">
+                <h2 style="color: #0f172a; margin-top: 0; font-size: 20px;">Your One-Time Login Code</h2>
+                <p style="color: #475569; font-size: 14px; line-height: 1.5;">Use the verification code below to sign in to <strong>${escapeHtml(tenant.name)}</strong> on Aura PMS:</p>
+                <div style="margin: 24px 0; text-align: center; padding: 18px; background: #f8fafc; border-radius: 12px; border: 1px dashed #cbd5e1;">
+                  <span style="font-family: monospace; font-size: 32px; font-weight: 800; letter-spacing: 8px; color: #0f172a;">${otp}</span>
+                </div>
+                <p style="color: #64748b; font-size: 12px; line-height: 1.4;">This code is valid for 10 minutes. If you did not request this login code, you can safely ignore this email.</p>
+              </div>
+            `,
+          }),
+        });
+      } catch (err) {
+        console.error('[AuthService] Failed to dispatch OTP email via Resend:', err);
+      }
+    }
+
+    console.log(`[AuthService] [LOGIN OTP] User ${user.email} (${tenantSlug}): ${otp}`);
+
+    return {
+      ok: true,
+      message: `A 6-digit login code has been sent to ${user.email}`,
+      devOtp: env.isProd ? undefined : otp,
+    };
+  }
+
+  async verifyEmailOtp(tenantSlug: string, email: string, otp: string) {
+    const tenant = (
+      await this.db.query(`select id, name, status from tenants where slug = $1`, [
+        tenantSlug.toLowerCase().trim(),
+      ])
+    ).rows[0];
+    if (!tenant || tenant.status !== 'active') {
+      throw new UnauthorizedException({
+        code: 'BAD_CREDENTIALS',
+        message: 'Invalid property code or email address.',
+      });
+    }
+
+    const member = await this.db.withTenant(tenant.id, null, async (c) => (
+      await c.query(
+        `select u.id, u.auth_version, pu.role, p.id as property_id
+         from users u
+         join property_users pu on pu.tenant_id = u.tenant_id and pu.user_id = u.id
+         join properties p on p.tenant_id = pu.tenant_id and p.id = pu.property_id
+         where u.email = $1 and u.is_active and p.status = 'active'
+         order by p.is_default desc, p.created_at asc limit 1`,
+        [email.toLowerCase().trim()],
+      )
+    ).rows[0]);
+
+    if (!member) {
+      throw new UnauthorizedException({
+        code: 'USER_NOT_FOUND',
+        message: 'No active staff member found with that email.',
+      });
+    }
+
+    const activeOtp = (
+      await this.db.query(
+        `select id, otp_hash, attempts, expires_at
+         from email_login_otps
+         where tenant_id = $1 and user_id = $2 and consumed_at is null
+         order by created_at desc limit 1`,
+        [tenant.id, member.id],
+      )
+    ).rows[0];
+
+    if (!activeOtp || new Date(activeOtp.expires_at) < new Date()) {
+      throw new UnauthorizedException({
+        code: 'OTP_EXPIRED',
+        message: 'The OTP code has expired or is invalid. Please request a new code.',
+      });
+    }
+
+    if (activeOtp.attempts >= 5) {
+      await this.db.query(`update email_login_otps set consumed_at = now() where id = $1`, [activeOtp.id]);
+      throw new UnauthorizedException({
+        code: 'TOO_MANY_FAILED_ATTEMPTS',
+        message: 'Too many incorrect attempts. For security, this code was invalidated. Request a new code.',
+      });
+    }
+
+    const inputHash = createHash('sha256').update(`${otp.trim()}:${member.id}`).digest('hex');
+    if (inputHash !== activeOtp.otp_hash) {
+      await this.db.query(`update email_login_otps set attempts = attempts + 1 where id = $1`, [activeOtp.id]);
+      const remaining = 4 - activeOtp.attempts;
+      throw new UnauthorizedException({
+        code: 'INVALID_OTP',
+        message: `Incorrect code. ${remaining > 0 ? `${remaining} attempt(s) remaining.` : 'Code invalidated.'}`,
+      });
+    }
+
+    // Mark as consumed
+    await this.db.query(`update email_login_otps set consumed_at = now() where id = $1`, [activeOtp.id]);
+
+    await this.db.withTenant(tenant.id, member.property_id, async (c) => {
+      await this.audit.log(c, {
+        tenantId: tenant.id,
+        userId: member.id,
+        action: 'user.login_otp',
+        entity: 'user',
+        entityId: member.id,
+        meta: { method: 'email_otp' },
+      }).catch(() => undefined);
+    });
+
+    return {
+      token: await this.issueToken(member.id, tenant.id, member.property_id, member.auth_version),
+    };
   }
 
   private issueToken(userId: string, tenantId: string, propertyId: string, authVersion: number) {

@@ -31,23 +31,46 @@
   --status-muted: 215 16% 47%;
 }
 
-/* Universal sleek scrollbars across the entire app */
+/* Modern sleek scrollbars - completely hidden for horizontal tabs/chips while keeping smooth scrolling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 0px;
+}
+::-webkit-scrollbar:horizontal,
+*::-webkit-scrollbar:horizontal {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(148, 163, 184, 0.35);
   border-radius: 9999px;
   transition: background 0.2s ease;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.7);
+  background: rgba(100, 116, 139, 0.6);
 }
 ::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Hide scrollbars across all horizontal overflow containers (tabs, chips, tables) across all browsers */
+.no-scrollbar,
+.scrollbar-none,
+.overflow-x-auto,
+[role="tablist"] {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar,
+.overflow-x-auto::-webkit-scrollbar,
+[role="tablist"]::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;

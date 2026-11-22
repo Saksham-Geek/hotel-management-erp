@@ -38,6 +38,8 @@ import {
   updateOutletAggregatorConfigSchema,
   updateRoomKeyStatusSchema,
   encodeKeycardSchema,
+  sendEmailOtpSchema,
+  verifyEmailOtpSchema,
   FEATURES,
   HOSPITALITY_PLAN_TIERS,
   PERMISSIONS,
@@ -1228,6 +1230,65 @@ test('Room Key and Keycard Schemas enforce valid operational statuses and room e
     false,
   );
 });
+
+test('Email OTP login schemas and migration 033 validate security parameters and token structure', () => {
+  // Test sendEmailOtpSchema
+  assert.equal(
+    sendEmailOtpSchema.safeParse({
+      tenant: 'saksham-hotel',
+      email: 'owner@sakshamhotel.com',
+    }).success,
+    true,
+  );
+
+  assert.equal(
+    sendEmailOtpSchema.safeParse({
+      tenant: '',
+      email: 'invalid-email',
+    }).success,
+    false,
+  );
+
+  // Test verifyEmailOtpSchema
+  assert.equal(
+    verifyEmailOtpSchema.safeParse({
+      tenant: 'saksham-hotel',
+      email: 'owner@sakshamhotel.com',
+      otp: '748291',
+    }).success,
+    true,
+  );
+
+  // Rejects 5 digits or non-numeric
+  assert.equal(
+    verifyEmailOtpSchema.safeParse({
+      tenant: 'saksham-hotel',
+      email: 'owner@sakshamhotel.com',
+      otp: '12345',
+    }).success,
+    false,
+  );
+  assert.equal(
+    verifyEmailOtpSchema.safeParse({
+      tenant: 'saksham-hotel',
+      email: 'owner@sakshamhotel.com',
+      otp: '12345a',
+    }).success,
+    false,
+  );
+
+  // Verify migration 033 file
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/033_email_login_otps.sql'),
+    'utf8',
+  );
+  assert.match(migration, /create table if not exists email_login_otps/);
+  assert.match(migration, /otp_hash text not null/);
+  assert.match(migration, /attempts integer not null default 0/);
+  assert.match(migration, /expires_at timestamptz not null/);
+  assert.match(migration, /consumed_at timestamptz/);
+});
+
 
 
 

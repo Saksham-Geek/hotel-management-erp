@@ -450,15 +450,17 @@ export function SettingsView({
     }
   };
 
+  const safeUsers = Array.isArray(users) ? users : ((users as any)?.staff ?? []);
+
   const tabsList = [
     { id: 'all', label: 'All Modules Overview', icon: '⚡', count: null },
     { id: 'rooms', label: 'Rooms & Rates', icon: '🏨', count: `${rooms.length} Rooms` },
     { id: 'restaurant', label: 'Restaurant & F&B', icon: '🍽️', count: `${tables.length} Tables` },
     { id: 'payments', label: 'Bank UPI & Hardware', icon: '💳', count: isOwner ? 'Owner' : 'Protected' },
     { id: 'channels', label: 'OTA Channel APIs', icon: '🌐', count: '5 OTAs' },
-    { id: 'staff', label: 'Staff & Hierarchy', icon: '👥', count: `${users.length} Staff` },
-    { id: 'compliance', label: 'Statutory BoI & GST', icon: '⚖️', count: 'Indian Mandates' },
-    { id: 'marketing', label: 'Marketing & Loyalty', icon: '📣', count: 'Loyalty CRM' },
+    { id: 'staff', label: 'Staff & Roles', icon: '👥', count: `${safeUsers.length} Staff` },
+    { id: 'compliance', label: 'Police & GST Reports', icon: '⚖️', count: 'Govt Reports' },
+    { id: 'marketing', label: 'Loyalty & Offers', icon: '📣', count: 'Loyalty CRM' },
     { id: 'keycards', label: 'Door Locks & Keys', icon: '🔑', count: `${keycards.length} Keys` },
   ];
 
@@ -508,7 +510,7 @@ export function SettingsView({
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Dishes &amp; Items</div>
             </div>
             <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
-              <div className="font-mono text-xl font-black text-white">{users.length}</div>
+              <div className="font-mono text-xl font-black text-white">{safeUsers.length}</div>
               <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">Team Members</div>
             </div>
           </div>
@@ -539,7 +541,7 @@ export function SettingsView({
       )}
 
       {/* Tabs Navigation Bar */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none border-b border-slate-200" role="tablist" aria-label="Settings tabs">
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none no-scrollbar border-b border-slate-200" role="tablist" aria-label="Settings tabs">
         {tabsList.map((t) => {
           const active = tab === t.id;
           return (
@@ -2188,7 +2190,7 @@ export function SettingsView({
                   Staff Directory &amp; Role-Based Permissions
                 </h2>
                 <span className="rounded-full bg-purple-100 border border-purple-200 px-2.5 py-0.5 text-xs font-bold text-purple-800">
-                  {users.length} Team Members Configured
+                  {safeUsers.length} Team Members Configured
                 </span>
               </div>
               <p className="text-xs text-slate-500">

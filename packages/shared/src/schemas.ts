@@ -9,6 +9,19 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(200),
 });
 
+export const sendEmailOtpSchema = z.object({
+  tenant: z.string().min(2).max(41),
+  email: z.string().email().max(200),
+});
+export type SendEmailOtpInput = z.infer<typeof sendEmailOtpSchema>;
+
+export const verifyEmailOtpSchema = z.object({
+  tenant: z.string().min(2).max(41),
+  email: z.string().email().max(200),
+  otp: z.string().trim().regex(/^\d{6}$/, 'Enter the 6-digit verification code'),
+});
+export type VerifyEmailOtpInput = z.infer<typeof verifyEmailOtpSchema>;
+
 export const createUserSchema = z.object({
   email: z.string().email().max(200),
   fullName: z.string().min(1).max(120),

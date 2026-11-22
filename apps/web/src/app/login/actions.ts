@@ -54,6 +54,75 @@ export async function login(formData: FormData) {
   redirect('/dashboard');
 }
 
+export async function sendEmailOtpAction(tenant: string, email: string) {
+  try {
+    const res = await fetch(`${API_URL}/auth/email-otp/send`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({
+        tenant: tenant.trim(),
+        email: email.trim(),
+      }),
+    });
+    const body = await res.json().catch(() => null);
+    if (!res.ok) {
+      return { ok: false, error: body?.message || 'Could not send verification code.' };
+    }
+    return {
+      ok: true,
+      message: body.message || 'Verification code sent.',
+      devOtp: body.devOtp as string | undefined,
+    };
+  } catch (err) {
+    console.error('[sendEmailOtpAction] Error:', err);
+    return { ok: false, error: 'API server (:4000) is unreachable. Check that API and database are running.' };
+  }
+}
+
+export async function verifyEmailOtpAction(tenant: string, email: string, otp: string) {
+  let token: string | null = null;
+  let error = 'Invalid or expired code.';
+  try {
+    const res = await fetch(`${API_URL}/auth/email-otp/verify`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      cache: 'no-store',
+      body: JSON.stringify({
+        tenant: tenant.trim(),
+        email: email.trim(),
+        otp: otp.trim(),
+      }),
+    });
+    const body = await res.json().catch(() => null);
+    if (res.ok && body?.token) {
+      token = body.token;
+    } else if (body?.message) {
+      error = body.message;
+    }
+  } catch (err) {
+    console.error('[verifyEmailOtpAction] Error:', err);
+    return { ok: false, error: 'API server (:4000) is unreachable. Check that API and database are running.' };
+  }
+
+  if (!token) {
+    return { ok: false, error };
+  }
+
+  await storeToken(token);
+
+  const tenantSlug = tenant.trim().toLowerCase();
+  const emailVal = email.trim().toLowerCase();
+  const redirectUrl =
+    tenantSlug === 'platform-hq' ||
+    emailVal === 'founder@antigravity-erp.com' ||
+    emailVal === 'ops@antigravity-erp.com'
+      ? '/platform-admin'
+      : '/dashboard';
+
+  return { ok: true, redirectUrl };
+}
+
 export async function selectProperty(fd: FormData) {
   const propertyId = String(fd.get('propertyId') ?? '').trim();
   if (!propertyId) redirect('/dashboard');

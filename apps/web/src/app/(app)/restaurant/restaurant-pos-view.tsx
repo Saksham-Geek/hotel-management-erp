@@ -1408,7 +1408,7 @@ export function RestaurantPosView({
       {/* ============================================================== */}
       {/* NAVIGATION TABS (Tables, POS Counter, Aggregators, KDS, Shift) */}
       {/* ============================================================== */}
-      <div className="flex border-b border-slate-200 gap-6 text-sm font-bold overflow-x-auto">
+      <div className="flex border-b border-slate-200 gap-6 text-sm font-bold overflow-x-auto no-scrollbar scrollbar-none">
         <button
           type="button"
           onClick={() => setActiveTab('tables')}

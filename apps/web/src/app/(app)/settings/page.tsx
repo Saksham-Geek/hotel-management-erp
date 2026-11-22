@@ -45,12 +45,14 @@ export default async function SettingsHubPage({
     ).catch(() => null),
     api<any[]>('/hotel/pos/terminals').catch(() => []),
     api<any>('/hotel/channels').catch(() => ({ channels: [], stats: { otaBookingsCount: 0 } })),
-    api<any[]>('/users').catch(() => []),
+    api<any>('/users').catch(() => ({ staff: [] })),
     api<any[]>('/hotel/keycards/keys').catch(() => []),
     api<{ keySystemMode: 'brass_only' | 'rfid_only' | 'hybrid'; enableMobileQr: boolean }>(
       '/hotel/keycards/settings',
     ).catch(() => ({ keySystemMode: 'hybrid' as const, enableMobileQr: true })),
   ]);
+
+  const staffList = Array.isArray(users) ? users : (users?.staff ?? []);
 
   // Role Gate: Settings & Management Hub is strictly restricted to Manager or Owner level
   if (me.role !== 'owner' && me.role !== 'manager') {
@@ -83,7 +85,7 @@ export default async function SettingsHubPage({
         upiSettings={upiSettings}
         terminals={terminals}
         channelData={channelData}
-        users={users}
+        users={staffList}
         keycards={keycards}
         keySystemSettings={keySystemSettings}
         readOnly={ent.readOnly}

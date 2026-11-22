@@ -6,7 +6,7 @@ import { api, errorMessage } from '@/lib/api';
 async function run(path: string, method: string, body: unknown, okMsg: string) {
   let error: string | null = null;
   try { await api(path, { method, body: JSON.stringify(body) }); } catch (e) { error = errorMessage(e); }
-  revalidatePath('/rooms'); revalidatePath('/dashboard'); revalidatePath('/housekeeping'); revalidatePath('/settings');
+  revalidatePath('/rooms'); revalidatePath('/dashboard'); revalidatePath('/housekeeping'); revalidatePath('/settings'); revalidatePath('/keycards');
   return error ? `error=${encodeURIComponent(error)}` : `ok=${encodeURIComponent(okMsg)}`;
 }
 
@@ -38,6 +38,7 @@ export async function createRoom(fd: FormData) {
   redirect(back + sep + (await run('/hotel/rooms', 'POST', {
     roomTypeId: fd.get('roomTypeId'), number: fd.get('number'), floor: fd.get('floor') || 0,
     baseRate: fd.get('baseRate') || undefined, hourlyRate: fd.get('hourlyRate') || undefined,
+    lockType: fd.get('lockType') || 'both',
   }, 'Room added')));
 }
 
@@ -45,12 +46,14 @@ export async function updateRoom(fd: FormData) {
   const back = String(fd.get('back') || '/rooms');
   const sep = back.includes('?') ? '&' : '?';
   const hourlyRate = String(fd.get('hourlyRate') ?? '').trim();
+  const lockType = String(fd.get('lockType') ?? '').trim();
   redirect(back + sep + (await run(`/hotel/rooms/${fd.get('id')}`, 'PATCH', {
     roomTypeId: fd.get('roomTypeId'),
     number: fd.get('number'),
     floor: Number(fd.get('floor')),
     baseRate: String(fd.get('baseRate') ?? '').trim() === '' ? null : Number(fd.get('baseRate')),
     hourlyRate: hourlyRate === '' ? null : Number(hourlyRate),
+    lockType: lockType || undefined,
   }, 'Room configuration updated')));
 }
 

@@ -40,9 +40,9 @@ export default async function CompliancePage({
   return (
     <>
       <PageHeader
-        title="Statutory &amp; BoI Compliance"
-        eyebrow="Indian Legal Mandates"
-        description="Foreign national Form C registration (BoI) and daily local police station midnight beat book reporting."
+        title="Police Reports &amp; Guest Verification"
+        eyebrow="Government &amp; Police Reports"
+        description="Daily guest list for local police verification and Form C submissions for foreign guests."
       />
       <Banner error={error} ok={ok} />
 

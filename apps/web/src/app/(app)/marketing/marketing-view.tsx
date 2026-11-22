@@ -160,15 +160,15 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
         <div>
           <div className="flex items-center gap-2">
             <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 shadow-2xs">
-              Guest Follow-Up &amp; Marketing Engine
+              Guest Loyalty &amp; Offers
             </span>
-            <span className="text-xs font-medium text-slate-500">Taj InnerCircle Standard</span>
+            <span className="text-xs font-medium text-slate-500">Guest Retention</span>
           </div>
           <h1 className="mt-2 font-display text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-            Post-Stay Follow-Up &amp; Loyalty CRM
+            Guest Loyalty &amp; Follow-Up
           </h1>
           <p className="mt-1 text-sm text-slate-500 font-normal">
-            Automated WhatsApp &amp; Email Google review requests, guest lifetime value tracking, and targeted repeat booking campaigns.
+            Automated WhatsApp review requests, guest reward points, and special discount offers.
           </p>
         </div>
 

@@ -30,6 +30,7 @@ export default async function SettingsHubPage({
     channelData,
     users,
     keycards,
+    keySystemSettings,
   ] = await Promise.all([
     getMe(),
     searchParams,
@@ -46,6 +47,9 @@ export default async function SettingsHubPage({
     api<any>('/hotel/channels').catch(() => ({ channels: [], stats: { otaBookingsCount: 0 } })),
     api<any[]>('/users').catch(() => []),
     api<any[]>('/hotel/keycards/keys').catch(() => []),
+    api<{ keySystemMode: 'brass_only' | 'rfid_only' | 'hybrid'; enableMobileQr: boolean }>(
+      '/hotel/keycards/settings',
+    ).catch(() => ({ keySystemMode: 'hybrid' as const, enableMobileQr: true })),
   ]);
 
   // Role Gate: Settings & Management Hub is strictly restricted to Manager or Owner level
@@ -81,6 +85,7 @@ export default async function SettingsHubPage({
         channelData={channelData}
         users={users}
         keycards={keycards}
+        keySystemSettings={keySystemSettings}
         readOnly={ent.readOnly}
       />
     </>

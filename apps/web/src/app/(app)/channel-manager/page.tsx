@@ -44,9 +44,9 @@ export default async function ChannelManagerPage({
   return (
     <>
       <PageHeader
-        title="OTA Channel Manager & Distribution"
-        eyebrow="Two-Way Live Sync"
-        description="Unified connectivity to MakeMyTrip, Booking.com, Agoda, Expedia, and Airbnb. Synchronize live room inventory, rates (ARI), and instant booking webhooks in one place."
+        title="Online Booking Sites (OTAs)"
+        eyebrow="Channel Manager"
+        description="Connect and sync live room availability and pricing with MakeMyTrip, Booking.com, Agoda, and Expedia."
       />
       <Banner error={error} ok={ok} />
 

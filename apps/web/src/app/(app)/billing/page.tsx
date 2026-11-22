@@ -48,9 +48,9 @@ export default async function BillingPage({
   return (
     <>
       <PageHeader
-        title="Billing &amp; Cashiering"
-        eyebrow="Financial Operations"
-        description="Indian GST invoicing, multi-folio management, payment collection, and cashier settlements."
+        title="Guest Bills &amp; Payments"
+        eyebrow="Front Desk Billing"
+        description="Indian GST invoices, payment collection, advances &amp; deposits, and guest account settlements."
       >
         <StatutoryExportButtons />
       </PageHeader>
@@ -68,14 +68,14 @@ export default async function BillingPage({
       <section className="mb-6 rounded-xl border border-line bg-surface p-4 shadow-sm">
         <form method="get" className="flex flex-wrap items-center gap-3">
           <label htmlFor="res-selector" className="text-xs font-semibold text-ink shrink-0">
-            Select Reservation / Room:
+            Select Guest / Room:
           </label>
           <div className="max-w-md flex-1">
             <CustomDropdown
               id="res-selector"
               name="reservationId"
               defaultValue={reservationId ?? ''}
-              placeholder="Choose an active stay to open folio…"
+              placeholder="Select an active stay to view bill…"
               size="sm"
               options={reservations.map((r) => ({
                 value: r.id,

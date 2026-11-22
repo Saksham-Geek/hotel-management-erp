@@ -71,7 +71,7 @@ export class RoomsController {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
       (
         await c.query(
-          `select r.id, r.number, r.floor, r.status, r.room_type_id as "roomTypeId", rt.name as "roomType", coalesce(r.hourly_rate, rt.hourly_rate, rt.base_rate / 24.0)::float8 as "hourlyRate", r.hourly_rate::float8 as "hourlyRateOverride", coalesce(r.base_rate, rt.base_rate)::float8 as "baseRate", r.base_rate::float8 as "baseRateOverride"
+          `select r.id, r.number, r.floor, r.status, coalesce(r.lock_type, 'both') as "lockType", r.room_type_id as "roomTypeId", rt.name as "roomType", coalesce(r.hourly_rate, rt.hourly_rate, rt.base_rate / 24.0)::float8 as "hourlyRate", r.hourly_rate::float8 as "hourlyRateOverride", coalesce(r.base_rate, rt.base_rate)::float8 as "baseRate", r.base_rate::float8 as "baseRateOverride"
            from rooms r join room_types rt on rt.id = r.room_type_id order by r.floor, r.number`,
         )
       ).rows,
@@ -88,8 +88,8 @@ export class RoomsController {
 
       const row = (
         await c.query(
-          `insert into rooms (tenant_id, property_id, room_type_id, number, floor, base_rate, hourly_rate) values ($1,$2,$3,$4,$5,$6,$7) returning id, number, floor, status`,
-          [user.tenantId, user.propertyId, b.roomTypeId, b.number, b.floor, b.baseRate ?? null, b.hourlyRate ?? null],
+          `insert into rooms (tenant_id, property_id, room_type_id, number, floor, base_rate, hourly_rate, lock_type) values ($1,$2,$3,$4,$5,$6,$7,$8) returning id, number, floor, status, lock_type as "lockType"`,
+          [user.tenantId, user.propertyId, b.roomTypeId, b.number, b.floor, b.baseRate ?? null, b.hourlyRate ?? null, b.lockType ?? 'both'],
         )
       ).rows[0];
       await this.audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'room.create', entity: 'room', entityId: row.id });
@@ -201,12 +201,14 @@ export class RoomsController {
            number = coalesce($4, number),
            floor = coalesce($5, floor),
            base_rate = case when $6 then $7::numeric else base_rate end,
-           hourly_rate = case when $8 then $9::numeric else hourly_rate end
+           hourly_rate = case when $8 then $9::numeric else hourly_rate end,
+           lock_type = coalesce($10, lock_type)
          where id = $1 and tenant_id = $2
-         returning id, number, floor, status, room_type_id as "roomTypeId", base_rate::float8 as "baseRateOverride", hourly_rate::float8 as "hourlyRateOverride"`,
+         returning id, number, floor, status, lock_type as "lockType", room_type_id as "roomTypeId", base_rate::float8 as "baseRateOverride", hourly_rate::float8 as "hourlyRateOverride"`,
         [id, user.tenantId, b.roomTypeId ?? null, b.number ?? null, b.floor ?? null,
           b.baseRate !== undefined, b.baseRate ?? null,
-          b.hourlyRate !== undefined, b.hourlyRate ?? null],
+          b.hourlyRate !== undefined, b.hourlyRate ?? null,
+          b.lockType ?? null],
       )).rows[0];
       if (!row) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Room not found' });
       await this.audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'room.update', entity: 'room', entityId: id });

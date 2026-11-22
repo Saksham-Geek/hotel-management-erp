@@ -17,6 +17,7 @@ import {
   createRoomTypeSetting,
   updateRoomTypeSetting,
   updateUpiSetting,
+  updateKeySystemSetting,
   createPosTerminalSetting,
   saveChannelConnectionSetting,
   onboardStaffSetting,
@@ -115,6 +116,10 @@ interface SettingsViewProps {
   };
   users: any[];
   keycards: any[];
+  keySystemSettings?: {
+    keySystemMode: 'brass_only' | 'rfid_only' | 'hybrid';
+    enableMobileQr: boolean;
+  };
   readOnly: boolean;
 }
 
@@ -132,6 +137,7 @@ export function SettingsView({
   channelData,
   users,
   keycards,
+  keySystemSettings,
   readOnly,
 }: SettingsViewProps) {
   const router = useRouter();
@@ -453,7 +459,7 @@ export function SettingsView({
     { id: 'staff', label: 'Staff & Hierarchy', icon: '👥', count: `${users.length} Staff` },
     { id: 'compliance', label: 'Statutory BoI & GST', icon: '⚖️', count: 'Indian Mandates' },
     { id: 'marketing', label: 'Marketing & Loyalty', icon: '📣', count: 'Loyalty CRM' },
-    { id: 'keycards', label: 'RFID Keycards', icon: '🔑', count: `${keycards.length} Keys` },
+    { id: 'keycards', label: 'Door Locks & Keys', icon: '🔑', count: `${keycards.length} Keys` },
   ];
 
   const totalMenuItems = menu.reduce((acc, cat) => acc + (cat.items?.length || 0), 0);
@@ -772,6 +778,21 @@ export function SettingsView({
                         step="0.01"
                         placeholder="Inherit type tariff"
                         className={inputCls}
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                        Door Lock Hardware Type
+                      </label>
+                      <CustomDropdown
+                        name="lockType"
+                        defaultValue="both"
+                        options={[
+                          { value: 'both', label: '🗝️💳 Dual Lock (Smart Lock + Brass Master Key)' },
+                          { value: 'rfid_card', label: '💳 RFID Smart Card Lock Only (Contactless MIFARE)' },
+                          { value: 'brass_key', label: '🗝️ Physical Brass Keychain Only (Heritage)' },
+                        ]}
+                        aria-label="Door Lock Hardware Type"
                       />
                     </div>
                   </div>
@@ -2535,78 +2556,174 @@ export function SettingsView({
                   🔑
                 </span>
                 <h2 className="font-display text-xl font-bold text-slate-900">
-                  RFID Keycards &amp; Hardware Lock Sync
+                  Door Locks &amp; Key Access Architecture
                 </h2>
-                <span className="rounded-full bg-amber-100 border border-amber-200 px-2.5 py-0.5 text-xs font-bold text-amber-800">
-                  {keycards.length} Physical Keys Encoded
+                <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${
+                  keySystemSettings?.keySystemMode === 'brass_only'
+                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                    : keySystemSettings?.keySystemMode === 'rfid_only'
+                    ? 'bg-indigo-100 text-indigo-800 border-indigo-300'
+                    : 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                }`}>
+                  {keySystemSettings?.keySystemMode === 'brass_only'
+                    ? '🗝️ Boutique Heritage (Brass Only)'
+                    : keySystemSettings?.keySystemMode === 'rfid_only'
+                    ? '💳 Modern Hotel (RFID Only)'
+                    : '🗝️💳 Hybrid Combination Mode'}
                 </span>
               </div>
               <p className="text-xs text-slate-500">
-                Manage physical hotel keycard inventory, slot rack hardware, and automated checkout key return.
+                Configure your property lock standard: Traditional physical brass key tags, modern contactless MIFARE RFID smart cards, or a hybrid combination.
               </p>
             </div>
 
-            {/* CRITICAL: Direct operational link button beside manage */}
             <Link
               href="/keycards"
               className="inline-flex items-center gap-2 rounded-xl bg-amber-800 px-4 py-2.5 text-xs font-bold text-white hover:bg-amber-900 transition-all shadow-xs cursor-pointer group"
             >
-              <span>🚀 Go to Room Keycards</span>
+              <span>🚀 Open Front Desk Key Cabinet</span>
               <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
             </Link>
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">Keycard Encoder Policy</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
-                    Encoder Frequency &amp; Lock Standard
-                  </label>
-                  <CustomDropdown
-                    defaultValue="rfid_1356"
-                    options={[
-                      { value: 'rfid_1356', label: '13.56 MHz RFID / Mifare Classic 1K' },
-                      { value: 'magstripe', label: 'Track 1/2 Magnetic Stripe Card' },
-                      { value: 'ble_mobile', label: 'Bluetooth Mobile Key (BLE)' },
-                    ]}
-                    aria-label="Encoder frequency"
-                  />
-                </div>
-                <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span>Automatically return keycard to slot on guest check-out</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-slate-700 font-medium">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span>Invalidate old key immediately when duplicate key is cut</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setMsg({ type: 'ok', text: 'Hardware encoder settings updated.' })}
-                  className={btnCls}
-                >
-                  Save Hardware Policy
-                </button>
-              </div>
-            </div>
+            {/* Property Key System Configuration Form */}
+            <form action={updateKeySystemSetting} className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-sm font-bold text-slate-900">Property Lock &amp; Key Policy</h3>
+              <p className="text-xs text-slate-500">
+                Choose the lock hardware architecture that matches your property operations.
+              </p>
 
+              <div className="space-y-2.5">
+                <label className={`block rounded-xl border p-3 cursor-pointer transition-all ${
+                  (keySystemSettings?.keySystemMode || 'hybrid') === 'hybrid'
+                    ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20 ring-1 ring-indigo-500'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name="keySystemMode"
+                      value="hybrid"
+                      defaultChecked={(keySystemSettings?.keySystemMode || 'hybrid') === 'hybrid'}
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">🗝️💳 Hybrid / Combination (Recommended)</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Supports both physical brass keychains and contactless RFID cards. Ideal for properties with heritage and modern wings, or smart locks with mechanical backup master keys.
+                      </p>
+                    </div>
+                  </div>
+                </label>
+
+                <label className={`block rounded-xl border p-3 cursor-pointer transition-all ${
+                  keySystemSettings?.keySystemMode === 'brass_only'
+                    ? 'border-amber-500 bg-amber-50/50 dark:bg-amber-950/20 ring-1 ring-amber-500'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name="keySystemMode"
+                      value="brass_only"
+                      defaultChecked={keySystemSettings?.keySystemMode === 'brass_only'}
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">🗝️ Boutique / Heritage Hotel (Brass Keys Only)</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Traditional solid brass numbered key tags. Hides electronic RFID encoder interfaces and focuses entirely on front desk slot cabinet custody &amp; audits.
+                      </p>
+                    </div>
+                  </div>
+                </label>
+
+                <label className={`block rounded-xl border p-3 cursor-pointer transition-all ${
+                  keySystemSettings?.keySystemMode === 'rfid_only'
+                    ? 'border-indigo-500 bg-indigo-50/50 dark:bg-indigo-950/20 ring-1 ring-indigo-500'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <input
+                      type="radio"
+                      name="keySystemMode"
+                      value="rfid_only"
+                      defaultChecked={keySystemSettings?.keySystemMode === 'rfid_only'}
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <p className="text-xs font-bold text-slate-900">💳 Modern Electronic Hotel (RFID Cards Only)</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">
+                        Contactless MIFARE / NFC smart keycards programmed via USB reader. Automatic expiration on checkout and instant replacement card invalidation.
+                      </p>
+                    </div>
+                  </div>
+                </label>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200">
+                <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="enableMobileQr"
+                    defaultChecked={keySystemSettings?.enableMobileQr ?? true}
+                    className="rounded text-indigo-600"
+                  />
+                  <span>📱 Enable Digital Smartphone QR Mobile Keycards for Checked-in Guests</span>
+                </label>
+              </div>
+
+              <button
+                type="submit"
+                disabled={readOnly}
+                className={btnCls}
+              >
+                Save Lock Architecture Policy
+              </button>
+            </form>
+
+            {/* Inventory & Active Hardware Breakdown */}
             <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">Keycard Inventory Summary</h3>
+              <h3 className="text-sm font-bold text-slate-900">Access Key Inventory &amp; Custody</h3>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-slate-200 bg-white p-3">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase">In Slot Rack</div>
-                  <div className="font-mono text-2xl font-black text-slate-900 mt-1">
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-1">
+                  <div className="text-[11px] font-bold text-amber-700 uppercase">🗝️ Brass Keychains</div>
+                  <div className="font-mono text-2xl font-black text-slate-900">
+                    {keycards.filter((k: any) => k.keyType === 'physical_brass').length}
+                  </div>
+                  <p className="text-[10px] text-slate-400">Pigeonhole tag cabinet</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-1">
+                  <div className="text-[11px] font-bold text-indigo-700 uppercase">💳 RFID Smart Cards</div>
+                  <div className="font-mono text-2xl font-black text-slate-900">
+                    {keycards.filter((k: any) => k.keyType === 'rfid_mifare').length}
+                  </div>
+                  <p className="text-[10px] text-slate-400">MIFARE / 13.56MHz</p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-1">
+                  <div className="text-[11px] font-bold text-emerald-700 uppercase">In Slot / Cabinet</div>
+                  <div className="font-mono text-2xl font-black text-emerald-600">
                     {keycards.filter((k: any) => k.status === 'in_slot').length}
                   </div>
+                  <p className="text-[10px] text-slate-400">Available at front desk</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-3">
-                  <div className="text-[11px] font-bold text-slate-400 uppercase">Issued to Guests</div>
-                  <div className="font-mono text-2xl font-black text-emerald-600 mt-1">
+                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-1">
+                  <div className="text-[11px] font-bold text-blue-700 uppercase">With Guests</div>
+                  <div className="font-mono text-2xl font-black text-blue-600">
                     {keycards.filter((k: any) => k.status === 'issued_to_guest').length}
                   </div>
+                  <p className="text-[10px] text-slate-400">Active checked-in stays</p>
                 </div>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2 text-xs">
+                <p className="font-bold text-slate-900">Real-World PMS Automation Rules Active:</p>
+                <ul className="space-y-1 text-slate-600 list-disc list-inside text-[11px]">
+                  <li>Automated custody return to slot upon guest checkout or cancellation.</li>
+                  <li>Security integrity: keys can only be issued to verified occupants of that specific room.</li>
+                  <li>Tamper-proof custody audit logs tracking handovers between guests and front desk.</li>
+                </ul>
               </div>
             </div>
           </div>

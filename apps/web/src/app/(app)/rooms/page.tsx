@@ -20,9 +20,9 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
   return (
     <>
       <PageHeader
-        title="Rooms &amp; Floors Rack"
-        eyebrow="Daily Front Office &amp; Housekeeping Operations"
-        description="Real-time operational room rack, housekeeping cleaning progress, and guest stay allocation."
+        title="Rooms &amp; Floors"
+        eyebrow="Room Status &amp; Cleaning"
+        description="Live room statuses, housekeeping cleaning progress, and room occupancy details."
       >
         {canManage && !ent.readOnly && (
           <Link href="/settings?tab=rooms" className={btnCls}>

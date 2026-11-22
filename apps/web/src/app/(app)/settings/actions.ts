@@ -42,6 +42,7 @@ export async function createRoomSetting(fd: FormData) {
         floor: fd.get('floor') || 0,
         baseRate: fd.get('baseRate') || undefined,
         hourlyRate: fd.get('hourlyRate') || undefined,
+        lockType: fd.get('lockType') || 'both',
       }),
     });
   } catch (e) {
@@ -102,6 +103,28 @@ export async function updateUpiSetting(fd: FormData) {
     redirect(`/settings?tab=payments&error=${encodeURIComponent(error)}`);
   }
   redirect('/settings?tab=payments&ok=Receiver+UPI+ID+updated+successfully');
+}
+
+// --- Key Access Policy & Lock System Settings ---
+
+export async function updateKeySystemSetting(fd: FormData) {
+  const keySystemMode = String(fd.get('keySystemMode') ?? 'hybrid');
+  const enableMobileQr = fd.get('enableMobileQr') === 'on';
+  let error: string | null = null;
+  try {
+    await api('/hotel/keycards/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ keySystemMode, enableMobileQr }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/keycards');
+  if (error) {
+    redirect(`/settings?tab=keycards&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=keycards&ok=Key+access+policy+and+lock+settings+updated+successfully');
 }
 
 // --- POS Terminals Settings ---

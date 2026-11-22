@@ -47,22 +47,22 @@ export default async function TapeChartPage({
   return (
     <>
       <PageHeader
-        title="Room Rack &amp; Tape Chart"
-        eyebrow="Front Desk Gantt Timeline"
-        description="Multi-day visual room allocation, continuous reservation ribbons, and 1-click cashiering folios."
+        title="Room Booking Calendar"
+        eyebrow="Daily Room Availability"
+        description="Visual calendar to view room availability across dates, see active guest stays, and allocate rooms easily."
       >
         <Link
           href="/reservations#new-reservation"
           className={btnCls}
         >
           <span aria-hidden className="text-sm font-bold">+</span>
-          New Reservation
+          New Booking
         </Link>
         <Link href="/billing" className={btnGhostCls}>
-          🧾 Cashiering &amp; Folios
+          💳 Bills &amp; Payments
         </Link>
         <Link href="/dashboard" className={btnGhostCls}>
-          📋 Today's Desk
+          📋 Front Desk Today
         </Link>
       </PageHeader>
       <Banner error={error} ok={ok} />

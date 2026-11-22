@@ -85,10 +85,10 @@ export default async function Dashboard({
           New Reservation
         </Link>
         <Link href="/tape-chart" className={btnGhostCls}>
-          📊 Tape Chart (Rack)
+          📅 Room Calendar
         </Link>
         <Link href="/billing" className={btnGhostCls}>
-          🧾 Cashiering &amp; Folios
+          💳 Bills &amp; Payments
         </Link>
       </PageHeader>
 

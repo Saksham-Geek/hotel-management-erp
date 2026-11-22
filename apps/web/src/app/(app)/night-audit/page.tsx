@@ -68,9 +68,9 @@ export default async function NightAuditPage({
   return (
     <>
       <PageHeader
-        title="Night Audit &amp; Day Close"
-        eyebrow="Financial Rollover"
-        description="Close the operational hotel business date, auto-post daily room &amp; tax charges, and audit ADR/RevPAR performance."
+        title="Daily Day-End Closing (Night Audit)"
+        eyebrow="End of Day Operations"
+        description="Close the hotel's day, post daily room charges to bills, and generate day-end revenue summaries."
       />
       <Banner error={error} ok={ok} />
 
@@ -78,14 +78,14 @@ export default async function NightAuditPage({
       <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
         <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-slate-50/80 px-6 py-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hotel Operations Date</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hotel Working Date</p>
             <h2 className="text-xl font-bold font-display text-slate-950 mt-1">
-              Current Business Date: <span className="text-slate-900 font-mono font-bold">{status.currentBusinessDate}</span>
+              Current Working Date: <span className="text-slate-900 font-mono font-bold">{status.currentBusinessDate}</span>
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               {status.lastAuditedAt
-                ? `Last audited: ${new Date(status.lastAuditedAt).toLocaleString('en-IN')}`
-                : 'Night audit has not been run today'}
+                ? `Last closed: ${new Date(status.lastAuditedAt).toLocaleString('en-IN')}`
+                : 'Day-end closing has not been run today'}
             </p>
           </div>
 
@@ -93,9 +93,9 @@ export default async function NightAuditPage({
             <form action={runNightAudit}>
               <FormSubmit
                 className={btnCls}
-                pendingLabel="Executing Night Audit…"
+                pendingLabel="Closing Day &amp; Rolling Date…"
               >
-                Execute Night Audit &amp; Advance Day →
+                Close Day &amp; Advance to Tomorrow →
               </FormSubmit>
             </form>
           )}

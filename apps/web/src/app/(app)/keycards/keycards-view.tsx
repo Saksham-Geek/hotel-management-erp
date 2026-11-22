@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
 import { getRoomTypeTheme } from '@/lib/room-types';
-import { updateRoomKeyStatusAction, encodeKeycardAction } from './actions';
+import { updateRoomKeyStatusAction, encodeKeycardAction, checkInReservationAction } from './actions';
 
 export interface RoomKeyCustodyLogDto {
   id: string;
@@ -29,9 +30,12 @@ export interface RoomKeyDto {
   notes: string | null;
   roomNumber: string;
   floor: number;
+  lockType?: 'brass_key' | 'rfid_card' | 'both';
   roomTypeName: string | null;
   guestCheckIn: string | null;
   guestCheckOut: string | null;
+  propertyKeySystemMode?: 'brass_only' | 'rfid_only' | 'hybrid';
+  propertyEnableMobileQr?: boolean;
   custodyLogs?: RoomKeyCustodyLogDto[];
 }
 
@@ -39,23 +43,30 @@ export interface ActiveGuestStayDto {
   reservationId: string;
   roomNumber: string;
   guestName: string;
+  guestPhone?: string;
   guests?: { id: string; name: string }[];
   checkIn: string;
   checkOut: string;
   checkInFormatted?: string;
   checkOutFormatted?: string;
+  status?: string;
 }
 
 export function KeycardsView({
   keys,
   activeStays,
+  keySystemMode = 'hybrid',
+  enableMobileQr = true,
 }: {
   keys: RoomKeyDto[];
   activeStays: ActiveGuestStayDto[];
+  keySystemMode?: 'brass_only' | 'rfid_only' | 'hybrid';
+  enableMobileQr?: boolean;
 }) {
   const router = useRouter();
   const [localKeys, setLocalKeys] = useState<RoomKeyDto[]>(keys);
-  const [activeTab, setActiveTab] = useState<'brass_rack' | 'rfid_encoder' | 'digital_mobile'>('brass_rack');
+  const defaultTab = keySystemMode === 'rfid_only' ? 'rfid_encoder' : 'brass_rack';
+  const [activeTab, setActiveTab] = useState<'brass_rack' | 'rfid_encoder' | 'digital_mobile'>(defaultTab);
   const [serialConnected, setSerialConnected] = useState(false);
   const [serialPortName, setSerialPortName] = useState<string | null>(null);
 
@@ -226,6 +237,44 @@ export function KeycardsView({
     }
   }
 
+  const [checkingInResId, setCheckingInResId] = useState<string | null>(null);
+
+  async function handleCheckInStay(reservationId: string, guestName: string, roomNumber: string) {
+    setCheckingInResId(reservationId);
+    setLocalKeys((prev) =>
+      prev.map((k) =>
+        String(k.roomNumber).trim() === String(roomNumber).trim()
+          ? {
+              ...k,
+              status: 'issued_to_guest',
+              issuedToGuestName: guestName,
+              issuedToReservationId: reservationId,
+              issuedAt: new Date().toISOString(),
+              returnedAt: null,
+            }
+          : k
+      )
+    );
+
+    const res = await checkInReservationAction(reservationId);
+    setCheckingInResId(null);
+    if (res.ok) {
+      setFeedbackMsg({
+        type: 'ok',
+        text: `✓ ${guestName} successfully checked into Room ${roomNumber}. Room key issued to guest!`,
+      });
+      setHandingKey(null);
+      setEncodingKey(null);
+      router.refresh();
+    } else {
+      setFeedbackMsg({
+        type: 'err',
+        text: res.error || 'Failed to check in guest',
+      });
+      setLocalKeys(keys);
+    }
+  }
+
   // Handle Escape key to dismiss any active modal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -250,55 +299,86 @@ export function KeycardsView({
             <KeyIcon />
           </span>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="font-display text-2xl font-bold tracking-tight text-ink">
-                Room Keys &amp; Door Lock Bridge
+                Room Keys &amp; Locks
               </h1>
-              <span className="rounded-full bg-slate-100 text-slate-800 dark:bg-white/10 dark:text-slate-200 text-[11px] font-bold px-2.5 py-0.5 border border-slate-200 dark:border-white/10">
-                Smart Locks &amp; Key Cabinet
+              <span className={`rounded-full text-[11px] font-bold px-2.5 py-0.5 border ${
+                keySystemMode === 'brass_only'
+                  ? 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-700'
+                  : keySystemMode === 'rfid_only'
+                  ? 'bg-indigo-100 text-indigo-900 border-indigo-300 dark:bg-indigo-950/60 dark:text-indigo-200 dark:border-indigo-700'
+                  : 'bg-emerald-100 text-emerald-900 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-700'
+              }`}>
+                {keySystemMode === 'brass_only'
+                  ? '🗝️ Physical Brass Keys'
+                  : keySystemMode === 'rfid_only'
+                  ? '💳 RFID Keycards'
+                  : '🗝️💳 Both Brass Keys & RFID Cards'}
               </span>
             </div>
             <p className="text-xs text-muted mt-0.5">
-              Traditional Brass Keychain Rack for boutique hotels · MIFARE RFID Encoder for modern locks · Digital Mobile QR Passes.
+              {keySystemMode === 'brass_only'
+                ? 'Manage physical brass keys, track guest custody, and record key returns.'
+                : keySystemMode === 'rfid_only'
+                ? 'Write and issue contactless RFID keycards for smart door locks.'
+                : 'Manage both traditional brass room keys and electronic RFID keycards in one place.'}
             </p>
           </div>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="inline-flex rounded-xl bg-slate-100 dark:bg-white/[0.05] p-1 border border-slate-200/80 dark:border-white/10">
-          <button
-            type="button"
-            onClick={() => setActiveTab('brass_rack')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'brass_rack'
-                ? 'bg-white dark:bg-white/20 text-slate-950 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
+        {/* Tab Switcher & Lock Policy Link */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="inline-flex rounded-xl bg-slate-100 dark:bg-white/[0.05] p-1 border border-slate-200/80 dark:border-white/10">
+            {(keySystemMode === 'brass_only' || keySystemMode === 'hybrid') && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('brass_rack')}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'brass_rack'
+                    ? 'bg-white dark:bg-white/20 text-slate-950 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+              >
+                🗝️ Physical Keys ({brassKeys.length})
+              </button>
+            )}
+            {(keySystemMode === 'rfid_only' || keySystemMode === 'hybrid') && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('rfid_encoder')}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'rfid_encoder'
+                    ? 'bg-white dark:bg-white/20 text-slate-950 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+              >
+                💳 RFID Keycards ({rfidKeys.length})
+              </button>
+            )}
+            {enableMobileQr && (
+              <button
+                type="button"
+                onClick={() => setActiveTab('digital_mobile')}
+                className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  activeTab === 'digital_mobile'
+                    ? 'bg-white dark:bg-white/20 text-slate-950 dark:text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+              >
+                📱 Mobile QR Keys
+              </button>
+            )}
+          </div>
+
+          <Link
+            href="/settings?tab=keycards"
+            className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-300 transition-colors flex items-center gap-1.5 shadow-2xs"
+            title="Configure lock architecture policy in Hotel Settings Hub"
           >
-            🗝️ Brass Key Tag Rack ({brassKeys.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('rfid_encoder')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'rfid_encoder'
-                ? 'bg-white dark:bg-white/20 text-slate-950 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            💳 RFID Card Encoder ({rfidKeys.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('digital_mobile')}
-            className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'digital_mobile'
-                ? 'bg-white dark:bg-white/20 text-slate-950 dark:text-white shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            📱 Mobile QR Keycards
-          </button>
+            <span>⚙️</span>
+            <span className="hidden sm:inline">Lock Policy</span>
+          </Link>
         </div>
       </div>
 
@@ -410,9 +490,12 @@ export function KeycardsView({
           <div className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {filteredBrassKeys.map((key) => {
-                const stay = activeStays.find(
+                const roomStays = activeStays.filter(
                   (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim(),
                 );
+                const checkedInStay = roomStays.find((s) => s.status === 'checked_in');
+                const upcomingStay = roomStays.find((s) => s.status === 'reserved' || s.status === 'confirmed');
+                const stay = checkedInStay || upcomingStay;
                 const roomTheme = getRoomTypeTheme(key.roomTypeName);
 
                 return (
@@ -420,7 +503,9 @@ export function KeycardsView({
                     key={key.id}
                     className={`min-w-0 relative flex flex-col justify-between rounded-2xl border transition-all duration-200 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:shadow-md ${roomTheme.lightBg} ${
                       key.status === 'in_slot'
-                        ? 'border-slate-200/90 dark:border-white/10 hover:border-slate-300'
+                        ? upcomingStay && !checkedInStay
+                          ? 'border-amber-300 dark:border-amber-700/60 ring-1 ring-amber-400/30'
+                          : 'border-slate-200/90 dark:border-white/10 hover:border-slate-300'
                         : key.status === 'issued_to_guest'
                         ? 'border-amber-400/90 dark:border-amber-500/60 ring-2 ring-amber-400/20'
                         : key.status === 'lost'
@@ -459,11 +544,16 @@ export function KeycardsView({
                         <p className="font-display text-2xl font-black font-mono tracking-tight text-slate-950 dark:text-white leading-none">
                           {key.roomNumber}
                         </p>
-                        <div className="pt-0.5">
+                        <div className="pt-0.5 flex flex-col items-center gap-1">
                           <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${roomTheme.badge} max-w-full truncate`}>
                             <span>{roomTheme.icon}</span>
                             <span className="truncate">{key.roomTypeName || 'Deluxe'}</span>
                           </span>
+                          {keySystemMode === 'hybrid' && (
+                            <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">
+                              {key.lockType === 'brass_key' ? '🗝️ Brass Key Lock' : key.lockType === 'rfid_card' ? '💳 RFID Card Lock' : '🗝️💳 Dual Lock'}
+                            </span>
+                          )}
                         </div>
                       </div>
 
@@ -509,10 +599,15 @@ export function KeycardsView({
                             <span>🧹</span>
                             <span className="truncate">{key.issuedToGuestName || 'Housekeeping Staff'}</span>
                           </p>
-                        ) : stay ? (
-                          <p className="text-[10px] text-emerald-800 dark:text-emerald-300 font-bold truncate flex items-center justify-center gap-1" title={`In-House: ${stay.guestName}`}>
+                        ) : checkedInStay ? (
+                          <p className="text-[10px] text-emerald-800 dark:text-emerald-300 font-bold truncate flex items-center justify-center gap-1" title={`In-House: ${checkedInStay.guestName}`}>
                             <span>👤</span>
-                            <span className="truncate">{stay.guestName}</span>
+                            <span className="truncate">{checkedInStay.guestName}</span>
+                          </p>
+                        ) : upcomingStay ? (
+                          <p className="text-[10px] text-amber-800 dark:text-amber-300 font-bold truncate flex items-center justify-center gap-1" title={`Booked: ${upcomingStay.guestName} (${upcomingStay.checkInFormatted})`}>
+                            <span>📅</span>
+                            <span className="truncate">Booked: {upcomingStay.guestName}</span>
                           </p>
                         ) : (
                           <p className="text-[10px] text-slate-400 dark:text-slate-500 font-medium truncate flex items-center justify-center gap-1">
@@ -530,12 +625,18 @@ export function KeycardsView({
                           type="button"
                           onClick={() => setHandingKey(key)}
                           className={`w-full rounded-xl py-1.5 text-xs font-bold transition-all cursor-pointer shadow-2xs ${
-                            stay
+                            checkedInStay
                               ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200'
+                              : upcomingStay
+                              ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 font-extrabold ring-1 ring-amber-600/30'
                               : 'bg-white dark:bg-white/10 border border-slate-200 dark:border-white/15 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/15'
                           }`}
                         >
-                          {stay ? 'Hand to Guest →' : 'Key Actions →'}
+                          {checkedInStay
+                            ? 'Hand to Guest →'
+                            : upcomingStay
+                            ? '🛎️ Check In & Hand Key →'
+                            : 'Key Actions →'}
                         </button>
                       ) : key.status === 'with_housekeeping' ? (
                         <div className="space-y-1">
@@ -675,9 +776,12 @@ export function KeycardsView({
           {/* RFID Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredRfidKeys.map((key) => {
-              const stay = activeStays.find(
+              const roomStays = activeStays.filter(
                 (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim(),
               );
+              const checkedInStay = roomStays.find((s) => s.status === 'checked_in');
+              const upcomingStay = roomStays.find((s) => s.status === 'reserved' || s.status === 'confirmed');
+              const stay = checkedInStay || upcomingStay;
               const roomTheme = getRoomTypeTheme(key.roomTypeName);
 
               return (
@@ -701,11 +805,16 @@ export function KeycardsView({
                       <p className="font-display text-2xl font-black font-mono text-slate-950 dark:text-white leading-tight">
                         {key.roomNumber}
                       </p>
-                      <div className="mt-1">
+                      <div className="mt-1 flex flex-col items-start gap-1">
                         <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${roomTheme.badge}`}>
                           <span>{roomTheme.icon}</span>
                           <span>{key.roomTypeName || 'Deluxe'}</span>
                         </span>
+                        {keySystemMode === 'hybrid' && (
+                          <span className="text-[9px] font-semibold text-slate-500 dark:text-slate-400">
+                            {key.lockType === 'rfid_card' ? '💳 RFID Smart Lock' : key.lockType === 'brass_key' ? '🗝️ Brass Key Lock' : '🗝️💳 Dual Lock'}
+                          </span>
+                        )}
                       </div>
                     </div>
 
@@ -723,7 +832,13 @@ export function KeycardsView({
                       <div className="flex justify-between">
                         <span className="text-slate-500">OCCUPANT:</span>
                         <span className="font-bold text-slate-900 dark:text-white truncate max-w-[120px]">
-                          {stay ? stay.guestName : key.issuedToGuestName ? key.issuedToGuestName : 'Vacant'}
+                          {checkedInStay
+                            ? checkedInStay.guestName
+                            : upcomingStay
+                            ? `Booked: ${upcomingStay.guestName}`
+                            : key.issuedToGuestName
+                            ? key.issuedToGuestName
+                            : 'Vacant'}
                         </span>
                       </div>
                     </div>
@@ -733,9 +848,13 @@ export function KeycardsView({
                     <button
                       type="button"
                       onClick={() => setEncodingKey(key)}
-                      className="w-full rounded-xl bg-slate-900 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer flex items-center justify-center gap-1.5"
+                      className={`w-full rounded-xl py-2 text-xs font-bold transition-colors shadow-2xs cursor-pointer flex items-center justify-center gap-1.5 ${
+                        upcomingStay && !checkedInStay
+                          ? 'bg-amber-500 text-slate-950 hover:bg-amber-400 font-extrabold ring-1 ring-amber-600/30'
+                          : 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200'
+                      }`}
                     >
-                      <span>⚡ Write Sector 1 Keycard</span>
+                      <span>{upcomingStay && !checkedInStay ? '🛎️ Check In & Write RFID' : '⚡ Write Sector 1 Keycard'}</span>
                     </button>
                     <button
                       type="button"
@@ -778,6 +897,8 @@ export function KeycardsView({
               );
               const roomTheme = getRoomTypeTheme(matchKey?.roomTypeName);
 
+              const isCheckedIn = stay.status === 'checked_in';
+
               return (
                 <div
                   key={stay.reservationId}
@@ -785,8 +906,14 @@ export function KeycardsView({
                 >
                   <div>
                     <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5">
-                        ACTIVE STAY
+                      <span
+                        className={`rounded-full text-[10px] font-bold px-2 py-0.5 ${
+                          isCheckedIn
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
+                            : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
+                        }`}
+                      >
+                        {isCheckedIn ? 'ACTIVE STAY' : 'UPCOMING BOOKING'}
                       </span>
                       <span className="font-mono text-xs font-bold text-slate-500">Room {stay.roomNumber}</span>
                     </div>
@@ -807,15 +934,26 @@ export function KeycardsView({
                   </div>
 
                   <div className="mt-4 pt-3 border-t border-slate-200/80 dark:border-white/10 space-y-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (matchKey) setMobilePassKey(matchKey);
-                      }}
-                      className="w-full rounded-xl bg-slate-900 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
-                    >
-                      View Digital Pass QR
-                    </button>
+                    {isCheckedIn ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (matchKey) setMobilePassKey(matchKey);
+                        }}
+                        className="w-full rounded-xl bg-slate-900 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-200 transition-colors shadow-2xs cursor-pointer"
+                      >
+                        View Digital Pass QR
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleCheckInStay(stay.reservationId, stay.guestName, stay.roomNumber)}
+                        disabled={checkingInResId === stay.reservationId}
+                        className="w-full rounded-xl bg-amber-500 hover:bg-amber-400 py-2 text-xs font-bold text-slate-950 transition-colors shadow-2xs cursor-pointer disabled:opacity-50"
+                      >
+                        {checkingInResId === stay.reservationId ? 'Checking In...' : '🛎️ Check In to Activate QR Pass'}
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -831,7 +969,9 @@ export function KeycardsView({
         const roomStays = activeStays.filter(
           (s) => String(s.roomNumber).trim() === String(encodingKey.roomNumber).trim()
         );
-        const stay = roomStays[0];
+        const checkedInStay = roomStays.find((s) => s.status === 'checked_in');
+        const upcomingStay = roomStays.find((s) => s.status === 'reserved' || s.status === 'confirmed');
+        const stay = checkedInStay;
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50" role="presentation">
@@ -863,15 +1003,15 @@ export function KeycardsView({
                 </button>
               </div>
 
-              {stay ? (
+              {checkedInStay ? (
                 <div className="my-4 space-y-3.5 text-xs">
                   <div className="rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/70 dark:bg-indigo-950/20 p-3 text-xs">
                     <p className="text-[10px] uppercase font-bold text-indigo-600 dark:text-indigo-400 tracking-wider">
                       Verified Room Occupant
                     </p>
-                    <p className="text-sm font-bold text-ink mt-0.5">{stay.guestName}</p>
+                    <p className="text-sm font-bold text-ink mt-0.5">{checkedInStay.guestName}</p>
                     <p className="text-[11px] text-muted">
-                      Stay: {stay.checkInFormatted || new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {stay.checkOutFormatted || new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                      Stay: {checkedInStay.checkInFormatted || new Date(checkedInStay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {checkedInStay.checkOutFormatted || new Date(checkedInStay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
                     </p>
                   </div>
 
@@ -912,6 +1052,40 @@ export function KeycardsView({
                     )}
                   </div>
                 </div>
+              ) : upcomingStay ? (
+                <div className="my-5 space-y-4 text-xs">
+                  <div className="rounded-2xl border border-amber-300 dark:border-amber-800/60 bg-amber-50/80 dark:bg-amber-950/20 p-4 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="rounded-full bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 text-[10px] font-bold px-2 py-0.5">
+                        📅 UPCOMING ARRIVAL
+                      </span>
+                      <span className="text-[11px] font-mono font-bold text-amber-800 dark:text-amber-300">
+                        {upcomingStay.checkInFormatted} → {upcomingStay.checkOutFormatted}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{upcomingStay.guestName}</p>
+                      {upcomingStay.guestPhone && (
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{upcomingStay.guestPhone}</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                      {upcomingStay.guestName} is booked for Room {encodingKey.roomNumber} but not yet checked in. Complete check-in to activate the card encoder and burn room credentials:
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleCheckInStay(upcomingStay.reservationId, upcomingStay.guestName, encodingKey.roomNumber)}
+                      disabled={checkingInResId === upcomingStay.reservationId}
+                      className="w-full rounded-xl bg-amber-500 hover:bg-amber-400 py-2.5 text-xs font-bold text-slate-950 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    >
+                      {checkingInResId === upcomingStay.reservationId ? (
+                        <span>⏳ Checking in {upcomingStay.guestName}...</span>
+                      ) : (
+                        <span>🛎️ Check In &amp; Activate Keycard Encoder</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <div className="my-5 space-y-4 text-xs">
                   <div className="rounded-2xl border border-amber-500/30 bg-amber-50/70 dark:bg-amber-950/30 p-4 text-amber-900 dark:text-amber-200 space-y-1.5">
@@ -943,11 +1117,11 @@ export function KeycardsView({
                 >
                   Cancel
                 </button>
-                {stay && (
+                {checkedInStay && (
                   <button
                     type="button"
                     disabled={encodingProgress !== 'idle'}
-                    onClick={() => handleExecuteEncodeForStay(stay)}
+                    onClick={() => handleExecuteEncodeForStay(checkedInStay)}
                     className="flex-1 rounded-xl bg-indigo-600 py-2 text-xs font-bold text-white hover:bg-indigo-700 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
                   >
                     Encode Card Now
@@ -967,6 +1141,8 @@ export function KeycardsView({
         const roomStays = activeStays.filter(
           (s) => String(s.roomNumber).trim() === String(handingKey.roomNumber).trim()
         );
+        const checkedInStays = roomStays.filter((s) => s.status === 'checked_in');
+        const upcomingStays = roomStays.filter((s) => s.status === 'reserved' || s.status === 'confirmed');
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50" role="presentation">
@@ -1015,14 +1191,14 @@ export function KeycardsView({
                 </div>
               </div>
 
-              {roomStays.length > 0 ? (
+              {checkedInStays.length > 0 ? (
                 <div className="my-4 space-y-2.5">
                   <div className="rounded-xl border border-emerald-500/30 bg-emerald-50/70 dark:bg-emerald-950/30 px-3 py-2 text-[11px] text-emerald-800 dark:text-emerald-300 font-medium">
                     🛡️ Verified Room Occupants — Only guests staying in Room {handingKey.roomNumber}
                   </div>
 
                   <div className="space-y-2">
-                    {roomStays.map((s) => (
+                    {checkedInStays.map((s) => (
                       <div key={s.reservationId} className="space-y-2">
                         {/* Primary Registered Guest */}
                         <button
@@ -1063,6 +1239,51 @@ export function KeycardsView({
                             ))}
                       </div>
                     ))}
+                  </div>
+
+                  {/* Housekeeping Option */}
+                  <div className="pt-2 border-t border-slate-100 dark:border-white/10">
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateKeyStatus(handingKey.id, 'with_housekeeping', 'Housekeeping Staff')}
+                      className="w-full rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.04] py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/[0.08] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <span>🧹 Hand to Housekeeping Staff</span>
+                    </button>
+                  </div>
+                </div>
+              ) : upcomingStays.length > 0 ? (
+                <div className="my-4 space-y-3">
+                  <div className="rounded-2xl border border-amber-300 dark:border-amber-800/60 bg-amber-50/80 dark:bg-amber-950/20 p-4 space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <span className="rounded-full bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 text-[10px] font-bold px-2 py-0.5">
+                        📅 UPCOMING ARRIVAL
+                      </span>
+                      <span className="text-[11px] font-mono font-bold text-amber-800 dark:text-amber-300">
+                        {upcomingStays[0].checkInFormatted} → {upcomingStays[0].checkOutFormatted}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-slate-900 dark:text-white">{upcomingStays[0].guestName}</p>
+                      {upcomingStays[0].guestPhone && (
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">{upcomingStays[0].guestPhone}</p>
+                      )}
+                    </div>
+                    <p className="text-xs text-amber-800 dark:text-amber-200 leading-relaxed">
+                      {upcomingStays[0].guestName} has a confirmed reservation for Room {handingKey.roomNumber} but has not checked in yet. Complete check-in to activate and hand over brass key #{handingKey.roomNumber}.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => handleCheckInStay(upcomingStays[0].reservationId, upcomingStays[0].guestName, handingKey.roomNumber)}
+                      disabled={checkingInResId === upcomingStays[0].reservationId}
+                      className="w-full rounded-xl bg-amber-500 hover:bg-amber-400 py-2.5 text-xs font-bold text-slate-950 shadow-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+                    >
+                      {checkingInResId === upcomingStays[0].reservationId ? (
+                        <span>⏳ Checking in {upcomingStays[0].guestName}...</span>
+                      ) : (
+                        <span>🛎️ Check In &amp; Hand Key to {upcomingStays[0].guestName}</span>
+                      )}
+                    </button>
                   </div>
 
                   {/* Housekeeping Option */}

@@ -13,8 +13,10 @@ import {
   PERMISSIONS,
   updateRoomKeyStatusSchema,
   encodeKeycardSchema,
+  updateKeySystemSettingsSchema,
   type UpdateRoomKeyStatusInput,
   type EncodeKeycardInput,
+  type UpdateKeySystemSettingsInput,
 } from '@erp/shared';
 import { AuthUser, CurrentUser } from '../common/current-user';
 import { RequirePermission } from '../common/permission-guard';
@@ -25,6 +27,42 @@ import { DbService } from '../db/db.service';
 @RequireFeature(FEATURES.HOTEL_KEYCARDS)
 export class KeycardsController {
   constructor(private readonly db: DbService) {}
+
+  @Get('settings')
+  @RequirePermission(PERMISSIONS.KEYCARD_MANAGE)
+  async getKeySystemSettings(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select p.id, p.name as "propertyName",
+                coalesce(p.key_system_mode, 'hybrid') as "keySystemMode",
+                coalesce(p.enable_mobile_qr, true) as "enableMobileQr"
+         from properties p
+         where p.id = $1`,
+        [user.propertyId]
+      );
+      return res.rows[0] || { keySystemMode: 'hybrid', enableMobileQr: true };
+    });
+  }
+
+  @Patch('settings')
+  @RequirePermission(PERMISSIONS.KEYCARD_MANAGE)
+  async updateKeySystemSettings(@CurrentUser() user: AuthUser, @Body() body: unknown) {
+    const parsed = updateKeySystemSettingsSchema.safeParse(body);
+    if (!parsed.success) throw new BadRequestException({ issues: parsed.error.flatten() });
+    const input: UpdateKeySystemSettingsInput = parsed.data;
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `update properties
+         set key_system_mode = $1,
+             enable_mobile_qr = $2
+         where id = $3
+         returning id, name as "propertyName", key_system_mode as "keySystemMode", enable_mobile_qr as "enableMobileQr"`,
+        [input.keySystemMode, input.enableMobileQr, user.propertyId]
+      );
+      return res.rows[0];
+    });
+  }
 
   @Get('keys')
   @RequirePermission(PERMISSIONS.KEYCARD_MANAGE)
@@ -38,8 +76,11 @@ export class KeycardsController {
                 k.issued_at as "issuedAt", k.returned_at as "returnedAt",
                 k.notes,
                 r.number as "roomNumber", r.floor,
+                coalesce(r.lock_type, 'both') as "lockType",
                 rt.name as "roomTypeName",
                 res.check_in as "guestCheckIn", res.check_out as "guestCheckOut",
+                coalesce(p.key_system_mode, 'hybrid') as "propertyKeySystemMode",
+                coalesce(p.enable_mobile_qr, true) as "propertyEnableMobileQr",
                 (select coalesce(json_agg(json_build_object(
                   'id', l.id,
                   'action', l.action,
@@ -52,6 +93,7 @@ export class KeycardsController {
                  where l.key_id = k.id) as "custodyLogs"
          from room_keys k
          join rooms r on r.id = k.room_id
+         join properties p on p.id = k.property_id
          left join room_types rt on rt.id = r.room_type_id
          left join reservations res on res.id = k.issued_to_reservation_id
          where k.property_id = $1

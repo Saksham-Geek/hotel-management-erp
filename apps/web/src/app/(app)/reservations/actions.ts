@@ -240,6 +240,7 @@ export async function createReservation(fd: FormData) {
   revalidatePath('/reservations');
   revalidatePath('/dashboard');
   revalidatePath('/rooms');
+  revalidatePath('/keycards');
 
   redirect(
     '/reservations?' +
@@ -316,6 +317,7 @@ export async function changeReservation(fd: FormData) {
   revalidatePath('/reservations');
   revalidatePath('/dashboard');
   revalidatePath('/rooms');
+  revalidatePath('/keycards');
   revalidatePath('/housekeeping');
 
   const done: Record<string, string> = {

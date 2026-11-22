@@ -1297,16 +1297,16 @@ export function RestaurantPosView({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-display text-xl sm:text-2xl font-black text-slate-950">
-                  Restaurant POS &amp; KOT Engine
+                  Restaurant &amp; Dining
                 </h1>
                 <span className="rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
-                  Aura Dine
+                  Food &amp; Dining
                 </span>
               </div>
               <p className="text-xs text-slate-500 font-medium">
                 {operatingMode === 'hotel'
-                  ? 'Connected Hotel Mode · Direct folio charging to room, SAC 996331 5% F&B GST'
-                  : 'Standalone Restaurant Mode · Direct diner CRM, Swiggy/Zomato, and cash/card POS'}
+                  ? 'Connected to Hotel · Charge food orders directly to guest room bill, 5% F&B GST'
+                  : 'Standalone Restaurant Mode · Dine-in orders, Swiggy/Zomato, and cash/card billing'}
               </p>
             </div>
           </div>
@@ -1418,7 +1418,7 @@ export function RestaurantPosView({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <span>🪑 Floor Plan Tables</span>
+          <span>🪑 Dining Tables</span>
           <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-xs font-bold">
             {filteredTables.length}
           </span>
@@ -1433,7 +1433,7 @@ export function RestaurantPosView({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <span>🖥️ Touch POS Counter</span>
+          <span>🖥️ Take Order (POS)</span>
           {cart.length > 0 && (
             <span className="rounded-full bg-amber-500 text-white px-2 py-0.5 text-xs font-bold">
               {cart.reduce((s, i) => s + i.quantity, 0)}
@@ -1450,7 +1450,7 @@ export function RestaurantPosView({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <span>🛵 Online Delivery Hub</span>
+          <span>🛵 Online Orders</span>
           {incomingAggregatorsCount > 0 ? (
             <span className="rounded-full bg-rose-600 text-white px-2 py-0.5 text-xs font-black animate-pulse">
               {incomingAggregatorsCount} New
@@ -1471,7 +1471,7 @@ export function RestaurantPosView({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <span>👨‍🍳 Kitchen KDS</span>
+          <span>👨‍🍳 Kitchen Orders Screen</span>
           <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-0.5 text-xs font-bold">
             {kots.length}
           </span>
@@ -1486,7 +1486,7 @@ export function RestaurantPosView({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <span>📊 Cashier Shifts &amp; Z-Report</span>
+          <span>💵 Cashier Shift &amp; Day Summary</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${
               currentShift ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
@@ -1505,9 +1505,9 @@ export function RestaurantPosView({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <span>📦 Kitchen Inventory &amp; Recipes</span>
+          <span>📦 Kitchen Ingredients &amp; Stock</span>
           <span className="rounded-full bg-emerald-50 text-emerald-800 px-2 py-0.5 text-xs font-bold border border-emerald-200">
-            BOM
+            Stock
           </span>
         </button>
 
@@ -1520,7 +1520,7 @@ export function RestaurantPosView({
               : 'text-slate-500 hover:text-slate-800'
           }`}
         >
-          <span>⚙️ Settings &amp; Hardware</span>
+          <span>⚙️ Restaurant Settings</span>
           <span className="rounded-full bg-indigo-50 text-indigo-700 px-2 py-0.5 text-xs font-bold border border-indigo-200">
             Setup
           </span>

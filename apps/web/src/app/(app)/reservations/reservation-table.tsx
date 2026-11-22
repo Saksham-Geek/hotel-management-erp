@@ -198,10 +198,10 @@ function Actions({ reservation, readOnly }: { reservation: ReservationRow; readO
     <div className="flex flex-wrap justify-end items-center gap-2">
       <Link
         href={`/billing?reservationId=${reservation.id}`}
-        aria-label={`View billing folio for ${reservation.guestName}, Room ${reservation.roomNumber}`}
+        aria-label={`View bill for ${reservation.guestName}, Room ${reservation.roomNumber}`}
         className="inline-flex min-h-9 items-center justify-center rounded-lg border border-line bg-surface px-3 py-1.5 text-xs font-semibold text-lagoon-dark hover:bg-ground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
       >
-        Folio / Bill
+        View Bill
       </Link>
       {actions.map((item) => (
         <form

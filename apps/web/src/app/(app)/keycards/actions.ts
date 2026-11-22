@@ -14,6 +14,7 @@ export async function updateRoomKeyStatusAction(id: string, input: UpdateRoomKey
       body: JSON.stringify(input),
     });
     revalidatePath('/keycards');
+    revalidatePath('/reservations');
     return { ok: true, data: res };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };
@@ -27,6 +28,21 @@ export async function encodeKeycardAction(id: string, input: EncodeKeycardInput)
       body: JSON.stringify(input),
     });
     revalidatePath('/keycards');
+    return { ok: true, data: res };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function checkInReservationAction(reservationId: string) {
+  try {
+    const res = await api<any>(`/hotel/reservations/${reservationId}/check-in`, {
+      method: 'POST',
+    });
+    revalidatePath('/keycards');
+    revalidatePath('/reservations');
+    revalidatePath('/dashboard');
+    revalidatePath('/rooms');
     return { ok: true, data: res };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };

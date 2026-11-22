@@ -72,6 +72,7 @@ export const createRoomSchema = z.object({
   floor: z.coerce.number().int().min(-5).max(200).default(0),
   baseRate: z.coerce.number().min(0).max(10_000_000).optional(),
   hourlyRate: z.coerce.number().min(0).max(10_000_000).optional(),
+  lockType: z.enum(['brass_key', 'rfid_card', 'both']).default('both'),
 });
 
 const nullableRateValue = z.union([
@@ -93,6 +94,7 @@ export const updateRoomSchema = z.object({
   floor: z.coerce.number().int().min(-5).max(200).optional(),
   baseRate: nullableRateValue.optional(),
   hourlyRate: nullableRateValue.optional(),
+  lockType: z.enum(['brass_key', 'rfid_card', 'both']).optional(),
 }).refine((value) => Object.keys(value).length > 0, 'Change at least one room field');
 
 export const ROOM_STATUSES = ['available', 'occupied', 'cleaning', 'maintenance'] as const;
@@ -608,6 +610,12 @@ export const encodeKeycardSchema = z.object({
   protocol: z.enum(['mifare_classic_1k', 'mifare_ultralight', 'saflok_ascii', 'salto_virtual']).default('mifare_classic_1k'),
 });
 export type EncodeKeycardInput = z.infer<typeof encodeKeycardSchema>;
+
+export const updateKeySystemSettingsSchema = z.object({
+  keySystemMode: z.enum(['brass_only', 'rfid_only', 'hybrid']),
+  enableMobileQr: z.boolean().default(true),
+});
+export type UpdateKeySystemSettingsInput = z.infer<typeof updateKeySystemSettingsSchema>;
 
 // -------------------------------------------------------------
 // Aura Dine: Multi-Outlet F&B Tables, Menus & Outlets Schemas

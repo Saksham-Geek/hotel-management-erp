@@ -124,10 +124,10 @@ export function AppShell({
         />
       )}
 
-      {/* Main Sidebar Navigation */}
+      {/* Main Sidebar Navigation - Fixed to viewport so it never scrolls away */}
       <aside
         id="app-navigation"
-        className={`fixed inset-y-0 left-0 z-50 flex w-[min(88vw,330px)] flex-col border-r border-white/[.08] bg-[#080d1a] px-4 py-5 text-white shadow-2xl transition-all duration-200 md:sticky md:top-0 md:z-20 md:h-dvh md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[min(88vw,330px)] flex-col border-r border-white/[.08] bg-[#080d1a] px-4 py-5 text-white shadow-2xl transition-all duration-200 md:h-screen md:h-dvh md:translate-x-0 ${
           collapsed ? 'md:w-[84px] md:px-3' : 'md:w-[310px] lg:w-[320px] md:px-5'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
@@ -282,8 +282,12 @@ export function AppShell({
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="min-w-0 flex-1">
+      {/* Main Content Area - Offset by fixed sidebar width on desktop */}
+      <div
+        className={`min-w-0 flex-1 transition-all duration-200 ${
+          collapsed ? 'md:pl-[84px]' : 'md:pl-[310px] lg:pl-[320px]'
+        }`}
+      >
         {/* Sticky Top Header */}
         <header className="sticky top-0 z-30 flex min-h-[60px] items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-md sm:px-6 lg:px-8 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
           <div className="flex min-w-0 items-center gap-3">

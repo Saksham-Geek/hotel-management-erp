@@ -628,7 +628,7 @@ export function TapeChartView({
       <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
         {/* Top: Material 3 Room Type Filter Chips */}
         <div className="flex items-center justify-between gap-3 flex-wrap border-b border-slate-100 pb-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="flex flex-wrap items-center gap-2 pb-1">
             <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mr-1">
               Category:
             </span>

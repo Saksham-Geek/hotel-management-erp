@@ -1408,18 +1408,24 @@ export function RestaurantPosView({
       {/* ============================================================== */}
       {/* NAVIGATION TABS (Tables, POS Counter, Aggregators, KDS, Shift) */}
       {/* ============================================================== */}
-      <div className="flex border-b border-slate-200 gap-6 text-sm font-bold overflow-x-auto no-scrollbar scrollbar-none">
+      <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-200/90 dark:border-white/10 text-xs font-bold" role="tablist" aria-label="Restaurant navigation">
         <button
           type="button"
           onClick={() => setActiveTab('tables')}
-          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'tables'
-              ? 'border-b-2 border-slate-950 text-slate-950'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
+              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
           }`}
         >
           <span>🪑 Dining Tables</span>
-          <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-xs font-bold">
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+              activeTab === 'tables'
+                ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950'
+                : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300'
+            }`}
+          >
             {filteredTables.length}
           </span>
         </button>
@@ -1427,15 +1433,15 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('pos')}
-          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'pos'
-              ? 'border-b-2 border-slate-950 text-slate-950'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
+              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
           }`}
         >
           <span>🖥️ Take Order (POS)</span>
           {cart.length > 0 && (
-            <span className="rounded-full bg-amber-500 text-white px-2 py-0.5 text-xs font-bold">
+            <span className="rounded-full bg-amber-500 text-white px-2 py-0.5 text-[10px] font-black shadow-xs">
               {cart.reduce((s, i) => s + i.quantity, 0)}
             </span>
           )}
@@ -1444,19 +1450,25 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('aggregators')}
-          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'aggregators'
-              ? 'border-b-2 border-slate-950 text-slate-950'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
+              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
           }`}
         >
           <span>🛵 Online Orders</span>
           {incomingAggregatorsCount > 0 ? (
-            <span className="rounded-full bg-rose-600 text-white px-2 py-0.5 text-xs font-black animate-pulse">
+            <span className="rounded-full bg-rose-600 text-white px-2 py-0.5 text-[10px] font-black animate-pulse shadow-xs">
               {incomingAggregatorsCount} New
             </span>
           ) : (
-            <span className="rounded-full bg-slate-100 text-slate-700 px-2 py-0.5 text-xs font-bold">
+            <span
+              className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+                activeTab === 'aggregators'
+                  ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950'
+                  : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300'
+              }`}
+            >
               {aggregatorOrders.length}
             </span>
           )}
@@ -1465,14 +1477,20 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('kds')}
-          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'kds'
-              ? 'border-b-2 border-slate-950 text-slate-950'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
+              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
           }`}
         >
           <span>👨‍🍳 Kitchen Orders Screen</span>
-          <span className="rounded-full bg-rose-100 text-rose-800 px-2 py-0.5 text-xs font-bold">
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+              activeTab === 'kds'
+                ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950'
+                : 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
+            }`}
+          >
             {kots.length}
           </span>
         </button>
@@ -1480,16 +1498,20 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('shifts')}
-          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'shifts'
-              ? 'border-b-2 border-slate-950 text-slate-950'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
+              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
           }`}
         >
           <span>💵 Cashier Shift &amp; Day Summary</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${
-              currentShift ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'
+              currentShift
+                ? activeTab === 'shifts'
+                  ? 'bg-emerald-400 text-slate-950'
+                  : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+                : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'
             }`}
           >
             {currentShift ? 'Open' : 'Closed'}
@@ -1499,14 +1521,20 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('inventory')}
-          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'inventory'
-              ? 'border-b-2 border-emerald-600 text-emerald-950 font-black'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-700/20'
+              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
           }`}
         >
           <span>📦 Kitchen Ingredients &amp; Stock</span>
-          <span className="rounded-full bg-emerald-50 text-emerald-800 px-2 py-0.5 text-xs font-bold border border-emerald-200">
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+              activeTab === 'inventory'
+                ? 'bg-white/20 text-white'
+                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+            }`}
+          >
             Stock
           </span>
         </button>
@@ -1514,26 +1542,30 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('settings')}
-          className={`pb-3 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ${
+          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'settings'
-              ? 'border-b-2 border-indigo-600 text-indigo-950 font-black'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'bg-indigo-700 text-white shadow-md ring-2 ring-indigo-700/20'
+              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
           }`}
         >
           <span>⚙️ Restaurant Settings</span>
-          <span className="rounded-full bg-indigo-50 text-indigo-700 px-2 py-0.5 text-xs font-bold border border-indigo-200">
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
+              activeTab === 'settings'
+                ? 'bg-white/20 text-white'
+                : 'bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800'
+            }`}
+          >
             Setup
           </span>
         </button>
 
         <Link
           href="/restaurant/captain"
-          className="pb-3 text-amber-700 hover:text-amber-900 transition-colors cursor-pointer flex items-center gap-1.5 shrink-0 ml-auto"
+          className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 px-3.5 py-2 text-xs font-bold transition-all shadow-2xs dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
         >
-          <span className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-1 text-xs font-bold flex items-center gap-1 shadow-2xs">
-            <span>📱</span>
-            <span>Captain Handheld Mode</span>
-          </span>
+          <span>📱</span>
+          <span>Captain Handheld Mode</span>
         </Link>
       </div>
 
@@ -3096,40 +3128,40 @@ export function RestaurantPosView({
             </div>
           </div>
 
-          {/* Sub-Tabs Navigation */}
-          <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200 gap-1 overflow-x-auto">
+          {/* Sub-Tabs Navigation - Wraps cleanly with zero horizontal scroll */}
+          <div className="flex flex-wrap rounded-2xl bg-slate-100 dark:bg-slate-800/80 p-1 border border-slate-200 dark:border-white/10 gap-1">
             <button
               type="button"
               onClick={() => setSettingsSubTab('outlets')}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 settingsSubTab === 'outlets'
-                  ? 'bg-white text-slate-950 shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-950'
+                  ? 'bg-white text-slate-950 shadow-xs font-black dark:bg-slate-900 dark:text-white'
+                  : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
               <span>🏢 Outlets &amp; Restaurants</span>
-              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-white/15 dark:text-slate-300">
                 {outlets.length}
               </span>
             </button>
             <button
               type="button"
               onClick={() => setSettingsSubTab('tables')}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 settingsSubTab === 'tables'
-                  ? 'bg-white text-slate-950 shadow-xs font-black'
-                  : 'text-slate-600 hover:text-slate-950'
+                  ? 'bg-white text-slate-950 shadow-xs font-black dark:bg-slate-900 dark:text-white'
+                  : 'text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white'
               }`}
             >
               <span>🪑 Floor &amp; Tables Master</span>
-              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+              <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700 dark:bg-white/15 dark:text-slate-300">
                 {filteredTables.length}
               </span>
             </button>
             <button
               type="button"
               onClick={() => setSettingsSubTab('menu')}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer shrink-0 flex items-center gap-2 ${
+              className={`rounded-xl px-4 py-2 text-xs font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 settingsSubTab === 'menu'
                   ? 'bg-white text-slate-950 shadow-xs font-black'
                   : 'text-slate-600 hover:text-slate-950'

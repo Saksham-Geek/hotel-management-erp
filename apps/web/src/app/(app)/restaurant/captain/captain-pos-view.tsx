@@ -285,11 +285,11 @@ export function CaptainPosView({
             </div>
 
             {/* Section Filter Pills */}
-            <div className="flex gap-1.5 overflow-x-auto pb-3">
+            <div className="flex flex-wrap gap-1.5 pb-2">
               <button
                 type="button"
                 onClick={() => setSectionFilter('all')}
-                className={`rounded-full px-3 py-1 text-xs font-bold transition shrink-0 ${
+                className={`rounded-full px-3 py-1 text-xs font-bold transition ${
                   sectionFilter === 'all'
                     ? 'bg-amber-500 text-slate-950 font-black'
                     : 'bg-white/5 text-slate-400'
@@ -302,7 +302,7 @@ export function CaptainPosView({
                   key={sec}
                   type="button"
                   onClick={() => setSectionFilter(sec)}
-                  className={`rounded-full px-3 py-1 text-xs font-bold transition shrink-0 ${
+                  className={`rounded-full px-3 py-1 text-xs font-bold transition ${
                     sectionFilter === sec
                       ? 'bg-amber-500 text-slate-950 font-black'
                       : 'bg-white/5 text-slate-400'
@@ -399,11 +399,11 @@ export function CaptainPosView({
                 className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-white placeholder:text-slate-500 focus:border-amber-500 focus:outline-none"
               />
 
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <div className="flex flex-wrap items-center gap-1.5 pb-1">
                 <button
                   type="button"
                   onClick={() => setFoodTypeFilter('all')}
-                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition shrink-0 ${
+                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
                     foodTypeFilter === 'all' ? 'bg-white/20 text-white' : 'text-slate-400'
                   }`}
                 >
@@ -412,7 +412,7 @@ export function CaptainPosView({
                 <button
                   type="button"
                   onClick={() => setFoodTypeFilter('veg')}
-                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition shrink-0 ${
+                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
                     foodTypeFilter === 'veg' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'text-slate-400'
                   }`}
                 >
@@ -421,7 +421,7 @@ export function CaptainPosView({
                 <button
                   type="button"
                   onClick={() => setFoodTypeFilter('non_veg')}
-                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition shrink-0 ${
+                  className={`rounded-lg px-2.5 py-1 text-[11px] font-bold transition ${
                     foodTypeFilter === 'non_veg' ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'text-slate-400'
                   }`}
                 >
@@ -431,7 +431,7 @@ export function CaptainPosView({
             </div>
 
             {/* Category Pills */}
-            <div className="mt-2.5 flex gap-1.5 overflow-x-auto pb-2">
+            <div className="mt-2.5 flex flex-wrap gap-1.5 pb-2">
               <button
                 type="button"
                 onClick={() => setSelectedCategoryId('all')}

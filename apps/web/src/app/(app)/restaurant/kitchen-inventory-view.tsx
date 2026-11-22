@@ -342,7 +342,7 @@ export function KitchenInventoryView({
               className="w-full max-w-xs rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-medium text-slate-900 focus:border-slate-400 focus:outline-none dark:border-white/10 dark:bg-slate-900 dark:text-white"
             />
 
-            <div className="flex items-center gap-1 overflow-x-auto pb-1">
+            <div className="flex flex-wrap items-center gap-1.5 pb-1">
               <button
                 type="button"
                 onClick={() => setCategoryFilter('all')}

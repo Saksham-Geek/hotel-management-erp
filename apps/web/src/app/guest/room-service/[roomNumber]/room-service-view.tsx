@@ -240,7 +240,7 @@ export function RoomServiceGuestView({
             className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-medium text-white placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none"
           />
 
-          <div className="flex items-center justify-between gap-2 overflow-x-auto pb-1">
+          <div className="flex flex-wrap items-center justify-between gap-2 pb-1">
             <div className="flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/[0.03] p-1">
               <button
                 type="button"
@@ -275,8 +275,8 @@ export function RoomServiceGuestView({
           </div>
         </div>
 
-        {/* Category Horizontal Pills */}
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-none">
+        {/* Category Pills - Wraps cleanly with zero horizontal scroll */}
+        <div className="mt-4 flex flex-wrap gap-2 pb-2">
           <button
             type="button"
             onClick={() => setSelectedCatId('all')}

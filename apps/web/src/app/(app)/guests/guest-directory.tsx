@@ -292,12 +292,10 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                           <label className="block text-xs font-medium text-ink mb-1">Consent method</label>
                           <CustomDropdown
                             name="consentMethod"
-                            defaultValue=""
+                            defaultValue="written"
                             required
                             size="sm"
-                            placeholder="Select method"
                             options={[
-                              { value: '', label: 'Select method' },
                               { value: 'written', label: 'Written' },
                               { value: 'verbal', label: 'Verbal' },
                               { value: 'digital', label: 'Digital' },
@@ -306,11 +304,13 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                           />
                         </div>
                       </div>
-                      <label className="mt-3 flex items-start gap-2 text-[11px] leading-4 text-ink">
-                        <input name="consentGiven" type="checkbox" required className="mt-0.5 h-4 w-4" /> Guest was informed of the purpose and agreed; an alternative ID may be provided.
+                      <label className="mt-3 flex items-start gap-2 text-[11px] leading-4 text-ink cursor-pointer">
+                        <input name="consentGiven" type="checkbox" defaultChecked={true} required className="mt-0.5 h-4 w-4 accent-[hsl(var(--accent))]" />
+                        <span>Guest was informed of statutory purpose and agreed to identity storage.</span>
                       </label>
-                      <label className="mt-2 flex items-start gap-2 text-[11px] leading-4 text-ink">
-                        <input name="aadhaarMasked" type="checkbox" className="mt-0.5 h-4 w-4" /> If Aadhaar, first eight digits are masked.
+                      <label className="mt-2 flex items-start gap-2 text-[11px] leading-4 text-ink cursor-pointer">
+                        <input name="aadhaarMasked" type="checkbox" defaultChecked={true} className="mt-0.5 h-4 w-4 accent-[hsl(var(--accent))]" />
+                        <span>If Aadhaar, first eight digits are masked.</span>
                       </label>
                       <label className="mt-3 block text-xs font-medium text-ink">
                         Add identity documents (PDF, JPEG, PNG, WebP)

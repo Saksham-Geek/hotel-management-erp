@@ -77,6 +77,7 @@ export async function persistGuestIdentityDocument(
   const ciphertext = Buffer.concat([cipher.update(data), cipher.final()]);
   const authTag = cipher.getAuthTag();
   const extension = doc.mimeType === 'image/jpeg' ? 'jpg' : doc.mimeType === 'application/pdf' ? 'pdf' : doc.mimeType.split('/')[1];
+  const originalName = (doc.fileName && doc.fileName.trim()) ? doc.fileName.trim() : `${doc.documentType}-${randomUUID()}.${extension}`;
   const row = (await c.query(
     `insert into guest_documents (
        tenant_id, guest_id, document_type, original_name, mime_type, byte_length,
@@ -85,7 +86,7 @@ export async function persistGuestIdentityDocument(
      )
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$10,'postgres',$13, now() + interval '180 days', false)
      returning id, document_type as "documentType", created_at as "createdAt", retention_until as "retentionUntil", sha256_hash as "sha256Hash"`,
-    [user.tenantId, guestId, doc.documentType, `${doc.documentType}-${randomUUID()}.${extension}`, doc.mimeType, data.length, ciphertext, iv, authTag, user.id, doc.consentMethod, GUEST_DOCUMENT_CONSENT_VERSION, sha256],
+    [user.tenantId, guestId, doc.documentType, originalName, doc.mimeType, data.length, ciphertext, iv, authTag, user.id, doc.consentMethod, GUEST_DOCUMENT_CONSENT_VERSION, sha256],
   )).rows[0];
   await audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'guest.document.upload', entity: 'guest_document', entityId: row.id, meta: { guestId, mimeType: doc.mimeType, byteLength: data.length, sha256 } });
   return row;

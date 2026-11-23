@@ -61,7 +61,7 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
             <label className="flex min-h-10 items-center gap-2 self-end text-sm font-medium text-ink"><input name="vip" type="checkbox" className="h-4 w-4 accent-[hsl(var(--accent))]" /> Mark as VIP</label>
 
             <div className="rounded-lg border border-dashed border-line bg-ground/40 p-3 sm:col-span-2 lg:col-span-3">
-              <label className="block text-xs font-medium text-ink">Identity images <span className="font-normal text-muted">(optional)</span><input name="documents" type="file" accept="image/jpeg,image/png,image/webp" multiple className="mt-2 block w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-surface file:px-3 file:py-2 file:text-xs file:font-semibold" /></label>
+              <label className="block text-xs font-medium text-ink">Identity documents <span className="font-normal text-muted">(optional — PDF, JPEG, PNG, WebP)</span><input name="documents" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple className="mt-2 block w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-surface file:px-3 file:py-2 file:text-xs file:font-semibold cursor-pointer" /></label>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <div>
                   <label className="block text-xs font-medium text-ink mb-1.5">Document category</label>
@@ -69,7 +69,7 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
                     name="documentType"
                     defaultValue="other"
                     options={[
-                      { value: 'aadhaar_masked', label: 'Masked Aadhaar image' },
+                      { value: 'aadhaar_masked', label: 'Masked Aadhaar (PDF / Image)' },
                       { value: 'passport', label: 'Passport' },
                       { value: 'driving_license', label: 'Driving licence' },
                       { value: 'voter_id', label: 'Voter ID' },
@@ -94,9 +94,9 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
                   />
                 </div>
               </div>
-              <p className="mt-2 text-[10px] leading-4 text-muted">JPEG, PNG or WebP · maximum 5 MB each · up to 8 images. Tell the guest why the document is collected, how it will be used, and that an alternative ID may be provided. For Aadhaar, upload only a copy with the first eight digits masked. Uploads are encrypted at rest.</p>
+              <p className="mt-2 text-[10px] leading-4 text-muted">PDF, JPEG, PNG or WebP · maximum 5 MB each · up to 8 documents. Tell the guest why the document is collected, how it will be used, and that an alternative ID may be provided. For Aadhaar, upload only a copy with the first eight digits masked. Uploads are encrypted at rest.</p>
               <label className="mt-3 flex items-start gap-2 text-xs leading-5 text-ink"><input name="consentGiven" type="checkbox" className="mt-1 h-4 w-4 accent-[hsl(var(--accent))]" /> I confirm the guest was informed and agreed to this identity document being stored for the stated purpose.</label>
-              <label className="mt-2 flex items-start gap-2 text-xs leading-5 text-ink"><input name="aadhaarMasked" type="checkbox" className="mt-1 h-4 w-4 accent-[hsl(var(--accent))]" /> If this is Aadhaar, I confirm the image has the first eight digits masked.</label>
+              <label className="mt-2 flex items-start gap-2 text-xs leading-5 text-ink"><input name="aadhaarMasked" type="checkbox" className="mt-1 h-4 w-4 accent-[hsl(var(--accent))]" /> If this is Aadhaar, I confirm the document has the first eight digits masked.</label>
             </div>
           </div>
           <div className="flex flex-col gap-3 border-t border-line bg-ground/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">

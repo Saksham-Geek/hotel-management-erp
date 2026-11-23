@@ -40,6 +40,7 @@ import {
   encodeKeycardSchema,
   sendEmailOtpSchema,
   verifyEmailOtpSchema,
+  guestIdentityAttachmentSchema,
   FEATURES,
   HOSPITALITY_PLAN_TIERS,
   PERMISSIONS,
@@ -261,6 +262,12 @@ test('document bytes must match the declared image MIME type', () => {
   assert.equal(decodeGuestDocument(pngHeader, 'image/png').length, 8);
   assert.throws(() => decodeGuestDocument(pngHeader, 'image/jpeg'), /contents do not match/);
   assert.throws(() => decodeGuestDocument('not base64!', 'image/png'), /valid base64/);
+
+  // PDF document validation
+  const pdfHeader = Buffer.from('%PDF-1.7\n%masked aadhaar document').toString('base64');
+  assert.equal(decodeGuestDocument(pdfHeader, 'application/pdf').length, 33);
+  assert.throws(() => decodeGuestDocument(pdfHeader, 'image/png'), /contents do not match/);
+  assert.throws(() => decodeGuestDocument(pngHeader, 'application/pdf'), /contents do not match/);
 });
 
 test('guest identity migration adds nullable consent audit fields for legacy records', () => {
@@ -1287,6 +1294,27 @@ test('Email OTP login schemas and migration 033 validate security parameters and
   assert.match(migration, /attempts integer not null default 0/);
   assert.match(migration, /expires_at timestamptz not null/);
   assert.match(migration, /consumed_at timestamptz/);
+});
+
+test('Migration 034 supports PDF guest identity documents and validates schema', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/034_guest_document_pdf_support.sql'),
+    'utf8',
+  );
+  assert.match(migration, /application\/pdf/i);
+  assert.match(migration, /guest_documents_mime_type_check/i);
+
+  const pdfAttachment = {
+    fileName: 'masked_aadhaar.pdf',
+    mimeType: 'application/pdf',
+    base64: Buffer.from('%PDF-1.7 masked document').toString('base64'),
+    documentType: 'aadhaar_masked',
+    consentGiven: true,
+    consentMethod: 'digital',
+    aadhaarMasked: true,
+  };
+  const parsed = guestIdentityAttachmentSchema.safeParse(pdfAttachment);
+  assert.equal(parsed.success, true);
 });
 
 

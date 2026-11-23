@@ -12,7 +12,7 @@ export const GUEST_DOCUMENT_CONSENT_VERSION = 'guest-identity-v1';
 const allowedTypes = ['aadhaar_masked', 'passport', 'driving_license', 'voter_id', 'other'] as const;
 const guestDocumentFileSchema = z.object({
   fileName: z.string().min(1).max(180),
-  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
   base64: z.string().min(1),
   documentType: z.enum(allowedTypes),
 });
@@ -23,11 +23,11 @@ export const guestDocumentUploadSchema = z.object({
   documents: z.array(guestDocumentFileSchema).min(1).max(8),
 }).superRefine((input, ctx) => {
   if (input.documents.some((document) => document.documentType === 'aadhaar_masked') && !input.aadhaarMasked) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['aadhaarMasked'], message: 'Confirm the Aadhaar image is masked before uploading.' });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['aadhaarMasked'], message: 'Confirm the Aadhaar document is masked before uploading.' });
   }
 });
 
-type MimeType = 'image/jpeg' | 'image/png' | 'image/webp';
+type MimeType = 'image/jpeg' | 'image/png' | 'image/webp' | 'application/pdf';
 
 export function decodeGuestDocument(encoded: string, mimeType: MimeType): Buffer {
   const compact = encoded.replace(/^data:[^,]+,/, '').replace(/\s/g, '');
@@ -45,8 +45,14 @@ export function decodeGuestDocument(encoded: string, mimeType: MimeType): Buffer
   const isJpeg = data.length >= 3 && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff;
   const isPng = data.length >= 8 && data.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
   const isWebp = data.length >= 12 && data.toString('ascii', 0, 4) === 'RIFF' && data.toString('ascii', 8, 12) === 'WEBP';
-  if ((mimeType === 'image/jpeg' && !isJpeg) || (mimeType === 'image/png' && !isPng) || (mimeType === 'image/webp' && !isWebp)) {
-    throw new BadRequestException('Image contents do not match the selected file type.');
+  const isPdf = data.length >= 4 && data.subarray(0, 4).toString('ascii') === '%PDF';
+  if (
+    (mimeType === 'image/jpeg' && !isJpeg) ||
+    (mimeType === 'image/png' && !isPng) ||
+    (mimeType === 'image/webp' && !isWebp) ||
+    (mimeType === 'application/pdf' && !isPdf)
+  ) {
+    throw new BadRequestException('Document contents do not match the selected file type.');
   }
   return data;
 }
@@ -69,7 +75,7 @@ export async function persistGuestIdentityDocument(
   const cipher = createCipheriv('aes-256-gcm', Buffer.from(env.guestDocumentEncryptionKey, 'hex'), iv);
   const ciphertext = Buffer.concat([cipher.update(data), cipher.final()]);
   const authTag = cipher.getAuthTag();
-  const extension = doc.mimeType === 'image/jpeg' ? 'jpg' : doc.mimeType.split('/')[1];
+  const extension = doc.mimeType === 'image/jpeg' ? 'jpg' : doc.mimeType === 'application/pdf' ? 'pdf' : doc.mimeType.split('/')[1];
   const row = (await c.query(
     `insert into guest_documents (tenant_id, guest_id, document_type, original_name, mime_type, byte_length, ciphertext, iv, auth_tag, uploaded_by, consent_method, consent_version, consent_recorded_by)
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$10)

@@ -139,7 +139,7 @@ export const updateGuestSchema = guestProfileSchema.partial().superRefine(valida
 
 export const guestIdentityAttachmentSchema = z.object({
   fileName: z.string().min(1).max(180),
-  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
+  mimeType: z.enum(['image/jpeg', 'image/png', 'image/webp', 'application/pdf']),
   base64: z.string().min(1),
   documentType: z.enum(['aadhaar_masked', 'passport', 'driving_license', 'voter_id', 'other']),
   consentGiven: z.literal(true),
@@ -147,7 +147,7 @@ export const guestIdentityAttachmentSchema = z.object({
   aadhaarMasked: z.boolean().default(false),
 }).superRefine((attachment, ctx) => {
   if (attachment.documentType === 'aadhaar_masked' && !attachment.aadhaarMasked) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['aadhaarMasked'], message: 'Confirm the Aadhaar image has the first eight digits masked.' });
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['aadhaarMasked'], message: 'Confirm the Aadhaar copy has the first eight digits masked.' });
   }
 });
 

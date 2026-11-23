@@ -45,7 +45,34 @@ export function GuestDirectory({ guests, readOnly }: { guests: GuestProfile[]; r
               <div className="space-y-4 border-t border-line bg-ground/25 p-4">
                 <div className="grid gap-x-4 gap-y-2 text-xs sm:grid-cols-2"><p><span className="text-muted">Phone</span><span className="mt-0.5 block font-medium text-ink">{guest.phone || 'Not provided'}</span></p><p><span className="text-muted">Email</span><span className="mt-0.5 block break-all font-medium text-ink">{guest.email || 'Not provided'}</span></p><p><span className="text-muted">Nationality</span><span className="mt-0.5 block font-medium text-ink">{guest.nationality || 'Not provided'}</span></p><p><span className="text-muted">Identity documents</span><span className="mt-0.5 block font-medium text-ink">{guest.documents?.length ?? 0} files</span></p></div>
                 {guest.notes && <p className="rounded-lg border border-line bg-surface p-3 text-xs leading-5 text-muted"><span className="font-semibold text-ink">Notes: </span>{guest.notes}</p>}
-                {guest.documents?.length ? <div className="rounded-lg border border-line bg-surface p-3"><p className="mb-2 text-[11px] font-semibold text-ink">Protected identity files</p><ul className="space-y-1.5">{guest.documents.map((document) => <li key={document.id}><a className="text-xs font-medium text-lagoon-dark underline underline-offset-2" href={`/api/guest-documents/${encodeURIComponent(guest.id)}/${encodeURIComponent(document.id)}`}>{document.documentType.replaceAll('_', ' ')}</a><span className="ml-2 text-[10px] text-muted">{document.consentMethod ? `Consent: ${document.consentMethod}` : 'Legacy upload · consent record unavailable'}</span></li>)}</ul></div> : null}
+                {guest.documents?.length ? (
+                  <div className="rounded-lg border border-line bg-surface p-3">
+                    <p className="mb-2 text-[11px] font-semibold text-ink">Protected identity files</p>
+                    <ul className="space-y-1.5">
+                      {guest.documents.map((document) => {
+                        const isPdf = document.mimeType === 'application/pdf';
+                        return (
+                          <li key={document.id} className="flex flex-wrap items-center gap-2">
+                            <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-bold ${isPdf ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300'}`}>
+                              {isPdf ? 'PDF' : 'IMG'}
+                            </span>
+                            <a
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-medium text-lagoon-dark underline underline-offset-2 hover:opacity-80"
+                              href={`/api/guest-documents/${encodeURIComponent(guest.id)}/${encodeURIComponent(document.id)}`}
+                            >
+                              {document.documentType.replaceAll('_', ' ')}
+                            </a>
+                            <span className="text-[10px] text-muted">
+                              {document.consentMethod ? `Consent: ${document.consentMethod}` : 'Legacy upload · consent record unavailable'}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ) : null}
 
                 {!readOnly && <>
                   <form action={uploadGuestDocuments} className="rounded-lg border border-dashed border-line bg-surface p-3">
@@ -58,11 +85,11 @@ export function GuestDirectory({ guests, readOnly }: { guests: GuestProfile[]; r
                           defaultValue="other"
                           size="sm"
                           options={[
-                            { value: 'aadhaar_masked', label: 'Masked Aadhaar' },
+                            { value: 'aadhaar_masked', label: 'Masked Aadhaar (PDF / Image)' },
                             { value: 'passport', label: 'Passport' },
                             { value: 'driving_license', label: 'Driving licence' },
                             { value: 'voter_id', label: 'Voter ID' },
-                            { value: 'other', label: 'Other' },
+                            { value: 'other', label: 'Other identity document' },
                           ]}
                           aria-label="Document category"
                         />
@@ -87,8 +114,8 @@ export function GuestDirectory({ guests, readOnly }: { guests: GuestProfile[]; r
                     </div>
                     <label className="mt-3 flex items-start gap-2 text-[11px] leading-4 text-ink"><input name="consentGiven" type="checkbox" required className="mt-0.5 h-4 w-4" /> Guest was informed of the purpose and agreed; an alternative ID may be provided.</label>
                     <label className="mt-2 flex items-start gap-2 text-[11px] leading-4 text-ink"><input name="aadhaarMasked" type="checkbox" className="mt-0.5 h-4 w-4" /> If Aadhaar, first eight digits are masked.</label>
-                    <label className="mt-3 block text-xs font-medium text-ink">Add identity images<input name="documents" type="file" accept="image/jpeg,image/png,image/webp" multiple required className="mt-2 block w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-ground file:px-3 file:py-2 file:text-xs file:font-semibold" /></label>
-                    <p className="mt-2 text-[10px] text-muted">JPEG, PNG or WebP · 5 MB per image · up to 8 files. Original filenames are not retained.</p>
+                    <label className="mt-3 block text-xs font-medium text-ink">Add identity documents (PDF, JPEG, PNG, WebP)<input name="documents" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" multiple required className="mt-2 block w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-ground file:px-3 file:py-2 file:text-xs file:font-semibold cursor-pointer" /></label>
+                    <p className="mt-2 text-[10px] text-muted">PDF, JPEG, PNG or WebP · 5 MB per document · up to 8 files. Original filenames are not retained.</p>
                     <FormSubmit className={`${btnGhostCls} mt-3 w-full text-xs`} pendingLabel="Uploading…">Upload securely</FormSubmit>
                   </form>
                   <form action={updateGuest} className="grid gap-3 border-t border-line pt-4 sm:grid-cols-2">

@@ -103,13 +103,13 @@ function IdentityUploadFields({
 
       <div>
         <label htmlFor={`${prefix}-file-input`} className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-          Document file {required && <span className="text-rose-500" aria-hidden="true">*</span>}
+          Document file (PDF, JPEG, PNG, WebP) {required && <span className="text-rose-500" aria-hidden="true">*</span>}
         </label>
         <input
           id={`${prefix}-file-input`}
           name={`${prefix}Documents`}
           type="file"
-          accept="image/jpeg,image/png,image/webp"
+          accept="image/jpeg,image/png,image/webp,application/pdf"
           required={required}
           aria-label="Upload identity document file"
           className="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:rounded-xl file:border file:border-slate-300 dark:file:border-white/15 file:bg-white dark:file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-800 dark:file:text-white file:shadow-2xs hover:file:bg-slate-50 dark:hover:file:bg-white/15 cursor-pointer"
@@ -142,7 +142,7 @@ function IdentityUploadFields({
       </div>
 
       <p className="text-[10px] leading-4 text-slate-500 dark:text-slate-400">
-        JPEG, PNG or WebP · up to 5 MB. Aadhaar images must be masked before upload.
+        PDF, JPEG, PNG or WebP · up to 5 MB. Aadhaar documents must be masked before upload.
       </p>
     </div>
   );

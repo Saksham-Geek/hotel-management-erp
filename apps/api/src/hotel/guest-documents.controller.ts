@@ -31,7 +31,7 @@ export class GuestDocumentsController {
   @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_WRITE)
   upload(@CurrentUser() user: AuthUser, @Param('guestId', ParseUUIDPipe) guestId: string, @Body() body: unknown) {
     const parsed = guestDocumentUploadSchema.safeParse(body);
-    if (!parsed.success) throw new BadRequestException({ code: 'INVALID_DOCUMENT', message: parsed.error.issues[0]?.message ?? 'Provide consent and 1–8 valid identity images.' });
+    if (!parsed.success) throw new BadRequestException({ code: 'INVALID_DOCUMENT', message: parsed.error.issues[0]?.message ?? 'Provide consent and 1–8 valid identity documents.' });
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const guest = await c.query('select id from guests where id = $1', [guestId]);
       if (!guest.rowCount) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Guest not found' });

@@ -264,18 +264,18 @@ function isValidEmail(value: string) {
 async function prepareReservationIdentityUpload(fd: FormData, prefix: string, required = false) {
   const value = fd.get(`${prefix}Documents`);
   if (!(value instanceof File) || value.size === 0) {
-    if (required) throw new Error('Upload an identity image for every guest.');
+    if (required) throw new Error('Upload an identity document for every guest.');
     return null;
   }
-  if (value.size > 5 * 1024 * 1024) throw new Error('Identity images must be no larger than 5 MB each.');
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(value.type)) throw new Error('Identity images must be JPEG, PNG or WebP.');
+  if (value.size > 5 * 1024 * 1024) throw new Error('Identity documents must be no larger than 5 MB each.');
+  if (!['image/jpeg', 'image/png', 'image/webp', 'application/pdf'].includes(value.type)) throw new Error('Identity documents must be PDF, JPEG, PNG or WebP.');
   const consentMethod = String(fd.get(`${prefix}ConsentMethod`) ?? '');
   if (fd.get(`${prefix}ConsentGiven`) !== 'on' || !['written', 'verbal', 'digital'].includes(consentMethod)) {
-    throw new Error('Record the guest’s informed consent method before uploading an identity image.');
+    throw new Error('Record the guest’s informed consent method before uploading an identity document.');
   }
   const documentType = String(fd.get(`${prefix}DocumentType`) ?? 'other');
   const aadhaarMasked = fd.get(`${prefix}AadhaarMasked`) === 'on';
-  if (documentType === 'aadhaar_masked' && !aadhaarMasked) throw new Error('Confirm the Aadhaar image has the first eight digits masked.');
+  if (documentType === 'aadhaar_masked' && !aadhaarMasked) throw new Error('Confirm the Aadhaar document has the first eight digits masked.');
   return {
     consentMethod,
     aadhaarMasked,

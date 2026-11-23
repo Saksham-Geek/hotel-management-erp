@@ -8,8 +8,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ gues
   if (!token) return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
 
   const url = new URL(request.url);
-  const isView = url.searchParams.get('view') === '1';
-  const endpoint = isView ? 'view' : 'download';
+  const isDownload = url.searchParams.get('download') === '1';
+  const endpoint = isDownload ? 'download?download=1' : 'view';
 
   const upstream = await fetch(
     `${API_URL}/hotel/guests/${encodeURIComponent(guestId)}/documents/${encodeURIComponent(documentId)}/${endpoint}`,
@@ -24,11 +24,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ gues
   }
 
   const headers = new Headers();
-  for (const key of ['content-type', 'content-length', 'content-disposition', 'cache-control', 'x-content-type-options', 'x-frame-options']) {
+  for (const key of ['content-type', 'content-length', 'content-disposition', 'cache-control', 'x-content-type-options']) {
     const value = upstream.headers.get(key);
     if (value) headers.set(key, value);
   }
   headers.set('Cache-Control', 'private, no-store');
+  // Allow framing by the app itself for in-app sandboxed preview
+  headers.set('X-Frame-Options', 'SAMEORIGIN');
   return new NextResponse(await upstream.arrayBuffer(), { status: 200, headers });
 }
 

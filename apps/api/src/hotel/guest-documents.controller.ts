@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, NotFoundException, Param, ParseUUIDPipe, Post, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, NotFoundException, Param, ParseUUIDPipe, Post, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { createDecipheriv } from 'node:crypto';
 import { AuthUser, CurrentUser } from '../common/current-user';
@@ -180,7 +180,13 @@ export class GuestDocumentsController {
 
   @Get(':documentId/download')
   @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_IMAGE_READ)
-  async download(@CurrentUser() user: AuthUser, @Param('guestId', ParseUUIDPipe) guestId: string, @Param('documentId', ParseUUIDPipe) documentId: string, @Res() res: Response) {
+  async download(
+    @CurrentUser() user: AuthUser,
+    @Param('guestId', ParseUUIDPipe) guestId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+    @Query('download') downloadQuery: string | undefined,
+    @Res() res: Response,
+  ) {
     const row = await this.db.withTenant(user.tenantId, user.propertyId, async (c) => (await c.query(
       `select original_name, mime_type, ciphertext, iv, auth_tag from guest_documents where id = $1 and guest_id = $2`, [documentId, guestId],
     )).rows[0]);
@@ -194,8 +200,10 @@ export class GuestDocumentsController {
     const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
     res.setHeader('Content-Type', row.mime_type);
     res.setHeader('Content-Length', plaintext.length);
-    res.setHeader('Content-Disposition', `attachment; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
+    const disposition = downloadQuery === '1' ? 'attachment' : 'inline';
+    res.setHeader('Content-Disposition', `${disposition}; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
     res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
     res.send(plaintext);
   }
 }

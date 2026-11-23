@@ -25,11 +25,19 @@ interface GuestDirectoryProps {
 
 export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectoryProps) {
   const [query, setQuery] = useState('');
+  const [inlinePreviews, setInlinePreviews] = useState<Record<string, boolean>>({});
   const [viewingDoc, setViewingDoc] = useState<{
     guestId: string;
     guestName: string;
     document: SecureDocument;
   } | null>(null);
+
+  const staffIdentifier = currentUser?.fullName || currentUser?.email || 'Authorized Operator';
+  const staffRole = (currentUser?.role || 'staff').toUpperCase();
+
+  const toggleInlinePreview = (docId: string) => {
+    setInlinePreviews((prev) => ({ ...prev, [docId]: !prev[docId] }));
+  };
 
   const filtered = useMemo(() => {
     const term = query.trim().toLocaleLowerCase();
@@ -130,68 +138,128 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                 {/* Identity Documents List with In-App Viewer Trigger */}
                 {guest.documents?.length ? (
                   <div className="rounded-lg border border-line bg-surface p-3">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-[11px] font-semibold text-ink">Protected Identity Documents (Encrypted AES-256-GCM)</p>
-                      <span className="text-[10px] text-muted">Click to view in secure sandboxed viewer</span>
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                      <div>
+                        <p className="text-xs font-bold text-ink">Protected Identity Documents ({guest.documents.length})</p>
+                        <p className="text-[10px] text-muted">Encrypted with AES-256-GCM · Click Preview to view inline</p>
+                      </div>
+                      <span className="text-[10px] font-semibold text-lagoon-dark">
+                        Zero-desktop download protected
+                      </span>
                     </div>
-                    <ul className="space-y-2">
+
+                    <ul className="space-y-3">
                       {guest.documents.map((document) => {
                         const isPdf = document.mimeType === 'application/pdf';
+                        const isPreviewOpen = Boolean(inlinePreviews[document.id]);
+                        const docDisplayName = document.fileName || `${document.documentType.replaceAll('_', ' ')}.${isPdf ? 'pdf' : 'jpg'}`;
+
                         return (
-                          <li key={document.id} className="flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg bg-ground/40 border border-line/60">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <span
-                                className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                                  isPdf
-                                    ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
-                                    : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
-                                }`}
-                              >
-                                {isPdf ? 'PDF' : 'IMG'}
-                              </span>
-
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setViewingDoc({
-                                    guestId: guest.id,
-                                    guestName: guest.fullName,
-                                    document,
-                                  })
-                                }
-                                className="text-xs font-semibold text-lagoon-dark underline underline-offset-2 hover:opacity-80 text-left cursor-pointer truncate max-w-[200px] sm:max-w-[280px]"
-                                title="Open in Secure Viewer"
-                              >
-                                {document.documentType.replaceAll('_', ' ')}
-                              </button>
-
-                              {document.legalHold && (
-                                <span className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                                  HOLD
+                          <li key={document.id} className="rounded-xl border border-line/80 bg-ground/40 p-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <span
+                                  className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                                    isPdf
+                                      ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300'
+                                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300'
+                                  }`}
+                                >
+                                  {isPdf ? 'PDF' : 'IMG'}
                                 </span>
-                              )}
+
+                                <div className="min-w-0">
+                                  <div className="flex flex-wrap items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => toggleInlinePreview(document.id)}
+                                      className="text-xs font-bold text-ink hover:text-lagoon-dark text-left cursor-pointer truncate max-w-[200px] sm:max-w-[320px]"
+                                      title="Toggle document preview"
+                                    >
+                                      📄 {docDisplayName}
+                                    </button>
+                                    <span className="rounded bg-line/60 px-1.5 py-0.5 text-[9px] font-semibold uppercase text-muted">
+                                      {document.documentType.replaceAll('_', ' ')}
+                                    </span>
+                                    {document.legalHold && (
+                                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                                        LEGAL HOLD
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="mt-0.5 text-[10px] text-muted">
+                                    {document.byteLength ? `${Math.round(document.byteLength / 1024)} KB · ` : ''}
+                                    {document.consentMethod ? `Consent: ${document.consentMethod}` : 'Consent verified'}
+                                    {document.retentionUntil ? ` · Retained to ${new Date(document.retentionUntil).toLocaleDateString()}` : ' · 180 days standard'}
+                                  </p>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-2 shrink-0">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleInlinePreview(document.id)}
+                                  className="px-2.5 py-1 rounded-lg border border-line bg-surface hover:bg-ground text-[11px] font-semibold text-ink transition cursor-pointer"
+                                >
+                                  {isPreviewOpen ? 'Hide Preview ▲' : 'Show Preview 👁️'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setViewingDoc({
+                                      guestId: guest.id,
+                                      guestName: guest.fullName,
+                                      document,
+                                    })
+                                  }
+                                  className="px-2.5 py-1 rounded-lg border border-lagoon/40 bg-lagoon/10 hover:bg-lagoon/20 text-[11px] font-semibold text-lagoon-dark transition cursor-pointer"
+                                  title="Open in Fullscreen Sandboxed Viewer"
+                                >
+                                  Fullscreen ⛶
+                                </button>
+                              </div>
                             </div>
 
-                            <div className="flex items-center gap-2 text-[10px] text-muted">
-                              <span>
-                                {document.retentionUntil
-                                  ? `Retained to ${new Date(document.retentionUntil).toLocaleDateString()}`
-                                  : '180 days standard'}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setViewingDoc({
-                                    guestId: guest.id,
-                                    guestName: guest.fullName,
-                                    document,
-                                  })
-                                }
-                                className="px-2 py-0.5 rounded border border-line bg-surface hover:bg-ground text-[10px] font-semibold text-ink transition"
-                              >
-                                View 👁️
-                              </button>
-                            </div>
+                            {/* Inline Visual Document Preview */}
+                            {isPreviewOpen && (
+                              <div className="mt-3 overflow-hidden rounded-xl border border-line bg-surface shadow-xs">
+                                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-amber-500/10 px-3 py-1.5 text-[10px] font-mono text-amber-900 dark:text-amber-200">
+                                  <div className="flex items-center gap-1.5">
+                                    <span>🛡️</span>
+                                    <span>CONFIDENTIAL • VIEWED BY {staffIdentifier} ({staffRole})</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 font-sans">
+                                    <a
+                                      href={`/api/guest-documents/${encodeURIComponent(guest.id)}/${encodeURIComponent(document.id)}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-[11px] font-semibold text-lagoon-dark underline hover:opacity-80"
+                                    >
+                                      Open in New Tab ↗
+                                    </a>
+                                  </div>
+                                </div>
+
+                                <div
+                                  className="relative min-h-[350px] max-h-[550px] bg-slate-900/5 dark:bg-black/30 flex items-center justify-center p-2 select-none"
+                                  onContextMenu={(e) => e.preventDefault()}
+                                >
+                                  {isPdf ? (
+                                    <iframe
+                                      src={`/api/guest-documents/${encodeURIComponent(guest.id)}/${encodeURIComponent(document.id)}#toolbar=0`}
+                                      className="h-[480px] w-full rounded border border-line bg-white shadow-xs"
+                                      title={docDisplayName}
+                                    />
+                                  ) : (
+                                    <img
+                                      src={`/api/guest-documents/${encodeURIComponent(guest.id)}/${encodeURIComponent(document.id)}`}
+                                      alt={docDisplayName}
+                                      className="max-h-[480px] w-auto max-w-full rounded object-contain shadow-xs"
+                                    />
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </li>
                         );
                       })}

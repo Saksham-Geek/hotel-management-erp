@@ -28,7 +28,7 @@ export default async function ChannelManagerPage({
       channels: [],
       stats: { otaBookingsCount: 0, totalCommissionAmount: 0, totalOtaRevenue: 0 },
     })),
-    api<RoomTypeItem[]>('/hotel/rooms/types').catch(() => []),
+    api<RoomTypeItem[]>('/hotel/room-types').catch(() => []),
     api<{ logs: OtaSyncLog[] }>('/hotel/channels/logs').catch(() => ({ logs: [] })),
   ]);
 

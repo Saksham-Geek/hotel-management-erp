@@ -20,7 +20,7 @@ export class RoomsController {
     private readonly entitlements: EntitlementsService,
   ) {}
 
-  @Get('room-types')
+  @Get(['room-types', 'rooms/types'])
   roomTypes(@CurrentUser() user: AuthUser) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
       (await c.query(`select id, name, base_rate::float8 as "baseRate", hourly_rate::float8 as "hourlyRate", capacity, description from room_types order by base_rate`)).rows,

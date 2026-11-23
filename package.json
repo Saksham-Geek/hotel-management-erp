@@ -11,6 +11,7 @@
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
     "test:foundation": "pnpm --filter @erp/api test",
+    "clean:ports": "powershell -NoProfile -Command \"Get-NetTCPConnection -LocalPort 4000,3000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue; Write-Host ('Freed port ' + $_.LocalPort) }\"",
     "db:up": "docker compose up -d postgres",
     "db:migrate": "pnpm --filter @erp/api migrate",
     "db:seed": "pnpm --filter @erp/api seed"

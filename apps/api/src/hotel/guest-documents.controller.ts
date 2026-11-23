@@ -49,6 +49,135 @@ export class GuestDocumentsController {
     });
   }
 
+  @Get(':documentId/view')
+  @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_IMAGE_READ)
+  async view(
+    @CurrentUser() user: AuthUser,
+    @Param('guestId', ParseUUIDPipe) guestId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+    @Res() res: Response,
+  ) {
+    const row = await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
+      (
+        await c.query(
+          `select original_name, mime_type, ciphertext, iv, auth_tag, sha256_hash from guest_documents where id = $1 and guest_id = $2`,
+          [documentId, guestId],
+        )
+      ).rows[0],
+    );
+    if (!row) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Document not found' });
+    if (!/^[0-9a-fA-F]{64}$/.test(env.guestDocumentEncryptionKey)) {
+      throw new BadRequestException({
+        code: 'DOCUMENT_ENCRYPTION_NOT_CONFIGURED',
+        message: 'Guest document encryption is not configured. Set GUEST_DOCUMENT_ENCRYPTION_KEY to a 64-character hex key.',
+      });
+    }
+
+    await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
+      this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'guest.document.view',
+        entity: 'guest_document',
+        entityId: documentId,
+        meta: { guestId, mimeType: row.mime_type, staffId: user.id, staffRole: user.role },
+      }),
+    );
+
+    const decipher = createDecipheriv('aes-256-gcm', Buffer.from(env.guestDocumentEncryptionKey, 'hex'), row.iv);
+    decipher.setAuthTag(row.auth_tag);
+    const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
+
+    res.setHeader('Content-Type', row.mime_type);
+    res.setHeader('Content-Length', plaintext.length);
+    res.setHeader('Content-Disposition', `inline; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.send(plaintext);
+  }
+
+  @Post(':documentId/export')
+  @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_IMAGE_READ)
+  async exportDocument(
+    @CurrentUser() user: AuthUser,
+    @Param('guestId', ParseUUIDPipe) guestId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+    @Body() body: { reason?: string },
+    @Res() res: Response,
+  ) {
+    const reason = String(body?.reason ?? '').trim();
+    if (reason.length < 5) {
+      throw new BadRequestException({
+        code: 'REASON_REQUIRED',
+        message: 'Statutory compliance requires documenting an official reason (minimum 5 characters) to export guest identity records.',
+      });
+    }
+
+    const row = await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
+      (
+        await c.query(
+          `select original_name, mime_type, ciphertext, iv, auth_tag, sha256_hash from guest_documents where id = $1 and guest_id = $2`,
+          [documentId, guestId],
+        )
+      ).rows[0],
+    );
+    if (!row) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Document not found' });
+    if (!/^[0-9a-fA-F]{64}$/.test(env.guestDocumentEncryptionKey)) {
+      throw new BadRequestException({
+        code: 'DOCUMENT_ENCRYPTION_NOT_CONFIGURED',
+        message: 'Guest document encryption is not configured.',
+      });
+    }
+
+    await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
+      this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'guest.document.export',
+        entity: 'guest_document',
+        entityId: documentId,
+        meta: { guestId, reason, staffId: user.id, staffRole: user.role },
+      }),
+    );
+
+    const decipher = createDecipheriv('aes-256-gcm', Buffer.from(env.guestDocumentEncryptionKey, 'hex'), row.iv);
+    decipher.setAuthTag(row.auth_tag);
+    const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
+
+    res.setHeader('Content-Type', row.mime_type);
+    res.setHeader('Content-Length', plaintext.length);
+    res.setHeader('Content-Disposition', `attachment; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
+    res.setHeader('Cache-Control', 'private, no-store');
+    res.send(plaintext);
+  }
+
+  @Post(':documentId/legal-hold')
+  @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_WRITE)
+  async toggleLegalHold(
+    @CurrentUser() user: AuthUser,
+    @Param('guestId', ParseUUIDPipe) guestId: string,
+    @Param('documentId', ParseUUIDPipe) documentId: string,
+    @Body() body: { legalHold: boolean; reason?: string },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const result = await c.query(
+        `update guest_documents set legal_hold = $1 where id = $2 and guest_id = $3 returning id, legal_hold as "legalHold"`,
+        [Boolean(body?.legalHold), documentId, guestId],
+      );
+      if (!result.rowCount) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Document not found' });
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'guest.document.legal_hold',
+        entity: 'guest_document',
+        entityId: documentId,
+        meta: { guestId, legalHold: Boolean(body?.legalHold), reason: body?.reason },
+      });
+      return result.rows[0];
+    });
+  }
+
   @Get(':documentId/download')
   @RequirePermission(PERMISSIONS.GUEST_DOCUMENT_IMAGE_READ)
   async download(@CurrentUser() user: AuthUser, @Param('guestId', ParseUUIDPipe) guestId: string, @Param('documentId', ParseUUIDPipe) documentId: string, @Res() res: Response) {

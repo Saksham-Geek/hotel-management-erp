@@ -297,6 +297,33 @@ export class NightAuditController {
         );
       }
 
+      // 1.7 Enterprise Statutory Document Purge (DPDP Act 2023 / 180-Day Rule)
+      const purgedDocs = (
+        await c.query(
+          `DELETE FROM guest_documents
+           WHERE tenant_id = $1
+             AND retention_until < NOW()
+             AND legal_hold = false
+           RETURNING id`,
+          [user.tenantId],
+        )
+      ).rows;
+
+      if (purgedDocs.length > 0) {
+        await this.audit.log(c, {
+          tenantId: user.tenantId,
+          userId: user.id,
+          action: 'guest.document.retention_purge',
+          entity: 'guest_document',
+          entityId: user.tenantId,
+          meta: {
+            purgedCount: purgedDocs.length,
+            businessDate,
+            reason: 'Statutory DPDP Act 2023 retention schedule reached without legal hold',
+          },
+        });
+      }
+
       // 2. Compute summary KPIs
       const totalRooms = Number((await c.query(`SELECT count(*)::int AS n FROM rooms WHERE tenant_id = $1 AND property_id = $2`, [user.tenantId, user.propertyId])).rows[0]?.n ?? 0);
       const roomsOccupied = checkedInReservations.length;

@@ -1,5 +1,5 @@
 import { BadRequestException } from '@nestjs/common';
-import { createCipheriv, randomBytes, randomUUID } from 'node:crypto';
+import { createCipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { PoolClient } from 'pg';
 import { guestIdentityAttachmentSchema, type GuestIdentityAttachment } from '@erp/shared';
 import type { AuthUser } from '../common/current-user';
@@ -71,17 +71,22 @@ export async function persistGuestIdentityDocument(
   }
   const doc = parsed.data;
   const data = decodeGuestDocument(doc.base64, doc.mimeType);
+  const sha256 = createHash('sha256').update(data).digest('hex');
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', Buffer.from(env.guestDocumentEncryptionKey, 'hex'), iv);
   const ciphertext = Buffer.concat([cipher.update(data), cipher.final()]);
   const authTag = cipher.getAuthTag();
   const extension = doc.mimeType === 'image/jpeg' ? 'jpg' : doc.mimeType === 'application/pdf' ? 'pdf' : doc.mimeType.split('/')[1];
   const row = (await c.query(
-    `insert into guest_documents (tenant_id, guest_id, document_type, original_name, mime_type, byte_length, ciphertext, iv, auth_tag, uploaded_by, consent_method, consent_version, consent_recorded_by)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$10)
-     returning id, document_type as "documentType", created_at as "createdAt"`,
-    [user.tenantId, guestId, doc.documentType, `${doc.documentType}-${randomUUID()}.${extension}`, doc.mimeType, data.length, ciphertext, iv, authTag, user.id, doc.consentMethod, GUEST_DOCUMENT_CONSENT_VERSION],
+    `insert into guest_documents (
+       tenant_id, guest_id, document_type, original_name, mime_type, byte_length,
+       ciphertext, iv, auth_tag, uploaded_by, consent_method, consent_version, consent_recorded_by,
+       storage_provider, sha256_hash, retention_until, legal_hold
+     )
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$10,'postgres',$13, now() + interval '180 days', false)
+     returning id, document_type as "documentType", created_at as "createdAt", retention_until as "retentionUntil", sha256_hash as "sha256Hash"`,
+    [user.tenantId, guestId, doc.documentType, `${doc.documentType}-${randomUUID()}.${extension}`, doc.mimeType, data.length, ciphertext, iv, authTag, user.id, doc.consentMethod, GUEST_DOCUMENT_CONSENT_VERSION, sha256],
   )).rows[0];
-  await audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'guest.document.upload', entity: 'guest_document', entityId: row.id, meta: { guestId, mimeType: doc.mimeType, byteLength: data.length } });
+  await audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'guest.document.upload', entity: 'guest_document', entityId: row.id, meta: { guestId, mimeType: doc.mimeType, byteLength: data.length, sha256 } });
   return row;
 }

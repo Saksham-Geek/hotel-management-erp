@@ -67,7 +67,11 @@ export class GuestsController {
                  'fileName', d.original_name,
                  'mimeType', d.mime_type,
                  'consentMethod', d.consent_method,
-                 'createdAt', d.created_at
+                 'createdAt', d.created_at,
+                 'byteLength', d.byte_length,
+                 'retentionUntil', d.retention_until,
+                 'legalHold', d.legal_hold,
+                 'sha256Hash', d.sha256_hash
                )
                ORDER BY d.created_at DESC
              )

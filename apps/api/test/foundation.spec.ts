@@ -1317,6 +1317,18 @@ test('Migration 034 supports PDF guest identity documents and validates schema',
   assert.equal(parsed.success, true);
 });
 
+test('Migration 035 adds enterprise document pipeline columns for retention and storage providers', () => {
+  const migration = readFileSync(
+    resolve(__dirname, '../../../db/migrations/035_guest_document_retention_and_storage.sql'),
+    'utf8',
+  );
+  assert.match(migration, /storage_provider/i);
+  assert.match(migration, /retention_until/i);
+  assert.match(migration, /legal_hold/i);
+  assert.match(migration, /sha256_hash/i);
+  assert.match(migration, /guest_documents_retention_purge_idx/i);
+});
+
 
 
 

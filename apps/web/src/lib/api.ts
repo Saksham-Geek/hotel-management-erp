@@ -1,7 +1,7 @@
 import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import type { EntitlementsDto, FeatureKey, MeDto, PlanKey, PlanTierConfig } from '@erp/shared';
+import { describeApiRoute, formatTelemetryLog, type EntitlementsDto, type FeatureKey, type MeDto, type PlanKey, type PlanTierConfig } from '@erp/shared';
 
 const rawApiUrl = process.env.API_URL ?? 'http://127.0.0.1:4000';
 // On Windows, 'localhost' resolves to IPv6 [::1] first. If API listens on IPv4 0.0.0.0,
@@ -22,6 +22,10 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     redirect('/login');
   }
 
+  const method = (init.method ?? 'GET').toUpperCase();
+  const desc = describeApiRoute(path, method);
+  const start = performance.now();
+
   const headers = {
     'content-type': 'application/json',
     ...(token ? { authorization: `Bearer ${token}` } : {}),
@@ -38,7 +42,8 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
     });
   } catch (err: any) {
     if (err?.digest?.startsWith('NEXT_REDIRECT')) throw err;
-    console.error(`[API Network Error] ${init.method ?? 'GET'} ${API_URL + path}:`, err?.message ?? err);
+    const duration = performance.now() - start;
+    console.error(`[API Network Error] ${formatTelemetryLog(desc, duration)}:`, err?.message ?? err);
     if (path === '/auth/me' || path === '/entitlements/me') {
       redirect('/login?error=' + encodeURIComponent('Your session has ended. Please sign in again.'));
     }
@@ -47,6 +52,11 @@ export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
       details: err?.message,
     });
   }
+
+  const duration = performance.now() - start;
+  const dbTimeHeader = res.headers.get('x-db-time');
+  const dbDuration = dbTimeHeader ? parseFloat(dbTimeHeader) : undefined;
+  console.log(formatTelemetryLog(desc, duration, dbDuration));
 
   const body = await res.json().catch(() => null);
   if (res.status === 401) {

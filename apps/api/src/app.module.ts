@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
-import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuditModule } from './audit/audit.module';
 import { AuthModule } from './auth/auth.module';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { LoggingInterceptor } from './common/logging.interceptor';
 import { AllExceptionsFilter } from './common/pg-exception.filter';
 import { PermissionGuard } from './common/permission-guard';
 import { RolesGuard } from './common/roles';
@@ -36,6 +37,7 @@ import { PlatformModule } from './platform/platform.module';
     { provide: APP_GUARD, useClass: PermissionGuard },
     { provide: APP_GUARD, useClass: FeatureGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
+    { provide: APP_INTERCEPTOR, useClass: LoggingInterceptor },
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
   ],
 })

@@ -12,7 +12,6 @@ export default {
   },
   experimental: {
     serverActions: { bodySizeLimit: '56mb' },
-    optimizePackageImports: ['@erp/shared'],
   },
   // Keep tracing rooted at the monorepo for workspace dependencies. Standalone
   // packaging is not used by this repository and requires symlink creation on Windows.

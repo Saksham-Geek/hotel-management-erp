@@ -1,7 +1,8 @@
 import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { describeApiRoute, formatTelemetryLog, type EntitlementsDto, type FeatureKey, type MeDto, type PlanKey, type PlanTierConfig } from '@erp/shared';
+import type { EntitlementsDto, FeatureKey, MeDto, PlanKey, PlanTierConfig } from '@erp/shared';
+import { describeApiRoute, formatTelemetryLog } from '@/lib/telemetry';
 
 const rawApiUrl = process.env.API_URL ?? 'http://127.0.0.1:4000';
 // On Windows, 'localhost' resolves to IPv6 [::1] first. If API listens on IPv4 0.0.0.0,

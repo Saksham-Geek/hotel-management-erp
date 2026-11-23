@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { describePageRoute, describeApiRoute, formatTelemetryLog } from '@erp/shared';
+import { describePageRoute, describeApiRoute, formatTelemetryLog } from '@/lib/telemetry';
 
 declare global {
   interface Window {

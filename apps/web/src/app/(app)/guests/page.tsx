@@ -83,6 +83,9 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
                   multiple
                   className="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:rounded-xl file:border file:border-slate-300 dark:file:border-white/15 file:bg-white dark:file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-800 dark:file:text-white file:shadow-2xs hover:file:bg-slate-50 dark:hover:file:bg-white/15 cursor-pointer"
                 />
+                <p className="mt-1.5 text-[11px] text-muted">
+                  📍 <span className="font-semibold text-ink">Where to view after upload:</span> Once you click <strong className="text-lagoon-dark font-medium">&quot;Save guest profile&quot;</strong>, the file is securely encrypted and stored. View it anytime in the <strong className="text-ink font-medium">Guest directory</strong> below by clicking <span className="rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-ink">View ID 👁️</span> or expanding the guest profile.
+                </p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">

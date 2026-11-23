@@ -77,14 +77,40 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                   <span className="flex flex-wrap items-center gap-2">
                     <span className="truncate text-sm font-semibold text-ink">{guest.fullName}</span>
                     {guest.vip && <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning">VIP</span>}
+                    {Boolean(guest.documents?.length) && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                        🛡️ {guest.documents!.length} {guest.documents!.length === 1 ? 'doc' : 'docs'}
+                        {guest.documents!.some((d) => d.mimeType === 'application/pdf') ? ' (PDF)' : ''}
+                      </span>
+                    )}
                   </span>
                   <span className="mt-1 block truncate text-xs text-muted">
                     {[guest.phone, guest.email].filter(Boolean).join(' · ') || 'No contact details'}
                   </span>
                 </span>
-                <span className="shrink-0 rounded-lg border border-line px-2.5 py-1.5 text-[11px] font-semibold text-muted group-open:text-ink">
-                  Profile <span aria-hidden className="ml-1 inline-block transition-transform group-open:rotate-180">⌄</span>
-                </span>
+                <div className="flex items-center gap-2 shrink-0">
+                  {Boolean(guest.documents?.length) && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        setViewingDoc({
+                          guestId: guest.id,
+                          guestName: guest.fullName,
+                          document: guest.documents![0],
+                        });
+                      }}
+                      className="rounded-lg border border-lagoon/40 bg-lagoon/10 hover:bg-lagoon/20 px-2.5 py-1.5 text-[11px] font-semibold text-lagoon-dark transition cursor-pointer"
+                      title="View primary identity document in secure viewer"
+                    >
+                      View ID 👁️
+                    </button>
+                  )}
+                  <span className="rounded-lg border border-line px-2.5 py-1.5 text-[11px] font-semibold text-muted group-open:text-ink">
+                    Profile <span aria-hidden className="ml-1 inline-block transition-transform group-open:rotate-180">⌄</span>
+                  </span>
+                </div>
               </summary>
 
               <div className="space-y-4 border-t border-line bg-ground/25 p-4">

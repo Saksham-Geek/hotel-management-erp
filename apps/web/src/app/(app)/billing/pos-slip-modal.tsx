@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { formatDeterministicDateTime } from '@/lib/dates';
 
 interface PosSlipModalProps {
   slip: {
@@ -39,11 +40,8 @@ export function PosSlipModal({ slip, onClose }: PosSlipModalProps) {
   }, [onClose]);
 
   const formattedDate = slip.dateTime
-    ? new Date(slip.dateTime).toLocaleString('en-IN', {
-        dateStyle: 'medium',
-        timeStyle: 'medium',
-      })
-    : new Date().toLocaleString('en-IN');
+    ? formatDeterministicDateTime(slip.dateTime)
+    : formatDeterministicDateTime(new Date());
 
   const printSlip = () => {
     window.print();

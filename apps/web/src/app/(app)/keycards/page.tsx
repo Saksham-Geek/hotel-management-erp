@@ -1,5 +1,6 @@
 import { FEATURES } from '@erp/shared';
 import { api, requireFeature } from '@/lib/api';
+import { formatDeterministicShortDate } from '@/lib/dates';
 import {
   KeycardsView,
   type RoomKeyDto,
@@ -27,10 +28,10 @@ export default async function KeycardsPage() {
       checkIn: r.checkIn ? new Date(r.checkIn).toISOString() : new Date().toISOString(),
       checkOut: r.checkOut ? new Date(r.checkOut).toISOString() : new Date().toISOString(),
       checkInFormatted: r.checkIn
-        ? new Date(r.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+        ? formatDeterministicShortDate(r.checkIn)
         : 'Today',
       checkOutFormatted: r.checkOut
-        ? new Date(r.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })
+        ? formatDeterministicShortDate(r.checkOut)
         : 'Tomorrow',
       status: r.status,
     }));

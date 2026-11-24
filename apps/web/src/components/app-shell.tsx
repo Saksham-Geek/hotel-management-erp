@@ -335,12 +335,16 @@ export function AppShell({
             </Link>
 
             {/* Live Indian Time & Date Capsule */}
-            <span className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-medium text-slate-700 shadow-2xs lg:inline-flex">
+            <span
+              suppressHydrationWarning
+              className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-medium text-slate-700 shadow-2xs lg:inline-flex"
+            >
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
               {new Intl.DateTimeFormat('en-IN', {
                 weekday: 'short',
                 day: 'numeric',
                 month: 'short',
+                timeZone: 'Asia/Kolkata',
               }).format(new Date())}
             </span>
 

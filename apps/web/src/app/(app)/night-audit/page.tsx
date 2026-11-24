@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, EmptyState, PageHeader, StatCard } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatDateTime } from '@/lib/format';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { runNightAudit } from './actions';
 
@@ -84,7 +84,7 @@ export default async function NightAuditPage({
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
               {status.lastAuditedAt
-                ? `Last closed: ${new Date(status.lastAuditedAt).toLocaleString('en-IN')}`
+                ? `Last closed: ${formatDateTime(status.lastAuditedAt)}`
                 : 'Day-end closing has not been run today'}
             </p>
           </div>

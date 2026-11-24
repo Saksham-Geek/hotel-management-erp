@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Banner, btnCls, btnGhostCls, CustomDropdown, EmptyState, inputCls, selectCls, StatCard, StatusBadge } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
-import { formatStayDates, formatDate } from '@/lib/format';
+import { formatStayDates, formatDate, formatDateTime } from '@/lib/format';
 import { addFolioCharge, collectFolioPayment, issueInvoice } from './actions';
 import { UpiQrCard } from './upi-qr-card';
 import { UpiSettingsModal } from './upi-settings-modal';
@@ -497,7 +497,7 @@ export function FolioView({
                         </span>
                       )}
                     </div>
-                    <p className="text-[10px] text-muted">{new Date(p.createdAt).toLocaleString('en-IN')}</p>
+                    <p className="text-[10px] text-muted">{formatDateTime(p.createdAt)}</p>
                     {p.bankRrn && (
                       <p className="font-mono text-[10px] text-slate-600">
                         Bank RRN: <span className="font-bold text-slate-900">{p.bankRrn}</span>

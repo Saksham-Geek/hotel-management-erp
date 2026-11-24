@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { btnCls, btnGhostCls } from '@/components/ui';
+import { formatDeterministicDate } from '@/lib/dates';
 
 interface WhatsAppInvoiceModalProps {
   guestName: string;
@@ -44,7 +45,7 @@ export function WhatsAppInvoiceModal({
   const invNum = invoiceNumber || `INV-${new Date().getFullYear()}-001`;
   const formattedAmt = `₹${new Intl.NumberFormat('en-IN').format(amount)}`;
 
-  const messageText = `Namaste ${guestName}! 🙏\n\nThank you for choosing ${hotelName} for your stay (Room ${roomNumber}).\n\nYour official GST Tax Invoice has been generated:\n• Invoice No: ${invNum}\n• Total Amount Paid: ${formattedAmt}\n• Date: ${new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}\n\nWe look forward to welcoming you back! ✨\nWarm regards,\nManagement, ${hotelName}`;
+  const messageText = `Namaste ${guestName}! 🙏\n\nThank you for choosing ${hotelName} for your stay (Room ${roomNumber}).\n\nYour official GST Tax Invoice has been generated:\n• Invoice No: ${invNum}\n• Total Amount Paid: ${formattedAmt}\n• Date: ${formatDeterministicDate(new Date())}\n\nWe look forward to welcoming you back! ✨\nWarm regards,\nManagement, ${hotelName}`;
 
   const waUrl = `https://api.whatsapp.com/send?phone=${encodeURIComponent(phone)}&text=${encodeURIComponent(
     messageText,

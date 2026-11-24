@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
 import { getRoomTypeTheme } from '@/lib/room-types';
+import { formatDeterministicShortDate, formatDeterministicDateTime } from '@/lib/dates';
 import { updateRoomKeyStatusAction, encodeKeycardAction, checkInReservationAction } from './actions';
 
 export interface RoomKeyCustodyLogDto {
@@ -929,7 +930,7 @@ export function KeycardsView({
                       {stay.guestName}
                     </h3>
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                      Stay: {stay.checkInFormatted || new Date(stay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {stay.checkOutFormatted || new Date(stay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                      Stay: {stay.checkInFormatted || formatDeterministicShortDate(stay.checkIn)} → {stay.checkOutFormatted || formatDeterministicShortDate(stay.checkOut)}
                     </p>
                   </div>
 
@@ -1011,7 +1012,7 @@ export function KeycardsView({
                     </p>
                     <p className="text-sm font-bold text-ink mt-0.5">{checkedInStay.guestName}</p>
                     <p className="text-[11px] text-muted">
-                      Stay: {checkedInStay.checkInFormatted || new Date(checkedInStay.checkIn).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} → {checkedInStay.checkOutFormatted || new Date(checkedInStay.checkOut).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                      Stay: {checkedInStay.checkInFormatted || formatDeterministicShortDate(checkedInStay.checkIn)} → {checkedInStay.checkOutFormatted || formatDeterministicShortDate(checkedInStay.checkOut)}
                     </p>
                   </div>
 
@@ -1545,8 +1546,7 @@ export function KeycardsView({
                             )}
                           </span>
                           <span className="text-[10px] text-muted">
-                            {new Date(log.loggedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })},{' '}
-                            {new Date(log.loggedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })}
+                            {formatDeterministicDateTime(log.loggedAt)}
                           </span>
                         </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { formatDeterministicDate } from '@/lib/dates';
+import { formatDeterministicDate, formatDeterministicDateTime } from '@/lib/dates';
 
 export interface SecureDocument {
   id: string;
@@ -42,14 +42,7 @@ export function SecureDocumentViewer({
 
   const staffIdentifier = currentUser?.fullName || currentUser?.email || 'Authorized Operator';
   const staffRole = (currentUser?.role || 'staff').toUpperCase();
-  const accessTimestamp = new Date().toLocaleString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: true,
-  });
+  const accessTimestamp = formatDeterministicDateTime(new Date());
 
   const isPdf = document.mimeType === 'application/pdf';
   const viewUrl = `/api/guest-documents/${encodeURIComponent(guestId)}/${encodeURIComponent(document.id)}?view=1`;

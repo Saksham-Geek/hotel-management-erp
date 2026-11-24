@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { generateKotEscPos } from '@/lib/escpos';
 import { sendEscPosToPrinter, pulseDrawerOrBuzzer } from '@/lib/escpos-printer';
+import { formatDeterministicTime, formatDeterministicDate } from '@/lib/dates';
 
 export interface KotPrintData {
   kotNumber: string;
@@ -44,17 +45,8 @@ export function KotPrintModal({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [onClose]);
 
-  const formattedTime = new Date(data.createdAt).toLocaleTimeString('en-IN', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-
-  const formattedDate = new Date(data.createdAt).toLocaleDateString('en-IN', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-  });
+  const formattedTime = formatDeterministicTime(data.createdAt, true);
+  const formattedDate = formatDeterministicDate(data.createdAt);
 
   async function handleDirectEscPosPrint() {
     setIsPrintingDirect(true);

@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
+import { formatDeterministicTime, formatDeterministicDate } from '@/lib/dates';
 import { KotPrintModal, type KotPrintData } from './kot-print-modal';
 import { BillPrintModal, type BillPrintData } from './bill-print-modal';
 import { BulkImporterModal } from '@/components/bulk-importer-modal';
@@ -3053,9 +3054,9 @@ export function RestaurantPosView({
               <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs">
                 <span className="text-[11px] font-bold text-slate-500">Shift Started At:</span>
                 <p className="font-mono text-xs font-bold text-slate-800">
-                  {new Date(currentShift.openedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                  {formatDeterministicTime(currentShift.openedAt)}
                 </p>
-                <p className="text-[10px] text-slate-400">{new Date(currentShift.openedAt).toLocaleDateString('en-IN')}</p>
+                <p className="text-[10px] text-slate-400">{formatDeterministicDate(currentShift.openedAt)}</p>
               </div>
 
               <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs">
@@ -5152,11 +5153,11 @@ export function RestaurantPosView({
               <div className="space-y-1 text-[11px]">
                 <div className="flex justify-between">
                   <span>Shift Opened:</span>
-                  <span>{new Date(zReportData.openedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span>{formatDeterministicTime(zReportData.openedAt)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shift Closed:</span>
-                  <span>{new Date(zReportData.closedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</span>
+                  <span>{formatDeterministicTime(zReportData.closedAt)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Total Tickets (KOTs):</span>

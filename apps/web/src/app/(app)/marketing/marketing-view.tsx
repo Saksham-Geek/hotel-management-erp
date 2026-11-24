@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react';
 import { CustomDropdown } from '@/components/dropdown';
 import { CustomDatePicker } from '@/components/date-picker';
-import { formatDate, formatStayDates, formatMoney } from '@/lib/format';
+import { formatDate, formatStayDates, formatMoney, formatDateTime } from '@/lib/format';
 import {
   sendReviewRequest,
   createCampaign,
@@ -379,7 +379,7 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
                         {log.reviewPlatform}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-500">{new Date(log.sentAt).toLocaleString('en-IN')}</span>
+                    <span className="text-[10px] text-slate-500">{formatDateTime(log.sentAt)}</span>
                   </div>
                   <p className="mt-1 text-slate-600 font-serif italic text-[11px]">
                     "{log.messageBody}"

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { btnCls, btnGhostCls, CustomDatePicker, CustomDropdown, inputCls, StatCard } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
+import { formatDeterministicTime, formatDeterministicDateTime } from '@/lib/dates';
 import { saveChannelConnection, simulateOtaBooking, syncChannel } from './actions';
 
 export interface OtaChannelItem {
@@ -289,7 +290,7 @@ export function ChannelView({
                   <div className="flex items-center justify-between text-[11px]">
                     <span className="text-muted">Last Synchronized:</span>
                     <span className="font-semibold text-slate-700">
-                      {new Date(channel.lastSyncAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                      {formatDeterministicTime(channel.lastSyncAt)}
                     </span>
                   </div>
                 )}
@@ -484,7 +485,7 @@ export function ChannelView({
                 {logs.map((log) => (
                   <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4.5 font-mono text-xs text-slate-500 whitespace-nowrap font-medium">
-                      {new Date(log.createdAt).toLocaleString('en-IN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      {formatDeterministicDateTime(log.createdAt, true)}
                     </td>
                     <td className="px-6 py-4.5 font-semibold uppercase tracking-wider text-slate-900">
                       {log.channelKey.replace('_', '.')}

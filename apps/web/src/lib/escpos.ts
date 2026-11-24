@@ -1,4 +1,5 @@
 // ESC/POS Command Generator for 80mm (48 col) & 58mm (32 col) Thermal Printers
+import { formatDeterministicDateTime, formatDeterministicDate } from './dates';
 
 export interface KotPrintInput {
   kotNumber: string;
@@ -212,7 +213,7 @@ export function generateKotEscPos(data: KotPrintInput, width: '80mm' | '58mm' = 
   p.alignCenter().bold().doubleSize().line(data.outletName.toUpperCase());
   p.normalSize().bold().line('*** KITCHEN ORDER TICKET ***');
   p.doubleSize().line(data.kotNumber);
-  p.normalSize().bold(false).line(new Date(data.createdAt).toLocaleString('en-IN'));
+  p.normalSize().bold(false).line(formatDeterministicDateTime(data.createdAt));
   p.divider('=');
 
   // Table / Room info
@@ -271,7 +272,7 @@ export function generateBillEscPos(data: BillPrintInput, width: '80mm' | '58mm' 
   p.divider('=');
   p.bold().line('TAX INVOICE');
   p.bold(false);
-  p.row2Col(`Bill No: ${data.invoiceNumber}`, new Date(data.createdAt).toLocaleDateString('en-IN'));
+  p.row2Col(`Bill No: ${data.invoiceNumber}`, formatDeterministicDate(data.createdAt));
   p.row2Col(
     data.tableNumber ? `Table: ${data.tableNumber}` : data.roomNumber ? `Room: ${data.roomNumber}` : `Type: ${data.orderType}`,
     data.serverName ? `Steward: ${data.serverName}` : ''

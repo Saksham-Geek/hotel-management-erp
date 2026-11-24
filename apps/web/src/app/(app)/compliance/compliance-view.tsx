@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Banner, btnCls, btnGhostCls, CustomDatePicker, EmptyState, inputCls, StatCard } from '@/components/ui';
 import { FormSubmit } from '@/components/form-submit';
 import { formatDate } from '@/lib/format';
+import { formatDeterministicDateTime } from '@/lib/dates';
 import { createFormC, submitFormC } from './actions';
 
 export interface PoliceGuestEntry {
@@ -126,7 +127,7 @@ export function ComplianceView({
 
     const csvRows = [
       [`# POLICE STATION BEAT SHEET - ${policeData.property.name}`],
-      [`# Report Date: ${policeData.reportDate} | Generated At: ${new Date(policeData.generatedAt).toLocaleString('en-IN')}`],
+      [`# Report Date: ${policeData.reportDate} | Generated At: ${formatDeterministicDateTime(policeData.generatedAt)}`],
       [`# Category: ${rosterView.toUpperCase()} ROSTER | Jurisdiction: Local Police Station Chowki`],
       [],
       headers,

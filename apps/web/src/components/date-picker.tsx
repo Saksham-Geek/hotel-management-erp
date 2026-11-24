@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo, useId, type KeyboardEvent as ReactKeyboardEvent } from 'react';
+import { formatDeterministicDate } from '@/lib/dates';
 
 export interface CustomDatePickerProps {
   id?: string;
@@ -259,17 +260,7 @@ export function CustomDatePicker({
   // Formatted display text (e.g. "07 Nov 2026")
   const displayText = useMemo(() => {
     if (!internalValue) return '';
-    try {
-      const [y, m, d] = internalValue.split('-').map(Number);
-      const date = new Date(y, m - 1, d);
-      return date.toLocaleDateString('en-GB', {
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-      });
-    } catch {
-      return internalValue;
-    }
+    return formatDeterministicDate(internalValue) || internalValue;
   }, [internalValue]);
 
   const todayStr = useMemo(() => {

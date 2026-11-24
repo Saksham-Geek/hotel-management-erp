@@ -6,6 +6,12 @@ import { useRouter } from 'next/navigation';
 import { CustomDropdown } from '@/components/dropdown';
 import { CustomDatePicker } from '@/components/date-picker';
 import { formatMoney } from '@/lib/format';
+import {
+  formatDeterministicShortDate,
+  formatDeterministicDateWithWeekday,
+  formatDeterministicWeekdayShort,
+  toDate,
+} from '@/lib/dates';
 import { getRoomTypeTheme } from '@/lib/room-types';
 
 export interface RoomTape {
@@ -71,15 +77,11 @@ function diffDays(startStr: string, endStr: string): number {
 }
 
 function formatShortDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return formatDeterministicShortDate(dateStr);
 }
 
 function formatCellDate(dateStr: string): string {
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const date = new Date(Date.UTC(y, m - 1, d));
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  return formatDeterministicDateWithWeekday(dateStr);
 }
 
 interface TimelineSegment {
@@ -855,11 +857,11 @@ export function TapeChartView({
 
               {/* Day Headers */}
               {dates.map((dateStr) => {
-                const date = new Date(dateStr);
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
-                const dayNum = date.getDate();
+                const dayName = formatDeterministicWeekdayShort(dateStr);
+                const dObj = toDate(dateStr);
+                const dayNum = dObj ? dObj.getUTCDate() : '';
                 const isToday = dateStr === new Date().toISOString().slice(0, 10);
-                const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+                const isWeekend = dObj ? dObj.getUTCDay() === 0 || dObj.getUTCDay() === 6 : false;
 
                 return (
                   <th

@@ -11,6 +11,7 @@ import {
   StatCard,
   Banner,
 } from '@/components/ui';
+import { formatDeterministicMonthYear } from '@/lib/dates';
 import {
   createHotel,
   assignStaff,
@@ -304,10 +305,7 @@ export function SuperAdminView({
                         </div>
                         <p className="mt-1 text-xs font-semibold text-slate-500">
                           {prop.currency} ({prop.timezone}) · Onboarded{' '}
-                          {new Date(prop.createdAt).toLocaleDateString('en-IN', {
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+                          {formatDeterministicMonthYear(prop.createdAt)}
                         </p>
                       </div>
 

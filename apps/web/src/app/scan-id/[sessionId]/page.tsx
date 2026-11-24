@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { compressImageFile, formatBytes } from '@/lib/image-compression';
 
@@ -9,7 +9,12 @@ export default function MobileScanPage() {
   const sessionId = Array.isArray(params.sessionId) ? params.sessionId[0] : params.sessionId;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const mediaStreamRef = useRef<MediaStream | null>(null);
+
   const [sessionStatus, setSessionStatus] = useState<'checking' | 'ready' | 'expired' | 'error'>('checking');
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [compressedFile, setCompressedFile] = useState<File | null>(null);
   const [originalSize, setOriginalSize] = useState<number>(0);
@@ -18,6 +23,22 @@ export default function MobileScanPage() {
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Stop camera media stream helper
+  const stopCameraStream = useCallback(() => {
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach((track) => track.stop());
+      mediaStreamRef.current = null;
+    }
+    setIsCameraActive(false);
+  }, []);
+
+  // Cleanup camera stream on unmount
+  useEffect(() => {
+    return () => {
+      stopCameraStream();
+    };
+  }, [stopCameraStream]);
 
   // 1. Verify session validity on mount
   useEffect(() => {
@@ -37,11 +58,113 @@ export default function MobileScanPage() {
       .catch(() => setSessionStatus('expired'));
   }, [sessionId]);
 
-  // 2. Handle image capture from phone camera
-  const handlePhotoCaptured = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  // 2. Launch Live In-Browser Webcam / Phone Camera via WebRTC
+  const startLiveCamera = async () => {
+    setCameraError(null);
+    setErrorMessage(null);
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      // Fallback to native camera file input if getUserMedia is not supported
+      fileInputRef.current?.click();
+      return;
+    }
+
+    try {
+      const constraints: MediaStreamConstraints = {
+        video: {
+          facingMode: { ideal: 'environment' },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      };
+
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      mediaStreamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(() => {});
+        };
+      }
+      setIsCameraActive(true);
+    } catch (err: unknown) {
+      console.warn('Direct camera access error:', err);
+      // If browser blocks getUserMedia (e.g. non-HTTPS on mobile), fall back to file input
+      setCameraError('Live viewfinder blocked by browser. Using native camera capture instead.');
+      fileInputRef.current?.click();
+    }
+  };
+
+  // 3. Shutter Click: Capture frame from live video
+  const captureFrameFromVideo = async () => {
+    if (!videoRef.current) return;
+    const video = videoRef.current;
+    const width = video.videoWidth || 1280;
+    const height = video.videoHeight || 720;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, width, height);
+
+    // Stop live camera stream once frame is snapped
+    stopCameraStream();
+    setIsProcessing(true);
+
+    canvas.toBlob(
+      async (blob) => {
+        if (!blob) {
+          setIsProcessing(false);
+          setErrorMessage('Failed to capture frame from camera.');
+          return;
+        }
+
+        const rawFile = new File([blob], `aadhaar-cam-${Date.now()}.jpg`, {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        });
+
+        setOriginalSize(rawFile.size);
+
+        try {
+          const result = await compressImageFile(rawFile, {
+            maxDimension: 1920,
+            quality: 0.82,
+            outputMimeType: 'image/jpeg',
+          });
+
+          setCompressedFile(result.file);
+          setCompressedSize(result.compressedSize);
+
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            setPhotoPreview(e.target?.result as string);
+            setIsProcessing(false);
+          };
+          reader.readAsDataURL(result.file);
+        } catch (err: unknown) {
+          setIsProcessing(false);
+          const msg = err instanceof Error ? err.message : 'Failed to compress photo.';
+          setErrorMessage(msg);
+        }
+      },
+      'image/jpeg',
+      0.92,
+    );
+  };
+
+  // 4. Fallback File Input Capture
+  const handlePhotoCapturedFromFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    stopCameraStream();
     setErrorMessage(null);
     setIsProcessing(true);
     setOriginalSize(file.size);
@@ -56,7 +179,6 @@ export default function MobileScanPage() {
       setCompressedFile(result.file);
       setCompressedSize(result.compressedSize);
 
-      // Create preview Data URL
       const reader = new FileReader();
       reader.onload = (event) => {
         setPhotoPreview(event.target?.result as string);
@@ -70,7 +192,7 @@ export default function MobileScanPage() {
     }
   };
 
-  // 3. Send photo to the Desk PC
+  // 5. Send photo to the Desk PC
   const sendToDeskPc = async () => {
     if (!compressedFile || !photoPreview || !sessionId) return;
 
@@ -108,10 +230,7 @@ export default function MobileScanPage() {
     setPhotoPreview(null);
     setCompressedFile(null);
     setErrorMessage(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-      fileInputRef.current.click();
-    }
+    startLiveCamera();
   };
 
   // Expired / Invalid state
@@ -153,13 +272,13 @@ export default function MobileScanPage() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-slate-100 flex flex-col justify-between p-4 sm:p-6 max-w-md mx-auto">
-      {/* Hidden real camera input */}
+      {/* Fallback real camera/file input */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
         capture="environment"
-        onChange={handlePhotoCaptured}
+        onChange={handlePhotoCapturedFromFile}
         className="sr-only"
       />
 
@@ -190,9 +309,16 @@ export default function MobileScanPage() {
           </div>
         )}
 
+        {cameraError && (
+          <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-950/30 p-2.5 text-[11px] text-amber-300">
+            ℹ️ {cameraError}
+          </div>
+        )}
+
+        {/* Processing Indicator */}
         {isProcessing && (
           <div className="flex flex-col items-center justify-center p-8 space-y-3">
-            <svg className="h-8 w-8 animate-spin text-lagoon" fill="none" viewBox="0 0 24 24">
+            <svg className="h-8 w-8 animate-spin text-cyan-400" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
@@ -202,10 +328,10 @@ export default function MobileScanPage() {
           </div>
         )}
 
-        {!photoPreview && !isProcessing && (
+        {/* State A: Idle (Before camera is active) */}
+        {!isCameraActive && !photoPreview && !isProcessing && (
           <div className="flex flex-col items-center justify-center text-center space-y-4 py-8">
             <div className="relative w-full aspect-[4/3] rounded-2xl border-2 border-dashed border-slate-700 bg-slate-900/50 flex flex-col items-center justify-center p-6 overflow-hidden">
-              {/* Target ID card alignment guide rectangle */}
               <div className="w-[82%] aspect-[85/54] rounded-lg border-2 border-cyan-500/50 bg-cyan-500/5 flex flex-col items-center justify-center p-2 text-center">
                 <span className="text-3xl mb-1">🪪</span>
                 <span className="text-[11px] font-medium text-cyan-300">
@@ -217,22 +343,75 @@ export default function MobileScanPage() {
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 font-bold text-slate-950 text-sm shadow-lg shadow-teal-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span className="text-lg">📷</span>
-              <span>Open Camera & Snap ID</span>
-            </button>
+            <div className="w-full space-y-2">
+              <button
+                type="button"
+                onClick={startLiveCamera}
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 font-bold text-slate-950 text-sm shadow-lg shadow-teal-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span className="text-lg">📷</span>
+                <span>Open Live Camera</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full py-2.5 px-4 rounded-xl border border-slate-800 bg-slate-900/80 hover:bg-slate-850 text-slate-300 text-xs font-medium active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>📁</span>
+                <span>Choose photo from device gallery / files</span>
+              </button>
+            </div>
+
             <p className="text-[11px] text-slate-400 leading-relaxed">
               Photo will be transferred directly to your desk PC form. No photos will remain on your device.
             </p>
           </div>
         )}
 
+        {/* State B: Live Video Viewfinder Active */}
+        <div className={`space-y-3 ${isCameraActive && !photoPreview && !isProcessing ? 'block' : 'hidden'}`}>
+          <div className="relative rounded-2xl overflow-hidden border border-cyan-500/40 bg-black aspect-[4/3] flex items-center justify-center shadow-2xl">
+            <video
+              ref={videoRef}
+              autoPlay
+              playsInline
+              muted
+              className="w-full h-full object-cover"
+            />
+            {/* Guide overlay */}
+            <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
+              <div className="w-[88%] aspect-[85/54] rounded-lg border-2 border-cyan-400/80 shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center justify-center">
+                <span className="rounded bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">
+                  Align ID card here
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={stopCameraStream}
+              className="py-3 px-4 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 active:scale-[0.98] transition cursor-pointer"
+            >
+              Cancel
+            </button>
+
+            <button
+              type="button"
+              onClick={captureFrameFromVideo}
+              className="flex-1 py-3.5 px-6 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 font-bold text-slate-950 text-sm shadow-lg shadow-teal-500/25 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <span className="text-lg">📸</span>
+              <span>Snap Photo Now</span>
+            </button>
+          </div>
+        </div>
+
+        {/* State C: Captured Photo Review */}
         {photoPreview && !isProcessing && (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-in fade-in duration-200">
             <div className="relative rounded-2xl overflow-hidden border border-slate-700 bg-black aspect-[4/3] flex items-center justify-center shadow-lg">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

@@ -38,10 +38,17 @@ export function SecureDocumentInput({
   onFilesChanged,
 }: SecureDocumentInputProps) {
   const hiddenInputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fallbackFileInputRef = useRef<HTMLInputElement>(null);
   const [items, setItems] = useState<CompressionResult[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  // Direct Laptop / Desktop Webcam Modal States
+  const [isWebcamModalOpen, setIsWebcamModalOpen] = useState(false);
+  const [isWebcamActive, setIsWebcamActive] = useState(false);
+  const [webcamError, setWebcamError] = useState<string | null>(null);
+  const laptopVideoRef = useRef<HTMLVideoElement>(null);
+  const laptopStreamRef = useRef<MediaStream | null>(null);
 
   // Ephemeral Mobile QR Bridge States
   const [isQrModalOpen, setIsQrModalOpen] = useState(false);
@@ -51,6 +58,9 @@ export function SecureDocumentInput({
   const [bridgeQrDataUrl, setBridgeQrDataUrl] = useState<string>('');
   const [bridgeSecondsLeft, setBridgeSecondsLeft] = useState<number>(300);
   const [bridgeToast, setBridgeToast] = useState<string | null>(null);
+  const [detectedLanIp, setDetectedLanIp] = useState<string>('');
+  const [customHost, setCustomHost] = useState<string>('');
+  const [isEditingHost, setIsEditingHost] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -126,7 +136,6 @@ export function SecureDocumentInput({
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     await processSelectedFiles(e.target.files);
-    // Reset file input value so selecting the same file again triggers onChange
     e.target.value = '';
   };
 
@@ -148,26 +157,109 @@ export function SecureDocumentInput({
     }
   }, []);
 
-  // Handle escape key to dismiss QR modal
+  // Stop Laptop Webcam stream
+  const stopLaptopWebcam = useCallback(() => {
+    if (laptopStreamRef.current) {
+      laptopStreamRef.current.getTracks().forEach((track) => track.stop());
+      laptopStreamRef.current = null;
+    }
+    setIsWebcamActive(false);
+    setIsWebcamModalOpen(false);
+  }, []);
+
+  // Handle escape key to dismiss modals
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isQrModalOpen) {
-        closeQrModal();
+      if (e.key === 'Escape') {
+        if (isQrModalOpen) closeQrModal();
+        if (isWebcamModalOpen) stopLaptopWebcam();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isQrModalOpen, closeQrModal]);
+  }, [isQrModalOpen, isWebcamModalOpen, closeQrModal, stopLaptopWebcam]);
 
-  // Cleanup polling on unmount
+  // Cleanup timers and streams on unmount
   useEffect(() => {
     return () => {
       if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
       if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+      if (laptopStreamRef.current) laptopStreamRef.current.getTracks().forEach((t) => t.stop());
     };
   }, []);
 
-  // Initiate QR Mobile Bridge Session
+  // 1. Direct Laptop Webcam Flow
+  const startLaptopWebcam = async () => {
+    setWebcamError(null);
+    setIsWebcamModalOpen(true);
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setWebcamError('Your browser does not support in-browser camera access. Use Choose Files instead.');
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
+        audio: false,
+      });
+      laptopStreamRef.current = stream;
+      if (laptopVideoRef.current) {
+        laptopVideoRef.current.srcObject = stream;
+        laptopVideoRef.current.onloadedmetadata = () => {
+          laptopVideoRef.current?.play().catch(() => {});
+        };
+      }
+      setIsWebcamActive(true);
+    } catch (err: unknown) {
+      console.warn('Webcam access error:', err);
+      setWebcamError('Camera access denied or webcam in use by another app. Please grant browser camera permissions.');
+    }
+  };
+
+  const captureLaptopWebcamFrame = async () => {
+    if (!laptopVideoRef.current) return;
+    const video = laptopVideoRef.current;
+    const width = video.videoWidth || 1280;
+    const height = video.videoHeight || 720;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.drawImage(video, 0, 0, width, height);
+    stopLaptopWebcam();
+    setIsProcessing(true);
+
+    canvas.toBlob(
+      async (blob) => {
+        if (!blob) {
+          setIsProcessing(false);
+          setErrorMessage('Failed to capture frame from webcam.');
+          return;
+        }
+
+        const rawFile = new File([blob], `laptop-webcam-${Date.now()}.jpg`, {
+          type: 'image/jpeg',
+          lastModified: Date.now(),
+        });
+
+        await processSelectedFiles([rawFile]);
+        setBridgeToast('📸 Photo captured via laptop webcam!');
+        setTimeout(() => setBridgeToast(null), 4000);
+      },
+      'image/jpeg',
+      0.92,
+    );
+  };
+
+  // 2. Initiate QR Mobile Bridge Session
   const startMobileQrBridge = async () => {
     setIsInitiatingBridge(true);
     setErrorMessage(null);
@@ -179,8 +271,10 @@ export function SecureDocumentInput({
         throw new Error(data.message || 'Failed to initialize QR mobile session.');
       }
 
-      const { sessionId, scanUrl } = data;
+      const { sessionId, scanUrl, lanIp, port } = data;
       setBridgeSessionId(sessionId);
+      setDetectedLanIp(lanIp || '');
+      setCustomHost(lanIp ? `${lanIp}:${port}` : window.location.host);
       setBridgeScanUrl(scanUrl);
       setBridgeSecondsLeft(300);
 
@@ -252,6 +346,27 @@ export function SecureDocumentInput({
     }
   };
 
+  // Re-generate QR if custom host/IP is changed by user
+  const handleHostUpdate = async (newHost: string) => {
+    setCustomHost(newHost);
+    if (!bridgeSessionId) return;
+    const protocol = window.location.protocol;
+    const cleanHost = newHost.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const newScanUrl = `${protocol}//${cleanHost}/scan-id/${bridgeSessionId}`;
+    setBridgeScanUrl(newScanUrl);
+
+    try {
+      const qrData = await QRCode.toDataURL(newScanUrl, {
+        width: 260,
+        margin: 1,
+        color: { dark: '#0f172a', light: '#ffffff' },
+      });
+      setBridgeQrDataUrl(qrData);
+    } catch {
+      // Ignore QR generation errors
+    }
+  };
+
   const formatCountdown = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -274,9 +389,9 @@ export function SecureDocumentInput({
         tabIndex={-1}
       />
 
-      {/* Hidden camera input for devices with local camera (bypasses saving to gallery) */}
+      {/* Hidden fallback camera/file input */}
       <input
-        ref={cameraInputRef}
+        ref={fallbackFileInputRef}
         type="file"
         accept="image/*"
         capture="environment"
@@ -299,7 +414,7 @@ export function SecureDocumentInput({
         </div>
       )}
 
-      {/* Upload & Mobile QR Bridge Actions Bar */}
+      {/* Upload, Mobile QR Bridge, and Laptop Webcam Actions Bar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* 1. File Picker */}
         <label
@@ -342,15 +457,15 @@ export function SecureDocumentInput({
           )}
         </button>
 
-        {/* 3. Direct Camera fallback for mobile/tablet */}
+        {/* 3. Direct Laptop Webcam Capture */}
         <button
           type="button"
-          onClick={() => cameraInputRef.current?.click()}
-          className="inline-flex sm:hidden items-center gap-1.5 rounded-xl border border-line bg-ground/60 px-3 py-2 text-xs font-medium text-ink hover:bg-ground transition active:scale-[0.98] cursor-pointer"
-          title="Open camera directly on this device"
+          onClick={startLaptopWebcam}
+          className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-ground/60 px-3 py-2 text-xs font-medium text-ink hover:bg-ground transition active:scale-[0.98] cursor-pointer"
+          title="Open laptop/PC webcam directly on screen to hold up and snap ID"
         >
           <span>📷</span>
-          <span>Camera</span>
+          <span>Laptop Webcam</span>
         </button>
 
         <span className="text-[11px] text-muted hidden lg:inline">
@@ -358,7 +473,7 @@ export function SecureDocumentInput({
         </span>
       </div>
 
-      {/* Success Toast from Mobile Bridge */}
+      {/* Success Toast from Mobile Bridge / Webcam */}
       {bridgeToast && (
         <div className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300 animate-in fade-in duration-300">
           <span>✓</span>
@@ -444,7 +559,84 @@ export function SecureDocumentInput({
         </div>
       )}
 
-      {/* Modal: Snap with Phone QR Bridge */}
+      {/* Modal 1: Laptop Direct Webcam Capture */}
+      {isWebcamModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+          onClick={stopLaptopWebcam}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-line bg-surface p-5 shadow-2xl relative text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div className="flex items-center gap-2 text-left">
+                <span className="text-xl">📷</span>
+                <div>
+                  <h3 className="text-sm font-bold text-ink">Laptop Webcam Capture</h3>
+                  <p className="text-[11px] text-muted">Hold ID card flat facing the camera</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={stopLaptopWebcam}
+                className="grid h-7 w-7 place-items-center rounded-lg hover:bg-ground text-slate-400 hover:text-ink text-sm transition cursor-pointer"
+                title="Close (Esc)"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="my-4">
+              {webcamError ? (
+                <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-xs text-rose-700 dark:text-rose-300">
+                  ⚠️ {webcamError}
+                </div>
+              ) : (
+                <div className="relative rounded-2xl overflow-hidden border-2 border-cyan-500/40 bg-black aspect-[4/3] flex items-center justify-center shadow-lg">
+                  <video
+                    ref={laptopVideoRef}
+                    autoPlay
+                    playsInline
+                    muted
+                    className="w-full h-full object-cover"
+                  />
+                  {/* Card alignment overlay */}
+                  <div className="absolute inset-0 pointer-events-none flex items-center justify-center p-4">
+                    <div className="w-[85%] aspect-[85/54] rounded-lg border-2 border-cyan-400/80 shadow-[0_0_15px_rgba(6,182,212,0.3)] flex items-center justify-center">
+                      <span className="rounded bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-cyan-200">
+                        Hold Aadhaar / Passport here
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {isWebcamActive && !webcamError && (
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={stopLaptopWebcam}
+                  className="py-2.5 px-4 rounded-xl border border-line bg-surface hover:bg-ground text-xs font-medium text-ink transition cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={captureLaptopWebcamFrame}
+                  className="flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-slate-950 font-bold text-xs shadow-md shadow-teal-500/20 active:scale-[0.98] transition flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span className="text-base">📸</span>
+                  <span>Capture & Use ID Photo</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Modal 2: Snap with Phone QR Bridge */}
       {isQrModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
@@ -474,35 +666,61 @@ export function SecureDocumentInput({
             </div>
 
             {/* QR Code Presentation */}
-            <div className="my-4 flex flex-col items-center">
+            <div className="my-3 flex flex-col items-center">
               <div className="rounded-xl border border-line bg-white p-3 shadow-md">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={bridgeQrDataUrl}
                   alt="QR Code for mobile document camera"
-                  className="h-56 w-56 object-contain"
+                  className="h-52 w-52 object-contain"
                 />
               </div>
 
               {/* Status and Countdown */}
-              <div className="mt-3 flex items-center gap-2 text-xs text-muted">
+              <div className="mt-2.5 flex items-center gap-2 text-xs text-muted">
                 <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" />
                 <span>Waiting for photo from phone...</span>
                 <span className="font-mono font-semibold text-ink">({formatCountdown(bridgeSecondsLeft)})</span>
               </div>
             </div>
 
-            {/* Instructional Steps */}
-            <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-left text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5">
-              <p className="font-semibold text-cyan-900 dark:text-cyan-200">How it works:</p>
-              <p>1. Open your phone camera and point it at this QR code.</p>
-              <p>2. Tap the link that appears to snap the Aadhaar/Passport.</p>
-              <p>3. Tap <strong>"Send to Desk PC"</strong> — photo appears right here!</p>
+            {/* Network / Wi-Fi IP Information Banner */}
+            <div className="mb-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-left text-[11px] text-emerald-900 dark:text-emerald-200 space-y-1">
+              <div className="flex items-center justify-between font-semibold">
+                <span>📡 Wi-Fi Address for Phone:</span>
+                <button
+                  type="button"
+                  onClick={() => setIsEditingHost(!isEditingHost)}
+                  className="text-[10px] text-cyan-700 dark:text-cyan-300 underline cursor-pointer"
+                >
+                  {isEditingHost ? 'Done' : 'Change IP'}
+                </button>
+              </div>
+
+              {isEditingHost ? (
+                <div className="pt-1 flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={customHost}
+                    onChange={(e) => handleHostUpdate(e.target.value)}
+                    placeholder="e.g. 192.168.1.9:3000"
+                    className="w-full rounded-md border border-line bg-surface px-2 py-1 font-mono text-[11px] text-ink"
+                  />
+                </div>
+              ) : (
+                <p className="font-mono text-[10px] truncate text-emerald-800 dark:text-emerald-300">
+                  {bridgeScanUrl}
+                </p>
+              )}
+
+              <p className="text-[10px] text-muted">
+                Make sure your mobile phone is on the same Wi-Fi network as this PC.
+              </p>
             </div>
 
             {/* Desktop Test Link Helper */}
-            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[11px]">
-              <span className="text-muted">Testing on this computer?</span>
+            <div className="pt-2 border-t border-line flex items-center justify-between text-[11px]">
+              <span className="text-muted">Testing on this laptop?</span>
               <a
                 href={bridgeScanUrl}
                 target="_blank"

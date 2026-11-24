@@ -57,6 +57,7 @@ export class GuestsController {
            g.vip,
            EXISTS (SELECT 1 FROM guest_documents gd WHERE gd.guest_id = g.id) AS "hasIdentityDocument",
            g.nationality,
+           g.id_type AS "idType",
            g.notes,
            p.custom_fields AS "customFields",
            (

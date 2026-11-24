@@ -204,11 +204,12 @@ test('guest identity data only stores the last four Aadhaar digits', () => {
 });
 
 test('new guest reservations require a valid phone and validate email when supplied', () => {
-  const valid = { fullName: 'New guest', phone: '+91 9000000000', email: 'guest@example.test' };
+  const valid = { fullName: 'New guest', phone: '+91 9000000000', email: 'guest@example.test', idType: 'passport', idNumber: 'P1234567' };
   assert.equal(createGuestSchema.safeParse(valid).success, true);
-  assert.equal(createGuestSchema.safeParse({ fullName: 'New guest' }).success, false);
+  assert.equal(createGuestSchema.safeParse({ fullName: 'New guest', idType: 'passport', idNumber: 'P1234567' }).success, false);
   assert.equal(createGuestSchema.safeParse({ ...valid, phone: 'call me' }).success, false);
   assert.equal(createGuestSchema.safeParse({ ...valid, email: 'invalid-email' }).success, false);
+  assert.equal(createGuestSchema.safeParse({ fullName: 'New guest', phone: '+91 9000000000' }).success, false);
 });
 
 test('own profile updates validate a required name and optional phone number', () => {

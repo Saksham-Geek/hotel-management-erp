@@ -11,10 +11,30 @@ export async function saveGuest(fd: FormData) {
     if (documents.length && (fd.get('consentGiven') !== 'on' || !fd.get('consentMethod'))) {
       throw new Error('Confirm the guest was informed and record how consent was obtained before uploading identity documents.');
     }
+
+    const fullName = String(fd.get('fullName') ?? '').trim();
+    const phone = String(fd.get('phone') ?? '').trim();
+    const email = String(fd.get('email') ?? '').trim() || undefined;
+    const nationality = String(fd.get('nationality') ?? '').trim() || undefined;
+    const idType = String(fd.get('idType') ?? '').trim();
+    const idNumber = String(fd.get('idNumber') ?? '').trim();
+
+    if (!fullName) throw new Error('Full name is required.');
+    if (!phone) throw new Error('Phone number is required.');
+    if (!idType) throw new Error('ID document type is required.');
+    if (!idNumber) throw new Error('Identity number is required.');
+    if (idType.toLowerCase() === 'aadhaar' && !/^\d{4}$/.test(idNumber)) {
+      throw new Error('For Aadhaar, enter only the last 4 digits.');
+    }
+
     const guest = await api<{ id: string }>('/hotel/guests', { method: 'POST', body: JSON.stringify({
-      fullName: fd.get('fullName'), phone: fd.get('phone') || undefined, email: fd.get('email') || undefined,
-      nationality: fd.get('nationality') || undefined, idType: fd.get('idType') || undefined,
-      idNumber: fd.get('idNumber') || undefined, notes: fd.get('notes') || undefined,
+      fullName,
+      phone,
+      email,
+      nationality,
+      idType,
+      idNumber,
+      notes: fd.get('notes') || undefined,
       vip: fd.get('vip') === 'on',
     }) });
     guestCreated = true;
@@ -35,10 +55,21 @@ export async function updateGuest(fd: FormData) {
   let error: string | null = null;
   const id = String(fd.get('id'));
   try {
+    const idType = String(fd.get('idType') ?? '').trim() || undefined;
+    const idNumber = String(fd.get('idNumber') ?? '').trim() || undefined;
+    if (idType?.toLowerCase() === 'aadhaar' && idNumber && !/^\d{4}$/.test(idNumber)) {
+      throw new Error('For Aadhaar, enter only the last 4 digits.');
+    }
+
     await api(`/hotel/guests/${id}`, { method: 'PATCH', body: JSON.stringify({
-      fullName: fd.get('fullName'), phone: String(fd.get('phone') ?? '').trim() || undefined, email: fd.get('email') || '',
-      nationality: fd.get('nationality') || undefined, idType: fd.get('idType') || undefined,
-      idNumber: fd.get('idNumber') || undefined, notes: fd.get('notes') || undefined, vip: fd.get('vip') === 'on',
+      fullName: fd.get('fullName'),
+      phone: String(fd.get('phone') ?? '').trim() || undefined,
+      email: String(fd.get('email') ?? '').trim() || '',
+      nationality: String(fd.get('nationality') ?? '').trim() || undefined,
+      idType,
+      idNumber,
+      notes: fd.get('notes') || undefined,
+      vip: fd.get('vip') === 'on',
     }) });
   } catch (e) { error = errorMessage(e); }
   revalidatePath('/guests'); revalidatePath('/reservations');

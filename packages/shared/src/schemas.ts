@@ -119,10 +119,10 @@ const guestProfileSchema = z.object({
   phone: z.string().trim().min(7, 'Phone number is required and must contain at least 7 digits').max(30)
     .regex(/^\+?[0-9 ().-]+$/, 'Enter a valid phone number')
     .refine((phone) => phone.replace(/\D/g, '').length >= 7 && phone.replace(/\D/g, '').length <= 15, 'Phone number must contain 7 to 15 digits'),
-  email: z.string().email().max(200).optional().or(z.literal('').transform(() => undefined)),
-  nationality: z.string().max(60).optional(),
-  idType: z.string().max(40).optional(),
-  idNumber: z.string().max(60).optional(),
+  email: z.string().trim().email('Enter a valid email address').max(200).optional().or(z.literal('').transform(() => undefined)),
+  nationality: z.string().trim().max(60).optional().or(z.literal('').transform(() => undefined)),
+  idType: z.string().trim().min(1, 'ID document type is required').max(40),
+  idNumber: z.string().trim().min(1, 'Identity number is required').max(60),
   vip: z.boolean().default(false),
   notes: z.string().max(1000).optional(),
   customFields: z.record(z.unknown()).default({}),

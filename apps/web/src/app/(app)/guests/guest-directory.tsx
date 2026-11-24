@@ -5,6 +5,9 @@ import { btnCls, btnGhostCls, CustomDropdown, EmptyState, inputCls } from '@/com
 import { FormSubmit } from '@/components/form-submit';
 import { updateGuest, uploadGuestDocuments } from './actions';
 import { SecureDocumentViewer, type SecureDocument } from '@/components/secure-document-viewer';
+import { PhoneCountryInput } from '@/components/phone-country-input';
+import { NationalityCombobox } from '@/components/nationality-combobox';
+import { IdDocumentInput } from '@/components/id-document-input';
 
 export interface GuestProfile {
   id: string;
@@ -13,6 +16,7 @@ export interface GuestProfile {
   email: string | null;
   vip: boolean;
   nationality: string | null;
+  idType?: string | null;
   notes: string | null;
   documents?: SecureDocument[] | null;
 }
@@ -126,6 +130,7 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                   <p><span className="text-muted">Phone</span><span className="mt-0.5 block font-medium text-ink">{guest.phone || 'Not provided'}</span></p>
                   <p><span className="text-muted">Email</span><span className="mt-0.5 block break-all font-medium text-ink">{guest.email || 'Not provided'}</span></p>
                   <p><span className="text-muted">Nationality</span><span className="mt-0.5 block font-medium text-ink">{guest.nationality || 'Not provided'}</span></p>
+                  <p><span className="text-muted">ID Document Type</span><span className="mt-0.5 block font-medium text-ink uppercase">{guest.idType ? guest.idType.replaceAll('_', ' ') : 'Not recorded'}</span></p>
                   <p><span className="text-muted">Identity documents</span><span className="mt-0.5 block font-medium text-ink">{guest.documents?.length ?? 0} files</span></p>
                 </div>
 
@@ -333,22 +338,55 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
 
                     <form action={updateGuest} className="grid gap-3 border-t border-line pt-4 sm:grid-cols-2">
                       <input type="hidden" name="id" value={guest.id} />
-                      <label className="text-xs font-medium text-ink">
-                        Full name<input name="fullName" defaultValue={guest.fullName} required maxLength={120} className={`${inputCls} mt-1.5`} />
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Full name <span className="text-danger">*</span>
+                        <input name="fullName" defaultValue={guest.fullName} required maxLength={120} className={`${inputCls} mt-1.5`} />
                       </label>
-                      <label className="text-xs font-medium text-ink">
-                        Phone<input name="phone" type="tel" minLength={7} maxLength={30} pattern="\+?[0-9 ().-]{7,30}" title="Enter a valid phone number with 7 to 15 digits." defaultValue={guest.phone ?? ''} className={`${inputCls} mt-1.5`} />
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                          Phone number <span className="text-danger">*</span>
+                        </label>
+                        <PhoneCountryInput
+                          name="phone"
+                          defaultValue={guest.phone ?? ''}
+                          required={true}
+                        />
+                      </div>
+
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        Email address
+                        <input
+                          name="email"
+                          type="email"
+                          defaultValue={guest.email ?? ''}
+                          pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                          title="Enter a valid email address (e.g. name@domain.com)"
+                          className={`${inputCls} mt-1.5`}
+                        />
                       </label>
-                      <label className="text-xs font-medium text-ink">
-                        Email<input name="email" type="email" defaultValue={guest.email ?? ''} className={`${inputCls} mt-1.5`} />
-                      </label>
-                      <label className="text-xs font-medium text-ink">
-                        Nationality<input name="nationality" defaultValue={guest.nationality ?? ''} maxLength={60} className={`${inputCls} mt-1.5`} />
-                      </label>
-                      <label className="flex items-center gap-2 text-sm text-ink sm:col-span-2">
+
+                      <div>
+                        <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                          Nationality <span className="font-normal text-muted">(Search country or +code)</span>
+                        </label>
+                        <NationalityCombobox
+                          name="nationality"
+                          defaultValue={guest.nationality ?? ''}
+                        />
+                      </div>
+
+                      <div className="sm:col-span-2">
+                        <IdDocumentInput
+                          defaultIdType={guest.idType || 'aadhaar'}
+                          required={false}
+                        />
+                      </div>
+
+                      <label className="flex items-center gap-2 text-sm text-ink sm:col-span-2 cursor-pointer">
                         <input name="vip" type="checkbox" defaultChecked={guest.vip} className="h-4 w-4 accent-[hsl(var(--accent))]" /> VIP guest
                       </label>
-                      <label className="text-xs font-medium text-ink sm:col-span-2">
+                      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 sm:col-span-2">
                         Guest notes<textarea name="notes" defaultValue={guest.notes ?? ''} maxLength={1000} rows={2} className={`${inputCls} mt-1.5`} />
                       </label>
                       <div className="sm:col-span-2">

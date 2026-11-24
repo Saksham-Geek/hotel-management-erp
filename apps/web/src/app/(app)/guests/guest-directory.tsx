@@ -253,7 +253,7 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                                 >
                                   {isPdf ? (
                                     <iframe
-                                      src={`/api/guest-documents/${encodeURIComponent(guest.id)}/${encodeURIComponent(document.id)}#toolbar=0`}
+                                      src={`/api/guest-documents/${encodeURIComponent(guest.id)}/${encodeURIComponent(document.id)}#toolbar=0&navpanes=0&scrollbar=1`}
                                       className="h-[480px] w-full rounded border border-line bg-white shadow-xs"
                                       title={docDisplayName}
                                     />

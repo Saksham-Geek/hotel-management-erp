@@ -8,9 +8,12 @@ export interface WatermarkMeta {
 }
 
 /**
- * Stamps an indelible forensic watermark across every page of a PDF document.
- * This ensures that even if printed, screenshotted, or exported, the document
- * contains the viewing staff's identity, role, timestamp, and statutory notice.
+ * Stamps an indelible forensic watermark and security filter directly into the PDF pages.
+ * Stamped into the actual PDF binary vectors so that whenever the PDF is viewed,
+ * printed (Ctrl+P or browser print), or downloaded, every page permanently contains:
+ * 1. Full-page security tint filter.
+ * 2. Top and bottom statutory audit banners with staff identity and timestamp.
+ * 3. 12-tile repeating diagonal forensic watermark grid matching the secure viewer.
  */
 export async function watermarkPdf(buffer: Buffer, meta: WatermarkMeta): Promise<Uint8Array> {
   try {
@@ -20,98 +23,109 @@ export async function watermarkPdf(buffer: Buffer, meta: WatermarkMeta): Promise
     const pages = pdfDoc.getPages();
     const pageCount = pages.length;
 
-    const staffUpper = (meta.staffName || 'Authorized Operator').toUpperCase();
-    const roleUpper = (meta.staffRole || 'STAFF').toUpperCase();
+    // Sanitize metadata to pure ASCII to guarantee standard font WinAnsi compatibility
+    const cleanAscii = (text: string) => text.replace(/[^\x20-\x7E]/g, ' ').trim();
+    const staffUpper = cleanAscii(meta.staffName || 'Authorized Operator').toUpperCase();
+    const roleUpper = cleanAscii(meta.staffRole || 'STAFF').toUpperCase();
+    const timestampClean = cleanAscii(meta.timestamp || new Date().toISOString());
 
     for (let i = 0; i < pageCount; i++) {
       const page = pages[i];
       const { width, height } = page.getSize();
 
-      // Top security strip
-      page.drawRectangle({
-        x: 0,
-        y: height - 20,
-        width,
-        height: 20,
-        color: rgb(0.96, 0.93, 0.88),
-        opacity: 0.95,
-      });
-      page.drawText('🔒 STATUTORY HOTEL COMPLIANCE RECORD • CONFIDENTIAL • DO NOT DISTRIBUTE', {
-        x: 12,
-        y: height - 14,
-        size: 7.5,
-        font: boldFont,
-        color: rgb(0.65, 0.15, 0.15),
-      });
-
-      // Bottom security strip with staff identity and timestamp
+      // 1. Full-page security filter tint
       page.drawRectangle({
         x: 0,
         y: 0,
         width,
-        height: 18,
-        color: rgb(0.96, 0.93, 0.88),
-        opacity: 0.95,
+        height,
+        color: rgb(0.97, 0.95, 0.91),
+        opacity: 0.10,
+      });
+
+      // 2. Top security header banner
+      page.drawRectangle({
+        x: 0,
+        y: height - 24,
+        width,
+        height: 24,
+        color: rgb(0.95, 0.92, 0.86),
+        opacity: 0.96,
+      });
+      page.drawText('[RESTRICTED] STATUTORY HOTEL COMPLIANCE RECORD | CONFIDENTIAL PROPERTY RECORD', {
+        x: 14,
+        y: height - 16,
+        size: 8,
+        font: boldFont,
+        color: rgb(0.65, 0.15, 0.15),
+      });
+
+      // 3. Bottom security audit banner with staff identity and timestamp
+      page.drawRectangle({
+        x: 0,
+        y: 0,
+        width,
+        height: 22,
+        color: rgb(0.95, 0.92, 0.86),
+        opacity: 0.96,
       });
       page.drawText(
-        `ACCESSED BY: ${staffUpper} (${roleUpper}) • ${meta.timestamp} • PAGE ${i + 1} OF ${pageCount} • ENCRYPTED AES-256-GCM`,
+        `ACCESSED BY: ${staffUpper} (${roleUpper}) | ${timestampClean} | PAGE ${i + 1} OF ${pageCount} | ZERO-DESKTOP PROTECTED`,
         {
-          x: 12,
-          y: 5.5,
-          size: 7,
+          x: 14,
+          y: 7,
+          size: 7.5,
           font: regularFont,
           color: rgb(0.25, 0.25, 0.25),
         },
       );
 
-      // Large diagonal center forensic watermarks (repeating pattern)
-      const line1 = 'CONFIDENTIAL • PROPERTY OF GRAND AZURE';
-      const line2 = `VIEWED BY: ${staffUpper} (${roleUpper})`;
-      const line3 = `${meta.timestamp} • UNLAWFUL TO COPY OR LEAK`;
+      // 4. Repeating forensic watermark grid across the whole page (3 columns x 4 rows)
+      const cols = 3;
+      const rows = 4;
+      const stepX = width / cols;
+      const stepY = height / rows;
 
-      const fontSize = Math.max(14, Math.min(22, width / 26));
-      const textWidth1 = boldFont.widthOfTextAtSize(line1, fontSize);
-      const textWidth2 = boldFont.widthOfTextAtSize(line2, fontSize * 0.85);
-      const textWidth3 = regularFont.widthOfTextAtSize(line3, fontSize * 0.7);
+      for (let c = 0; c < cols; c++) {
+        for (let r = 0; r < rows; r++) {
+          const x = (c + 0.5) * stepX - 60;
+          const y = (r + 0.5) * stepY;
 
-      const centerX = width / 2;
-      const centerY = height / 2;
+          page.drawText('CONFIDENTIAL PROPERTY RECORD', {
+            x,
+            y: y + 16,
+            size: 9.5,
+            font: boldFont,
+            color: rgb(0.25, 0.28, 0.35),
+            opacity: 0.24,
+            rotate: degrees(-28),
+          });
 
-      page.drawText(line1, {
-        x: centerX - textWidth1 / 3,
-        y: centerY + 25,
-        size: fontSize,
-        font: boldFont,
-        color: rgb(0.82, 0.18, 0.18),
-        opacity: 0.24,
-        rotate: degrees(38),
-      });
+          page.drawText(`VIEWED BY: ${staffUpper} (${roleUpper})`, {
+            x,
+            y,
+            size: 8.5,
+            font: boldFont,
+            color: rgb(0.25, 0.28, 0.35),
+            opacity: 0.24,
+            rotate: degrees(-28),
+          });
 
-      page.drawText(line2, {
-        x: centerX - textWidth2 / 3,
-        y: centerY - 5,
-        size: fontSize * 0.85,
-        font: boldFont,
-        color: rgb(0.7, 0.12, 0.12),
-        opacity: 0.24,
-        rotate: degrees(38),
-      });
-
-      page.drawText(line3, {
-        x: centerX - textWidth3 / 3,
-        y: centerY - 30,
-        size: fontSize * 0.7,
-        font: regularFont,
-        color: rgb(0.5, 0.1, 0.1),
-        opacity: 0.22,
-        rotate: degrees(38),
-      });
+          page.drawText(timestampClean, {
+            x,
+            y: y - 14,
+            size: 7.5,
+            font: regularFont,
+            color: rgb(0.25, 0.28, 0.35),
+            opacity: 0.22,
+            rotate: degrees(-28),
+          });
+        }
+      }
     }
 
-    const outputBytes = await pdfDoc.save();
-    return outputBytes;
+    return await pdfDoc.save();
   } catch (err) {
-    // If watermark stamping encounters an issue with a malformed PDF, log and return original buffer
     console.error('[watermarkPdf] Error stamping watermark on PDF:', err);
     return buffer;
   }

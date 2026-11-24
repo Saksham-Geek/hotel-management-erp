@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { formatDeterministicDate, formatDeterministicDateTime } from '@/lib/dates';
 
 export interface SecureDocument {
@@ -45,7 +45,19 @@ export function SecureDocumentViewer({
   const accessTimestamp = formatDeterministicDateTime(new Date());
 
   const isPdf = document.mimeType === 'application/pdf';
-  const viewUrl = `/api/guest-documents/${encodeURIComponent(guestId)}/${encodeURIComponent(document.id)}?view=1`;
+  const viewUrl = `/api/guest-documents/${encodeURIComponent(guestId)}/${encodeURIComponent(document.id)}?view=1#toolbar=0&navpanes=0&scrollbar=1`;
+
+  // Prevent browser shortcut piracy (Ctrl+S / Ctrl+P / Cmd+S / Cmd+P) while viewer dialog is open
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'P' || e.key === 'S')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleExport = async (e: React.FormEvent) => {
     e.preventDefault();

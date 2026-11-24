@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { compressImageFile, formatBytes } from '@/lib/image-compression';
+import { IdRedactionModal } from '@/components/id-redaction-modal';
 
 export default function MobileScanPage() {
   const params = useParams();
@@ -22,6 +23,7 @@ export default function MobileScanPage() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [isRedactionModalOpen, setIsRedactionModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Stop camera media stream helper
@@ -441,7 +443,17 @@ export default function MobileScanPage() {
               </div>
             </div>
 
-            <div className="flex gap-2.5 pt-2">
+            {/* 1-Click Mask & Redact Button */}
+            <button
+              type="button"
+              onClick={() => setIsRedactionModalOpen(true)}
+              className="w-full py-2.5 px-3 rounded-xl border border-amber-500/40 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-sm"
+            >
+              <span>🛡️</span>
+              <span>Mask Aadhaar (First 8 Digits &amp; QR) / Redact ID</span>
+            </button>
+
+            <div className="flex gap-2.5 pt-1">
               <button
                 type="button"
                 onClick={handleRetake}
@@ -485,6 +497,24 @@ export default function MobileScanPage() {
           <span>Ephemeral In-Memory Transfer</span>
         </div>
       </footer>
+      {/* Mobile ID Redaction Modal */}
+      {isRedactionModalOpen && compressedFile && (
+        <IdRedactionModal
+          isOpen={true}
+          file={compressedFile}
+          onClose={() => setIsRedactionModalOpen(false)}
+          onSave={async (redactedFile) => {
+            setIsRedactionModalOpen(false);
+            setCompressedFile(redactedFile);
+            setCompressedSize(redactedFile.size);
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              setPhotoPreview(String(e.target?.result || ''));
+            };
+            reader.readAsDataURL(redactedFile);
+          }}
+        />
+      )}
     </main>
   );
 }

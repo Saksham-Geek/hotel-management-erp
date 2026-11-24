@@ -11,6 +11,7 @@ import {
   MAX_DOCUMENTS_PER_GUEST,
   type CompressionResult,
 } from '@/lib/image-compression';
+import { IdRedactionModal } from './id-redaction-modal';
 
 export interface SecureDocumentInputProps {
   id?: string;
@@ -42,6 +43,7 @@ export function SecureDocumentInput({
   const [items, setItems] = useState<CompressionResult[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [redactingIndex, setRedactingIndex] = useState<number | null>(null);
 
   // Direct Laptop / Desktop Webcam Modal States
   const [isWebcamModalOpen, setIsWebcamModalOpen] = useState(false);
@@ -543,8 +545,17 @@ export function SecureDocumentInput({
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setRedactingIndex(idx)}
+                    className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-1 text-[11px] font-bold text-amber-900 shadow-2xs hover:bg-amber-100 transition active:scale-95 dark:border-amber-700/60 dark:bg-amber-950/40 dark:text-amber-300"
+                    title="Open computer vision tool to mask first 8 digits & QR code of Aadhaar, or redact Passport MRZ / signature"
+                  >
+                    <span>🛡️</span>
+                    <span>{item.file.name.includes('-masked') ? 'Re-Mask' : 'Mask / Redact ID'}</span>
+                  </button>
                   <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-                    ✓ Ready
+                    {item.file.name.includes('-masked') ? '✓ Masked' : '✓ Ready'}
                   </span>
                   <button
                     type="button"
@@ -758,6 +769,34 @@ export function SecureDocumentInput({
             </div>
           </div>
         </div>
+      )}
+
+      {/* ID Redaction & UIDAI Masking Modal */}
+      {redactingIndex !== null && items[redactingIndex] && (
+        <IdRedactionModal
+          isOpen={true}
+          file={items[redactingIndex].file}
+          onClose={() => setRedactingIndex(null)}
+          onSave={async (redactedFile) => {
+            const idx = redactingIndex;
+            setRedactingIndex(null);
+            try {
+              const updated = await compressImageFile(redactedFile, {
+                maxDimension: 1920,
+                quality: 0.85,
+              });
+              setItems((prev) => {
+                const next = [...prev];
+                next[idx] = updated;
+                return next;
+              });
+              setBridgeToast('🛡️ ID masked & redacted to UIDAI Section 29 compliance!');
+              setTimeout(() => setBridgeToast(null), 4000);
+            } catch (err) {
+              console.error('Failed to update redacted item:', err);
+            }
+          }}
+        />
       )}
     </div>
   );

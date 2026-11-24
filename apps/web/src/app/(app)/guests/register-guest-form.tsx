@@ -1,13 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { btnCls, CustomDropdown, inputCls } from '@/components/ui';
+import { btnCls, inputCls } from '@/components/ui';
+import { CustomDropdown } from '@/components/dropdown';
 import { FormSubmit } from '@/components/form-submit';
 import { PhoneCountryInput } from '@/components/phone-country-input';
 import { NationalityCombobox } from '@/components/nationality-combobox';
 import { IdDocumentInput } from '@/components/id-document-input';
 import { saveGuest } from './actions';
-import { DEFAULT_COUNTRY, type CountryInfo } from '@erp/shared';
+import { DEFAULT_COUNTRY, type CountryInfo } from '@/lib/countries';
 
 export function RegisterGuestForm() {
   const [selectedCountry, setSelectedCountry] = useState<CountryInfo>(DEFAULT_COUNTRY);

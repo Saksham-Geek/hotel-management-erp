@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { inputCls, selectCls } from './ui';
 
 export interface IdDocumentInputProps {
+  nameIdType?: string;
+  nameIdNumber?: string;
   defaultIdType?: string;
   defaultIdNumber?: string;
   idType?: string;
@@ -24,6 +26,8 @@ export const ID_TYPE_OPTIONS = [
 ] as const;
 
 export function IdDocumentInput({
+  nameIdType = 'idType',
+  nameIdNumber = 'idNumber',
   defaultIdType = 'aadhaar',
   defaultIdNumber = '',
   idType: controlledIdType,
@@ -86,7 +90,7 @@ export function IdDocumentInput({
         </label>
         <div className="relative">
           <select
-            name="idType"
+            name={nameIdType}
             required={required}
             disabled={disabled}
             value={selectedType}
@@ -127,7 +131,7 @@ export function IdDocumentInput({
           )}
         </label>
         <input
-          name="idNumber"
+          name={nameIdNumber}
           type="text"
           required={required}
           disabled={disabled}

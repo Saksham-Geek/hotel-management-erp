@@ -157,6 +157,9 @@ export async function createReservation(fd: FormData) {
           email:
             String(fd.get('guestEmail') ?? '').trim() ||
             undefined,
+          nationality:
+            String(fd.get('guestNationality') ?? '').trim() ||
+            undefined,
           idType: String(fd.get('guestIdType') ?? '').trim() || undefined,
           idNumber: String(fd.get('guestIdNumber') ?? '').trim() || undefined,
         };
@@ -173,6 +176,9 @@ export async function createReservation(fd: FormData) {
     const validIdentityTypes = ['aadhaar', 'passport', 'driving_license', 'voter_id', 'other'];
     if (newGuest && (!newGuest.idType || !validIdentityTypes.includes(newGuest.idType) || !newGuest.idNumber?.trim())) {
       throw new Error('Enter the primary guest’s identity type and ID number.');
+    }
+    if (newGuest?.idType?.toLowerCase() === 'aadhaar' && newGuest.idNumber && !/^\d{4}$/.test(newGuest.idNumber)) {
+      throw new Error('For Aadhaar, enter only the last four digits.');
     }
     for (const companion of newCompanions) {
       const guest = companion as { fullName?: unknown; phone?: unknown; email?: unknown; idType?: unknown; idNumber?: unknown };

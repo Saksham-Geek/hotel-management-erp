@@ -2,7 +2,12 @@
 
 import { useEffect, useState, useTransition, useId, useRef } from 'react';
 import { searchGuestProfiles } from './actions';
-import { CustomDropdown, inputCls, selectCls } from '@/components/ui';
+import { inputCls, selectCls } from '@/components/ui';
+import { CustomDropdown } from '@/components/dropdown';
+import { PhoneCountryInput } from '@/components/phone-country-input';
+import { NationalityCombobox } from '@/components/nationality-combobox';
+import { IdDocumentInput } from '@/components/id-document-input';
+import { DEFAULT_COUNTRY, type CountryInfo } from '@/lib/countries';
 
 type Guest = {
   id: string;
@@ -228,19 +233,12 @@ function CompanionCard({
           <label htmlFor={phoneId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
             Phone Number <span className="text-rose-500" aria-hidden="true">*</span>
           </label>
-          <input
+          <PhoneCountryInput
             id={phoneId}
             name={`companion_${guest.clientKey}_phone`}
-            value={guest.phone ?? ''}
-            onChange={(e) => onUpdate({ phone: e.target.value })}
-            type="tel"
+            defaultValue={guest.phone ?? ''}
+            onChange={(phone) => onUpdate({ phone })}
             required
-            minLength={7}
-            maxLength={30}
-            pattern="\+?[0-9 ().-]{7,30}"
-            title="Enter a valid phone number with 7 to 15 digits."
-            placeholder="+91 98765 43210"
-            className={inputCls}
           />
         </div>
 
@@ -255,6 +253,8 @@ function CompanionCard({
             onChange={(e) => onUpdate({ email: e.target.value })}
             type="email"
             maxLength={200}
+            pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+            title="Enter a valid email address (e.g. name@domain.com)"
             placeholder="e.g. companion@example.com"
             className={inputCls}
           />
@@ -262,51 +262,35 @@ function CompanionCard({
 
         <div>
           <label htmlFor={nationalityId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Nationality <span className="text-slate-400 font-normal">(optional)</span>
+            Nationality <span className="text-slate-400 font-normal">(Search country or +code)</span>
           </label>
-          <input
+          <NationalityCombobox
             id={nationalityId}
             name={`companion_${guest.clientKey}_nationality`}
-            value={guest.nationality ?? ''}
-            onChange={(e) => onUpdate({ nationality: e.target.value })}
-            maxLength={60}
-            placeholder="e.g. Indian"
-            className={inputCls}
+            defaultValue={guest.nationality ?? ''}
+            value={guest.nationality}
+            onChange={(val) => onUpdate({ nationality: val })}
+            onCountrySelect={(country) => {
+              onUpdate({
+                nationality: country.name,
+                ...(country.code !== 'IN' && guest.idType === 'aadhaar' ? { idType: 'passport' } : {}),
+                ...(country.code === 'IN' && guest.idType === 'passport' ? { idType: 'aadhaar' } : {}),
+              });
+            }}
+            placeholder="Search nationality (e.g. India, US, +1)..."
           />
         </div>
 
-        <div>
-          <label htmlFor={idTypeId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            Identity Type <span className="text-rose-500" aria-hidden="true">*</span>
-          </label>
-          <CustomDropdown
-            id={idTypeId}
-            name={`companion_${guest.clientKey}_idType`}
-            value={guest.idType ?? ''}
-            onChange={(val) => onUpdate({ idType: val })}
+        <div className="sm:col-span-2">
+          <IdDocumentInput
+            nameIdType={`companion_${guest.clientKey}_idType`}
+            nameIdNumber={`companion_${guest.clientKey}_idNumber`}
+            defaultIdType={guest.idType || 'aadhaar'}
+            idType={guest.idType}
+            idNumber={guest.idNumber}
+            onIdTypeChange={(idType) => onUpdate({ idType })}
+            onIdNumberChange={(idNumber) => onUpdate({ idNumber })}
             required
-            placeholder="Select identity type"
-            options={[
-              { value: '', label: 'Select identity type' },
-              ...identityTypes.map(([value, label]) => ({ value, label })),
-            ]}
-            aria-label={`Companion ${index + 1} identity type`}
-          />
-        </div>
-
-        <div>
-          <label htmlFor={idNumberId} className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-            ID Number <span className="text-rose-500" aria-hidden="true">*</span>
-          </label>
-          <input
-            id={idNumberId}
-            name={`companion_${guest.clientKey}_idNumber`}
-            value={guest.idNumber ?? ''}
-            onChange={(e) => onUpdate({ idNumber: e.target.value })}
-            required
-            maxLength={60}
-            placeholder="Aadhaar: last 4 digits only"
-            className={inputCls}
           />
         </div>
 
@@ -528,6 +512,10 @@ export function GuestPicker() {
   const [lead, setLead] = useState<Guest | null>(null);
   const [companions, setCompanions] = useState<Guest[]>([]);
   const [newCompanions, setNewCompanions] = useState<NewCompanion[]>([]);
+  const [primaryCountry, setPrimaryCountry] = useState<CountryInfo>(DEFAULT_COUNTRY);
+  const [primaryNationality, setPrimaryNationality] = useState<string>('India');
+  const [primaryIdType, setPrimaryIdType] = useState<string>('aadhaar');
+  const [primaryIdNumber, setPrimaryIdNumber] = useState<string>('');
 
   const handleAddCompanion = () => {
     if (companions.length + newCompanions.length >= 19) return;
@@ -622,24 +610,21 @@ export function GuestPicker() {
               </div>
 
               <div>
-                <label htmlFor="new-guest-phone" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Phone Number <span className="text-rose-500" aria-hidden="true">*</span>
+                  <span className="text-[10px] font-normal text-muted ml-1.5">
+                    (Defaults to 🇮🇳 +91 · change code anytime)
+                  </span>
                 </label>
-                <input
-                  id="new-guest-phone"
+                <PhoneCountryInput
                   name="guestPhone"
-                  type="tel"
+                  country={primaryCountry}
+                  onCountryChange={setPrimaryCountry}
                   required={!lead}
-                  minLength={7}
-                  maxLength={30}
-                  pattern="\+?[0-9 ().-]{7,30}"
-                  title="Enter a valid phone number with 7 to 15 digits."
-                  placeholder="+91 98765 43210"
-                  className={inputCls}
                 />
               </div>
 
-              <div className="sm:col-span-2">
+              <div>
                 <label htmlFor="new-guest-email" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Email Address <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
@@ -648,45 +633,52 @@ export function GuestPicker() {
                   name="guestEmail"
                   type="email"
                   maxLength={200}
+                  pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                  title="Enter a valid email address (e.g. name@domain.com)"
                   placeholder="e.g. guest@example.com"
                   className={inputCls}
                 />
               </div>
 
               <div>
-                <label htmlFor="new-guest-id-type" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Identity Type <span className="text-rose-500" aria-hidden="true">*</span>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Nationality <span className="text-slate-400 font-normal">(Search country or +code)</span>
                 </label>
-                <CustomDropdown
-                  id="new-guest-id-type"
-                  name="guestIdType"
-                  defaultValue="aadhaar"
-                  required={!lead}
-                  placeholder="Select identity type"
-                  options={[
-                    { value: '', label: 'Select identity type' },
-                    ...identityTypes.map(([value, label]) => ({ value, label })),
-                  ]}
-                  aria-label="New guest identity type"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="new-guest-id-number" className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  ID Number <span className="text-rose-500" aria-hidden="true">*</span>
-                </label>
-                <input
-                  id="new-guest-id-number"
-                  name="guestIdNumber"
-                  required={!lead}
-                  maxLength={60}
-                  placeholder="Aadhaar: last 4 digits only"
-                  className={inputCls}
+                <NationalityCombobox
+                  name="guestNationality"
+                  defaultValue="India"
+                  value={primaryNationality}
+                  onChange={setPrimaryNationality}
+                  onCountrySelect={(country) => {
+                    setPrimaryCountry(country);
+                    if (country.code !== 'IN' && primaryIdType === 'aadhaar') {
+                      setPrimaryIdType('passport');
+                    } else if (country.code === 'IN' && primaryIdType === 'passport') {
+                      setPrimaryIdType('aadhaar');
+                    }
+                  }}
+                  placeholder="Search nationality (e.g. India, US, +1)..."
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <IdentityUploadFields prefix="guest" required={!lead} defaultDocumentType="aadhaar_masked" />
+                <IdDocumentInput
+                  nameIdType="guestIdType"
+                  nameIdNumber="guestIdNumber"
+                  idType={primaryIdType}
+                  idNumber={primaryIdNumber}
+                  onIdTypeChange={setPrimaryIdType}
+                  onIdNumberChange={setPrimaryIdNumber}
+                  required={!lead}
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <IdentityUploadFields
+                  prefix="guest"
+                  required={!lead}
+                  defaultDocumentType={primaryIdType === 'aadhaar' ? 'aadhaar_masked' : primaryIdType}
+                />
               </div>
             </div>
           </div>

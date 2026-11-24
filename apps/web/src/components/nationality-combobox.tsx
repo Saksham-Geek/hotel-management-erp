@@ -6,7 +6,7 @@ import {
   searchCountries,
   findCountry,
   type CountryInfo,
-} from '@erp/shared';
+} from '@/lib/countries';
 
 export interface NationalityComboboxProps {
   id?: string;

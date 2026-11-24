@@ -7,7 +7,7 @@ import {
   searchCountries,
   parsePhoneNumber,
   type CountryInfo,
-} from '@erp/shared';
+} from '@/lib/countries';
 
 export interface PhoneCountryInputProps {
   id?: string;

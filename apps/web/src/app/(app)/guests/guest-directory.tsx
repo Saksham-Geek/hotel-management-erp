@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { btnCls, btnGhostCls, CustomDropdown, EmptyState, inputCls } from '@/components/ui';
+import { btnCls, btnGhostCls, EmptyState, inputCls } from '@/components/ui';
+import { CustomDropdown } from '@/components/dropdown';
 import { FormSubmit } from '@/components/form-submit';
 import { updateGuest, uploadGuestDocuments } from './actions';
 import { SecureDocumentViewer, type SecureDocument } from '@/components/secure-document-viewer';

@@ -9,7 +9,9 @@ export function middleware(req: NextRequest) {
     || path.startsWith('/reset-password')
     || path.startsWith('/showcase')
     || path.startsWith('/onboard')
-    || path.startsWith('/book');
+    || path.startsWith('/book')
+    || path.startsWith('/scan-id')
+    || path.startsWith('/api/kyc-bridge');
   if (!req.cookies.has('erp_token') && !publicPath) {
     return NextResponse.redirect(new URL('/login', req.url));
   }

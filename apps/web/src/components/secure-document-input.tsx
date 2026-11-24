@@ -718,17 +718,20 @@ export function SecureDocumentInput({
               </p>
             </div>
 
-            {/* Desktop Test Link Helper */}
-            <div className="pt-2 border-t border-line flex items-center justify-between text-[11px]">
-              <span className="text-muted">Testing on this laptop?</span>
+            {/* Desktop Instant Test Button */}
+            <div className="pt-2 border-t border-line flex flex-col gap-2 text-[11px]">
               <a
                 href={bridgeScanUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="font-semibold text-lagoon-dark underline hover:opacity-80"
+                className="w-full py-2 px-3 rounded-xl border border-lagoon/30 bg-lagoon/10 hover:bg-lagoon/20 font-semibold text-lagoon-dark transition text-center flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                Open Scanner Tab ↗
+                <span>🧪</span>
+                <span>Open Mobile Scanner in New Tab (Test Instantly)</span>
               </a>
+              <p className="text-[10px] text-muted leading-tight">
+                💡 If testing from phone, ensure Windows Firewall allows incoming connections on port 3000.
+              </p>
             </div>
           </div>
         </div>

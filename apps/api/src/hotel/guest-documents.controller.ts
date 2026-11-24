@@ -5,7 +5,7 @@ import { AuthUser, CurrentUser } from '../common/current-user';
 import { RequirePermission } from '../common/permission-guard';
 import { DbService } from '../db/db.service';
 import { AuditService } from '../audit/audit.service';
-import { FEATURES, PERMISSIONS } from '@erp/shared';
+import { FEATURES, PERMISSIONS, formatDocumentFileName } from '@erp/shared';
 import { RequireFeature } from '../entitlements/require-feature';
 import { env } from '../config';
 import { guestDocumentUploadSchema, persistGuestIdentityDocument } from './guest-document-validation';
@@ -62,7 +62,11 @@ export class GuestDocumentsController {
     const row = await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
       (
         await c.query(
-          `select original_name, mime_type, ciphertext, iv, auth_tag, sha256_hash from guest_documents where id = $1 and guest_id = $2`,
+          `select gd.original_name, gd.document_type, gd.mime_type, gd.ciphertext, gd.iv, gd.auth_tag, gd.sha256_hash, p.full_name as "guestName"
+           from guest_documents gd
+           left join guests g on g.id = gd.guest_id
+           left join parties p on p.id = g.party_id
+           where gd.id = $1 and gd.guest_id = $2`,
           [documentId, guestId],
         )
       ).rows[0],
@@ -91,10 +95,11 @@ export class GuestDocumentsController {
     const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
 
     const watermarked = await this.applyForensicWatermark(user, plaintext, row.mime_type, guestId);
+    const formattedName = formatDocumentFileName(row.guestName, row.document_type, watermarked.mimeType, true);
 
     res.setHeader('Content-Type', watermarked.mimeType);
     res.setHeader('Content-Length', watermarked.payload.length);
-    res.setHeader('Content-Disposition', `inline; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
+    res.setHeader('Content-Disposition', `inline; filename="${formattedName}"`);
     res.setHeader('Cache-Control', 'private, no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
@@ -121,7 +126,11 @@ export class GuestDocumentsController {
     const row = await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
       (
         await c.query(
-          `select original_name, mime_type, ciphertext, iv, auth_tag, sha256_hash from guest_documents where id = $1 and guest_id = $2`,
+          `select gd.original_name, gd.document_type, gd.mime_type, gd.ciphertext, gd.iv, gd.auth_tag, gd.sha256_hash, p.full_name as "guestName"
+           from guest_documents gd
+           left join guests g on g.id = gd.guest_id
+           left join parties p on p.id = g.party_id
+           where gd.id = $1 and gd.guest_id = $2`,
           [documentId, guestId],
         )
       ).rows[0],
@@ -150,10 +159,11 @@ export class GuestDocumentsController {
     const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
 
     const watermarked = await this.applyForensicWatermark(user, plaintext, row.mime_type, guestId);
+    const formattedName = formatDocumentFileName(row.guestName, row.document_type, watermarked.mimeType, true);
 
     res.setHeader('Content-Type', watermarked.mimeType);
     res.setHeader('Content-Length', watermarked.payload.length);
-    res.setHeader('Content-Disposition', `attachment; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
+    res.setHeader('Content-Disposition', `attachment; filename="${formattedName}"`);
     res.setHeader('Cache-Control', 'private, no-store');
     res.send(Buffer.from(watermarked.payload));
   }
@@ -194,7 +204,11 @@ export class GuestDocumentsController {
     @Res() res: Response,
   ) {
     const row = await this.db.withTenant(user.tenantId, user.propertyId, async (c) => (await c.query(
-      `select original_name, mime_type, ciphertext, iv, auth_tag from guest_documents where id = $1 and guest_id = $2`, [documentId, guestId],
+      `select gd.original_name, gd.document_type, gd.mime_type, gd.ciphertext, gd.iv, gd.auth_tag, p.full_name as "guestName"
+       from guest_documents gd
+       left join guests g on g.id = gd.guest_id
+       left join parties p on p.id = g.party_id
+       where gd.id = $1 and gd.guest_id = $2`, [documentId, guestId],
     )).rows[0]);
     if (!row) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Document not found' });
     if (!/^[0-9a-fA-F]{64}$/.test(env.guestDocumentEncryptionKey)) {
@@ -206,11 +220,12 @@ export class GuestDocumentsController {
     const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
 
     const watermarked = await this.applyForensicWatermark(user, plaintext, row.mime_type, guestId);
+    const formattedName = formatDocumentFileName(row.guestName, row.document_type, watermarked.mimeType, true);
 
     res.setHeader('Content-Type', watermarked.mimeType);
     res.setHeader('Content-Length', watermarked.payload.length);
     const disposition = downloadQuery === '1' ? 'attachment' : 'inline';
-    res.setHeader('Content-Disposition', `${disposition}; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
+    res.setHeader('Content-Disposition', `${disposition}; filename="${formattedName}"`);
     res.setHeader('Cache-Control', 'private, no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.send(Buffer.from(watermarked.payload));

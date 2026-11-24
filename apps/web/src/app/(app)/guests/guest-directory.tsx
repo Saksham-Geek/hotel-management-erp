@@ -10,6 +10,7 @@ import { PhoneCountryInput } from '@/components/phone-country-input';
 import { NationalityCombobox } from '@/components/nationality-combobox';
 import { IdDocumentInput } from '@/components/id-document-input';
 import { formatDeterministicDate } from '@/lib/dates';
+import { formatDocumentFileName } from '@erp/shared';
 
 export interface GuestProfile {
   id: string;
@@ -159,7 +160,7 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                       {guest.documents.map((document) => {
                         const isPdf = document.mimeType === 'application/pdf';
                         const isPreviewOpen = Boolean(inlinePreviews[document.id]);
-                        const docDisplayName = document.fileName || `${document.documentType.replaceAll('_', ' ')}.${isPdf ? 'pdf' : 'jpg'}`;
+                        const docDisplayName = document.fileName || formatDocumentFileName(guest.fullName, document.documentType, isPdf ? 'pdf' : 'jpg', false);
 
                         return (
                           <li key={document.id} className="rounded-xl border border-line/80 bg-ground/40 p-3">

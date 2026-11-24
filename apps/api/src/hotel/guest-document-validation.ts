@@ -1,7 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { createCipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
 import type { PoolClient } from 'pg';
-import { guestIdentityAttachmentSchema, type GuestIdentityAttachment } from '@erp/shared';
+import { guestIdentityAttachmentSchema, type GuestIdentityAttachment, formatDocumentFileName } from '@erp/shared';
 import type { AuthUser } from '../common/current-user';
 import type { AuditService } from '../audit/audit.service';
 import { env } from '../config';
@@ -76,8 +76,12 @@ export async function persistGuestIdentityDocument(
   const cipher = createCipheriv('aes-256-gcm', Buffer.from(env.guestDocumentEncryptionKey, 'hex'), iv);
   const ciphertext = Buffer.concat([cipher.update(data), cipher.final()]);
   const authTag = cipher.getAuthTag();
-  const extension = doc.mimeType === 'image/jpeg' ? 'jpg' : doc.mimeType === 'application/pdf' ? 'pdf' : doc.mimeType.split('/')[1];
-  const originalName = (doc.fileName && doc.fileName.trim()) ? doc.fileName.trim() : `${doc.documentType}-${randomUUID()}.${extension}`;
+  const nameRow = await c.query(
+    `select p.full_name as "fullName" from guests g join parties p on p.id = g.party_id where g.id = $1`,
+    [guestId],
+  );
+  const guestName = nameRow.rows[0]?.fullName;
+  const originalName = formatDocumentFileName(guestName, doc.documentType, doc.mimeType, false);
   const row = (await c.query(
     `insert into guest_documents (
        tenant_id, guest_id, document_type, original_name, mime_type, byte_length,

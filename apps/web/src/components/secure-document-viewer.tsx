@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { formatDeterministicDate, formatDeterministicDateTime } from '@/lib/dates';
+import { formatDocumentFileName } from '@erp/shared';
 
 export interface SecureDocument {
   id: string;
@@ -103,9 +104,8 @@ export function SecureDocumentViewer({
       const objectUrl = window.URL.createObjectURL(blob);
       const a = window.document.createElement('a');
       a.href = objectUrl;
-      const baseName = (document.fileName || `${document.documentType}.pdf`).replace(/(\.[^.]+)$/, '');
-      const ext = isPdf ? '.pdf' : (document.fileName?.match(/\.[^.]+$/)?.[0] || '.jpg');
-      a.download = `${baseName}_watermarked${ext}`;
+      const ext = isPdf ? 'pdf' : (document.fileName?.split('.').pop() || (document.mimeType === 'image/png' ? 'png' : document.mimeType === 'image/webp' ? 'webp' : 'jpg'));
+      a.download = formatDocumentFileName(guestName, document.documentType, ext, true);
       window.document.body.appendChild(a);
       a.click();
       a.remove();
@@ -171,7 +171,8 @@ export function SecureDocumentViewer({
       const downloadUrl = window.URL.createObjectURL(blob);
       const a = window.document.createElement('a');
       a.href = downloadUrl;
-      a.download = document.fileName || `${document.documentType}.pdf`;
+      const ext = isPdf ? 'pdf' : (document.fileName?.split('.').pop() || (document.mimeType === 'image/png' ? 'png' : document.mimeType === 'image/webp' ? 'webp' : 'jpg'));
+      a.download = formatDocumentFileName(guestName, document.documentType, ext, true);
       window.document.body.appendChild(a);
       a.click();
       a.remove();

@@ -4,6 +4,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { api, errorMessage } from '@/lib/api';
+import { formatDocumentFileName } from '@erp/shared';
 
 export async function searchGuestProfiles(q: string) {
   const term = q.trim();
@@ -190,11 +191,13 @@ export async function createReservation(fd: FormData) {
     }
     if (newGuest?.email && !isValidEmail(newGuest.email)) throw new Error('Enter a valid email address or leave it blank.');
 
-    const primaryUpload = existingGuestId ? null : await prepareReservationIdentityUpload(fd, 'guest', true);
+    const primaryUpload = existingGuestId ? null : await prepareReservationIdentityUpload(fd, 'guest', true, newGuest?.fullName);
     const companionUploads = await Promise.all(newCompanions.map((companion, index) => {
-      const clientKey = (companion as { clientKey?: unknown }).clientKey;
+      const c = companion as { clientKey?: unknown; fullName?: unknown };
+      const clientKey = c.clientKey;
       const prefix = typeof clientKey === 'string' && /^[0-9a-f-]{36}$/i.test(clientKey) ? `companion_${clientKey}` : `draftCompanion`;
-      return prepareReservationIdentityUpload(fd, prefix, true).then((upload) => ({ index, upload }));
+      const companionName = typeof c.fullName === 'string' ? c.fullName : undefined;
+      return prepareReservationIdentityUpload(fd, prefix, true, companionName).then((upload) => ({ index, upload }));
     }));
     const existingIds = [...new Set([...(existingGuestId ? [existingGuestId] : []), ...guestIds])];
     const existingUploads = await Promise.all(existingIds.map(async (guestId) => ({
@@ -272,7 +275,7 @@ function isValidEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-async function prepareReservationIdentityUpload(fd: FormData, prefix: string, required = false) {
+async function prepareReservationIdentityUpload(fd: FormData, prefix: string, required = false, guestName?: string) {
   const value = fd.get(`${prefix}Documents`);
   if (!(value instanceof File) || value.size === 0) {
     if (required) throw new Error('Upload an identity document for every guest.');
@@ -287,12 +290,13 @@ async function prepareReservationIdentityUpload(fd: FormData, prefix: string, re
   const documentType = String(fd.get(`${prefix}DocumentType`) ?? 'other');
   const aadhaarMasked = fd.get(`${prefix}AadhaarMasked`) === 'on';
   if (documentType === 'aadhaar_masked' && !aadhaarMasked) throw new Error('Confirm the Aadhaar document has the first eight digits masked.');
+  const cleanFileName = formatDocumentFileName(guestName, documentType, value.type, false);
   return {
     consentMethod,
     aadhaarMasked,
     byteLength: value.size,
     attachment: {
-      fileName: value.name,
+      fileName: cleanFileName,
       mimeType: value.type,
       base64: Buffer.from(await value.arrayBuffer()).toString('base64'),
       documentType,

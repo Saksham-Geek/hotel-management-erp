@@ -2,19 +2,12 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { api, errorMessage } from '@/lib/api';
+import { formatDocumentFileName } from '@erp/shared';
 
 export async function saveGuest(fd: FormData) {
   let error: string | null = null;
   let guestCreated = false;
   try {
-    const documents = await prepareGuestDocuments(fd);
-    if (!documents.length) {
-      throw new Error('Upload at least one identity document file (PDF, JPEG, PNG, or WebP). Uploading an identity document is mandatory for statutory hotel KYC compliance.');
-    }
-    if (fd.get('consentGiven') !== 'on' || !fd.get('consentMethod')) {
-      throw new Error('Confirm the guest was informed and record how consent was obtained before uploading identity documents.');
-    }
-
     const fullName = String(fd.get('fullName') ?? '').trim();
     const phone = String(fd.get('phone') ?? '').trim();
     const email = String(fd.get('email') ?? '').trim() || undefined;
@@ -31,6 +24,14 @@ export async function saveGuest(fd: FormData) {
     }
     if (idType.toLowerCase() === 'aadhaar' && fd.get('aadhaarMasked') !== 'on') {
       throw new Error('For Aadhaar, confirm that the first eight digits are masked.');
+    }
+
+    const documents = await prepareGuestDocuments(fd, fullName);
+    if (!documents.length) {
+      throw new Error('Upload at least one identity document file (PDF, JPEG, PNG, or WebP). Uploading an identity document is mandatory for statutory hotel KYC compliance.');
+    }
+    if (fd.get('consentGiven') !== 'on' || !fd.get('consentMethod')) {
+      throw new Error('Confirm the guest was informed and record how consent was obtained before uploading identity documents.');
     }
 
     const guest = await api<{ id: string }>('/hotel/guests', { method: 'POST', body: JSON.stringify({
@@ -99,7 +100,7 @@ export async function uploadGuestDocuments(fd: FormData) {
   redirect('/guests?' + (error ? `error=${encodeURIComponent(error)}` : 'ok=' + encodeURIComponent('Identity documents uploaded securely')));
 }
 
-async function prepareGuestDocuments(fd: FormData) {
+async function prepareGuestDocuments(fd: FormData, guestName?: string) {
   const files = fd.getAll('documents').filter((f): f is File => f instanceof File && f.size > 0);
   if (files.length > 8) throw new Error('Upload up to 8 identity documents per submission.');
   const documentType = String(fd.get('documentType') || 'other');
@@ -107,7 +108,8 @@ async function prepareGuestDocuments(fd: FormData) {
   for (const file of files) {
     if (file.size > 5 * 1024 * 1024) throw new Error(`${file.name} exceeds the 5 MB limit.`);
     if (!['image/jpeg','image/png','image/webp','application/pdf'].includes(file.type)) throw new Error(`${file.name}: use PDF, JPEG, PNG or WebP documents.`);
-    documents.push({ fileName: file.name, mimeType: file.type, base64: Buffer.from(await file.arrayBuffer()).toString('base64'), documentType });
+    const cleanFileName = formatDocumentFileName(guestName, documentType, file.type, false);
+    documents.push({ fileName: cleanFileName, mimeType: file.type, base64: Buffer.from(await file.arrayBuffer()).toString('base64'), documentType });
   }
   return documents;
 }

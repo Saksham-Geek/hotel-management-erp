@@ -64,6 +64,12 @@ export default function MobileScanPage() {
     setErrorMessage(null);
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      if (typeof window !== 'undefined' && !window.isSecureContext) {
+        setCameraError(
+          'Chrome blocks webcam access on insecure IP addresses. Click "Switch to localhost" below to use your laptop webcam.',
+        );
+        return;
+      }
       // Fallback to native camera file input if getUserMedia is not supported
       fileInputRef.current?.click();
       return;
@@ -310,8 +316,19 @@ export default function MobileScanPage() {
         )}
 
         {cameraError && (
-          <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-950/30 p-2.5 text-[11px] text-amber-300">
-            ℹ️ {cameraError}
+          <div className="mb-3 rounded-xl border border-amber-500/30 bg-amber-950/30 p-3 text-[11px] text-amber-300 space-y-2">
+            <p>ℹ️ {cameraError}</p>
+            {typeof window !== 'undefined' && window.location.hostname !== 'localhost' && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.location.hostname = 'localhost';
+                }}
+                className="w-full py-1.5 px-3 rounded-lg bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer hover:bg-amber-300 transition"
+              >
+                Switch this tab to localhost (Enables Webcam)
+              </button>
+            )}
           </div>
         )}
 

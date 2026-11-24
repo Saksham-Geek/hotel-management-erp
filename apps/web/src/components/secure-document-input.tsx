@@ -59,6 +59,7 @@ export function SecureDocumentInput({
   const [bridgeSecondsLeft, setBridgeSecondsLeft] = useState<number>(300);
   const [bridgeToast, setBridgeToast] = useState<string | null>(null);
   const [detectedLanIp, setDetectedLanIp] = useState<string>('');
+  const [activeTunnelUrl, setActiveTunnelUrl] = useState<string>('https://open-papayas-lay.loca.lt');
   const [customHost, setCustomHost] = useState<string>('');
   const [isEditingHost, setIsEditingHost] = useState(false);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
@@ -271,9 +272,10 @@ export function SecureDocumentInput({
         throw new Error(data.message || 'Failed to initialize QR mobile session.');
       }
 
-      const { sessionId, scanUrl, lanIp, port } = data;
+      const { sessionId, scanUrl, lanIp, port, tunnelUrl } = data;
       setBridgeSessionId(sessionId);
       setDetectedLanIp(lanIp || '');
+      if (tunnelUrl) setActiveTunnelUrl(tunnelUrl);
       setCustomHost(lanIp ? `${lanIp}:${port}` : window.location.host);
       setBridgeScanUrl(scanUrl);
       setBridgeSecondsLeft(300);
@@ -710,7 +712,7 @@ export function SecureDocumentInput({
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleHostUpdate('gentle-onions-guess.loca.lt')}
+                  onClick={() => handleHostUpdate(activeTunnelUrl)}
                   className="px-2 py-1 rounded-md text-[10px] font-semibold bg-cyan-500/20 text-cyan-900 dark:text-cyan-200 border border-cyan-500/40 hover:bg-cyan-500/30 transition cursor-pointer"
                   title="Public HTTPS Tunnel: bypasses Wi-Fi router isolation and Windows firewall"
                 >
@@ -739,16 +741,16 @@ export function SecureDocumentInput({
               </p>
             </div>
 
-            {/* Desktop Instant Test Button */}
+            {/* Desktop Instant Test Button (opens via localhost so Chrome allows webcam access) */}
             <div className="pt-2 border-t border-line flex flex-col gap-2 text-[11px]">
               <a
-                href={bridgeScanUrl}
+                href={bridgeSessionId ? `/scan-id/${bridgeSessionId}` : '#'}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full py-2 px-3 rounded-xl border border-lagoon/30 bg-lagoon/10 hover:bg-lagoon/20 font-semibold text-lagoon-dark transition text-center flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 <span>🧪</span>
-                <span>Open Mobile Scanner in New Tab (Test Instantly)</span>
+                <span>Open Mobile Scanner in New Tab (Test on this PC)</span>
               </a>
               <p className="text-[10px] text-muted leading-tight">
                 💡 If testing from phone, ensure Windows Firewall allows incoming connections on port 3000.

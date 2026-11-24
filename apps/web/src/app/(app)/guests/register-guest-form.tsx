@@ -7,6 +7,7 @@ import { FormSubmit } from '@/components/form-submit';
 import { PhoneCountryInput } from '@/components/phone-country-input';
 import { NationalityCombobox } from '@/components/nationality-combobox';
 import { IdDocumentInput } from '@/components/id-document-input';
+import { SecureDocumentInput } from '@/components/secure-document-input';
 import { saveGuest } from './actions';
 import { DEFAULT_COUNTRY, type CountryInfo } from '@/lib/countries';
 
@@ -146,21 +147,16 @@ export function RegisterGuestForm() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Identity documents <span className="text-danger font-bold">*</span>{' '}
-              <span className="font-normal text-muted">
-                (PDF, JPEG, PNG, WebP · max 5 MB each · up to 8 files)
-              </span>
-            </label>
-            <input
+            <SecureDocumentInput
+              id="guest-register-docs"
               name="documents"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,application/pdf"
-              multiple
-              required
-              className="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:rounded-xl file:border file:border-slate-300 dark:file:border-white/15 file:bg-white dark:file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-800 dark:file:text-white file:shadow-2xs hover:file:bg-slate-50 dark:hover:file:bg-white/15 cursor-pointer"
+              multiple={true}
+              required={true}
+              maxFiles={8}
+              label="Identity documents"
+              sublabel="(PDF, JPEG, PNG, WebP · Auto-compressed · up to 8 files)"
             />
-            <p className="mt-1.5 text-[11px] text-muted">
+            <p className="mt-2 text-[11px] text-muted">
               📍 <span className="font-semibold text-ink">Where to view after upload:</span> Once saved, view your encrypted document anytime in the <strong className="text-ink font-medium">Guest directory</strong> below by clicking <span className="rounded border border-line bg-surface px-1.5 py-0.5 text-[10px] font-semibold text-ink">View ID 👁️</span>.
             </p>
           </div>

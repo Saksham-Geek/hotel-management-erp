@@ -7,6 +7,7 @@ import { CustomDropdown } from '@/components/dropdown';
 import { PhoneCountryInput } from '@/components/phone-country-input';
 import { NationalityCombobox } from '@/components/nationality-combobox';
 import { IdDocumentInput } from '@/components/id-document-input';
+import { SecureDocumentInput } from '@/components/secure-document-input';
 import { DEFAULT_COUNTRY, type CountryInfo } from '@/lib/countries';
 
 type Guest = {
@@ -107,17 +108,14 @@ function IdentityUploadFields({
       </div>
 
       <div>
-        <label htmlFor={`${prefix}-file-input`} className="block text-[11px] font-semibold text-slate-700 dark:text-slate-300 mb-1">
-          Document file (PDF, JPEG, PNG, WebP) {required && <span className="text-rose-500" aria-hidden="true">*</span>}
-        </label>
-        <input
+        <SecureDocumentInput
           id={`${prefix}-file-input`}
           name={`${prefix}Documents`}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,application/pdf"
+          multiple={false}
           required={required}
-          aria-label="Upload identity document file"
-          className="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:rounded-xl file:border file:border-slate-300 dark:file:border-white/15 file:bg-white dark:file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-800 dark:file:text-white file:shadow-2xs hover:file:bg-slate-50 dark:hover:file:bg-white/15 cursor-pointer"
+          label="Document file (PDF, JPEG, PNG, WebP)"
+          sublabel="(Auto-compressed · max 5 MB)"
+          ariaLabel="Upload identity document file"
         />
       </div>
 

@@ -9,6 +9,7 @@ import { SecureDocumentViewer, type SecureDocument } from '@/components/secure-d
 import { PhoneCountryInput } from '@/components/phone-country-input';
 import { NationalityCombobox } from '@/components/nationality-combobox';
 import { IdDocumentInput } from '@/components/id-document-input';
+import { SecureDocumentInput } from '@/components/secure-document-input';
 import { formatDeterministicDate } from '@/lib/dates';
 import { formatDocumentFileName } from '@erp/shared';
 
@@ -320,20 +321,17 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                         <input name="aadhaarMasked" type="checkbox" defaultChecked={true} className="mt-0.5 h-4 w-4 accent-[hsl(var(--accent))]" />
                         <span>If Aadhaar, first eight digits are masked.</span>
                       </label>
-                      <label className="mt-3 block text-xs font-medium text-ink">
-                        Add identity documents (PDF, JPEG, PNG, WebP)
-                        <input
+                      <div className="mt-3">
+                        <SecureDocumentInput
+                          id={`guest-${guest.id}-docs`}
                           name="documents"
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp,application/pdf"
-                          multiple
-                          required
-                          className="mt-2 block w-full text-xs file:mr-2 file:rounded-md file:border-0 file:bg-ground file:px-3 file:py-2 file:text-xs file:font-semibold cursor-pointer"
+                          multiple={true}
+                          required={true}
+                          maxFiles={8}
+                          label="Add identity documents"
+                          sublabel="(Auto-compressed · max 5 MB per doc)"
                         />
-                      </label>
-                      <p className="mt-2 text-[10px] text-muted">
-                        PDF, JPEG, PNG or WebP · 5 MB per document · up to 8 files. Encrypted with AES-256-GCM.
-                      </p>
+                      </div>
                       <FormSubmit className={`${btnGhostCls} mt-3 w-full text-xs`} pendingLabel="Uploading…">
                         Upload securely
                       </FormSubmit>

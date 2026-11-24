@@ -1,5 +1,6 @@
 import { BadRequestException } from '@nestjs/common';
 import { createCipheriv, createHash, randomBytes, randomUUID } from 'node:crypto';
+import sharp from 'sharp';
 import type { PoolClient } from 'pg';
 import { guestIdentityAttachmentSchema, type GuestIdentityAttachment, formatDocumentFileName } from '@erp/shared';
 import type { AuthUser } from '../common/current-user';
@@ -57,6 +58,47 @@ export function decodeGuestDocument(encoded: string, mimeType: MimeType): Buffer
   return data;
 }
 
+/**
+ * Optimizes uploaded image buffers using Sharp: strips privacy-invasive EXIF GPS/device metadata,
+ * auto-orients based on camera orientation, constrains resolution to max 2048px, and compresses
+ * to reduce database payload footprint without compromising KYC text legibility.
+ */
+async function optimizeIncomingImage(data: Buffer, mimeType: MimeType): Promise<{ buffer: Buffer; mimeType: MimeType }> {
+  if (mimeType === 'application/pdf' || data.length < 500) {
+    return { buffer: data, mimeType };
+  }
+  try {
+    const sharpInstance = sharp(data).rotate();
+    const meta = await sharpInstance.metadata();
+    const maxDim = 2048;
+    if ((meta.width && meta.width > maxDim) || (meta.height && meta.height > maxDim)) {
+      sharpInstance.resize({
+        width: meta.width && meta.width > maxDim ? maxDim : undefined,
+        height: meta.height && meta.height > maxDim ? maxDim : undefined,
+        fit: 'inside',
+        withoutEnlargement: true,
+      });
+    }
+    let optimized: Buffer;
+    if (mimeType === 'image/jpeg') {
+      optimized = await sharpInstance.jpeg({ quality: 82, mozjpeg: true }).toBuffer();
+    } else if (mimeType === 'image/webp') {
+      optimized = await sharpInstance.webp({ quality: 82 }).toBuffer();
+    } else if (mimeType === 'image/png') {
+      optimized = await sharpInstance.png({ compressionLevel: 8 }).toBuffer();
+    } else {
+      optimized = await sharpInstance.toBuffer();
+    }
+    if (optimized.length > 0 && optimized.length <= data.length) {
+      return { buffer: optimized, mimeType };
+    }
+    return { buffer: data, mimeType };
+  } catch {
+    // If sharp fails on non-standard buffer, safely fallback to validated original
+    return { buffer: data, mimeType };
+  }
+}
+
 export async function persistGuestIdentityDocument(
   c: PoolClient,
   user: Pick<AuthUser, 'tenantId' | 'id'>,
@@ -70,7 +112,8 @@ export async function persistGuestIdentityDocument(
     throw new BadRequestException({ code: 'DOCUMENT_ENCRYPTION_NOT_CONFIGURED', message: 'Guest document encryption is not configured. Set GUEST_DOCUMENT_ENCRYPTION_KEY to a 64-character hex key.' });
   }
   const doc = parsed.data;
-  const data = decodeGuestDocument(doc.base64, doc.mimeType);
+  const rawData = decodeGuestDocument(doc.base64, doc.mimeType);
+  const { buffer: data, mimeType: finalMimeType } = await optimizeIncomingImage(rawData, doc.mimeType);
   const sha256 = createHash('sha256').update(data).digest('hex');
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', Buffer.from(env.guestDocumentEncryptionKey, 'hex'), iv);
@@ -81,7 +124,7 @@ export async function persistGuestIdentityDocument(
     [guestId],
   );
   const guestName = nameRow.rows[0]?.fullName;
-  const originalName = formatDocumentFileName(guestName, doc.documentType, doc.mimeType, false);
+  const originalName = formatDocumentFileName(guestName, doc.documentType, finalMimeType, false);
   const row = (await c.query(
     `insert into guest_documents (
        tenant_id, guest_id, document_type, original_name, mime_type, byte_length,
@@ -90,8 +133,8 @@ export async function persistGuestIdentityDocument(
      )
      values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$10,'postgres',$13, now() + interval '180 days', false)
      returning id, document_type as "documentType", created_at as "createdAt", retention_until as "retentionUntil", sha256_hash as "sha256Hash"`,
-    [user.tenantId, guestId, doc.documentType, originalName, doc.mimeType, data.length, ciphertext, iv, authTag, user.id, doc.consentMethod, GUEST_DOCUMENT_CONSENT_VERSION, sha256],
+    [user.tenantId, guestId, doc.documentType, originalName, finalMimeType, data.length, ciphertext, iv, authTag, user.id, doc.consentMethod, GUEST_DOCUMENT_CONSENT_VERSION, sha256],
   )).rows[0];
-  await audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'guest.document.upload', entity: 'guest_document', entityId: row.id, meta: { guestId, mimeType: doc.mimeType, byteLength: data.length, sha256 } });
+  await audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'guest.document.upload', entity: 'guest_document', entityId: row.id, meta: { guestId, mimeType: finalMimeType, byteLength: data.length, sha256 } });
   return row;
 }

@@ -38,7 +38,7 @@ export default async function RoomsPage({ searchParams }: { searchParams: Promis
         </div>
       )}
 
-      <section aria-label="Room inventory summary" className="mb-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section aria-label="Room inventory summary" className="mb-8 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
         <StatCard label="Total rooms" value={rooms.length} detail={`${types.length} room types`} />
         <StatCard label="Ready" value={ready} detail="Available for sale" />
         <StatCard label="Occupied" value={occupied} detail="Active stays" />

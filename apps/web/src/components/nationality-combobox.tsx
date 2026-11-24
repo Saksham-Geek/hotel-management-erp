@@ -143,7 +143,7 @@ export function NationalityCombobox({
 
       {/* Searchable Options Popover */}
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-xl animate-in fade-in-50 zoom-in-95 duration-150 overflow-hidden">
+        <div className="absolute left-0 top-full z-50 mt-1.5 w-full min-w-[260px] max-w-[min(100vw-32px,420px)] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-xl animate-in fade-in-50 zoom-in-95 duration-150 overflow-hidden">
           <div className="px-3 py-1.5 bg-slate-50/70 dark:bg-white/[0.03] border-b border-slate-100 dark:border-white/10 text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
             <span>Search Country, Code, or Dial Code</span>
             <span>{filteredCountries.length} matches</span>

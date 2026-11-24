@@ -489,7 +489,7 @@ export function KeycardsView({
 
           {/* Key Cabinet Grid matching Site Theme */}
           <div className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02] p-5 sm:p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-5 2xl:grid-cols-6 gap-3.5 sm:gap-4">
               {filteredBrassKeys.map((key) => {
                 const roomStays = activeStays.filter(
                   (s) => String(s.roomNumber).trim() === String(key.roomNumber).trim(),
@@ -891,7 +891,7 @@ export function KeycardsView({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
             {activeStays.map((stay) => {
               const matchKey = keys.find(
                 (k) => String(k.roomNumber).trim() === String(stay.roomNumber).trim(),

@@ -188,45 +188,45 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
       </div>
 
       {/* Top Marketing KPI Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
             Guest CRM Profiles
           </p>
-          <p className="mt-2 text-3xl font-black text-slate-950">{data.metrics.totalGuests}</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium">
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">{data.metrics.totalGuests}</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">
             {data.metrics.platinumGuests} VIP Platinum &amp; Kohinoor
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
             Review Outreach Sent
           </p>
-          <p className="mt-2 text-3xl font-black text-slate-950">
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">
             {data.metrics.totalFollowUpsSent}
           </p>
-          <p className="mt-1 text-xs text-emerald-700 font-semibold">
+          <p className="mt-1 text-xs text-emerald-700 font-semibold truncate">
             {data.metrics.reviewConversionRate}% conversion rate
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
             Guest NPS Rating
           </p>
-          <div className="mt-2 flex items-baseline gap-1.5">
-            <span className="text-3xl font-black text-slate-950">★ {data.metrics.averageNpsRating}</span>
+          <div className="mt-2 flex items-baseline gap-1.5 truncate">
+            <span className="text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight">★ {data.metrics.averageNpsRating}</span>
             <span className="text-sm font-medium text-slate-400">/ 5.0</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500 font-medium">{data.metrics.reviewsReceived} verified reviews</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">{data.metrics.reviewsReceived} verified reviews</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
             Repeat Guest Ratio
           </p>
-          <p className="mt-2 text-3xl font-black text-slate-950">
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">
             {data.metrics.repeatGuestRatio}
           </p>
-          <p className="mt-1 text-xs text-slate-500 font-medium">High lifetime value (LTV)</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">High lifetime value (LTV)</p>
         </div>
       </div>
 

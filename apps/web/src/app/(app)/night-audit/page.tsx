@@ -125,7 +125,7 @@ export default async function NightAuditPage({
         </div>
 
         {/* Audit Readiness Indicators */}
-        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 p-5">
           <StatCard
             label="In-House Rooms"
             value={status.inHouseRooms}

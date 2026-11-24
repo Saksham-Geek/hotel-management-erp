@@ -558,55 +558,55 @@ export function TapeChartView({
   return (
     <div className="space-y-6">
       {/* 1. Bundled Notes Pastel KPI Bar with Signature Accent Dashes */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-[#f4fbf7] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#f4fbf7] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-emerald-500 block mb-3" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-900">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-900 truncate">
             Total Inventory
           </p>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
+          <div className="mt-1 flex items-baseline gap-2 truncate">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight tabular-nums">
               {rooms.length} Keys
             </span>
-            <span className="text-xs font-semibold text-emerald-800">
+            <span className="text-xs font-semibold text-emerald-800 shrink-0">
               Across 3 Floors
             </span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-[#f4faff] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#f4faff] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-sky-500 block mb-3" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-900">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-900 truncate">
             Current Occupancy
           </p>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
+          <div className="mt-1 flex items-baseline gap-2 truncate">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight tabular-nums">
               {metrics.inHouse} Active
             </span>
-            <span className="rounded-full bg-sky-100 border border-sky-300 px-2 py-0.5 text-xs font-black text-sky-950">
+            <span className="rounded-full bg-sky-100 border border-sky-300 px-2 py-0.5 text-xs font-black text-sky-950 shrink-0">
               {metrics.occPct}%
             </span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-[#faf8ff] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#faf8ff] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-purple-500 block mb-3" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-purple-900">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-purple-900 truncate">
             Upcoming Bookings
           </p>
-          <div className="mt-1 flex items-baseline gap-2">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight">
+          <div className="mt-1 flex items-baseline gap-2 truncate">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight tabular-nums">
               {metrics.upcoming}
             </span>
-            <span className="text-xs font-semibold text-purple-800">
+            <span className="text-xs font-semibold text-purple-800 shrink-0">
               Confirmed Stays
             </span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-[#fffcf4] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#fffcf4] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-amber-500 block mb-3" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-900">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-900 truncate">
             Distribution Channels
           </p>
           <div className="mt-2 flex items-center gap-1.5 flex-wrap">

@@ -57,9 +57,9 @@ export function IncomeDashboardView({
   return (
     <div className="space-y-6 pb-12 print:space-y-4 print:pb-0">
       {/* 1. Executive Top Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-slate-200/80 pb-5">
-        <div>
-          <div className="flex items-center gap-2.5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-5">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 border border-purple-300 px-3 py-0.5 text-xs font-black text-purple-950 uppercase tracking-wider shadow-2xs">
               <span>👑</span>
               <span>Owner &amp; Board Confidential</span>
@@ -70,7 +70,7 @@ export function IncomeDashboardView({
             </span>
           </div>
 
-          <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight font-display">
+          <h1 className="mt-2 text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-950 tracking-tight font-display break-words">
             Executive Income &amp; Revenue Analytics
           </h1>
           <p className="mt-1 text-xs sm:text-sm text-slate-600 font-medium">
@@ -79,11 +79,11 @@ export function IncomeDashboardView({
         </div>
 
         {/* Executive Actions */}
-        <div className="flex items-center gap-3 print:hidden">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 print:hidden shrink-0">
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-50 hover:border-slate-400 transition-all active:scale-95"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 sm:px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-50 hover:border-slate-400 transition-all active:scale-95"
             title="Generate print-ready Executive Board Pack & P&L Statement"
           >
             <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -95,7 +95,7 @@ export function IncomeDashboardView({
           <button
             type="button"
             onClick={() => applyPeriod(activePeriod)}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-all active:scale-95"
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 sm:px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-all active:scale-95"
           >
             <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -107,7 +107,7 @@ export function IncomeDashboardView({
 
       {/* 2. Interactive Period & Calendar Selection Bar */}
       <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:p-4 shadow-sm print:hidden">
-        <div className="flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-3.5 xl:flex-row xl:items-center xl:justify-between">
           {/* Quick Period Selector Tabs */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
             {[
@@ -134,7 +134,7 @@ export function IncomeDashboardView({
                       applyPeriod(p.id);
                     }
                   }}
-                  className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs ${
+                  className={`rounded-xl px-3 sm:px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs ${
                     active
                       ? 'bg-slate-950 text-white shadow-xs'
                       : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/80'
@@ -147,8 +147,8 @@ export function IncomeDashboardView({
           </div>
 
           {/* Active Period Date Badge */}
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-1.5 self-start lg:self-auto">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-1.5 self-start xl:self-auto shrink-0 whitespace-nowrap">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
             <span>Auditing:</span>
             <strong className="text-slate-900 font-mono">
               {initialData.startDate}
@@ -237,64 +237,84 @@ export function IncomeDashboardView({
       </div>
 
       {/* 3. Executive KPI Cards (Taj / ITC Standard) */}
-      <div className="grid grid-cols-2 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Gross Revenue */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Gross Revenue (Income)</span>
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <span className="truncate">Gross Revenue (Income)</span>
+              <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 ml-2" />
+            </div>
+            <div
+              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-slate-950 tracking-tight tabular-nums truncate"
+              title={formatMoney(summary.grossRevenue, currency)}
+            >
+              {formatMoney(summary.grossRevenue, currency)}
+            </div>
           </div>
-          <div className="mt-2 font-mono text-2xl sm:text-3xl font-black text-slate-950">
-            {formatMoney(summary.grossRevenue, currency)}
-          </div>
-          <p className="mt-1.5 text-xs text-slate-500 font-medium">
+          <p className="mt-2 text-xs text-slate-500 font-medium truncate">
             TRevPAR: <strong className="text-slate-900 font-mono">{formatMoney(summary.trevpar, currency)}</strong> / room
           </p>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
         </div>
 
         {/* Net Operating Income */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Net Operating Income</span>
-            <span className="h-2 w-2 rounded-full bg-purple-500" />
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <span className="truncate">Net Operating Income</span>
+              <span className="h-2 w-2 rounded-full bg-purple-500 shrink-0 ml-2" />
+            </div>
+            <div
+              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-purple-950 tracking-tight tabular-nums truncate"
+              title={formatMoney(summary.netRevenue, currency)}
+            >
+              {formatMoney(summary.netRevenue, currency)}
+            </div>
           </div>
-          <div className="mt-2 font-mono text-2xl sm:text-3xl font-black text-purple-950">
-            {formatMoney(summary.netRevenue, currency)}
-          </div>
-          <p className="mt-1.5 text-xs text-slate-500 font-medium">
+          <p className="mt-2 text-xs text-slate-500 font-medium truncate">
             Pre-tax hotel earnings excluding GST
           </p>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-500" />
         </div>
 
         {/* Statutory Indian GST Accrued */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Statutory GST Collected</span>
-            <span className="rounded bg-amber-100 px-1.5 py-0.2 text-[9px] font-black text-amber-900">
-              12% / 18% / 5%
-            </span>
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <span className="truncate">Statutory GST Collected</span>
+              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-black text-amber-900 shrink-0 ml-2">
+                12% / 18% / 5%
+              </span>
+            </div>
+            <div
+              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-amber-950 tracking-tight tabular-nums truncate"
+              title={formatMoney(summary.totalGst, currency)}
+            >
+              {formatMoney(summary.totalGst, currency)}
+            </div>
           </div>
-          <div className="mt-2 font-mono text-2xl sm:text-3xl font-black text-amber-950">
-            {formatMoney(summary.totalGst, currency)}
-          </div>
-          <p className="mt-1.5 text-xs text-slate-500 font-medium">
+          <p className="mt-2 text-xs text-slate-500 font-medium truncate">
             Dual-slab room &amp; dining tax for GSTR-1
           </p>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
         </div>
 
         {/* Realized Collections & Cashiering */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
-            <span>Realized Collections</span>
-            <span className="h-2 w-2 rounded-full bg-blue-500" />
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+          <div className="min-w-0">
+            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+              <span className="truncate">Realized Collections</span>
+              <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0 ml-2" />
+            </div>
+            <div
+              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-blue-950 tracking-tight tabular-nums truncate"
+              title={formatMoney(summary.totalPayments, currency)}
+            >
+              {formatMoney(summary.totalPayments, currency)}
+            </div>
           </div>
-          <div className="mt-2 font-mono text-2xl sm:text-3xl font-black text-blue-950">
-            {formatMoney(summary.totalPayments, currency)}
-          </div>
-          <p className="mt-1.5 text-xs text-slate-500 font-medium truncate">
+          <p className="mt-2 text-xs text-slate-500 font-medium truncate">
             City Ledger AR: <strong className="text-slate-900 font-mono">{formatMoney(summary.outstandingBalance, currency)}</strong>
           </p>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-sky-500" />
@@ -302,43 +322,49 @@ export function IncomeDashboardView({
       </div>
 
       {/* Secondary Benchmark Yield Cards */}
-      <div className="grid grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
         {/* RevPAR */}
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs min-w-0">
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
             RevPAR (Room Yield)
           </div>
-          <div className="mt-1 font-mono text-xl sm:text-2xl font-black text-slate-950">
+          <div
+            className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-slate-950 tracking-tight tabular-nums truncate"
+            title={formatMoney(summary.revpar, currency)}
+          >
             {formatMoney(summary.revpar, currency)}
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 text-[11px] text-slate-500 truncate">
             Revenue per available room night
           </p>
         </div>
 
         {/* ADR */}
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs min-w-0">
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
             ADR / ARR (Avg Rate)
           </div>
-          <div className="mt-1 font-mono text-xl sm:text-2xl font-black text-slate-950">
+          <div
+            className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-slate-950 tracking-tight tabular-nums truncate"
+            title={formatMoney(summary.adr, currency)}
+          >
             {formatMoney(summary.adr, currency)}
           </div>
-          <p className="mt-1 text-[11px] text-slate-500">
+          <p className="mt-1 text-[11px] text-slate-500 truncate">
             Average realization per sold room
           </p>
         </div>
 
         {/* Occupancy % */}
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs min-w-0">
+          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
             Average Occupancy
           </div>
-          <div className="mt-1 font-mono text-xl sm:text-2xl font-black text-slate-950">
+          <div className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-slate-950 tracking-tight tabular-nums truncate">
             {summary.occupancyRate}%
           </div>
           <p className="mt-1 text-[11px] text-slate-500 truncate">
-            {summary.roomsSold} nights of {summary.totalAvailableRooms} keys
+            {summary.roomsSold} nights of {summary.totalAvailableRooms * 24} keys
           </p>
         </div>
       </div>
@@ -922,21 +948,21 @@ export function IncomeDashboardView({
           </span>
         </div>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {roomTypes.map((rt) => (
-            <div key={rt.roomType} className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-900">
+            <div key={rt.roomType} className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 min-w-0">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-900 gap-2">
                 <span className="truncate">{rt.roomType}</span>
-                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] border shadow-2xs font-mono">
+                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] border shadow-2xs font-mono shrink-0">
                   {rt.sharePct}%
                 </span>
               </div>
-              <div className="mt-2 font-mono text-lg font-black text-slate-950">
+              <div className="mt-2 font-mono text-base sm:text-lg 2xl:text-xl font-black text-slate-950 tracking-tight tabular-nums truncate" title={formatMoney(rt.amount, currency)}>
                 {formatMoney(rt.amount, currency)}
               </div>
-              <div className="mt-1 flex items-center justify-between text-xs text-slate-500 font-medium">
-                <span>ADR: <strong className="text-slate-900 font-mono">{formatMoney(rt.adr, currency)}</strong></span>
-                <span>{rt.nightsSold} nights</span>
+              <div className="mt-1 flex items-center justify-between text-xs text-slate-500 font-medium gap-2">
+                <span className="truncate">ADR: <strong className="text-slate-900 font-mono">{formatMoney(rt.adr, currency)}</strong></span>
+                <span className="shrink-0">{rt.nightsSold} nights</span>
               </div>
             </div>
           ))}

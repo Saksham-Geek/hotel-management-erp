@@ -168,16 +168,21 @@ export function FolioView({
         </div>
 
         {/* Financial KPI Summary */}
-        <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
           <StatCard label="Subtotal (Taxable)" value={money(folio.subtotal, currency)} detail="Tariff & Services" />
           <StatCard label="GST Total" value={money(folio.taxTotal, currency)} detail="CGST + SGST / IGST" />
           <StatCard label="Total Billed" value={money(folio.total, currency)} detail="Inclusive of Taxes" />
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Balance Due</p>
-            <p className={`mt-2 font-display text-2xl sm:text-3xl font-black ${folio.balanceDue > 0 ? 'text-rose-700' : 'text-emerald-700'}`}>
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Balance Due</p>
+            <div
+              className={`mt-2 font-display text-2xl sm:text-3xl font-black tabular-nums tracking-tight truncate ${
+                folio.balanceDue > 0 ? 'text-rose-700' : 'text-emerald-700'
+              }`}
+              title={money(folio.balanceDue, currency)}
+            >
               {money(folio.balanceDue, currency)}
-            </p>
-            <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500">
+            </div>
+            <p className="mt-1 text-xs sm:text-sm font-medium text-slate-500 truncate">
               {folio.paidTotal > 0 ? `Paid: ${money(folio.paidTotal, currency)}` : 'No payments yet'}
             </p>
           </div>

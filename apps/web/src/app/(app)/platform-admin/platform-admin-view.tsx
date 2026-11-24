@@ -199,100 +199,100 @@ export function PlatformAdminView({
       />
 
       {/* 2. SaaS Financial & Operational KPIs */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3.5 sm:gap-4">
         {/* MRR */}
-        <div className="rounded-2xl border border-slate-200/80 bg-[#f4fbf7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#f4fbf7] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-emerald-500 block mb-2.5" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-900">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-emerald-900 truncate">
             Monthly Recurring (MRR)
           </p>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono">
+          <div className="mt-1 flex items-baseline gap-1.5 truncate">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono tabular-nums">
               ₹{metrics.mrr.toLocaleString()}
             </span>
           </div>
-          <p className="mt-1 text-[10px] font-semibold text-emerald-800">
+          <p className="mt-1 text-[10px] font-semibold text-emerald-800 truncate">
             Active monthly subscriptions
           </p>
         </div>
 
         {/* ARR */}
-        <div className="rounded-2xl border border-slate-200/80 bg-[#f4faff] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#f4faff] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-sky-500 block mb-2.5" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-sky-900">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-sky-900 truncate">
             Annual Run-Rate (ARR)
           </p>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono">
+          <div className="mt-1 flex items-baseline gap-1.5 truncate">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono tabular-nums">
               ₹{(metrics.arr / 100000).toFixed(2)}L
             </span>
           </div>
-          <p className="mt-1 text-[10px] font-semibold text-sky-800">
+          <p className="mt-1 text-[10px] font-semibold text-sky-800 truncate">
             ₹{metrics.arr.toLocaleString()} annualized
           </p>
         </div>
 
         {/* Active Hotels */}
-        <div className="rounded-2xl border border-slate-200/80 bg-[#faf8ff] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#faf8ff] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-purple-500 block mb-2.5" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-purple-900">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-purple-900 truncate">
             Active Hotel Clients
           </p>
-          <div className="mt-1 flex items-baseline gap-1.5">
+          <div className="mt-1 flex items-baseline gap-1.5 truncate">
             <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight">
               {metrics.activeTenantsCount} Groups
             </span>
           </div>
-          <p className="mt-1 text-[10px] font-semibold text-purple-800">
+          <p className="mt-1 text-[10px] font-semibold text-purple-800 truncate">
             {metrics.activePropertiesCount} physical properties
           </p>
         </div>
 
         {/* Total Rooms */}
-        <div className="rounded-2xl border border-slate-200/80 bg-[#fffcf4] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#fffcf4] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-amber-500 block mb-2.5" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900 truncate">
             Total Keys Powered
           </p>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono">
+          <div className="mt-1 flex items-baseline gap-1.5 truncate">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono tabular-nums">
               {metrics.totalRoomsPowered}
             </span>
             <span className="text-xs font-bold text-amber-900">Rooms</span>
           </div>
-          <p className="mt-1 text-[10px] font-semibold text-amber-800">
+          <p className="mt-1 text-[10px] font-semibold text-amber-800 truncate">
             Live inventory under ERP
           </p>
         </div>
 
         {/* Lifetime Revenue */}
-        <div className="rounded-2xl border border-slate-200/80 bg-[#fdf4ff] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#fdf4ff] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-fuchsia-500 block mb-2.5" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-fuchsia-900">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-fuchsia-900 truncate">
             Lifetime Platform Income
           </p>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono">
+          <div className="mt-1 flex items-baseline gap-1.5 truncate">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono tabular-nums">
               ₹{(metrics.lifetimeRevenue / 100000).toFixed(2)}L
             </span>
           </div>
-          <p className="mt-1 text-[10px] font-semibold text-fuchsia-800">
+          <p className="mt-1 text-[10px] font-semibold text-fuchsia-800 truncate">
             ₹{metrics.lifetimeRevenue.toLocaleString()} cumulative
           </p>
         </div>
 
         {/* Churn Rate */}
-        <div className="rounded-2xl border border-slate-200/80 bg-[#fff5f5] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
+        <div className="rounded-2xl border border-slate-200/80 bg-[#fff5f5] p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-rose-500 block mb-2.5" />
-          <p className="text-[11px] font-bold uppercase tracking-wider text-rose-900">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-rose-900 truncate">
             SaaS Net Churn
           </p>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono">
+          <div className="mt-1 flex items-baseline gap-1.5 truncate">
+            <span className="text-xl sm:text-2xl font-extrabold text-slate-950 tracking-tight font-mono tabular-nums">
               {metrics.churnRate}%
             </span>
           </div>
-          <p className="mt-1 text-[10px] font-semibold text-rose-800">
+          <p className="mt-1 text-[10px] font-semibold text-rose-800 truncate">
             {metrics.churnedCount} canceled · {metrics.pastDueCount} past due
           </p>
         </div>

@@ -180,7 +180,7 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                                     <button
                                       type="button"
                                       onClick={() => toggleInlinePreview(document.id)}
-                                      className="text-xs font-bold text-ink hover:text-lagoon-dark text-left cursor-pointer truncate max-w-[200px] sm:max-w-[320px]"
+                                      className="text-xs font-bold text-ink hover:text-lagoon-dark text-left cursor-pointer truncate max-w-[160px] sm:max-w-[280px] md:max-w-[420px]"
                                       title="Toggle document preview"
                                     >
                                       📄 {docDisplayName}

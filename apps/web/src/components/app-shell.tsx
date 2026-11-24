@@ -313,10 +313,10 @@ export function AppShell({
 
             {/* Breadcrumb Navigation */}
             <nav aria-label="Breadcrumb" className="min-w-0">
-              <ol className="flex items-center gap-2 text-xs font-medium list-none p-0 m-0">
-                <li className="text-slate-500">{property.name}</li>
-                <li className="text-slate-300" aria-hidden="true">/</li>
-                <li className="font-semibold text-slate-900" aria-current="page">
+              <ol className="flex items-center gap-1.5 sm:gap-2 text-xs font-medium list-none p-0 m-0">
+                <li className="text-slate-500 truncate max-w-[100px] sm:max-w-[180px] lg:max-w-none">{property.name}</li>
+                <li className="text-slate-300 shrink-0" aria-hidden="true">/</li>
+                <li className="font-semibold text-slate-900 truncate max-w-[130px] sm:max-w-[220px] lg:max-w-none" aria-current="page">
                   {pageNames[pathname] ?? 'Hotel Operations'}
                 </li>
               </ol>
@@ -324,20 +324,20 @@ export function AppShell({
           </div>
 
           {/* Header Right Actions */}
-          <div className="flex shrink-0 items-center gap-2.5 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5 lg:gap-3">
             {/* Quick ERP Guide & Journeys Pill */}
             <Link
               href="/guide"
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
+              className="hidden xs:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
               title="Click to view SOP, Page Directory & Step-by-Step Journeys"
             >
-              <span>📖 SOP & Journeys</span>
+              <span>📖 <span className="hidden sm:inline">SOP &amp; </span>Journeys</span>
             </Link>
 
             {/* Live Indian Time & Date Capsule */}
             <span
               suppressHydrationWarning
-              className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-medium text-slate-700 shadow-2xs lg:inline-flex"
+              className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-medium text-slate-700 shadow-2xs xl:inline-flex"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
               {new Intl.DateTimeFormat('en-IN', {
@@ -351,12 +351,12 @@ export function AppShell({
             {/* Tier / Edition Link Capsule */}
             <Link
               href="/upgrade"
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
             >
-              <span>{plan === 'enterprise' ? '👑 Enterprise Edition' : plan === 'growth' || plan === 'plus' ? '⚡ Growth Edition' : '🌱 Starter Edition'}</span>
+              <span>{plan === 'enterprise' ? '👑 Enterprise' : plan === 'growth' || plan === 'plus' ? '⚡ Growth' : '🌱 Starter'}<span className="hidden md:inline"> Edition</span></span>
             </Link>
 
-            <span className="hidden rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium capitalize text-slate-700 shadow-2xs sm:inline-flex">
+            <span className="hidden rounded-full border border-slate-200 bg-white px-2.5 sm:px-3 py-1 text-xs font-medium capitalize text-slate-700 shadow-2xs sm:inline-flex">
               {role.replaceAll('_', ' ')}
             </span>
           </div>

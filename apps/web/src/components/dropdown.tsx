@@ -359,7 +359,7 @@ export function CustomDropdown({
             align === 'right' ? 'right-0' : 'left-0'
           } ${
             opensUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-          } z-[100] max-h-64 w-full min-w-[180px] overflow-y-auto rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0c1222]/95 p-1.5 shadow-xl shadow-slate-950/15 backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150`}
+          } z-[100] max-h-64 w-full min-w-[180px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0c1222]/95 p-1.5 shadow-xl shadow-slate-950/15 backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150`}
         >
           <div className="flex flex-col gap-0.5" role="presentation">
             {options.map((opt, idx) => {

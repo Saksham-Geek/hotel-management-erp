@@ -3036,30 +3036,30 @@ export function RestaurantPosView({
           </div>
 
           {currentShift ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs">
-                <span className="text-[11px] font-bold text-slate-500">Active Shift:</span>
-                <p className="font-display text-base font-black text-slate-950">{currentShift.shiftName}</p>
-                <p className="text-[10px] text-slate-400">Opened by: {currentShift.openedBy}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs min-w-0">
+                <span className="text-[11px] font-bold text-slate-500 truncate block">Active Shift:</span>
+                <p className="font-display text-base font-black text-slate-950 truncate">{currentShift.shiftName}</p>
+                <p className="text-[10px] text-slate-400 truncate">Opened by: {currentShift.openedBy}</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs">
-                <span className="text-[11px] font-bold text-slate-500">Opening Cash Float:</span>
-                <p className="font-display text-base font-black text-emerald-700">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs min-w-0">
+                <span className="text-[11px] font-bold text-slate-500 truncate block">Opening Cash Float:</span>
+                <p className="font-display text-base font-black text-emerald-700 font-mono tabular-nums truncate">
                   ₹{Number(currentShift.openingCash).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-[10px] text-slate-400">Drawer starting cash balance</p>
+                <p className="text-[10px] text-slate-400 truncate">Drawer starting cash balance</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs">
-                <span className="text-[11px] font-bold text-slate-500">Shift Started At:</span>
-                <p className="font-mono text-xs font-bold text-slate-800">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs min-w-0">
+                <span className="text-[11px] font-bold text-slate-500 truncate block">Shift Started At:</span>
+                <p className="font-mono text-xs font-bold text-slate-800 tabular-nums truncate">
                   {formatDeterministicTime(currentShift.openedAt)}
                 </p>
-                <p className="text-[10px] text-slate-400">{formatDeterministicDate(currentShift.openedAt)}</p>
+                <p className="text-[10px] text-slate-400 truncate">{formatDeterministicDate(currentShift.openedAt)}</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs">
+              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs min-w-0">
                 <span className="text-[11px] font-bold text-slate-500">Cashier Actions:</span>
                 <button
                   type="button"

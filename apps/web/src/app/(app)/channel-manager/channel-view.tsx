@@ -59,7 +59,7 @@ export function ChannelView({
   return (
     <div className="space-y-8">
       {/* KPI Overview Bar */}
-      <section aria-label="OTA Performance" className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <section aria-label="OTA Performance" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard
           label="Active Connected OTAs"
           value={`${activeChannelsCount} / ${channels.length}`}

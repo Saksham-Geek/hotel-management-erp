@@ -16,7 +16,7 @@ export default async function Housekeeping({ searchParams }: { searchParams: Pro
     <>
       <PageHeader title="Housekeeping" eyebrow="Room operations" description="Rooms needing attention after a stay or during maintenance." />
       <Banner error={error} ok={ok} />
-      <section aria-label="Housekeeping queue summary" className="mb-6 grid grid-cols-2 gap-3">
+      <section aria-label="Housekeeping queue summary" className="mb-6 grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-4">
         <StatCard label="Ready for cleaning" value={cleaning.length} detail="Mark ready when service is complete" />
         <StatCard label="Maintenance" value={maintenance.length} detail="Unavailable for guest stays" />
       </section>

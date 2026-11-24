@@ -1590,7 +1590,7 @@ export function SettingsView({
               </div>
             ) : (
               <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
-                <table className="w-full text-left text-xs" aria-label="Menu dishes catalog">
+                <table className="w-full min-w-[720px] text-left text-xs" aria-label="Menu dishes catalog">
                   <thead className="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
                     <tr>
                       <th scope="col" className="px-4 py-3">Code</th>

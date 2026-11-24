@@ -227,9 +227,9 @@ export function StatCard({
   icon?: ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-6 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-600">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md min-w-0">
+      <div className="flex items-center justify-between gap-3 min-w-0">
+        <p className="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-600 truncate">
           {label}
         </p>
         {icon && (
@@ -238,10 +238,10 @@ export function StatCard({
           </span>
         )}
       </div>
-      <p className="mt-3 font-display text-3xl sm:text-4xl font-black tracking-tight text-slate-950">
+      <div className="mt-3 font-display text-2xl sm:text-3xl lg:text-3xl 2xl:text-4xl font-black tracking-tight text-slate-950 tabular-nums break-words min-w-0 truncate">
         {value}
-      </p>
-      {detail && <p className="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600">{detail}</p>}
+      </div>
+      {detail && <p className="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600 truncate">{detail}</p>}
     </div>
   );
 }

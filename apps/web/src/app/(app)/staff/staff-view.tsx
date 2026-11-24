@@ -144,28 +144,28 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Hotel Staff</p>
-          <p className="mt-2 text-3xl font-black text-slate-950">{data.summary.total}</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium">{data.summary.active} active accounts</p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Total Hotel Staff</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">{data.summary.total}</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">{data.summary.active} active accounts</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Property Owners &amp; GMs</p>
-          <p className="mt-2 text-3xl font-black text-slate-950">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Property Owners &amp; GMs</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">
             {data.hierarchy.owners.length + data.hierarchy.managers.length}
           </p>
-          <p className="mt-1 text-xs text-slate-500 font-medium">Executive leadership</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Executive leadership</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Front Desk &amp; Cashiers</p>
-          <p className="mt-2 text-3xl font-black text-slate-950">{data.hierarchy.frontdesk.length}</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium">Check-in, Billing &amp; BoI</p>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Front Desk &amp; Cashiers</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">{data.hierarchy.frontdesk.length}</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Check-in, Billing &amp; BoI</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Housekeeping &amp; Floor</p>
-          <p className="mt-2 text-3xl font-black text-slate-950">{data.hierarchy.housekeeping.length}</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium">Turnover &amp; maintenance</p>
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Housekeeping &amp; Floor</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">{data.hierarchy.housekeeping.length}</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Turnover &amp; maintenance</p>
         </div>
       </div>
 
@@ -263,7 +263,8 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
       {/* Tab 1: All Staff Table */}
       {activeTab === 'all' && (
         <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-          <table className="w-full text-left">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[750px] text-left">
             <thead className="border-b border-slate-200 bg-slate-100/90 font-black uppercase tracking-wider text-xs text-slate-800">
               <tr>
                 <th className="px-5 py-4">Staff Member</th>
@@ -344,6 +345,7 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
               )}
             </tbody>
           </table>
+          </div>
         </div>
       )}
 

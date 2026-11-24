@@ -149,40 +149,40 @@ export function SuperAdminView({
       </div>
 
       {/* Chain-Wide Portfolio Metric Cards */}
-      <section aria-label="Portfolio KPIs" className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hotels In Chain</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950">
+      <section aria-label="Portfolio KPIs" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Hotels In Chain</p>
+          <div className="mt-2 flex items-baseline gap-2 truncate">
+            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950 tabular-nums">
               {metrics.totalHotels}
             </span>
-            <span className="rounded-full bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+            <span className="rounded-full bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 text-xs font-semibold text-emerald-800 shrink-0">
               {metrics.activeHotels} Active
             </span>
           </div>
-          <p className="mt-1 text-xs text-slate-500 font-medium">Across organization</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Across organization</p>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Total Chain Rooms</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Total Chain Rooms</p>
+          <div className="mt-2 flex items-baseline gap-2 truncate">
+            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950 tabular-nums">
               {metrics.totalRooms}
             </span>
-            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
+            <span className="rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-xs font-semibold text-blue-800 shrink-0">
               {metrics.totalReady} Ready
             </span>
           </div>
-          <p className="mt-1 text-xs text-slate-500 font-medium">Live room inventory</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Live room inventory</p>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Portfolio Occupancy</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Portfolio Occupancy</p>
+          <div className="mt-2 flex items-baseline gap-2 truncate">
+            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950 tabular-nums">
               {metrics.occupancyRate}%
             </span>
-            <span className="text-xs font-medium text-slate-500">({metrics.totalOccupied} In-House)</span>
+            <span className="text-xs font-medium text-slate-500 shrink-0">({metrics.totalOccupied} In-House)</span>
           </div>
           <div className="mt-2.5 h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
             <div
@@ -192,15 +192,15 @@ export function SuperAdminView({
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hospitality Team</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Hospitality Team</p>
+          <div className="mt-2 flex items-baseline gap-2 truncate">
+            <span className="font-display text-2xl sm:text-3xl font-black text-slate-950 tabular-nums">
               {metrics.totalStaff}
             </span>
-            <span className="text-xs font-medium text-slate-500">Staff &amp; Managers</span>
+            <span className="text-xs font-medium text-slate-500 shrink-0">Staff &amp; Managers</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500 font-medium">Authorized user accounts</p>
+          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Authorized user accounts</p>
         </div>
       </section>
 
@@ -487,7 +487,8 @@ export function SuperAdminView({
               </div>
             </div>
 
-            <table className="w-full border-collapse text-left text-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[700px] border-collapse text-left text-xs">
               <thead>
                 <tr className="border-b border-line bg-slate-100/70 text-slate-800 font-black uppercase text-[11px]">
                   <th className="px-5 py-3.5">Staff Member</th>
@@ -559,7 +560,8 @@ export function SuperAdminView({
               </tbody>
             </table>
           </div>
-        </section>
+        </div>
+      </section>
       )}
 
       {/* TAB 3: ERP ROLES & WORKFLOW GUIDE */}

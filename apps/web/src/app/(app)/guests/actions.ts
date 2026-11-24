@@ -8,7 +8,10 @@ export async function saveGuest(fd: FormData) {
   let guestCreated = false;
   try {
     const documents = await prepareGuestDocuments(fd);
-    if (documents.length && (fd.get('consentGiven') !== 'on' || !fd.get('consentMethod'))) {
+    if (!documents.length) {
+      throw new Error('Upload at least one identity document file (PDF, JPEG, PNG, or WebP). Uploading an identity document is mandatory for statutory hotel KYC compliance.');
+    }
+    if (fd.get('consentGiven') !== 'on' || !fd.get('consentMethod')) {
       throw new Error('Confirm the guest was informed and record how consent was obtained before uploading identity documents.');
     }
 
@@ -26,6 +29,9 @@ export async function saveGuest(fd: FormData) {
     if (idType.toLowerCase() === 'aadhaar' && !/^\d{4}$/.test(idNumber)) {
       throw new Error('For Aadhaar, enter only the last 4 digits.');
     }
+    if (idType.toLowerCase() === 'aadhaar' && fd.get('aadhaarMasked') !== 'on') {
+      throw new Error('For Aadhaar, confirm that the first eight digits are masked.');
+    }
 
     const guest = await api<{ id: string }>('/hotel/guests', { method: 'POST', body: JSON.stringify({
       fullName,
@@ -38,14 +44,13 @@ export async function saveGuest(fd: FormData) {
       vip: fd.get('vip') === 'on',
     }) });
     guestCreated = true;
-    if (documents.length) {
-      await api(`/hotel/guests/${guest.id}/documents`, { method: 'POST', body: JSON.stringify({
-        documents,
-        consentGiven: true,
-        consentMethod: fd.get('consentMethod'),
-        aadhaarMasked: fd.get('aadhaarMasked') === 'on',
-      }) });
-    }
+
+    await api(`/hotel/guests/${guest.id}/documents`, { method: 'POST', body: JSON.stringify({
+      documents,
+      consentGiven: true,
+      consentMethod: fd.get('consentMethod'),
+      aadhaarMasked: fd.get('aadhaarMasked') === 'on',
+    }) });
   } catch (e) { error = `${guestCreated ? 'Guest profile saved, but the identity document upload failed. Open the profile and retry. ' : ''}${errorMessage(e)}`; }
   revalidatePath('/guests'); revalidatePath('/reservations');
   redirect('/guests?' + (error ? `error=${encodeURIComponent(error)}` : 'ok=' + encodeURIComponent('Guest profile saved')));

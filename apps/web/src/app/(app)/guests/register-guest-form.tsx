@@ -147,7 +147,7 @@ export function RegisterGuestForm() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Identity documents{' '}
+              Identity documents <span className="text-danger font-bold">*</span>{' '}
               <span className="font-normal text-muted">
                 (PDF, JPEG, PNG, WebP · max 5 MB each · up to 8 files)
               </span>
@@ -157,6 +157,7 @@ export function RegisterGuestForm() {
               type="file"
               accept="image/jpeg,image/png,image/webp,application/pdf"
               multiple
+              required
               className="block w-full text-xs text-slate-700 dark:text-slate-300 file:mr-3 file:rounded-xl file:border file:border-slate-300 dark:file:border-white/15 file:bg-white dark:file:bg-white/10 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-slate-800 dark:file:text-white file:shadow-2xs hover:file:bg-slate-50 dark:hover:file:bg-white/15 cursor-pointer"
             />
             <p className="mt-1.5 text-[11px] text-muted">
@@ -204,11 +205,12 @@ export function RegisterGuestForm() {
               <input
                 name="consentGiven"
                 type="checkbox"
+                required
                 defaultChecked={true}
                 className="mt-1 h-4 w-4 rounded accent-[hsl(var(--accent))]"
               />
               <span>
-                I confirm the guest was informed and agreed to this identity document being stored for statutory hotel check-in compliance.
+                I confirm the guest was informed and agreed to this identity document being stored for statutory hotel check-in compliance. <span className="text-danger font-bold">*</span>
               </span>
             </label>
 

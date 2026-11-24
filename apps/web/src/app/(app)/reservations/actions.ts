@@ -204,7 +204,12 @@ export async function createReservation(fd: FormData) {
     const totalIdentityBytes = [primaryUpload, ...companionUploads.map(({ upload }) => upload), ...existingUploads.map(({ upload }) => upload)].reduce((sum, upload) => sum + (upload?.byteLength ?? 0), 0);
     if (totalIdentityBytes > 40 * 1024 * 1024) throw new Error('Identity images in one reservation submission cannot exceed 40 MB total.');
 
-    if (newGuest && primaryUpload) Object.assign(newGuest, { identityDocument: primaryUpload.attachment });
+    if (newGuest) {
+      if (!primaryUpload?.attachment) {
+        throw new Error('Upload an identity document for the primary guest. Document upload is mandatory for statutory KYC compliance.');
+      }
+      Object.assign(newGuest, { identityDocument: primaryUpload.attachment });
+    }
     const preparedCompanions = newCompanions.map((companion, index) => ({
       ...(companion as Record<string, unknown>),
       identityDocument: companionUploads[index]?.upload?.attachment,

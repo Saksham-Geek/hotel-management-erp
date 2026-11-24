@@ -17,33 +17,7 @@ export const btnGhostCls =
 export const btnDangerCls =
   'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 shadow-2xs hover:bg-rose-100 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
 
-export function Banner({ error, ok }: { error?: string; ok?: string }) {
-  if (!error && !ok) return null;
-  return (
-    <div
-      role={error ? 'alert' : 'status'}
-      aria-live={error ? 'assertive' : 'polite'}
-      className={`mb-6 flex items-start gap-3.5 rounded-2xl border p-5 text-sm font-medium shadow-xs transition-all animate-in fade-in-50 duration-200 ${
-        error
-          ? 'border-rose-200 bg-rose-50/90 text-rose-950'
-          : 'border-emerald-200 bg-emerald-50/90 text-emerald-950'
-      }`}
-    >
-      <span
-        aria-hidden
-        className={`grid h-6 w-6 shrink-0 place-items-center rounded-full text-xs font-black ${
-          error ? 'bg-rose-200 text-rose-950' : 'bg-emerald-200 text-emerald-950'
-        }`}
-      >
-        {error ? '!' : '✓'}
-      </span>
-      <div className="flex-1 leading-6">
-        <strong className="font-bold">{error ? 'Error: ' : 'Success: '}</strong>
-        {error ?? ok}
-      </div>
-    </div>
-  );
-}
+export { Banner, type BannerProps } from './banner';
 
 export function PageHeader({
   title,

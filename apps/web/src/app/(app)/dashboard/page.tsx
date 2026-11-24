@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import type { RoomStatus } from '@erp/shared';
 import { FEATURES } from '@erp/shared';
-import { btnCls, btnGhostCls, EmptyState, PageHeader, RoomTile, StatCard } from '@/components/ui';
+import { Banner, btnCls, btnGhostCls, EmptyState, PageHeader, RoomTile, StatCard } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
 
 interface Room {
@@ -58,18 +58,7 @@ export default async function Dashboard({
   return (
     <div className="space-y-8">
       {/* Search Param Alerts */}
-      {error && (
-        <div className="flex items-center gap-3 rounded-2xl border border-amber-300/80 bg-amber-50/90 p-4 text-sm font-medium text-amber-950 shadow-2xs">
-          <span className="text-xl">⚠️</span>
-          <p>{error}</p>
-        </div>
-      )}
-      {ok && (
-        <div className="flex items-center gap-3 rounded-2xl border border-emerald-300/80 bg-emerald-50/90 p-4 text-sm font-medium text-emerald-950 shadow-2xs">
-          <span className="text-xl">✅</span>
-          <p>{ok}</p>
-        </div>
-      )}
+      <Banner error={error} ok={ok} />
 
       {/* Header with Quick Actions */}
       <PageHeader

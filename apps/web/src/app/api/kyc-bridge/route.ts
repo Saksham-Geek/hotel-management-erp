@@ -41,10 +41,17 @@ export async function POST(request: Request) {
   const port = url.port ? `:${url.port}` : '';
   const lanIp = getLocalNetworkIp();
 
-  // If accessed from localhost or 127.0.0.1, phone on Wi-Fi won't reach localhost.
-  // We provide the detected LAN IP so the phone connects over local Wi-Fi seamlessly.
-  const isLocalhost = url.hostname === 'localhost' || url.hostname === '127.0.0.1';
-  const phoneOrigin = isLocalhost && lanIp ? `${protocol}//${lanIp}${port}` : url.origin;
+  // For mobile phones scanning the QR code, 0.0.0.0 or localhost is completely unroutable.
+  // We MUST route through the machine's actual Wi-Fi / LAN IP (e.g. 192.168.1.9).
+  const isUnroutableHost =
+    url.hostname === 'localhost' ||
+    url.hostname === '127.0.0.1' ||
+    url.hostname === '0.0.0.0' ||
+    url.hostname === '::' ||
+    url.hostname === '::1';
+
+  const targetHost = lanIp ? `${lanIp}${port}` : (isUnroutableHost ? `127.0.0.1${port}` : url.host);
+  const phoneOrigin = `${protocol}//${targetHost}`;
 
   return NextResponse.json({
     sessionId: session.id,

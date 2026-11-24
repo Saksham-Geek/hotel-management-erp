@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { formatDeterministicDate, formatDeterministicDateTime } from '@/lib/dates';
 
 export interface SecureDocument {
@@ -39,6 +39,7 @@ export function SecureDocumentViewer({
   const [exportError, setExportError] = useState<string | null>(null);
   const [legalHold, setLegalHold] = useState(Boolean(document.legalHold));
   const [isUpdatingHold, setIsUpdatingHold] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const staffIdentifier = currentUser?.fullName || currentUser?.email || 'Authorized Operator';
   const staffRole = (currentUser?.role || 'staff').toUpperCase();
@@ -47,17 +48,70 @@ export function SecureDocumentViewer({
   const isPdf = document.mimeType === 'application/pdf';
   const viewUrl = `/api/guest-documents/${encodeURIComponent(guestId)}/${encodeURIComponent(document.id)}?view=1#toolbar=0&navpanes=0&scrollbar=1`;
 
-  // Prevent browser shortcut piracy (Ctrl+S / Ctrl+P / Cmd+S / Cmd+P) while viewer dialog is open
+  // Printing handler with watermarked stream
+  const handlePrint = useCallback(() => {
+    if (isPdf) {
+      try {
+        if (iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.focus();
+          iframeRef.current.contentWindow.print();
+          return;
+        }
+      } catch {
+        // Fallback if browser security sandboxes direct iframe contentWindow print
+      }
+      const printWindow = window.open(viewUrl, '_blank');
+      if (printWindow) {
+        printWindow.focus();
+      }
+    } else {
+      const printWin = window.open('', '_blank');
+      if (printWin) {
+        printWin.document.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Print Document - ${document.fileName}</title>
+              <style>
+                @page { margin: 1cm; }
+                body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #fff; }
+                img { max-width: 100%; max-height: 90vh; object-fit: contain; }
+              </style>
+            </head>
+            <body>
+              <img src="${viewUrl}" onload="window.print();window.close();" />
+            </body>
+          </html>
+        `);
+        printWin.document.close();
+      }
+    }
+  }, [isPdf, viewUrl, document.fileName]);
+
+  // Keyboard navigation & shortcut management: Esc to exit, Ctrl+P to print
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 's' || e.key === 'P' || e.key === 'S')) {
+      if (e.key === 'Escape' || e.key === 'Esc') {
         e.preventDefault();
         e.stopPropagation();
+        if (showExportModal) {
+          setShowExportModal(false);
+        } else {
+          onClose();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        e.stopPropagation();
+        handlePrint();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        e.stopPropagation();
+        setShowExportModal(true);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [showExportModal, onClose, handlePrint]);
 
   const handleExport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -132,9 +186,18 @@ export function SecureDocumentViewer({
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150"
+      onClick={(e) => {
+        // Close viewer on backdrop click
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-150 cursor-pointer"
     >
-      <div className="relative flex flex-col w-full max-w-4xl max-h-[92vh] overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="relative flex flex-col w-full max-w-4xl max-h-[92vh] overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 shadow-2xl cursor-default"
+      >
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] px-5 py-4">
           <div className="min-w-0">
@@ -168,11 +231,23 @@ export function SecureDocumentViewer({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Print Button */}
+            <button
+              type="button"
+              onClick={handlePrint}
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold shadow-2xs transition cursor-pointer"
+              title="Print document with stamped statutory forensic watermark (Ctrl+P)"
+            >
+              <span>🖨️</span>
+              <span>Print</span>
+            </button>
+
+            {/* Legal Hold Button */}
             <button
               type="button"
               onClick={handleToggleLegalHold}
               disabled={isUpdatingHold}
-              className={`text-xs px-2.5 py-1.5 rounded-lg border font-semibold transition ${
+              className={`text-xs px-2.5 py-1.5 rounded-lg border font-semibold transition cursor-pointer ${
                 legalHold
                   ? 'border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-300'
                   : 'border-slate-200 hover:bg-slate-100 text-slate-700 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10'
@@ -181,20 +256,25 @@ export function SecureDocumentViewer({
               {legalHold ? 'Release Hold' : 'Place Legal Hold'}
             </button>
 
+            {/* Authorized Export Button */}
             <button
               type="button"
               onClick={() => setShowExportModal(true)}
-              className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 font-semibold"
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-700 dark:border-white/10 dark:text-slate-300 dark:hover:bg-white/10 font-semibold cursor-pointer"
+              title="Export document with compliance audit log (Ctrl+S)"
             >
               Authorized Export
             </button>
 
+            {/* Close Button with Esc Hint */}
             <button
               type="button"
               onClick={onClose}
-              className="text-xs px-3 py-1.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-semibold hover:opacity-90 transition"
+              className="inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-semibold hover:opacity-90 transition cursor-pointer"
+              title="Exit viewer (Esc or click outside)"
             >
-              Close
+              <span>Close</span>
+              <span className="text-[10px] opacity-70 ml-0.5">✕</span>
             </button>
           </div>
         </div>
@@ -224,6 +304,7 @@ export function SecureDocumentViewer({
           <div className="relative z-10 w-full h-full flex items-center justify-center">
             {isPdf ? (
               <iframe
+                ref={iframeRef}
                 src={viewUrl}
                 title={document.fileName}
                 className="w-full h-[62vh] rounded-lg border border-slate-200 dark:border-white/10 bg-white shadow-inner"
@@ -258,19 +339,37 @@ export function SecureDocumentViewer({
 
       {/* Authorized Export Confirmation Dialog */}
       {showExportModal && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/80">
+        <div
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowExportModal(false);
+            }
+          }}
+          className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in cursor-pointer"
+        >
           <form
             onSubmit={handleExport}
-            className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-5 shadow-2xl space-y-4"
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 p-5 shadow-2xl space-y-4 cursor-default"
           >
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                Authorized Compliance Export
-              </h3>
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Statutory regulations require logging an official business justification before downloading
-                identity documents to a local machine.
-              </p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                  Authorized Compliance Export
+                </h3>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Statutory regulations require logging an official business justification before downloading
+                  identity documents to a local machine.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowExportModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg text-sm cursor-pointer"
+                title="Cancel (Esc or click outside)"
+              >
+                ✕
+              </button>
             </div>
 
             {exportError && (
@@ -297,14 +396,14 @@ export function SecureDocumentViewer({
               <button
                 type="button"
                 onClick={() => setShowExportModal(false)}
-                className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:text-slate-300 font-semibold"
+                className="text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-100 dark:border-white/10 dark:text-slate-300 font-semibold cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isExporting}
-                className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-semibold hover:opacity-90 disabled:opacity-50"
+                className="text-xs px-3.5 py-1.5 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-950 font-semibold hover:opacity-90 disabled:opacity-50 cursor-pointer"
               >
                 {isExporting ? 'Verifying & Exporting…' : 'Confirm & Download'}
               </button>

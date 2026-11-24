@@ -9,6 +9,7 @@ import { SecureDocumentViewer, type SecureDocument } from '@/components/secure-d
 import { PhoneCountryInput } from '@/components/phone-country-input';
 import { NationalityCombobox } from '@/components/nationality-combobox';
 import { IdDocumentInput } from '@/components/id-document-input';
+import { formatDeterministicDate } from '@/lib/dates';
 
 export interface GuestProfile {
   id: string;
@@ -196,7 +197,7 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
                                   <p className="mt-0.5 text-[10px] text-muted">
                                     {document.byteLength ? `${Math.round(document.byteLength / 1024)} KB · ` : ''}
                                     {document.consentMethod ? `Consent: ${document.consentMethod}` : 'Consent verified'}
-                                    {document.retentionUntil ? ` · Retained to ${new Date(document.retentionUntil).toLocaleDateString()}` : ' · 180 days standard'}
+                                    {document.retentionUntil ? ` · Retained to ${formatDeterministicDate(document.retentionUntil)}` : ' · 180 days standard'}
                                   </p>
                                 </div>
                               </div>

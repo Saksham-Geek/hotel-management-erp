@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { formatDeterministicDate } from '@/lib/dates';
 
 export interface SecureDocument {
   id: string;
@@ -152,7 +153,7 @@ export function SecureDocumentViewer({
               )}
             </div>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Uploaded on {new Date(document.createdAt).toLocaleDateString()} · AES-256-GCM Encrypted
+              Uploaded on {formatDeterministicDate(document.createdAt)} · AES-256-GCM Encrypted
               {document.sha256Hash && (
                 <span className="hidden sm:inline font-mono text-[10px] ml-2 text-slate-400">
                   SHA: {document.sha256Hash.slice(0, 12)}...
@@ -244,11 +245,7 @@ export function SecureDocumentViewer({
           <div>
             Retention:{' '}
             {document.retentionUntil
-              ? new Date(document.retentionUntil).toLocaleDateString('en-IN', {
-                  day: '2-digit',
-                  month: 'short',
-                  year: 'numeric',
-                })
+              ? formatDeterministicDate(document.retentionUntil)
               : '180 days standard'}
           </div>
         </div>

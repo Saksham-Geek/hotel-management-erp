@@ -18,6 +18,9 @@ export default {
   outputFileTracingRoot: resolve(here, '../..'),
   poweredByHeader: false,
   async headers() {
+    if (process.env.NODE_ENV !== 'production') {
+      return [];
+    }
     return [
       {
         source: '/_next/static/:path*',

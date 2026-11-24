@@ -1,8 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { btnGhostCls } from './ui';
-import { FrontDeskContingencyModal } from './front-desk-contingency-modal';
+import dynamic from 'next/dynamic';
+import { btnGhostCls } from '@/components/ui';
+
+const FrontDeskContingencyModal = dynamic(
+  () => import('./front-desk-contingency-modal').then((m) => m.FrontDeskContingencyModal),
+  { ssr: false },
+);
 
 export function ContingencySheetButton() {
   const [isOpen, setIsOpen] = useState(false);
@@ -18,10 +23,12 @@ export function ContingencySheetButton() {
         <span>📋 Emergency Desk Sheet</span>
       </button>
 
-      <FrontDeskContingencyModal
-        isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
-      />
+      {isOpen && (
+        <FrontDeskContingencyModal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+        />
+      )}
     </>
   );
 }

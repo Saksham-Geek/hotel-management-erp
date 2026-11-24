@@ -10,6 +10,7 @@ import { RequireFeature } from '../entitlements/require-feature';
 import { env } from '../config';
 import { guestDocumentUploadSchema, persistGuestIdentityDocument } from './guest-document-validation';
 import { watermarkPdf } from './pdf-watermark';
+import { watermarkImage } from './image-watermark';
 
 @Controller('hotel/guests/:guestId/documents')
 @RequireFeature(FEATURES.HOTEL_RESERVATIONS)
@@ -89,37 +90,15 @@ export class GuestDocumentsController {
     decipher.setAuthTag(row.auth_tag);
     const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
 
-    let payload: Buffer | Uint8Array = plaintext;
-    if (row.mime_type === 'application/pdf') {
-      const userRow = await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
-        (await c.query('select full_name as "fullName" from users where id = $1', [user.id])).rows[0],
-      );
-      const staffName = userRow?.fullName || user.id;
-      const timestamp = new Date().toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-      });
-      payload = await watermarkPdf(plaintext, {
-        staffName,
-        staffRole: user.role,
-        timestamp: `${timestamp} IST`,
-        guestId,
-      });
-    }
+    const watermarked = await this.applyForensicWatermark(user, plaintext, row.mime_type, guestId);
 
-    res.setHeader('Content-Type', row.mime_type);
-    res.setHeader('Content-Length', payload.length);
+    res.setHeader('Content-Type', watermarked.mimeType);
+    res.setHeader('Content-Length', watermarked.payload.length);
     res.setHeader('Content-Disposition', `inline; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
     res.setHeader('Cache-Control', 'private, no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
-    res.send(Buffer.from(payload));
+    res.send(Buffer.from(watermarked.payload));
   }
 
   @Post(':documentId/export')
@@ -170,35 +149,13 @@ export class GuestDocumentsController {
     decipher.setAuthTag(row.auth_tag);
     const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
 
-    let payload: Buffer | Uint8Array = plaintext;
-    if (row.mime_type === 'application/pdf') {
-      const userRow = await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
-        (await c.query('select full_name as "fullName" from users where id = $1', [user.id])).rows[0],
-      );
-      const staffName = userRow?.fullName || user.id;
-      const timestamp = new Date().toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-      });
-      payload = await watermarkPdf(plaintext, {
-        staffName,
-        staffRole: user.role,
-        timestamp: `${timestamp} IST`,
-        guestId,
-      });
-    }
+    const watermarked = await this.applyForensicWatermark(user, plaintext, row.mime_type, guestId);
 
-    res.setHeader('Content-Type', row.mime_type);
-    res.setHeader('Content-Length', payload.length);
+    res.setHeader('Content-Type', watermarked.mimeType);
+    res.setHeader('Content-Length', watermarked.payload.length);
     res.setHeader('Content-Disposition', `attachment; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
     res.setHeader('Cache-Control', 'private, no-store');
-    res.send(Buffer.from(payload));
+    res.send(Buffer.from(watermarked.payload));
   }
 
   @Post(':documentId/legal-hold')
@@ -248,36 +205,54 @@ export class GuestDocumentsController {
     decipher.setAuthTag(row.auth_tag);
     const plaintext = Buffer.concat([decipher.update(row.ciphertext), decipher.final()]);
 
-    let payload: Buffer | Uint8Array = plaintext;
-    if (row.mime_type === 'application/pdf') {
-      const userRow = await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
-        (await c.query('select full_name as "fullName" from users where id = $1', [user.id])).rows[0],
-      );
-      const staffName = userRow?.fullName || user.id;
-      const timestamp = new Date().toLocaleString('en-IN', {
-        timeZone: 'Asia/Kolkata',
-        day: '2-digit',
-        month: 'short',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true,
-      });
-      payload = await watermarkPdf(plaintext, {
-        staffName,
-        staffRole: user.role,
-        timestamp: `${timestamp} IST`,
-        guestId,
-      });
-    }
+    const watermarked = await this.applyForensicWatermark(user, plaintext, row.mime_type, guestId);
 
-    res.setHeader('Content-Type', row.mime_type);
-    res.setHeader('Content-Length', payload.length);
+    res.setHeader('Content-Type', watermarked.mimeType);
+    res.setHeader('Content-Length', watermarked.payload.length);
     const disposition = downloadQuery === '1' ? 'attachment' : 'inline';
     res.setHeader('Content-Disposition', `${disposition}; filename="${String(row.original_name).replace(/["\\\r\n]/g, '_')}"`);
     res.setHeader('Cache-Control', 'private, no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
-    res.send(Buffer.from(payload));
+    res.send(Buffer.from(watermarked.payload));
+  }
+
+  private async applyForensicWatermark(
+    user: AuthUser,
+    plaintext: Buffer,
+    mimeType: string,
+    guestId: string,
+  ): Promise<{ payload: Buffer | Uint8Array; mimeType: string }> {
+    const userRow = await this.db.withTenant(user.tenantId, user.propertyId, async (c) =>
+      (await c.query('select full_name as "fullName" from users where id = $1', [user.id])).rows[0],
+    );
+    const staffName = userRow?.fullName || user.id;
+    const timestamp = new Date().toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: true,
+    });
+    const meta = {
+      staffName,
+      staffRole: user.role,
+      timestamp: `${timestamp} IST`,
+      guestId,
+    };
+
+    if (mimeType === 'application/pdf') {
+      const payload = await watermarkPdf(plaintext, meta);
+      return { payload, mimeType };
+    }
+
+    if (mimeType.startsWith('image/')) {
+      const res = await watermarkImage(plaintext, mimeType, meta);
+      return { payload: res.buffer, mimeType: res.mimeType };
+    }
+
+    return { payload: plaintext, mimeType };
   }
 }

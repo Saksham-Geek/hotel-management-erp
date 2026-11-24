@@ -88,7 +88,36 @@ export function SecureDocumentViewer({
     }
   }, [isPdf, viewUrl, document.fileName]);
 
-  // Keyboard navigation & shortcut management: Esc to exit, Ctrl+P to print
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  // Download handler: delivers the watermarked file with audit tracking
+  const handleDownloadWatermarked = useCallback(async () => {
+    setIsDownloading(true);
+    try {
+      const downloadUrl = `/api/guest-documents/${encodeURIComponent(guestId)}/${encodeURIComponent(document.id)}?download=1`;
+      const res = await fetch(downloadUrl);
+      if (!res.ok) {
+        throw new Error('Failed to retrieve watermarked document');
+      }
+      const blob = await res.blob();
+      const objectUrl = window.URL.createObjectURL(blob);
+      const a = window.document.createElement('a');
+      a.href = objectUrl;
+      const baseName = (document.fileName || `${document.documentType}.pdf`).replace(/(\.[^.]+)$/, '');
+      const ext = isPdf ? '.pdf' : (document.fileName?.match(/\.[^.]+$/)?.[0] || '.jpg');
+      a.download = `${baseName}_watermarked${ext}`;
+      window.document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(objectUrl);
+    } catch (err: any) {
+      alert('Failed to download document: ' + (err?.message || 'Network error'));
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [guestId, document.id, document.fileName, document.documentType, isPdf]);
+
+  // Keyboard navigation & shortcut management: Esc to exit, Ctrl+P to print, Ctrl+S to download
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' || e.key === 'Esc') {
@@ -106,12 +135,12 @@ export function SecureDocumentViewer({
       } else if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
         e.preventDefault();
         e.stopPropagation();
-        setShowExportModal(true);
+        handleDownloadWatermarked();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showExportModal, onClose, handlePrint]);
+  }, [showExportModal, onClose, handlePrint, handleDownloadWatermarked]);
 
   const handleExport = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,6 +260,18 @@ export function SecureDocumentViewer({
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Download Watermarked Button */}
+            <button
+              type="button"
+              onClick={handleDownloadWatermarked}
+              disabled={isDownloading}
+              className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-white/15 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 font-semibold shadow-2xs transition cursor-pointer"
+              title="Download watermarked document with indelible forensic markings (Ctrl+S)"
+            >
+              <span>📥</span>
+              <span>{isDownloading ? 'Downloading…' : 'Download'}</span>
+            </button>
+
             {/* Print Button */}
             <button
               type="button"
@@ -326,7 +367,7 @@ export function SecureDocumentViewer({
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02] px-5 py-3 text-[11px] text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-2">
             <span className="inline-block h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span>DPDP Act 2023 Compliant · Zero-Desktop Download Protected</span>
+            <span>DPDP Act 2023 Compliant · Forensic Watermarked &amp; Audit Traced</span>
           </div>
           <div>
             Retention:{' '}

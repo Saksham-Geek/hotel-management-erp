@@ -350,8 +350,9 @@ export function SecureDocumentInput({
   const handleHostUpdate = async (newHost: string) => {
     setCustomHost(newHost);
     if (!bridgeSessionId) return;
-    const protocol = window.location.protocol;
     const cleanHost = newHost.trim().replace(/^https?:\/\//, '').replace(/\/$/, '');
+    const isHttpsTunnel = cleanHost.includes('.loca.lt') || cleanHost.includes('ngrok') || cleanHost.includes('.app');
+    const protocol = isHttpsTunnel ? 'https:' : window.location.protocol;
     const newScanUrl = `${protocol}//${cleanHost}/scan-id/${bridgeSessionId}`;
     setBridgeScanUrl(newScanUrl);
 
@@ -685,15 +686,35 @@ export function SecureDocumentInput({
             </div>
 
             {/* Network / Wi-Fi IP Information Banner */}
-            <div className="mb-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-left text-[11px] text-emerald-900 dark:text-emerald-200 space-y-1">
+            <div className="mb-3 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-2.5 text-left text-[11px] text-emerald-900 dark:text-emerald-200 space-y-1.5">
               <div className="flex items-center justify-between font-semibold">
-                <span>📡 Wi-Fi Address for Phone:</span>
+                <span>📡 Network Target for Phone:</span>
                 <button
                   type="button"
                   onClick={() => setIsEditingHost(!isEditingHost)}
                   className="text-[10px] text-cyan-700 dark:text-cyan-300 underline cursor-pointer"
                 >
-                  {isEditingHost ? 'Done' : 'Change IP'}
+                  {isEditingHost ? 'Done' : 'Custom'}
+                </button>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => handleHostUpdate('192.168.1.9:3000')}
+                  className="px-2 py-1 rounded-md text-[10px] font-semibold bg-white dark:bg-white/10 border border-slate-300 dark:border-white/20 hover:bg-slate-50 transition cursor-pointer"
+                  title="Direct local Wi-Fi connection"
+                >
+                  Wi-Fi IP (192.168.1.9)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleHostUpdate('gentle-onions-guess.loca.lt')}
+                  className="px-2 py-1 rounded-md text-[10px] font-semibold bg-cyan-500/20 text-cyan-900 dark:text-cyan-200 border border-cyan-500/40 hover:bg-cyan-500/30 transition cursor-pointer"
+                  title="Public HTTPS Tunnel: bypasses Wi-Fi router isolation and Windows firewall"
+                >
+                  🌐 Cloud Tunnel (Bypasses Firewall)
                 </button>
               </div>
 
@@ -703,7 +724,7 @@ export function SecureDocumentInput({
                     type="text"
                     value={customHost}
                     onChange={(e) => handleHostUpdate(e.target.value)}
-                    placeholder="e.g. 192.168.1.9:3000"
+                    placeholder="e.g. 192.168.1.9:3000 or tunnel.domain"
                     className="w-full rounded-md border border-line bg-surface px-2 py-1 font-mono text-[11px] text-ink"
                   />
                 </div>
@@ -714,7 +735,7 @@ export function SecureDocumentInput({
               )}
 
               <p className="text-[10px] text-muted">
-                Make sure your mobile phone is on the same Wi-Fi network as this PC.
+                If Wi-Fi fails due to router isolation, tap <strong>Cloud Tunnel</strong> above to connect instantly!
               </p>
             </div>
 

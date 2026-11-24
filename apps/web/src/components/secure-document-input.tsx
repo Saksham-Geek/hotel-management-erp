@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
+import QRCode from 'qrcode';
 import {
   compressImageFile,
   formatBytes,
@@ -42,6 +43,17 @@ export function SecureDocumentInput({
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Ephemeral Mobile QR Bridge States
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [isInitiatingBridge, setIsInitiatingBridge] = useState(false);
+  const [bridgeSessionId, setBridgeSessionId] = useState<string | null>(null);
+  const [bridgeScanUrl, setBridgeScanUrl] = useState<string>('');
+  const [bridgeQrDataUrl, setBridgeQrDataUrl] = useState<string>('');
+  const [bridgeSecondsLeft, setBridgeSecondsLeft] = useState<number>(300);
+  const [bridgeToast, setBridgeToast] = useState<string | null>(null);
+  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // Sync internal items to hidden file input using DataTransfer
   useEffect(() => {
     if (!hiddenInputRef.current) return;
@@ -57,57 +69,60 @@ export function SecureDocumentInput({
     }
   }, [items, onFilesChanged]);
 
-  const processSelectedFiles = async (fileList: FileList | null) => {
-    if (!fileList || fileList.length === 0) return;
-    setErrorMessage(null);
-    setIsProcessing(true);
+  const processSelectedFiles = useCallback(
+    async (fileList: FileList | File[] | null) => {
+      if (!fileList || (fileList instanceof FileList && fileList.length === 0)) return;
+      setErrorMessage(null);
+      setIsProcessing(true);
 
-    const incoming = Array.from(fileList);
+      const incoming = Array.from(fileList);
 
-    // Limit check
-    const totalCount = (multiple ? items.length : 0) + incoming.length;
-    if (multiple && totalCount > maxFiles) {
-      setErrorMessage(`You can upload at most ${maxFiles} documents per submission.`);
+      // Limit check
+      const totalCount = (multiple ? items.length : 0) + incoming.length;
+      if (multiple && totalCount > maxFiles) {
+        setErrorMessage(`You can upload at most ${maxFiles} documents per submission.`);
+        setIsProcessing(false);
+        return;
+      }
+
+      const newResults: CompressionResult[] = [];
+      const errors: string[] = [];
+
+      for (const file of incoming) {
+        const preCheck = validateFileBeforeProcessing(file, DEFAULT_MAX_RAW_SIZE, DEFAULT_MAX_OUTPUT_SIZE);
+        if (!preCheck.valid) {
+          errors.push(preCheck.error || `Invalid file: ${file.name}`);
+          continue;
+        }
+
+        try {
+          const result = await compressImageFile(file, {
+            maxDimension: 1920,
+            quality: 0.82,
+          });
+          newResults.push(result);
+        } catch (err: unknown) {
+          const msg = err instanceof Error ? err.message : `Failed to process ${file.name}`;
+          errors.push(msg);
+        }
+      }
+
+      if (errors.length > 0) {
+        setErrorMessage(errors.join(' • '));
+      }
+
+      if (newResults.length > 0) {
+        if (multiple) {
+          setItems((prev) => [...prev, ...newResults]);
+        } else {
+          setItems(newResults.slice(0, 1));
+        }
+      }
+
       setIsProcessing(false);
-      return;
-    }
-
-    const newResults: CompressionResult[] = [];
-    const errors: string[] = [];
-
-    for (const file of incoming) {
-      const preCheck = validateFileBeforeProcessing(file, DEFAULT_MAX_RAW_SIZE, DEFAULT_MAX_OUTPUT_SIZE);
-      if (!preCheck.valid) {
-        errors.push(preCheck.error || `Invalid file: ${file.name}`);
-        continue;
-      }
-
-      try {
-        const result = await compressImageFile(file, {
-          maxDimension: 1920,
-          quality: 0.82,
-        });
-        newResults.push(result);
-      } catch (err: unknown) {
-        const msg = err instanceof Error ? err.message : `Failed to process ${file.name}`;
-        errors.push(msg);
-      }
-    }
-
-    if (errors.length > 0) {
-      setErrorMessage(errors.join(' • '));
-    }
-
-    if (newResults.length > 0) {
-      if (multiple) {
-        setItems((prev) => [...prev, ...newResults]);
-      } else {
-        setItems(newResults.slice(0, 1));
-      }
-    }
-
-    setIsProcessing(false);
-  };
+    },
+    [items.length, maxFiles, multiple],
+  );
 
   const handleInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     await processSelectedFiles(e.target.files);
@@ -118,6 +133,129 @@ export function SecureDocumentInput({
   const removeItem = (index: number) => {
     setItems((prev) => prev.filter((_, i) => i !== index));
     setErrorMessage(null);
+  };
+
+  // Close QR Modal and cleanup polling timers
+  const closeQrModal = useCallback(() => {
+    setIsQrModalOpen(false);
+    if (pollIntervalRef.current) {
+      clearInterval(pollIntervalRef.current);
+      pollIntervalRef.current = null;
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+  }, []);
+
+  // Handle escape key to dismiss QR modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isQrModalOpen) {
+        closeQrModal();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isQrModalOpen, closeQrModal]);
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      if (pollIntervalRef.current) clearInterval(pollIntervalRef.current);
+      if (timerIntervalRef.current) clearInterval(timerIntervalRef.current);
+    };
+  }, []);
+
+  // Initiate QR Mobile Bridge Session
+  const startMobileQrBridge = async () => {
+    setIsInitiatingBridge(true);
+    setErrorMessage(null);
+
+    try {
+      const res = await fetch('/api/kyc-bridge', { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to initialize QR mobile session.');
+      }
+
+      const { sessionId, scanUrl } = data;
+      setBridgeSessionId(sessionId);
+      setBridgeScanUrl(scanUrl);
+      setBridgeSecondsLeft(300);
+
+      const qrData = await QRCode.toDataURL(scanUrl, {
+        width: 260,
+        margin: 1,
+        color: {
+          dark: '#0f172a',
+          light: '#ffffff',
+        },
+      });
+
+      setBridgeQrDataUrl(qrData);
+      setIsQrModalOpen(true);
+      setIsInitiatingBridge(false);
+
+      // Start 5-minute countdown
+      timerIntervalRef.current = setInterval(() => {
+        setBridgeSecondsLeft((prev) => {
+          if (prev <= 1) {
+            closeQrModal();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      // Start polling for photo delivery from mobile
+      pollIntervalRef.current = setInterval(async () => {
+        try {
+          const pollRes = await fetch(`/api/kyc-bridge/${encodeURIComponent(sessionId)}`);
+          if (!pollRes.ok) return;
+
+          const pollData = await pollRes.json();
+          if (pollData.status === 'uploaded' && pollData.data) {
+            // Photo received from mobile!
+            closeQrModal();
+
+            // Decode base64 to standard File
+            const raw = pollData.data;
+            const byteCharacters = atob(raw.base64);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: raw.mimeType || 'image/jpeg' });
+            const file = new File([blob], raw.fileName || 'aadhaar-mobile-scan.jpg', {
+              type: raw.mimeType || 'image/jpeg',
+              lastModified: Date.now(),
+            });
+
+            // Process and add to documents
+            await processSelectedFiles([file]);
+
+            setBridgeToast('🎉 Photo received from mobile camera and attached!');
+            setTimeout(() => setBridgeToast(null), 5000);
+          } else if (pollData.status === 'expired') {
+            closeQrModal();
+          }
+        } catch {
+          // Ignore transient poll errors
+        }
+      }, 1200);
+    } catch (err: unknown) {
+      setIsInitiatingBridge(false);
+      const msg = err instanceof Error ? err.message : 'Could not create mobile bridge session.';
+      setErrorMessage(msg);
+    }
+  };
+
+  const formatCountdown = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -136,7 +274,7 @@ export function SecureDocumentInput({
         tabIndex={-1}
       />
 
-      {/* Hidden camera input for mobile direct snap (bypasses saving to gallery) */}
+      {/* Hidden camera input for devices with local camera (bypasses saving to gallery) */}
       <input
         ref={cameraInputRef}
         type="file"
@@ -161,8 +299,9 @@ export function SecureDocumentInput({
         </div>
       )}
 
-      {/* Upload & Mobile Camera Actions Bar */}
+      {/* Upload & Mobile QR Bridge Actions Bar */}
       <div className="flex flex-wrap items-center gap-2">
+        {/* 1. File Picker */}
         <label
           htmlFor={`${id}-picker`}
           className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition active:scale-[0.98] dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
@@ -179,21 +318,53 @@ export function SecureDocumentInput({
           />
         </label>
 
-        {/* Mobile / Tablet Camera Quick Capture */}
+        {/* 2. Snap with Phone QR Bridge (Method 1) */}
+        <button
+          type="button"
+          onClick={startMobileQrBridge}
+          disabled={isInitiatingBridge}
+          className="inline-flex items-center gap-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 px-3.5 py-2 text-xs font-semibold text-cyan-800 hover:bg-cyan-500/20 active:scale-[0.98] transition cursor-pointer dark:text-cyan-300"
+          title="Scan laptop screen with your smartphone camera to snap the guest ID directly without WhatsApp"
+        >
+          {isInitiatingBridge ? (
+            <>
+              <svg className="h-3.5 w-3.5 animate-spin text-cyan-600 dark:text-cyan-400" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+              </svg>
+              <span>Generating QR...</span>
+            </>
+          ) : (
+            <>
+              <span>📱</span>
+              <span>Snap with Phone</span>
+            </>
+          )}
+        </button>
+
+        {/* 3. Direct Camera fallback for mobile/tablet */}
         <button
           type="button"
           onClick={() => cameraInputRef.current?.click()}
-          className="inline-flex items-center gap-2 rounded-xl border border-line bg-ground/60 px-3 py-2 text-xs font-medium text-ink hover:bg-ground transition active:scale-[0.98] cursor-pointer"
-          title="Direct camera capture: photo stays in memory, never saved to personal gallery or sent via WhatsApp"
+          className="inline-flex sm:hidden items-center gap-1.5 rounded-xl border border-line bg-ground/60 px-3 py-2 text-xs font-medium text-ink hover:bg-ground transition active:scale-[0.98] cursor-pointer"
+          title="Open camera directly on this device"
         >
           <span>📷</span>
-          <span>Snap Photo</span>
+          <span>Camera</span>
         </button>
 
-        <span className="text-[11px] text-muted hidden sm:inline">
+        <span className="text-[11px] text-muted hidden lg:inline">
           Max 15 MB raw · Auto-compressed to &lt; 500 KB · PDF up to 5 MB
         </span>
       </div>
+
+      {/* Success Toast from Mobile Bridge */}
+      {bridgeToast && (
+        <div className="flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800 dark:border-emerald-800/60 dark:bg-emerald-950/40 dark:text-emerald-300 animate-in fade-in duration-300">
+          <span>✓</span>
+          <span>{bridgeToast}</span>
+        </div>
+      )}
 
       {/* Active Processing Indicator */}
       {isProcessing && (
@@ -270,6 +441,78 @@ export function SecureDocumentInput({
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Modal: Snap with Phone QR Bridge */}
+      {isQrModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+          onClick={closeQrModal}
+        >
+          <div
+            className="w-full max-w-sm rounded-2xl border border-line bg-surface p-5 shadow-2xl relative text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-line pb-3">
+              <div className="flex items-center gap-2 text-left">
+                <span className="text-xl">📱</span>
+                <div>
+                  <h3 className="text-sm font-bold text-ink">Snap ID with Phone</h3>
+                  <p className="text-[11px] text-muted">No WhatsApp · 0 files in phone gallery</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeQrModal}
+                className="grid h-7 w-7 place-items-center rounded-lg hover:bg-ground text-slate-400 hover:text-ink text-sm transition cursor-pointer"
+                title="Close (Esc)"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* QR Code Presentation */}
+            <div className="my-4 flex flex-col items-center">
+              <div className="rounded-xl border border-line bg-white p-3 shadow-md">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={bridgeQrDataUrl}
+                  alt="QR Code for mobile document camera"
+                  className="h-56 w-56 object-contain"
+                />
+              </div>
+
+              {/* Status and Countdown */}
+              <div className="mt-3 flex items-center gap-2 text-xs text-muted">
+                <span className="h-2 w-2 rounded-full bg-cyan-500 animate-pulse" />
+                <span>Waiting for photo from phone...</span>
+                <span className="font-mono font-semibold text-ink">({formatCountdown(bridgeSecondsLeft)})</span>
+              </div>
+            </div>
+
+            {/* Instructional Steps */}
+            <div className="rounded-xl border border-cyan-500/20 bg-cyan-500/5 p-3 text-left text-[11px] text-slate-700 dark:text-slate-300 space-y-1.5">
+              <p className="font-semibold text-cyan-900 dark:text-cyan-200">How it works:</p>
+              <p>1. Open your phone camera and point it at this QR code.</p>
+              <p>2. Tap the link that appears to snap the Aadhaar/Passport.</p>
+              <p>3. Tap <strong>"Send to Desk PC"</strong> — photo appears right here!</p>
+            </div>
+
+            {/* Desktop Test Link Helper */}
+            <div className="mt-4 pt-3 border-t border-line flex items-center justify-between text-[11px]">
+              <span className="text-muted">Testing on this computer?</span>
+              <a
+                href={bridgeScanUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-lagoon-dark underline hover:opacity-80"
+              >
+                Open Scanner Tab ↗
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>

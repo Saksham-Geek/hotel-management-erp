@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, EmptyState, PageHeader, StatCard } from '@/components/ui';
+import { ContingencySheetButton } from '@/components/contingency-sheet-button';
 import { FormSubmit } from '@/components/form-submit';
 import { formatDate, formatDateTime } from '@/lib/format';
 import { api, getMe, requireFeature } from '@/lib/api';
@@ -71,7 +72,9 @@ export default async function NightAuditPage({
         title="Daily Day-End Closing (Night Audit)"
         eyebrow="End of Day Operations"
         description="Close the hotel's day, post daily room charges to bills, and generate day-end revenue summaries."
-      />
+      >
+        <ContingencySheetButton />
+      </PageHeader>
       <Banner error={error} ok={ok} />
 
       {/* Operational Business Date Banner */}

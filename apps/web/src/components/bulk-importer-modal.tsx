@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { btnCls, btnGhostCls } from './ui';
 
 interface BulkImporterModalProps {
-  type: 'rooms' | 'menu';
+  type: 'rooms' | 'menu' | 'guests';
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
@@ -23,6 +23,8 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
   if (!isOpen) return null;
 
   const isRooms = type === 'rooms';
+  const isMenu = type === 'menu';
+  const isGuests = type === 'guests';
 
   // Sample CSV Templates
   const downloadSampleCsv = () => {
@@ -42,7 +44,7 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
         '301,3,Presidential Suite,12000,1500',
       ].join('\n');
       filename = 'rooms_import_template.csv';
-    } else {
+    } else if (isMenu) {
       headers = 'Dish Name,Category,Price,Food Type,Description,Item Code,GST Rate';
       sampleContent = [
         headers,
@@ -54,6 +56,16 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
         'Gulab Jamun with Rabdi,Desserts,140,veg,Warm milk dumplings soaked in saffron syrup served with reduced rabdi,DISH-006,5',
       ].join('\n');
       filename = 'menu_import_template.csv';
+    } else {
+      headers = 'Full Name,Phone,Email,Nationality,ID Type,ID Number,VIP,Notes';
+      sampleContent = [
+        headers,
+        'Ramesh Sharma,+91 9876543210,ramesh.sharma@example.com,IN - India,AADHAAR,xxxx-xxxx-1234,yes,Prefers quiet room upper floor',
+        'Priya Nair,+91 9811223344,priya.nair@example.com,IN - India,PASSPORT,Z9876543,no,Corporate guest - Infosys',
+        'David Miller,+44 7700 900123,david.miller@example.co.uk,GB - United Kingdom,PASSPORT,554433221,yes,VIP Frequent business traveler',
+        'Ananya Deshmukh,+91 9822334455,ananya.d@example.com,IN - India,DRIVING_LICENSE,DL0420110012345,no,Vegetarian breakfast request',
+      ].join('\n');
+      filename = 'guests_import_template.csv';
     }
 
     const blob = new Blob([sampleContent], { type: 'text/csv;charset=utf-8;' });
@@ -137,7 +149,7 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
           baseRate,
           hourlyRate,
         });
-      } else {
+      } else if (isMenu) {
         const name =
           rowMap['dishname'] || rowMap['name'] || rowMap['item'] || parts[0];
         const categoryName =
@@ -166,6 +178,41 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
           description,
           itemCode,
           gstRate,
+        });
+      } else {
+        const fullName =
+          rowMap['fullname'] || rowMap['name'] || rowMap['guestname'] || parts[0];
+        const phone =
+          rowMap['phone'] || rowMap['phonenumber'] || rowMap['mobile'] || parts[1] || '';
+        const email =
+          rowMap['email'] || rowMap['emailaddress'] || parts[2] || '';
+        const nationality =
+          rowMap['nationality'] || rowMap['country'] || parts[3] || 'IN - India';
+        const idType =
+          rowMap['idtype'] || rowMap['id'] || parts[4] || '';
+        const idNumber =
+          rowMap['idnumber'] || rowMap['idno'] || parts[5] || '';
+        const vipRaw =
+          rowMap['vip'] || rowMap['isvip'] || parts[6] || 'no';
+        const notes =
+          rowMap['notes'] || rowMap['note'] || rowMap['remarks'] || parts[7] || '';
+
+        if (!fullName) {
+          errors.push(`Row ${i + 1}: Missing guest full name.`);
+          continue;
+        }
+
+        const isVip = ['true', 'yes', 'y', '1', 'vip'].includes(vipRaw.trim().toLowerCase());
+
+        rows.push({
+          fullName,
+          phone: phone || undefined,
+          email: email || undefined,
+          nationality,
+          idType: idType || undefined,
+          idNumber: idNumber || undefined,
+          vip: isVip,
+          notes: notes || undefined,
         });
       }
     }
@@ -200,8 +247,14 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
     try {
       const endpoint = isRooms
         ? '/api/rooms/bulk-import'
-        : '/api/restaurant/menu/items/bulk-import';
-      const payload = isRooms ? { rooms: parsedRows } : { items: parsedRows };
+        : isMenu
+        ? '/api/restaurant/menu/items/bulk-import'
+        : '/api/guests/bulk-import';
+      const payload = isRooms
+        ? { rooms: parsedRows }
+        : isMenu
+        ? { items: parsedRows }
+        : { guests: parsedRows };
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -234,16 +287,22 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
           <div>
             <div className="flex items-center gap-2">
               <span className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-100 text-lg font-bold text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-400">
-                {isRooms ? '🏨' : '🍽️'}
+                {isRooms ? '🏨' : isMenu ? '🍽️' : '👥'}
               </span>
               <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                {isRooms ? 'Bulk Onboard Rooms' : 'Bulk Import Restaurant Menu'}
+                {isRooms
+                  ? 'Bulk Onboard Rooms'
+                  : isMenu
+                  ? 'Bulk Import Restaurant Menu'
+                  : 'Bulk Import Guest Directory'}
               </h2>
             </div>
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
               {isRooms
                 ? 'Import your entire room inventory in seconds with auto-floor mapping & rate setup.'
-                : 'Upload your food & bar menu with categories, veg/non-veg tags, and GST rates.'}
+                : isMenu
+                ? 'Upload your food & bar menu with categories, veg/non-veg tags, and GST rates.'
+                : 'Import legacy customer directories, VIP profiles and contact books directly into your PMS.'}
             </p>
           </div>
           <button
@@ -367,13 +426,22 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
                       <th className="p-2.5">Base Rate (₹)</th>
                       <th className="p-2.5">Hourly Rate (₹)</th>
                     </tr>
-                  ) : (
+                  ) : isMenu ? (
                     <tr>
                       <th className="p-2.5">Dish Name</th>
                       <th className="p-2.5">Category</th>
                       <th className="p-2.5">Type</th>
                       <th className="p-2.5">Price (₹)</th>
                       <th className="p-2.5">Code</th>
+                    </tr>
+                  ) : (
+                    <tr>
+                      <th className="p-2.5">Guest Name</th>
+                      <th className="p-2.5">Phone</th>
+                      <th className="p-2.5">Email</th>
+                      <th className="p-2.5">Nationality</th>
+                      <th className="p-2.5">VIP</th>
+                      <th className="p-2.5">ID Info</th>
                     </tr>
                   )}
                 </thead>
@@ -388,7 +456,7 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
                           <td className="p-2.5 font-semibold text-emerald-600">₹{r.baseRate}</td>
                           <td className="p-2.5 text-slate-500">₹{r.hourlyRate}/hr</td>
                         </>
-                      ) : (
+                      ) : isMenu ? (
                         <>
                           <td className="p-2.5 font-bold text-slate-900 dark:text-white">{r.name}</td>
                           <td className="p-2.5 text-slate-600 dark:text-slate-300">{r.categoryName}</td>
@@ -396,7 +464,7 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
                             <span
                               className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase ${
                                 r.foodType === 'veg'
-                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-400'
+                                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-400'
                                   : 'bg-rose-100 text-rose-800 dark:bg-rose-950/80 dark:text-rose-400'
                               }`}
                             >
@@ -405,6 +473,25 @@ export function BulkImporterModal({ type, isOpen, onClose, onSuccess }: BulkImpo
                           </td>
                           <td className="p-2.5 font-semibold text-emerald-600">₹{r.price}</td>
                           <td className="p-2.5 text-slate-500">{r.itemCode || 'Auto'}</td>
+                        </>
+                      ) : (
+                        <>
+                          <td className="p-2.5 font-bold text-slate-900 dark:text-white">{r.fullName}</td>
+                          <td className="p-2.5 text-slate-600 dark:text-slate-300">{r.phone || '—'}</td>
+                          <td className="p-2.5 text-slate-600 dark:text-slate-300">{r.email || '—'}</td>
+                          <td className="p-2.5 text-slate-800 dark:text-slate-200">{r.nationality || 'IN - India'}</td>
+                          <td className="p-2.5">
+                            {r.vip ? (
+                              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-800 dark:bg-amber-950/80 dark:text-amber-400">
+                                ⭐ VIP
+                              </span>
+                            ) : (
+                              <span className="text-slate-400 text-[11px]">Regular</span>
+                            )}
+                          </td>
+                          <td className="p-2.5 text-slate-500 text-[11px]">
+                            {r.idType ? `${r.idType}${r.idNumber ? ` (${r.idNumber})` : ''}` : '—'}
+                          </td>
                         </>
                       )}
                     </tr>

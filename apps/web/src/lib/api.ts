@@ -126,6 +126,46 @@ export const getPlans = cache(async () => {
   return data;
 });
 
+export const getSubscriptionDetails = cache(async () => {
+  return api<{
+    subscription: {
+      planKey: string;
+      status: string;
+      trialEndsAt: string | null;
+      currentPeriodEnd: string | null;
+      createdAt: string;
+    };
+    tenant: {
+      name: string;
+      slug: string;
+      contactEmail: string | null;
+      contactPhone: string | null;
+      billingCycle: string | null;
+    };
+    invoices: Array<{
+      id: string;
+      invoiceNumber: string;
+      planKey: string;
+      amount: number;
+      currency: string;
+      status: string;
+      billingPeriodStart: string;
+      billingPeriodEnd: string;
+      paidAt?: string | null;
+      paymentMethod?: string | null;
+      createdAt: string;
+    }>;
+    usage: {
+      roomsCount: number;
+      staffCount: number;
+      maxRooms: number | null;
+      maxStaff: number | null;
+    };
+    currentTier: PlanTierConfig;
+    razorpayKeyId: string;
+  }>('/entitlements/subscription-details');
+});
+
 /** Page-level gate. The API enforces the same rule; this just sends people somewhere helpful. */
 export async function requireFeature(feature: FeatureKey) {
   const ent = await getEntitlements();

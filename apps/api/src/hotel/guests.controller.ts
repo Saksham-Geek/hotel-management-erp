@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   ConflictException,
   Controller,
@@ -446,6 +447,165 @@ export class GuestsController {
         fullName: b.fullName,
         phone: b.phone ?? null,
         email: b.email ?? null,
+      };
+    });
+  }
+
+  @Post('bulk-import')
+  @RequirePermission(PERMISSIONS.GUEST_WRITE)
+  async bulkImportGuests(
+    @CurrentUser() user: AuthUser,
+    @Body() body: {
+      guests: Array<{
+        fullName: string;
+        phone?: string | null;
+        email?: string | null;
+        nationality?: string | null;
+        idType?: string | null;
+        idNumber?: string | null;
+        vip?: boolean;
+        notes?: string | null;
+      }>;
+    },
+  ) {
+    if (!body?.guests || !Array.isArray(body.guests) || body.guests.length === 0) {
+      throw new BadRequestException('Invalid payload. Expected a non-empty array of guests.');
+    }
+    if (body.guests.length > 500) {
+      throw new BadRequestException('Maximum 500 guests can be imported in a single batch.');
+    }
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      let created = 0;
+      let updated = 0;
+
+      for (const item of body.guests) {
+        const fullName = item.fullName?.trim();
+        if (!fullName) continue;
+
+        const phone = item.phone?.trim() || null;
+        const email = item.email?.trim() || null;
+        const nationality = item.nationality?.trim() || 'IN - India';
+        const idType = item.idType?.trim() || null;
+        const vip = Boolean(item.vip);
+        const notes = item.notes?.trim() || null;
+
+        const identity = item.idNumber?.trim()
+          ? encryptSensitiveField(item.idNumber.trim())
+          : null;
+
+        // Check for existing party within this tenant by phone or email
+        let partyId: string | null = null;
+        if (phone || email) {
+          const matchRes = await c.query(
+            `SELECT p.id
+             FROM parties p
+             WHERE (
+               ($1::text IS NOT NULL AND regexp_replace(coalesce(p.phone, ''), '[^0-9]', '', 'g') = regexp_replace($1, '[^0-9]', '', 'g') AND regexp_replace($1, '[^0-9]', '', 'g') <> '')
+               OR ($2::text IS NOT NULL AND lower(trim(coalesce(p.email, ''))) = lower(trim($2)))
+             )
+             LIMIT 1`,
+            [phone, email],
+          );
+          if (matchRes.rows.length > 0) {
+            partyId = matchRes.rows[0].id;
+          }
+        }
+
+        if (!partyId) {
+          const newParty = await c.query(
+            `INSERT INTO parties (tenant_id, full_name, phone, email, custom_fields)
+             VALUES ($1, $2, $3, $4, '{}'::jsonb)
+             RETURNING id`,
+            [user.tenantId, fullName, phone, email],
+          );
+          partyId = newParty.rows[0].id;
+        } else {
+          // Keep party full_name / email updated if missing
+          await c.query(
+            `UPDATE parties
+             SET full_name = COALESCE(full_name, $2),
+                 phone = COALESCE(phone, $3),
+                 email = COALESCE(email, $4)
+             WHERE id = $1`,
+            [partyId, fullName, phone, email],
+          );
+        }
+
+        // Check if guest profile exists for this party in this tenant
+        const existingGuest = await c.query(
+          `SELECT id FROM guests WHERE party_id = $1 LIMIT 1`,
+          [partyId],
+        );
+
+        if (existingGuest.rows.length > 0) {
+          await c.query(
+            `UPDATE guests
+             SET
+               nationality = COALESCE($2, nationality),
+               id_type = COALESCE($3, id_type),
+               vip = CASE WHEN $4::boolean THEN true ELSE vip END,
+               notes = COALESCE($5, notes),
+               id_number_ciphertext = COALESCE($6, id_number_ciphertext),
+               id_number_iv = COALESCE($7, id_number_iv),
+               id_number_auth_tag = COALESCE($8, id_number_auth_tag)
+             WHERE id = $1`,
+            [
+              existingGuest.rows[0].id,
+              nationality,
+              idType,
+              vip,
+              notes,
+              identity?.ciphertext ?? null,
+              identity?.iv ?? null,
+              identity?.authTag ?? null,
+            ],
+          );
+          updated++;
+        } else {
+          await c.query(
+            `INSERT INTO guests (
+               tenant_id,
+               party_id,
+               nationality,
+               id_type,
+               id_number,
+               id_number_ciphertext,
+               id_number_iv,
+               id_number_auth_tag,
+               vip,
+               notes
+             )
+             VALUES ($1, $2, $3, $4, NULL, $5, $6, $7, $8, $9)`,
+            [
+              user.tenantId,
+              partyId,
+              nationality,
+              idType,
+              identity?.ciphertext ?? null,
+              identity?.iv ?? null,
+              identity?.authTag ?? null,
+              vip,
+              notes,
+            ],
+          );
+          created++;
+        }
+      }
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'guest.bulk_import',
+        entity: 'guest',
+        meta: { total: body.guests.length, created, updated },
+      });
+
+      return {
+        message: `Successfully processed ${created + updated} guest profiles (${created} new, ${updated} updated).`,
+        created,
+        updated,
+        total: created + updated,
       };
     });
   }

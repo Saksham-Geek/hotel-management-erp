@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
 import { HOSPITALITY_PLAN_TIERS, type FeatureKey } from '@erp/shared';
 import { PageHeader } from '@/components/ui';
-import { getEntitlements, getMe, getPlans } from '@/lib/api';
+import { getEntitlements, getMe, getPlans, getSubscriptionDetails } from '@/lib/api';
 import { FEATURE_LABELS } from '@/lib/features';
 import { PlanCards } from './plan-cards';
 
@@ -10,11 +10,12 @@ export default async function UpgradePage({
 }: {
   searchParams: Promise<{ feature?: string }>;
 }) {
-  const [{ feature }, me, ent, plansData] = await Promise.all([
+  const [{ feature }, me, ent, plansData, subDetails] = await Promise.all([
     searchParams,
     getMe(),
     getEntitlements(),
     getPlans().catch(() => ({ currentPlan: null, tiers: HOSPITALITY_PLAN_TIERS })),
+    getSubscriptionDetails().catch(() => null),
   ]);
 
   if (me.role !== 'owner') {
@@ -62,6 +63,10 @@ export default async function UpgradePage({
         currentPlan={ent.plan}
         isOwner={me.role === 'owner'}
         highlightFeature={feature}
+        subDetails={subDetails}
+        hotelName={me.property.name}
+        customerEmail={me.email}
+        customerName={me.fullName}
       />
     </div>
   );

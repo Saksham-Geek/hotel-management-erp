@@ -8,6 +8,7 @@ import { addFolioCharge, collectFolioPayment, issueInvoice } from './actions';
 import { UpiQrCard } from './upi-qr-card';
 import { UpiSettingsModal } from './upi-settings-modal';
 import { WhatsAppInvoiceModal } from './whatsapp-invoice-modal';
+import { FolioPrintModal } from './folio-print-modal';
 import { PosMachineCard } from './pos-machine-card';
 import { PosSlipModal } from './pos-slip-modal';
 import { PosTerminalsModal } from './pos-terminals-modal';
@@ -123,6 +124,8 @@ export function FolioView({
   const [reference, setReference] = useState('');
   const [invoiceType, setInvoiceType] = useState('B2C');
   const [selectedInvoiceForWhatsApp, setSelectedInvoiceForWhatsApp] = useState<any | null>(null);
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [selectedInvoiceForPrint, setSelectedInvoiceForPrint] = useState<any | null>(null);
   const [showPreCheckinModal, setShowPreCheckinModal] = useState(false);
   const [showUpiModal, setShowUpiModal] = useState(false);
   const [showPosModal, setShowPosModal] = useState(false);
@@ -146,6 +149,18 @@ export function FolioView({
             </p>
           </div>
           <div className="flex items-center gap-2.5 flex-wrap">
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedInvoiceForPrint(null);
+                setShowPrintModal(true);
+              }}
+              className="inline-flex items-center gap-1.5 rounded-full border border-teal-300 bg-teal-50/90 px-3.5 py-1.5 text-xs font-bold text-teal-950 hover:bg-teal-100 transition-all cursor-pointer shadow-2xs"
+              title="Print 80mm or 58mm thermal receipt or A4 invoice"
+            >
+              <span>🖨️</span>
+              <span>Print 80mm Receipt</span>
+            </button>
             <button
               type="button"
               onClick={() => setShowPosModal(true)}
@@ -564,15 +579,27 @@ export function FolioView({
                     </div>
                   )}
 
-                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setSelectedInvoiceForWhatsApp(inv)}
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-300 px-2.5 py-1 text-[11px] font-bold text-emerald-950 hover:bg-emerald-100 transition-all cursor-pointer shadow-2xs"
-                    >
-                      <span>💬 Dispatch via WhatsApp</span>
-                    </button>
-                    <span className="text-[10px] text-slate-500 font-medium">Automatic Guest PDF Receipt</span>
+                  <div className="pt-2 border-t border-slate-200/60 flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedInvoiceForPrint(inv);
+                          setShowPrintModal(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-teal-50 border border-teal-300 px-2.5 py-1 text-[11px] font-bold text-teal-950 hover:bg-teal-100 transition-all cursor-pointer shadow-2xs"
+                      >
+                        <span>🖨️ Print Slip</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedInvoiceForWhatsApp(inv)}
+                        className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-50 border border-emerald-300 px-2.5 py-1 text-[11px] font-bold text-emerald-950 hover:bg-emerald-100 transition-all cursor-pointer shadow-2xs"
+                      >
+                        <span>💬 WhatsApp</span>
+                      </button>
+                    </div>
+                    <span className="text-[10px] text-slate-500 font-medium">Statutory Tax Invoice</span>
                   </div>
                 </div>
               ))}
@@ -626,6 +653,19 @@ export function FolioView({
           isOwnerOrManager={userRole === 'owner' || userRole === 'manager'}
           reservationId={reservation.id}
           onClose={() => setShowPosModal(false)}
+        />
+      )}
+
+      {/* Front Desk 80mm / 58mm / A4 Thermal Receipt Print Modal */}
+      {showPrintModal && (
+        <FolioPrintModal
+          folioData={folioData}
+          currency={currency}
+          selectedInvoice={selectedInvoiceForPrint}
+          onClose={() => {
+            setShowPrintModal(false);
+            setSelectedInvoiceForPrint(null);
+          }}
         />
       )}
 

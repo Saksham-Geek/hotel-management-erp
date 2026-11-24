@@ -10,6 +10,7 @@ import { PhoneCountryInput } from '@/components/phone-country-input';
 import { NationalityCombobox } from '@/components/nationality-combobox';
 import { IdDocumentInput } from '@/components/id-document-input';
 import { SecureDocumentInput } from '@/components/secure-document-input';
+import { BulkImporterModal } from '@/components/bulk-importer-modal';
 import { formatDeterministicDate } from '@/lib/dates';
 import { formatDocumentFileName } from '@erp/shared';
 
@@ -33,6 +34,7 @@ interface GuestDirectoryProps {
 
 export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectoryProps) {
   const [query, setQuery] = useState('');
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const [inlinePreviews, setInlinePreviews] = useState<Record<string, boolean>>({});
   const [viewingDoc, setViewingDoc] = useState<{
     guestId: string;
@@ -57,9 +59,21 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
     <section aria-labelledby="guest-directory-title" className="mt-8">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 id="guest-directory-title" className="font-display text-lg font-bold text-ink">
-            Guest directory
-          </h2>
+          <div className="flex items-center gap-3">
+            <h2 id="guest-directory-title" className="font-display text-lg font-bold text-ink">
+              Guest directory
+            </h2>
+            {!readOnly && (
+              <button
+                type="button"
+                onClick={() => setIsImportOpen(true)}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs font-bold text-emerald-800 shadow-2xs hover:bg-emerald-100 transition active:scale-95 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-300"
+              >
+                <span>📥</span>
+                <span>Bulk Import CSV</span>
+              </button>
+            )}
+          </div>
           <p className="mt-1 text-xs text-muted">
             {filtered.length} of {guests.length} profiles · zero-desktop download protected with forensic watermark
           </p>
@@ -422,6 +436,13 @@ export function GuestDirectory({ guests, readOnly, currentUser }: GuestDirectory
           }}
         />
       )}
+
+      <BulkImporterModal
+        type="guests"
+        isOpen={isImportOpen}
+        onClose={() => setIsImportOpen(false)}
+        onSuccess={() => window.location.reload()}
+      />
     </section>
   );
 }

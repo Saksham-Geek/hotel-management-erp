@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import type { RoomStatus } from '@erp/shared';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, btnGhostCls, EmptyState, PageHeader, RoomTile, StatCard } from '@/components/ui';
+import { ContingencySheetButton } from '@/components/contingency-sheet-button';
 import { api, getMe, requireFeature } from '@/lib/api';
 
 interface Room {
@@ -79,6 +80,7 @@ export default async function Dashboard({
         <Link href="/billing" className={btnGhostCls}>
           💳 Bills &amp; Payments
         </Link>
+        <ContingencySheetButton />
       </PageHeader>
 
       {/* KPI Overview Cards */}

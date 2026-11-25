@@ -32,7 +32,13 @@ import {
   deleteVenueSetting,
   updateConciergeSetting,
 } from './actions';
-import { createRawMaterialAction } from '../inventory/actions';
+import {
+  createRawMaterialAction,
+  updateRawMaterialAction,
+  deleteRawMaterialAction,
+  createInventoryCategoryAction,
+  deleteInventoryCategoryAction,
+} from '../inventory/actions';
 import { createCorporateAccountAction } from '../corporate/actions';
 import {
   createRestaurantTableAction,
@@ -169,6 +175,17 @@ interface SettingsViewProps {
     currentStock: number;
     minimumAlertStock: number;
     costPerUnit: number;
+    skuCode?: string | null;
+    defaultVendorName?: string | null;
+    storageLocation?: string | null;
+  }[];
+  inventoryCategories?: {
+    id: string;
+    code: string;
+    name: string;
+    icon: string;
+    description: string | null;
+    isSystem: boolean;
   }[];
   corporateAccounts?: {
     id: string;
@@ -225,6 +242,7 @@ export function SettingsView({
   corporateAccounts = [],
   conciergeSettings = null,
   commonExpenses = [],
+  inventoryCategories = [],
   readOnly,
 }: SettingsViewProps) {
   const router = useRouter();
@@ -264,6 +282,18 @@ export function SettingsView({
   const [tableZoneFilter, setTableZoneFilter] = useState<string>('all');
   const [isAddCategoryOpen, setIsAddCategoryOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  const [editingSku, setEditingSku] = useState<{
+    id: string;
+    name: string;
+    category: string;
+    unit: string;
+    currentStock: number;
+    minimumAlertStock: number;
+    costPerUnit: number;
+    skuCode?: string | null;
+    defaultVendorName?: string | null;
+    storageLocation?: string | null;
+  } | null>(null);
 
   useEffect(() => {
     setLocalMenu(menu);
@@ -3309,16 +3339,19 @@ export function SettingsView({
                 <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
                   {rawMaterials.length} Active SKUs
                 </span>
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
+                  {rawMaterials.filter((m) => m.currentStock <= m.minimumAlertStock).length} Low Stock
+                </span>
               </div>
               <p className="mt-1 text-xs text-slate-500">
-                Configure raw materials, ingredients, unit of measurement, reorder alert thresholds, and standard cost rates.
+                Configure raw materials, store SKUs, units of measurement, storage locations, suppliers, and reorder alert thresholds.
               </p>
             </div>
             <Link
               href="/inventory"
               className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
             >
-              <span>Go to Stores &amp; Stock Ledger ›</span>
+              <span>Go to Live Stores &amp; Stock Ledger ›</span>
             </Link>
           </div>
 
@@ -3332,34 +3365,43 @@ export function SettingsView({
                   const fd = new FormData(e.currentTarget);
                   await createRawMaterialAction({
                     name: String(fd.get('name') || '').trim(),
-                    category: String(fd.get('category') || 'Grocery'),
+                    category: String(fd.get('category') || (inventoryCategories[0]?.name || 'Dry Groceries & Staples')),
                     unit: String(fd.get('unit') || 'kg'),
                     currentStock: parseFloat(String(fd.get('currentStock') || 0)),
                     minimumAlertStock: parseFloat(String(fd.get('minimumAlertStock') || 5)),
                     costPerUnit: parseFloat(String(fd.get('costPerUnit') || 0)),
+                    storageLocation: String(fd.get('storageLocation') || 'Main Store').trim(),
+                    defaultVendorName: String(fd.get('defaultVendorName') || '').trim() || undefined,
                   });
+                  e.currentTarget.reset();
                   router.refresh();
                 }}
                 className="space-y-3"
               >
                 <div>
                   <label className="block text-[11px] font-bold text-slate-600">Item Name *</label>
-                  <input name="name" required placeholder="e.g. Basmati Rice, Butter, Paneer" className={inputCls} />
+                  <input name="name" required placeholder="e.g. Basmati Rice XXL, Amul Butter, Dental Kit" className={inputCls} />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600 mb-1">Category</label>
                     <CustomDropdown
                       name="category"
-                      defaultValue="Grocery"
-                      options={[
-                        { value: 'Grocery', label: 'Grocery' },
-                        { value: 'Dairy & Perishables', label: 'Dairy & Perishables' },
-                        { value: 'Meat & Poultry', label: 'Meat & Poultry' },
-                        { value: 'Spices & Condiments', label: 'Spices & Condiments' },
-                        { value: 'Beverages & Bar', label: 'Beverages & Bar' },
-                        { value: 'Housekeeping & Linen', label: 'Housekeeping & Linen' },
-                      ]}
+                      defaultValue={inventoryCategories[0]?.name || 'Dry Groceries & Staples'}
+                      options={(inventoryCategories.length > 0 ? inventoryCategories : [
+                        { name: 'Dry Groceries & Staples', icon: '🌾' },
+                        { name: 'Dairy & Perishables', icon: '🥛' },
+                        { name: 'Meat & Poultry', icon: '🥩' },
+                        { name: 'Spices & Condiments', icon: '🧂' },
+                        { name: 'Beverages & Bar', icon: '☕' },
+                        { name: 'Housekeeping & Toiletries', icon: '🪥' },
+                        { name: 'Linen & Bedding Store', icon: '🧺' },
+                        { name: 'Cleaning & Sanitizers', icon: '🧼' },
+                      ]).map((c: any) => ({
+                        value: c.name,
+                        label: c.name,
+                        icon: <span>{c.icon || '📦'}</span>,
+                      }))}
                     />
                   </div>
                   <div>
@@ -3368,27 +3410,47 @@ export function SettingsView({
                       name="unit"
                       defaultValue="kg"
                       options={[
-                        { value: 'kg', label: 'kg' },
-                        { value: 'litres', label: 'litres' },
-                        { value: 'packets', label: 'packets' },
-                        { value: 'pcs', label: 'pcs' },
-                        { value: 'grams', label: 'grams' },
+                        { value: 'kg', label: 'kg (Kilograms)' },
+                        { value: 'litres', label: 'litres (Litres)' },
+                        { value: 'packets', label: 'packets (Packs)' },
+                        { value: 'pcs', label: 'pcs (Pieces)' },
+                        { value: 'grams', label: 'grams (Grams)' },
+                        { value: 'tins', label: 'tins (Cans)' },
+                        { value: 'bottles', label: 'bottles' },
+                        { value: 'boxes', label: 'boxes' },
                       ]}
                     />
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Storage Location</label>
+                    <input name="storageLocation" placeholder="e.g. Main Dry Store, Chiller" defaultValue="Main Store" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Default Supplier</label>
+                    <input name="defaultVendorName" list="settings-inventory-vendors" placeholder="e.g. Metro Cash & Carry" className={inputCls} />
+                    <datalist id="settings-inventory-vendors">
+                      {vendors.map((v) => (
+                        <option key={v.id} value={v.name} />
+                      ))}
+                    </datalist>
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-3 gap-2">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600">Stock</label>
-                    <input name="currentStock" type="number" defaultValue="20" className={inputCls} />
+                    <label className="block text-[11px] font-bold text-slate-600">Current Stock</label>
+                    <input name="currentStock" type="number" step="0.01" defaultValue="20" className={inputCls} />
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600">Min Alert</label>
-                    <input name="minimumAlertStock" type="number" defaultValue="5" className={inputCls} />
+                    <input name="minimumAlertStock" type="number" step="0.01" defaultValue="5" className={inputCls} />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600">Cost/Unit</label>
-                    <input name="costPerUnit" type="number" defaultValue="120" className={inputCls} />
+                    <label className="block text-[11px] font-bold text-slate-600">Cost/Unit (₹)</label>
+                    <input name="costPerUnit" type="number" step="0.01" defaultValue="120" className={inputCls} />
                   </div>
                 </div>
                 <button type="submit" disabled={readOnly} className={btnCls}>
@@ -3399,25 +3461,288 @@ export function SettingsView({
 
             {/* List */}
             <div className="col-span-2 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Raw Materials</h4>
-              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-80 overflow-y-auto">
-                {rawMaterials.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
-                    <div>
-                      <p className="font-bold text-slate-900">{m.name}</p>
-                      <p className="text-[11px] text-slate-500">
-                        {m.category} • Current: <strong>{m.currentStock} {m.unit}</strong> • Reorder at: ≤{m.minimumAlertStock} {m.unit}
-                      </p>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Raw Materials &amp; Store SKUs</h4>
+              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-96 overflow-y-auto">
+                {rawMaterials.map((m) => {
+                  const isLow = m.currentStock <= m.minimumAlertStock;
+                  return (
+                    <div key={m.id} className="flex items-center justify-between p-3.5 hover:bg-slate-50/60 transition">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-slate-900 text-sm">{m.name}</p>
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                            {m.category}
+                          </span>
+                          {isLow && (
+                            <span className="rounded-md bg-rose-100 px-1.5 py-0.5 text-[10px] font-bold text-rose-800 animate-pulse">
+                              Low Stock Alert
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-slate-500">
+                          Stock: <strong className="text-slate-800">{m.currentStock} {m.unit}</strong> • Reorder at: ≤{m.minimumAlertStock} {m.unit}
+                          {m.storageLocation && ` • Loc: ${m.storageLocation}`}
+                          {m.defaultVendorName && ` • Vendor: ${m.defaultVendorName}`}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right">
+                          <p className="font-mono font-bold text-slate-900">₹{m.costPerUnit}/{m.unit}</p>
+                          <p className="text-[10px] text-slate-400">Total: ₹{(m.currentStock * m.costPerUnit).toFixed(0)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          disabled={readOnly}
+                          onClick={() => setEditingSku(m)}
+                          className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          disabled={readOnly}
+                          onClick={async () => {
+                            if (confirm(`Delete store item "${m.name}"?`)) {
+                              await deleteRawMaterialAction(m.id);
+                              router.refresh();
+                            }
+                          }}
+                          className="rounded-md bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="font-mono font-bold text-slate-900">₹{m.costPerUnit}/{m.unit}</p>
-                      <p className="text-[10px] text-slate-400">Value: ₹{(m.currentStock * m.costPerUnit).toFixed(0)}</p>
-                    </div>
+                  );
+                })}
+                {rawMaterials.length === 0 && (
+                  <div className="p-8 text-center text-xs text-slate-400">
+                    No store raw material SKUs configured. Add one on the left.
                   </div>
-                ))}
+                )}
               </div>
             </div>
           </div>
+
+          {/* Store Categories Management (CRUD) */}
+          <div className="border-t border-slate-200/80 pt-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span>🏷️</span> Store &amp; Inventory Categories Management
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Configure department store categories (Groceries, Housekeeping Amenities, Linens, Pool Chemicals, Bar Stock).
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                {inventoryCategories.length} Categories Active
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              {/* Form */}
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Store Category</h4>
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const fd = new FormData(e.currentTarget);
+                    await createInventoryCategoryAction({
+                      name: String(fd.get('name') || '').trim(),
+                      icon: String(fd.get('icon') || '📦').trim(),
+                      description: String(fd.get('description') || '').trim() || undefined,
+                    });
+                    e.currentTarget.reset();
+                    router.refresh();
+                  }}
+                  className="space-y-3"
+                >
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-2">
+                      <label className="block text-[11px] font-bold text-slate-600">Category Name *</label>
+                      <input name="name" required placeholder="e.g. Pool Chemicals, Bakery" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Icon</label>
+                      <input name="icon" defaultValue="📦" className={`${inputCls} text-center`} />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Description</label>
+                    <input name="description" placeholder="e.g. Swimming pool water treatment salts & chlorine" className={inputCls} />
+                  </div>
+                  <button type="submit" disabled={readOnly} className={btnCls}>
+                    + Add Category
+                  </button>
+                </form>
+              </div>
+
+              {/* List */}
+              <div className="space-y-2 lg:col-span-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Store Categories</h4>
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-72 overflow-y-auto">
+                  {inventoryCategories.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xl">{c.icon || '📦'}</span>
+                        <div>
+                          <p className="font-bold text-slate-900">{c.name}</p>
+                          <p className="text-[11px] text-slate-400 font-mono">{c.code} {c.description ? `• ${c.description}` : ''}</p>
+                        </div>
+                      </div>
+                      <div>
+                        {c.isSystem ? (
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 uppercase">
+                            System
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={readOnly}
+                            onClick={async () => {
+                              if (confirm(`Delete category "${c.name}"?`)) {
+                                await deleteInventoryCategoryAction(c.id);
+                                router.refresh();
+                              }
+                            }}
+                            className="rounded-md bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Edit SKU Modal */}
+          {editingSku && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
+              <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>✏️</span> Edit Store Material SKU: {editingSku.name}
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setEditingSku(null)}
+                    className="text-slate-400 hover:text-slate-600 text-lg font-bold"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    const fd = new FormData(e.currentTarget);
+                    await updateRawMaterialAction(editingSku.id, {
+                      name: String(fd.get('name') || '').trim(),
+                      category: String(fd.get('category') || editingSku.category),
+                      unit: String(fd.get('unit') || editingSku.unit),
+                      currentStock: parseFloat(String(fd.get('currentStock') || editingSku.currentStock)),
+                      minimumAlertStock: parseFloat(String(fd.get('minimumAlertStock') || editingSku.minimumAlertStock)),
+                      costPerUnit: parseFloat(String(fd.get('costPerUnit') || editingSku.costPerUnit)),
+                      storageLocation: String(fd.get('storageLocation') || '').trim() || undefined,
+                      defaultVendorName: String(fd.get('defaultVendorName') || '').trim() || undefined,
+                    });
+                    setEditingSku(null);
+                    router.refresh();
+                  }}
+                  className="mt-4 space-y-3 text-xs"
+                >
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Item Name *</label>
+                    <input name="name" defaultValue={editingSku.name} required className={inputCls} />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Category</label>
+                      <CustomDropdown
+                        name="category"
+                        defaultValue={editingSku.category}
+                        options={(inventoryCategories.length > 0 ? inventoryCategories : [
+                          { name: 'Dry Groceries & Staples', icon: '🌾' },
+                          { name: 'Dairy & Perishables', icon: '🥛' },
+                          { name: 'Meat & Poultry', icon: '🥩' },
+                          { name: 'Spices & Condiments', icon: '🧂' },
+                          { name: 'Beverages & Bar', icon: '☕' },
+                          { name: 'Housekeeping & Toiletries', icon: '🪥' },
+                          { name: 'Linen & Bedding Store', icon: '🧺' },
+                          { name: 'Cleaning & Sanitizers', icon: '🧼' },
+                        ]).map((c: any) => ({
+                          value: c.name,
+                          label: c.name,
+                          icon: <span>{c.icon || '📦'}</span>,
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Unit</label>
+                      <CustomDropdown
+                        name="unit"
+                        defaultValue={editingSku.unit}
+                        options={[
+                          { value: 'kg', label: 'kg (Kilograms)' },
+                          { value: 'litres', label: 'litres (Litres)' },
+                          { value: 'packets', label: 'packets (Packs)' },
+                          { value: 'pcs', label: 'pcs (Pieces)' },
+                          { value: 'grams', label: 'grams (Grams)' },
+                          { value: 'tins', label: 'tins (Cans)' },
+                          { value: 'bottles', label: 'bottles' },
+                          { value: 'boxes', label: 'boxes' },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Storage Location</label>
+                      <input name="storageLocation" defaultValue={editingSku.storageLocation || 'Main Store'} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Default Supplier</label>
+                      <input name="defaultVendorName" defaultValue={editingSku.defaultVendorName || ''} className={inputCls} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Current Stock</label>
+                      <input name="currentStock" type="number" step="0.01" defaultValue={editingSku.currentStock} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Reorder Threshold</label>
+                      <input name="minimumAlertStock" type="number" step="0.01" defaultValue={editingSku.minimumAlertStock} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Unit Cost (₹)</label>
+                      <input name="costPerUnit" type="number" step="0.01" defaultValue={editingSku.costPerUnit} className={inputCls} />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100">
+                    <button
+                      type="button"
+                      onClick={() => setEditingSku(null)}
+                      className="rounded-xl px-4 py-2 font-bold text-slate-600 hover:bg-slate-100"
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className={btnCls}>
+                      Save Changes
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </section>
       )}
 

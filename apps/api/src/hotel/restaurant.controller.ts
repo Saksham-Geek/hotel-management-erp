@@ -1969,9 +1969,12 @@ export class RestaurantController {
                 minimum_alert_stock::float8 as "minimumAlertStock",
                 cost_per_unit::float8 as "costPerUnit",
                 (current_stock <= minimum_alert_stock) as "isLowStock",
-                last_restocked_at as "lastRestockedAt"
+                last_restocked_at as "lastRestockedAt",
+                sku_code as "skuCode",
+                default_vendor_name as "defaultVendorName",
+                storage_location as "storageLocation"
          from raw_materials
-         where property_id = $1
+         where property_id = $1 and is_active = true
          order by (case when current_stock <= minimum_alert_stock then 0 else 1 end), name asc`,
         [user.propertyId]
       );
@@ -1983,23 +1986,44 @@ export class RestaurantController {
   @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
   async createRawMaterial(
     @CurrentUser() user: AuthUser,
-    @Body() body: { name: string; category?: string; unit?: string; currentStock?: number; minimumAlertStock?: number; costPerUnit?: number },
+    @Body() body: {
+      name: string;
+      category?: string;
+      unit?: string;
+      currentStock?: number;
+      minimumAlertStock?: number;
+      costPerUnit?: number;
+      skuCode?: string;
+      defaultVendorName?: string;
+      storageLocation?: string;
+    },
   ) {
-    if (!body?.name) throw new BadRequestException('Raw material name is required.');
+    if (!body?.name?.trim()) throw new BadRequestException('Raw material / SKU name is required.');
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
       const res = await c.query(
         `insert into raw_materials (
-           tenant_id, property_id, name, category, unit, current_stock, minimum_alert_stock, cost_per_unit
-         ) values ($1, $2, $3, $4, $5, $6, $7, $8)
+           tenant_id, property_id, name, category, unit, current_stock, minimum_alert_stock,
+           cost_per_unit, sku_code, default_vendor_name, storage_location, is_active
+         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, true)
          on conflict (property_id, name)
          do update set
+           category = excluded.category,
+           unit = excluded.unit,
            current_stock = excluded.current_stock,
+           minimum_alert_stock = excluded.minimum_alert_stock,
            cost_per_unit = excluded.cost_per_unit,
+           sku_code = coalesce(excluded.sku_code, raw_materials.sku_code),
+           default_vendor_name = coalesce(excluded.default_vendor_name, raw_materials.default_vendor_name),
+           storage_location = coalesce(excluded.storage_location, raw_materials.storage_location),
+           is_active = true,
            updated_at = now()
          returning id, name, category, unit,
                    current_stock::float8 as "currentStock",
                    minimum_alert_stock::float8 as "minimumAlertStock",
-                   cost_per_unit::float8 as "costPerUnit"`,
+                   cost_per_unit::float8 as "costPerUnit",
+                   sku_code as "skuCode",
+                   default_vendor_name as "defaultVendorName",
+                   storage_location as "storageLocation"`,
         [
           user.tenantId,
           user.propertyId,
@@ -2009,9 +2033,250 @@ export class RestaurantController {
           body.currentStock || 0,
           body.minimumAlertStock || 5,
           body.costPerUnit || 0,
+          body.skuCode?.trim() || null,
+          body.defaultVendorName?.trim() || null,
+          body.storageLocation?.trim() || 'Main Store',
         ]
       );
-      return { success: true, item: res.rows[0], message: `Raw material "${body.name}" configured.` };
+      return { success: true, item: res.rows[0], message: `Store SKU "${body.name}" configured.` };
+    });
+  }
+
+  @Patch('inventory/raw-materials/:id')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async updateRawMaterial(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body()
+    body: {
+      name?: string;
+      category?: string;
+      unit?: string;
+      currentStock?: number;
+      minimumAlertStock?: number;
+      costPerUnit?: number;
+      skuCode?: string;
+      defaultVendorName?: string;
+      storageLocation?: string;
+    },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const updates: string[] = ['updated_at = now()'];
+      const params: any[] = [id, user.propertyId];
+
+      if (body.name?.trim()) {
+        params.push(body.name.trim());
+        updates.push(`name = $${params.length}`);
+      }
+      if (body.category?.trim()) {
+        params.push(body.category.trim());
+        updates.push(`category = $${params.length}`);
+      }
+      if (body.unit?.trim()) {
+        params.push(body.unit.trim());
+        updates.push(`unit = $${params.length}`);
+      }
+      if (body.currentStock !== undefined) {
+        params.push(Number(body.currentStock) || 0);
+        updates.push(`current_stock = $${params.length}`);
+      }
+      if (body.minimumAlertStock !== undefined) {
+        params.push(Number(body.minimumAlertStock) || 0);
+        updates.push(`minimum_alert_stock = $${params.length}`);
+      }
+      if (body.costPerUnit !== undefined) {
+        params.push(Number(body.costPerUnit) || 0);
+        updates.push(`cost_per_unit = $${params.length}`);
+      }
+      if (body.skuCode !== undefined) {
+        params.push(body.skuCode?.trim() || null);
+        updates.push(`sku_code = $${params.length}`);
+      }
+      if (body.defaultVendorName !== undefined) {
+        params.push(body.defaultVendorName?.trim() || null);
+        updates.push(`default_vendor_name = $${params.length}`);
+      }
+      if (body.storageLocation !== undefined) {
+        params.push(body.storageLocation?.trim() || 'Main Store');
+        updates.push(`storage_location = $${params.length}`);
+      }
+
+      const res = await c.query(
+        `update raw_materials set ${updates.join(', ')}
+         where id = $1 and property_id = $2
+         returning id, name, category, unit,
+                   current_stock::float8 as "currentStock",
+                   minimum_alert_stock::float8 as "minimumAlertStock",
+                   cost_per_unit::float8 as "costPerUnit",
+                   sku_code as "skuCode",
+                   default_vendor_name as "defaultVendorName",
+                   storage_location as "storageLocation"`,
+        params
+      );
+      if (!res.rowCount) throw new NotFoundException('Inventory material not found.');
+      return { success: true, item: res.rows[0], message: `SKU "${res.rows[0].name}" updated.` };
+    });
+  }
+
+  @Delete('inventory/raw-materials/:id')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async deleteRawMaterial(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `delete from raw_materials where id = $1 and property_id = $2 returning name`,
+        [id, user.propertyId]
+      );
+      if (!res.rowCount) throw new NotFoundException('Inventory material not found.');
+      return { success: true, message: `Material "${res.rows[0].name}" deleted from store inventory.` };
+    });
+  }
+
+  @Post('inventory/raw-materials/:id/adjust')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async adjustRawMaterialStock(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body()
+    body: {
+      quantity: number;
+      movementType: 'CONSUMPTION' | 'WASTAGE' | 'AUDIT_ADJUSTMENT';
+      department?: string;
+      notes?: string;
+    },
+  ) {
+    const qty = Number(body?.quantity) || 0;
+    if (qty <= 0) throw new BadRequestException('Adjustment quantity must be greater than zero.');
+    const movementType = body.movementType || 'CONSUMPTION';
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      // 1. Fetch current stock
+      const currentRes = await c.query(
+        `select id, name, unit, current_stock::float8 as "currentStock", cost_per_unit::float8 as "costPerUnit"
+         from raw_materials where id = $1 and property_id = $2`,
+        [id, user.propertyId]
+      );
+      if (!currentRes.rowCount) throw new NotFoundException('Raw material not found.');
+      const current = currentRes.rows[0];
+
+      if (current.currentStock < qty) {
+        throw new BadRequestException(
+          `Cannot deduct ${qty} ${current.unit}. Only ${current.currentStock} ${current.unit} currently in stock.`
+        );
+      }
+
+      // 2. Decrement stock
+      const updatedRes = await c.query(
+        `update raw_materials
+         set current_stock = current_stock - $1,
+             updated_at = now()
+         where id = $2 and property_id = $3
+         returning id, name, unit, current_stock::float8 as "currentStock"`,
+        [qty, id, user.propertyId]
+      );
+      const updated = updatedRes.rows[0];
+
+      // 3. Log movement
+      await c.query(
+        `insert into stock_movements (
+           tenant_id, property_id, raw_material_id, movement_type, quantity,
+           department, logged_by, unit_cost, notes
+         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [
+          user.tenantId,
+          user.propertyId,
+          id,
+          movementType,
+          qty,
+          body.department || 'Main Kitchen',
+          `Staff (${user.role})`,
+          current.costPerUnit,
+          body.notes || `${movementType} of ${qty} ${current.unit} issued to ${body.department || 'Kitchen'}`,
+        ]
+      );
+
+      return {
+        success: true,
+        item: updated,
+        message: `Deducted ${qty} ${updated.unit} of "${updated.name}" (${movementType}). Remaining stock: ${updated.currentStock} ${updated.unit}.`,
+      };
+    });
+  }
+
+  @Get('inventory/movements')
+  @RequirePermission(PERMISSIONS.RESTAURANT_VIEW)
+  async getStockMovements(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select sm.id, sm.raw_material_id as "rawMaterialId",
+                rm.name as "materialName", rm.unit as "unit",
+                sm.movement_type as "movementType",
+                sm.quantity::float8 as "quantity",
+                sm.department, sm.logged_by as "loggedBy",
+                sm.unit_cost::float8 as "unitCost",
+                sm.reference_id as "referenceId",
+                sm.notes, sm.created_at as "createdAt"
+         from stock_movements sm
+         join raw_materials rm on rm.id = sm.raw_material_id
+         where sm.property_id = $1
+         order by sm.created_at desc
+         limit 100`,
+        [user.propertyId]
+      );
+      return res.rows;
+    });
+  }
+
+  // =========================================================================
+  // DYNAMIC INVENTORY CATEGORIES (CRUD)
+  // =========================================================================
+  @Get('inventory/categories')
+  @RequirePermission(PERMISSIONS.RESTAURANT_VIEW)
+  async getInventoryCategories(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select id, code, name, icon, description,
+                is_system as "isSystem", created_at as "createdAt"
+         from inventory_categories
+         where property_id = $1
+         order by is_system desc, name asc`,
+        [user.propertyId]
+      );
+      return res.rows;
+    });
+  }
+
+  @Post('inventory/categories')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async createInventoryCategory(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { name: string; code?: string; icon?: string; description?: string },
+  ) {
+    if (!body?.name?.trim()) throw new BadRequestException('Category name is required.');
+    const code = (body.code || body.name.toUpperCase().replace(/[^A-Z0-9]/g, '_')).trim();
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `insert into inventory_categories (tenant_id, property_id, code, name, icon, description, is_system)
+         values ($1, $2, $3, $4, coalesce($5, '📦'), $6, false)
+         on conflict (property_id, code)
+         do update set name = excluded.name, icon = excluded.icon, description = excluded.description
+         returning id, code, name, icon, description, is_system as "isSystem"`,
+        [user.tenantId, user.propertyId, code, body.name.trim(), body.icon?.trim() || '📦', body.description?.trim() || null]
+      );
+      return { success: true, category: res.rows[0], message: `Store category "${res.rows[0].name}" registered.` };
+    });
+  }
+
+  @Delete('inventory/categories/:id')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async deleteInventoryCategory(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `delete from inventory_categories where id = $1 and property_id = $2 and is_system = false returning name`,
+        [id, user.propertyId]
+      );
+      if (!res.rowCount) throw new BadRequestException('Cannot delete category (system-protected or not found).');
+      return { success: true, message: `Category "${res.rows[0].name}" deleted.` };
     });
   }
 

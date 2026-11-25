@@ -90,31 +90,81 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 - **Direct Advance UPI Settlement**: Displays property's verified NPCI UPI QR code for direct guest deposit confirmation.
 - **Instant Allocation**: Automatically creates guest profile, confirms reservation, and renders directly into the Front Desk Room Rack (`/tape-chart`).
 
-### 11. ⚖️ Statutory Compliance & BoI Form C (`/compliance`)
+### 11. 🛡️ Zero-Cost Client-Side ID Masking & Statutory Redaction (`IdRedactionModal`)
+> *100% DPDP Act 2023 & UIDAI Section 29 Compliant · ₹0 Cloud OCR/API Costs*
+- **Permanent In-Canvas Pixel Overwriting**: Overwrites raw pixel arrays with solid `#000000` pitch-black blocks directly on the HTML5 canvas before file transmission, mathematically guaranteeing unmasked PII never reaches server memory, databases, or cloud storage.
+- **Statutory Indelible Compliance Footer**: Automatically burns the required statutory stamp onto the saved document:
+  > `SECURE KYC · MASKED UNDER SECTION 29 AADHAAR ACT / DPDP ACT 2023 · FOR HOTEL CHECK-IN USE ONLY`
+- **1-Click Smart Presets Across All Indian ID Proofs**:
+  - **Aadhaar Card**: Auto-masks digits 1–8 (`XXXX XXXX 1234`) and blacks out the unencrypted 2D demographic QR code.
+  - **Passport**: Redacts the bottom 2-line Machine-Readable Zone (MRZ) and specimen signature block per MEA rules.
+  - **Driving License**: Redacts specimen signature and smart card emergency contact chip per MoRTH guidelines.
+  - **Voter ID (EPIC)**: Redacts tracking barcodes and sensitive demographic data.
+  - **PAN Card**: Redacts middle PAN digits and signature per Income Tax Rule 114B.
+  - **Freehand Crosshair Drag & Draw**: Drag to draw custom blackout rectangles anywhere on desktop or touch screens.
+- **Both Photo & PDF Support**: Renders JPEG, PNG, WebP, and Page 1 of official e-Aadhaar PDFs onto high-DPI canvas.
+
+### 12. 📱 Front Desk Mobile Camera Bridge & WebRTC Live Viewfinder
+- **Zero-Footprint Mobile ID Capture**: Front desk receptionist clicks *"Snap ID with Phone"* on PC, generating an ephemeral QR code.
+- **No WhatsApp / Gallery Footprint**: Receptionist scans QR with smartphone; photo transfers directly to desk PC form via temporary browser memory. Never leaves guest ID photos stored in staff WhatsApp chats or phone photo galleries.
+- **Live In-Browser Viewfinder**: Uses WebRTC `navigator.mediaDevices.getUserMedia` with automatic ID alignment framing guides.
+- **Direct Laptop Webcam Capture**: For front desks with attached webcams or laptops, 1-click webcam capture with instant frame freeze and client-side compression (<500 KB).
+
+### 13. 🎭 Live Role-Based Access Control (RBAC) & Staff Persona Switcher
+- **Interactive Sales Demo Persona Switcher (`RolePersonaSwitcher`)**: Located in top header. Allows hoteliers and sales evaluators to toggle live staff views with 1 click:
+  - 👑 **Property Owner**: Full P&L, RevPAR, Owner Income analytics, Staff governance, and Multi-Branch console.
+  - 👔 **General Manager**: Operations dashboard, Staff management, Day-End Night Audit, and OTA channels (Owner Income hidden).
+  - 🛎️ **Front Desk Receptionist**: Room rack, check-in/out, tape chart, guest KYC, billing folios, restaurant POS, and police reports (Staff hiring, settings, and financials hidden).
+  - 🧹 **Housekeeping Staff**: Dedicated mobile-first cleaning queue (Dirty ⇄ Clean ⇄ Ready toggles). All guest PII and financial folios strictly restricted.
+- **Live Preview Alert Banner**: Informs users when they are previewing a staff persona, with a 1-click `[✕ Exit Preview]` button.
+- **Strict Route Enforcement**: Direct URL navigation to `/income`, `/settings`, `/staff`, or `/night-audit` in receptionist or housekeeping mode triggers an *Access Restricted* redirect.
+
+### 14. ⚡ Dynamic UPI QR Cashiering with Fullscreen Counter Display Mode
+- **Exact-Amount Dynamic QR Code**: Standard NPCI UPI URI (`upi://pay?pa=...&pn=...&am=...&cu=INR&tn=...`) embeds the exact balance down to the paisa. Eliminates incorrect payment amounts.
+- **🖥️ Fullscreen Customer Display**: 1-click popup expands a high-contrast QR display for reception desk iPads or second guest-facing monitors.
+- **Real-Time Payment Detection**: Server-Sent Events (SSE) stream and polling auto-detect payment completion, pulse green, and record the NPCI Bank UTR.
+- **Simulate Paid Demo Mode**: Receptionists and evaluators can simulate real-time UPI webhook arrival with a single click.
+
+### 15. 🖨️ Dedicated 80mm & 58mm Thermal Print Engine (ESC/POS & CSS)
+- **High-Speed Receipt & KOT Printing**: Fully optimized `@media print` CSS for standard 80mm front desk thermal roll printers and 58mm mobile Bluetooth printers.
+- **Guest Folio Mini-Receipt (`FolioPrintModal`)**: Prints guest name, room number, stay dates, itemized room/food charges, GST breakdown (CGST+SGST/IGST), and statutory hotel GSTIN. Supports raw ESC/POS byte streaming.
+- **Kitchen Order Tickets (`KotPrintModal`)**: Kitchen printing with Table #, Room #, Order Type, Special Chef Notes (*"No Onion Garlic"*, *"Mild"*), and server name.
+
+### 16. 💬 WhatsApp Guest Notification Templates & Voucher Engine
+- **WhatsApp Booking Confirmation Voucher (`WhatsAppVoucherModal`)**: Added to every reservation row. Pre-fills guest WhatsApp number and formats official hotel vouchers (dates, room assigned, total price, check-in/out timings, Google Maps directions).
+- **Pre-Arrival Digital Check-In**: Sends guests a secure link to upload ID proof from their smartphone before arrival (skipping the reception queue).
+- **Welcome & Wi-Fi Greeting**: In-room dining dial codes, reception intercom, and guest Wi-Fi connection details.
+- **WhatsApp GST Tax Invoice (`WhatsAppInvoiceModal`)**: Dispatches digital PDF tax invoices directly to the guest's mobile on checkout.
+
+### 17. 🛡️ High-Resilience REST-Based Authentication (`/api/auth/login`)
+- Replaced brittle Server Action form submissions with a permanent, resilient REST endpoint (`POST /api/auth/login`).
+- Eliminates Next.js internal `UnrecognizedActionError` hash mismatches during hot-reloads or rolling updates.
+- Real-time inline error messaging without page reloads or cleared input fields.
+
+### 18. 📋 Front Desk Emergency Contingency Engine (`FrontDeskContingencyModal`)
+- Instant printable/downloadable offline guest ledger for power or internet outages.
+- Exports in-house guest roster, room occupancy, pending arrivals, and outstanding balances in 1 click.
+
+### 19. ⚖️ Statutory Compliance & BoI Form C (`/compliance`)
 - Mandatory **Bureau of Immigration (BoI) Form C** filing for foreign national guests within 24 hours of arrival.
 - Daily local police station beat register export formatted for local law enforcement submission.
 
-### 12. 🌙 Automated Night Audit Rollover (`/night-audit`)
+### 20. 🌙 Automated Night Audit Rollover (`/night-audit`)
 - 1-click midnight business date rollover and daily room rate posting.
 - Daily Manager Flash Revenue Report with live ADR, RevPAR, and occupancy calculations.
 
-### 13. 🌐 Two-Way OTA Channel Manager (`/channel-manager`)
+### 21. 🌐 Two-Way OTA Channel Manager (`/channel-manager`)
 - Real-time ARI (Availability, Rates & Inventory) synchronization with MakeMyTrip, Booking.com, Agoda, and Expedia.
 - Inbound booking simulation and webhook audit logging.
 
-### 14. 💬 Guest Loyalty CRM & Marketing Automation (`/marketing`)
-- Taj InnerCircle VIP loyalty tiers (Kohinoor, Platinum, Gold, Silver).
-- Automated 1-click post-checkout WhatsApp Google Review and TripAdvisor outreach.
-- Guest stay history, lifetime spend (LTV), and guest preferences logging.
-
-### 15. 👥 Staff Hierarchy & Delegation Governance (`/staff`)
+### 22. 👥 Staff Hierarchy & Delegation Governance (`/staff`)
 - Strict hierarchy enforcement: Super Admin ➔ Property Owner ➔ General Manager ➔ Front Desk / Housekeeping.
 - General Managers are restricted to recruiting Front Desk and Housekeeping staff.
 - Shift assignments (Morning, Evening, Night Audit, General).
 
-### 16. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
+### 23. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
 - In-site operational handbook that dynamically detects the user's role and displays the exact procedures authorized for their access level.
-- Role-Based Access Control (RBAC) permissions matrix comparing all 5 tiers.
+- Role-Based Access Control (RBAC) permissions matrix comparing all 4 tiers.
 - Front desk cashiering procedures with dynamic NPCI UPI QR code generation, Aura Dine POS, Keycard RFID encoding, and owner banking security rules.
 
 ---

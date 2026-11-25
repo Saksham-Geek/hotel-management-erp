@@ -20,6 +20,10 @@ This document defines the architectural decisions, database models, security bou
 | **Banking Settlement Security** | Owner-Exclusive `PROPERTY_BANKING_MANAGE` RBAC | Direct hotel receiving UPI ID (`upi_id`) and merchant name are restricted to `user.role === 'owner'`. General Managers, Front Desk Receptionists, and Floor Staff receive 403 Forbidden on writes, preventing unauthorized bank redirect. |
 | **Direct Guest Booking** | Public Zero-Commission Booking Engine (`/book/[slug]`) | Public unauthenticated API endpoints decorated with `@Public()` with input validation and rate limiting. Allocates live rooms directly to the tape chart and bypasses 18-25% OTA commissions. |
 | **Hardware POS Integration** | Multi-Protocol EDC Terminal Adapter (LAN / Cloud Push / Web Serial) | Pluggable POS hardware layer supporting Pine Labs Plutus, Paytm Smart POS, Innoviti uniPAY, Razorpay EzeTap, Ingenico Lane IP, and W3C Web Serial USB connection for 0-latency cashiering card charges and authentic thermal slips. |
+| **Statutory ID Redaction** | Client-Side In-Canvas Pixel Overwriting (`IdRedactionModal`) | UIDAI Section 29 & DPDP Act 2023 compliance. Overwrites raw pixel arrays with `#000000` pitch black on HTML5 canvas before network dispatch, achieving mathematical non-reversibility with ₹0 cloud OCR cost. |
+| **Mobile Camera Bridge** | Ephemeral Token-Authenticated Memory Bridge (`/api/kyc-bridge`) | 5-minute ephemeral sessions. Transports camera photos directly from receptionist smartphones to front desk forms via temporary memory with zero photo trace on device storage. |
+| **Dynamic UPI Cashiering** | NPCI URI + Real-time SSE Stream Listener (`/payment-stream`) | Real-time Server-Sent Events stream and polling detect incoming UPI settlements instantly, pulse green, and record the bank UTR without manual receptionist verification. |
+| **Authentication Resilience** | Hybrid REST (`/api/auth/login`) + Server Action Layer | Prevents Next.js `UnrecognizedActionError` hash invalidations during code reloads or rolling deploys while preserving secure HTTP-only cookie storage. |
 
 ---
 

@@ -419,3 +419,69 @@ To eliminate operational confusion and cognitive overload during rush hours, Aur
 - **MIFARE ISO/IEC 14443-A Compatibility**: Supports standard 13.56 MHz high-frequency contactless smart cards widely used in hospitality electronic door locks (Assa Abloy / VingCard, Saflok, Dormakaba, Salto).
 - **Temporal Access Encasement**: Keycard encoding routines enforce strict check-out timestamp expiry down to the minute. Cards automatically deactivate upon the guest's scheduled check-out time, preventing unauthorized room access after key return.
 - **W3C Web Serial Bridge**: Direct browser-to-hardware communication eliminates bulky desktop middleware agents or vendor lock-in. Compatible with standard USB-to-UART bridge chips (CH340, CP2102, FTDI).
+
+### UIDAI Section 29 & DPDP Act 2023 Identity Document Redaction Standards
+- **Section 29 Aadhaar Act 2016 (Amendment 2019 & 2022 Circular)**: Hotel front desks are strictly prohibited by law from collecting, copying, or storing unmasked 12-digit Aadhaar numbers or unmasked 2D demographic QR codes.
+- **Permanent Bitmap Pixel Destruction**: In-app redaction uses HTML5 `<canvas>` 2D bitmap context overwriting. Pitch-black (`#000000`) charcoal blocks are burned directly into pixel arrays prior to HTTP transmission, making digital reversal or extraction mathematically impossible.
+- **QR Code Blackout Requirement**: The printed Aadhaar 2D QR code contains full unencrypted demographic XML (full Aadhaar number, name, DOB, mobile, address). Blacking out the 8 digits while leaving the QR code intact violates UIDAI regulations; our redaction engine simultaneously targets both.
+- **Passport Act 1967 & MEA Guidelines**: Machine-Readable Zone (MRZ 2-line bottom block) and holder specimen signature are redacted to prevent unauthorized identity cloning.
+- **Statutory Audit Stamp**: Every compliant file burned by the PMS carries the mandatory indelible watermark footer: `SECURE KYC · MASKED UNDER SECTION 29 AADHAAR ACT / DPDP ACT 2023 · FOR HOTEL CHECK-IN USE ONLY`.
+
+---
+
+## 5. Front Desk Operational Standard Operating Procedures (SOPs)
+
+### SOP-01: Guest Identity Capture via Mobile QR Camera Bridge
+1. Open [`/guests`](http://localhost:3000/guests) or [`/reservations`](http://localhost:3000/reservations).
+2. Click **"Snap ID with Phone"** to generate an ephemeral, time-limited QR bridge session.
+3. Receptionist points smartphone camera at the desk screen QR code (no app download required).
+4. Smartphone opens the secure mobile camera viewfinder:
+   - Align the guest's ID card (Aadhaar, Passport, DL) within the cyan guide frame.
+   - Tap **"Snap Photo Now"**.
+   - Photo is compressed (<500 KB) in client-side memory.
+5. Tap **"Send to Desk PC"**. Document instantly transfers to the front desk form over memory bridge.
+6. Zero photos remain on the receptionist's personal phone gallery or WhatsApp.
+
+### SOP-02: Zero-Cost UIDAI Aadhaar Masking & Redaction Workflow
+1. When an ID document is uploaded or received via mobile bridge, click **"🛡️ Mask / Redact ID"**.
+2. The interactive redaction canvas opens.
+3. For Aadhaar cards:
+   - Click **"⚡ Mask Aadhaar (8 Digits & QR)"**.
+   - The tool automatically positions solid black boxes over digits 1–8 (`XXXX XXXX`) and the 2D demographic QR code, leaving only the last 4 digits visible.
+4. For Passports:
+   - Click **"📘 Redact Passport MRZ"** to blackout the 2 bottom MRZ lines and specimen signature.
+5. For custom cards:
+   - Drag crosshairs across any sensitive field to create a custom blackout box.
+6. Click **"✓ Burn Redactions & Save Masked ID"**.
+7. The compliant file is permanently saved as `[filename]-masked.jpg` and marked with a green `✓ Masked` badge.
+
+### SOP-03: Dynamic UPI QR Cashiering with Fullscreen Counter Display
+1. In [`/billing`](http://localhost:3000/billing), select the guest's active room folio.
+2. Under **Collect Payment**, select **Payment Method: UPI Dynamic QR / VPA**.
+3. Enter or verify the exact amount due (e.g. `₹4,250.00`).
+4. Click **"🖥️ Fullscreen Counter QR"** to expand the high-contrast customer display on a guest-facing counter monitor or iPad.
+5. Guest scans the QR using any UPI app (GPay, PhonePe, Paytm, BHIM, CRED).
+6. The system auto-detects incoming payment via Server-Sent Events (SSE) or webhook listener, displays a green success confirmation, and records the NPCI Bank UTR.
+
+### SOP-04: WhatsApp Guest Voucher & Pre-Arrival Check-In Dispatch
+1. In [`/reservations`](http://localhost:3000/reservations), find the guest stay row.
+2. Click the **"💬 WhatsApp"** button.
+3. Choose the appropriate notification template:
+   - **Booking Voucher**: Official booking voucher with dates, room number, total price, and hotel address.
+   - **Pre-Arrival Check-In**: Sends guest a self-service link to upload their ID from home prior to arrival.
+   - **Welcome & Wi-Fi**: Sends room Wi-Fi credentials and front desk intercom dial codes on check-in day.
+4. Click **"🚀 Send via WhatsApp"** to launch WhatsApp Web or the mobile app with the pre-formatted text.
+
+### SOP-05: 80mm & 58mm Thermal Receipt & Kitchen Order Printing
+1. **Front Desk Checkout**: Click **"Print Bill"** on any settled folio ➔ Choose **80mm Thermal** ➔ Click **"Direct Thermal Print"** or `Ctrl+P`. The slip renders with zero margins, sharp monospace fonts, and automatic cut lines.
+2. **Kitchen KOT Dispatch**: In [`/restaurant`](http://localhost:3000/restaurant), punch a dining order ➔ Click **"Print KOT"** ➔ The ticket formats for 80mm kitchen printers with Table #, order round, server name, and special preparation instructions.
+
+### SOP-06: Emergency Offline Contingency Operations
+1. In the event of a power cut or broadband failure at the property:
+2. Open [`/dashboard`](http://localhost:3000/dashboard) or [`/night-audit`](http://localhost:3000/night-audit).
+3. Click **"Emergency Contingency Sheet"**.
+4. The system produces an offline printable and downloadable HTML/PDF front desk ledger containing:
+   - In-house room roster with guest names, contact numbers, and stay duration.
+   - Pending arrivals and departures scheduled for today.
+   - Outstanding folio balances and assigned room key statuses.
+5. Front desk can operate seamlessly on paper or tablet until power/network is restored.

@@ -25,8 +25,12 @@ export default {
       { source: '/room-rack', destination: '/room-calendar', permanent: false },
       { source: '/calendar', destination: '/room-calendar', permanent: false },
 
-      // Front Desk & Operations aliases
+      // Setup & Asset aliases
       { source: '/rooms', destination: '/settings?tab=rooms', permanent: false },
+      { source: '/staff', destination: '/settings?tab=staff', permanent: false },
+      { source: '/keycards', destination: '/settings?tab=keycards', permanent: false },
+      { source: '/compliance', destination: '/settings?tab=compliance', permanent: false },
+      { source: '/super-admin', destination: '/settings', permanent: false },
       { source: '/front-desk', destination: '/dashboard', permanent: false },
       { source: '/today', destination: '/dashboard', permanent: false },
       { source: '/bookings', destination: '/reservations', permanent: false },

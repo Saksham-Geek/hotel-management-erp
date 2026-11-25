@@ -28,7 +28,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (role === 'housekeeping') {
     featureItems = [
       { href: '/housekeeping', label: 'Housekeeping & Cleaning', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Front Desk & Operations' },
-      { href: '/keycards', label: 'Room Keys & Locks', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Front Desk & Operations' },
       { href: '/guide', label: 'Help & Training Guide', icon: 'guide', group: 'Help & Support' },
     ];
   } else if (role === 'frontdesk') {
@@ -38,12 +37,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       { href: '/reservations', label: 'Bookings & Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
       { href: '/guests', label: 'Guest Directory', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
       { href: '/billing', label: 'Bills & Payments', icon: 'billing', feature: FEATURES.HOTEL_BILLING, group: 'Front Desk & Operations' },
-      { href: '/expenses', label: 'Petty Cash & Expenses', icon: 'expenses', group: 'Front Desk & Operations' },
-      { href: '/banquets', label: 'Banquets & Events', icon: 'banquets', group: 'Front Desk & Operations' },
-      { href: '/restaurant', label: 'Restaurant & Dining', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Front Desk & Operations' },
-      { href: '/keycards', label: 'Room Keys & Locks', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Front Desk & Operations' },
+      { href: '/night-audit', label: 'Daily Closing (Night Audit)', icon: 'night-audit', feature: FEATURES.HOTEL_NIGHT_AUDIT, group: 'Front Desk & Operations' },
       { href: '/housekeeping', label: 'Housekeeping & Cleaning', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Front Desk & Operations' },
-      { href: '/compliance', label: 'Police Reports (BoI)', icon: 'compliance', feature: FEATURES.HOTEL_COMPLIANCE, group: 'Front Desk & Operations' },
+      { href: '/restaurant', label: 'Restaurant & Dining', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Front Desk & Operations' },
+      { href: '/banquets', label: 'Banquets & Events', icon: 'banquets', group: 'Front Desk & Operations' },
+      { href: '/expenses', label: 'Petty Cash & Expenses', icon: 'expenses', group: 'Front Desk & Operations' },
       { href: '/guide', label: 'Help & Training Guide', icon: 'guide', group: 'Help & Support' },
     ];
   } else {
@@ -54,24 +52,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       { href: '/reservations', label: 'Bookings & Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
       { href: '/guests', label: 'Guest Directory', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
       { href: '/billing', label: 'Bills & Payments', icon: 'billing', feature: FEATURES.HOTEL_BILLING, group: 'Front Desk & Operations' },
-      { href: '/expenses', label: 'Petty Cash & Expenses', icon: 'expenses', group: 'Front Desk & Operations' },
-      { href: '/banquets', label: 'Banquets & Events', icon: 'banquets', group: 'Front Desk & Operations' },
-      { href: '/restaurant', label: 'Restaurant & Dining', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Front Desk & Operations' },
-      { href: '/keycards', label: 'Room Keys & Locks', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Front Desk & Operations' },
+      { href: '/night-audit', label: 'Daily Closing (Night Audit)', icon: 'night-audit', feature: FEATURES.HOTEL_NIGHT_AUDIT, group: 'Front Desk & Operations' },
       { href: '/housekeeping', label: 'Housekeeping & Cleaning', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Front Desk & Operations' },
-      { href: '/compliance', label: 'Police Reports (BoI)', icon: 'compliance', feature: FEATURES.HOTEL_COMPLIANCE, group: 'Front Desk & Operations' },
+      { href: '/restaurant', label: 'Restaurant & Dining', icon: 'food', feature: FEATURES.HOTEL_RESTAURANT_POS, group: 'Front Desk & Operations' },
+      { href: '/banquets', label: 'Banquets & Events', icon: 'banquets', group: 'Front Desk & Operations' },
+      { href: '/expenses', label: 'Petty Cash & Expenses', icon: 'expenses', group: 'Front Desk & Operations' },
       // Management & Setup Section (Manager & Owner)
       { href: '/inventory', label: 'Stores & Stock Inventory', icon: 'inventory', group: 'Management & Setup' },
       { href: '/corporate', label: 'Corporate & City Ledger', icon: 'corporate', group: 'Management & Setup' },
-      { href: '/settings', label: 'Hotel Settings', icon: 'settings', group: 'Management & Setup' },
-      { href: '/staff', label: 'Staff & Roles', icon: 'staff', group: 'Management & Setup' },
       { href: '/channel-manager', label: 'Online Booking Sites (OTAs)', icon: 'channels', feature: FEATURES.HOTEL_CHANNEL_MANAGER, group: 'Management & Setup' },
       { href: '/marketing', label: 'Guest Loyalty & Offers', icon: 'marketing', feature: FEATURES.HOTEL_LOYALTY, group: 'Management & Setup' },
-      { href: '/night-audit', label: 'Daily Closing (Night Audit)', icon: 'night-audit', feature: FEATURES.HOTEL_NIGHT_AUDIT, group: 'Management & Setup' },
+      { href: '/settings', label: 'Hotel Settings', icon: 'settings', group: 'Management & Setup' },
       ...(role === 'owner'
         ? [
             { href: '/income', label: 'Income & Revenue', icon: 'income' as const, group: 'Owner & Business' },
-            { href: '/super-admin', label: 'All Hotel Branches', icon: 'admin' as const, group: 'Owner & Business' },
             { href: '/upgrade', label: 'Subscription Plans', icon: 'plans' as const, group: 'Owner & Business' },
           ]
         : []),

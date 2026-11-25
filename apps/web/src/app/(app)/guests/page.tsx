@@ -1,6 +1,7 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { FEATURES } from '@erp/shared';
-import { Banner, EmptyState, PageHeader } from '@/components/ui';
+import { Banner, btnGhostCls, EmptyState, PageHeader } from '@/components/ui';
 import { api, getMe, requireFeature } from '@/lib/api';
 import { GuestDirectory, type GuestProfile } from './guest-directory';
 import { RegisterGuestForm } from './register-guest-form';
@@ -24,7 +25,15 @@ export default async function GuestsPage({ searchParams }: { searchParams: Promi
 
   return (
     <>
-      <PageHeader title="Guest directory" eyebrow="Guest profiles" description="Keep reusable guest details in one place and find returning guests quickly." />
+      <PageHeader
+        title="Guest Directory"
+        eyebrow="Guest Profiles & Compliance"
+        description="Search guest records, register walk-ins, and export Govt Form C & Local Police Arrival Reports."
+      >
+        <Link href="/settings?tab=compliance" className={btnGhostCls}>
+          📑 Govt Form C &amp; Police Reports &rarr;
+        </Link>
+      </PageHeader>
       <Banner error={error} ok={ok} />
 
       {!ent.readOnly ? (

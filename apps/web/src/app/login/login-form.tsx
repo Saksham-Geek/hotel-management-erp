@@ -14,6 +14,8 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
 
   // OTP workflow state
   const [otpStep, setOtpStep] = useState<'request' | 'verify'>('request');
@@ -95,6 +97,37 @@ export function LoginForm() {
         router.push('/dashboard');
       }
     });
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setPasswordError(null);
+    setIsSubmittingPassword(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tenant: tenant.trim(),
+          email: email.trim(),
+          password,
+        }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data.ok) {
+        setPasswordError(data.error || 'Invalid organization code, email, or password.');
+        setIsSubmittingPassword(false);
+        return;
+      }
+
+      window.location.href = data.redirectUrl || '/dashboard';
+    } catch {
+      setPasswordError('Unable to connect to authentication service. Please check your connection.');
+      setIsSubmittingPassword(false);
+    }
   };
 
   return (
@@ -347,7 +380,14 @@ export function LoginForm() {
 
       {/* ===================== PASSWORD MODE ===================== */}
       {authMode === 'password' && (
-        <form action={login} className="space-y-4">
+        <form onSubmit={handlePasswordSubmit} className="space-y-4">
+          {passwordError && (
+            <div className="rounded-xl border border-rose-200 bg-rose-50/90 p-3 text-xs text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300 flex items-start gap-2 animate-in fade-in">
+              <span className="text-sm shrink-0">⚠️</span>
+              <span className="font-medium leading-relaxed">{passwordError}</span>
+            </div>
+          )}
+
           {/* Property Organization Code */}
           <div>
             <label className="block text-xs font-semibold text-slate-800 dark:text-slate-200">
@@ -424,7 +464,7 @@ export function LoginForm() {
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOffIcon /> : <EyeIcon />}
@@ -434,15 +474,25 @@ export function LoginForm() {
 
           {/* Submit Button */}
           <div className="pt-1">
-            <FormSubmit
-              className={`${btnCls} w-full bg-slate-900 py-3 text-sm text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99]`}
-              pendingLabel="Authenticating…"
+            <button
+              type="submit"
+              disabled={isSubmittingPassword}
+              className={`${btnCls} w-full bg-slate-900 py-3 text-sm text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2`}
             >
-              Sign In with Password
-              <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 ml-1.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M13 6l6 6-6 6" />
-              </svg>
-            </FormSubmit>
+              {isSubmittingPassword ? (
+                <>
+                  <Spinner />
+                  <span>Authenticating…</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In with Password</span>
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4 ml-0.5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M5 12h14M13 6l6 6-6 6" />
+                  </svg>
+                </>
+              )}
+            </button>
           </div>
         </form>
       )}

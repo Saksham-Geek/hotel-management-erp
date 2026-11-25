@@ -11,6 +11,7 @@ export function middleware(req: NextRequest) {
     || path.startsWith('/onboard')
     || path.startsWith('/book')
     || path.startsWith('/scan-id')
+    || path.startsWith('/guest-portal')
     || path.startsWith('/api/kyc-bridge')
     || path.startsWith('/api/auth');
   if (!req.cookies.has('erp_token') && !publicPath) {

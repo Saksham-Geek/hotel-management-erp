@@ -23,7 +23,11 @@ export type NavIconName =
   | 'income'
   | 'food'
   | 'keycard'
-  | 'settings';
+  | 'settings'
+  | 'expenses'
+  | 'banquets'
+  | 'inventory'
+  | 'corporate';
 
 export interface NavItem {
   href: string;
@@ -289,6 +293,38 @@ function NavIcon({ name, active }: { name: NavIconName; active: boolean }) {
         <svg {...common}>
           <circle cx="7.5" cy="15.5" r="4.5" />
           <path d="m10.5 12.5 8-8M15 8l3 3M17 6l2 2" />
+        </svg>
+      );
+    case 'expenses':
+      return (
+        <svg {...common}>
+          <rect x="2" y="4" width="20" height="16" rx="2" />
+          <line x1="12" y1="8" x2="12" y2="16" />
+          <line x1="8" y1="12" x2="16" y2="12" />
+          <path d="M6 8h.01M18 16h.01" />
+        </svg>
+      );
+    case 'banquets':
+      return (
+        <svg {...common}>
+          <path d="M18 6 6 18M8 6h10v10" />
+          <circle cx="12" cy="12" r="3" />
+          <path d="M4 4l16 16" />
+        </svg>
+      );
+    case 'inventory':
+      return (
+        <svg {...common}>
+          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+          <line x1="12" y1="22.08" x2="12" y2="12" />
+        </svg>
+      );
+    case 'corporate':
+      return (
+        <svg {...common}>
+          <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
+          <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
         </svg>
       );
     case 'settings':

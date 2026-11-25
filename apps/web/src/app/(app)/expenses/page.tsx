@@ -7,13 +7,22 @@ export const metadata = {
 };
 
 export default async function ExpensesPage() {
-  const [expenses, cashSummary] = await Promise.all([
+  const [expenses, cashSummary, categories, vendors] = await Promise.all([
     api<any[]>('/hotel/expenses').catch(() => []),
     api<any>('/hotel/expenses/cash-summary').catch(() => ({
       today: { totalCashIn: 0, totalCashOut: 0, netDrawerCash: 0, voucherCount: 0 },
       categoryBreakdownMonth: [],
     })),
+    api<any[]>('/hotel/expenses/categories').catch(() => []),
+    api<any[]>('/hotel/expenses/vendors').catch(() => []),
   ]);
 
-  return <ExpenseClient initialExpenses={expenses} initialSummary={cashSummary} />;
+  return (
+    <ExpenseClient
+      initialExpenses={expenses}
+      initialSummary={cashSummary}
+      initialCategories={categories}
+      initialVendors={vendors}
+    />
+  );
 }

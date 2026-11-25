@@ -16,7 +16,45 @@ export async function createVenueAction(input: {
       body: JSON.stringify(input),
     });
     revalidatePath('/banquets');
+    revalidatePath('/settings');
     return { ok: true, venue: res.venue };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function updateVenueAction(
+  id: string,
+  input: {
+    name?: string;
+    type?: string;
+    maxPax?: number;
+    baseRentalRate?: number;
+    amenities?: string[];
+    isActive?: boolean;
+  },
+) {
+  try {
+    const res = await api<any>(`/hotel/banquets/venues/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    });
+    revalidatePath('/banquets');
+    revalidatePath('/settings');
+    return { ok: true, venue: res.venue };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function deleteVenueAction(id: string) {
+  try {
+    const res = await api<any>(`/hotel/banquets/venues/${id}`, {
+      method: 'DELETE',
+    });
+    revalidatePath('/banquets');
+    revalidatePath('/settings');
+    return { ok: true, message: res.message };
   } catch (err) {
     return { ok: false, error: errorMessage(err) };
   }

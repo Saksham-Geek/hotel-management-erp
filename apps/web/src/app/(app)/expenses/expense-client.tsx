@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createExpenseAction } from './actions';
+import { createExpenseAction, createVendorAction } from './actions';
 
 export interface ExpenseVoucher {
   id: string;
@@ -19,6 +20,28 @@ export interface ExpenseVoucher {
   createdAt: string;
 }
 
+export interface ExpenseCategory {
+  id: string;
+  code: string;
+  name: string;
+  icon: string;
+  badgeColor: string;
+  description: string | null;
+  isSystem: boolean;
+}
+
+export interface HotelVendor {
+  id: string;
+  name: string;
+  category: string;
+  contactPerson: string | null;
+  phone: string | null;
+  email: string | null;
+  gstin: string | null;
+  paymentTerms: string;
+  isActive: boolean;
+}
+
 export interface CashSummary {
   today: {
     totalCashIn: number;
@@ -33,41 +56,67 @@ export interface CashSummary {
   }[];
 }
 
-const CATEGORY_META: Record<string, { label: string; icon: string; badge: string }> = {
-  DIESEL_GENSET: { label: 'GenSet Diesel & Fuel', icon: '⛽', badge: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300' },
-  KITCHEN_PERISHABLES: { label: 'Milk, Bread & Perishables', icon: '🥛', badge: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300' },
-  GUEST_LAUNDRY: { label: 'Outsourced Guest Laundry', icon: '🧺', badge: 'bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300' },
-  PROPERTY_REPAIRS: { label: 'Plumbing & Electrical Spares', icon: '🔧', badge: 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300' },
-  STAFF_WELFARE: { label: 'Staff Tea & Welfare', icon: '☕', badge: 'bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300' },
-  FRONT_DESK_SUPPLIES: { label: 'Stationery & Key Sleeves', icon: '📝', badge: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300' },
-  MUNICIPAL_UTILITIES: { label: 'Water Tanker & Municipal', icon: '💧', badge: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/50 dark:text-cyan-300' },
-  OTHER: { label: 'General Petty Cash Sundry', icon: '📦', badge: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300' },
-};
+const DEFAULT_CATEGORIES: ExpenseCategory[] = [
+  { id: '1', code: 'DIESEL_GENSET', name: 'GenSet Diesel & Fuel', icon: '⛽', badgeColor: 'bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300', description: null, isSystem: true },
+  { id: '2', code: 'KITCHEN_PERISHABLES', name: 'Milk, Bread & Perishables', icon: '🥛', badgeColor: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300', description: null, isSystem: true },
+  { id: '3', code: 'GUEST_LAUNDRY', name: 'Outsourced Guest Laundry', icon: '🧺', badgeColor: 'bg-sky-100 text-sky-800 dark:bg-sky-950/50 dark:text-sky-300', description: null, isSystem: true },
+  { id: '4', code: 'PROPERTY_REPAIRS', name: 'Plumbing & Electrical Spares', icon: '🔧', badgeColor: 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300', description: null, isSystem: true },
+  { id: '5', code: 'STAFF_WELFARE', name: 'Staff Tea & Welfare', icon: '☕', badgeColor: 'bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-300', description: null, isSystem: true },
+  { id: '6', code: 'FRONT_DESK_SUPPLIES', name: 'Stationery & Key Sleeves', icon: '📝', badgeColor: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300', description: null, isSystem: true },
+  { id: '7', code: 'MUNICIPAL_UTILITIES', name: 'Water Tanker & Municipal', icon: '💧', badgeColor: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950/50 dark:text-cyan-300', description: null, isSystem: true },
+  { id: '8', code: 'OTHER', name: 'General Petty Cash Sundry', icon: '📦', badgeColor: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300', description: null, isSystem: true },
+];
 
 export function ExpenseClient({
   initialExpenses,
   initialSummary,
+  initialCategories = [],
+  initialVendors = [],
 }: {
   initialExpenses: ExpenseVoucher[];
   initialSummary: CashSummary;
+  initialCategories?: ExpenseCategory[];
+  initialVendors?: HotelVendor[];
 }) {
   const router = useRouter();
   const [expenses, setExpenses] = useState<ExpenseVoucher[]>(initialExpenses);
-  const [summary, setSummary] = useState<CashSummary>(initialSummary);
+  const [summary] = useState<CashSummary>(initialSummary);
+  const [categories] = useState<ExpenseCategory[]>(
+    initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES,
+  );
+  const [vendors, setVendors] = useState<HotelVendor[]>(initialVendors);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isShiftHandoverOpen, setIsShiftHandoverOpen] = useState(false);
+  const [isQuickAddVendor, setIsQuickAddVendor] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Form State
-  const [formCategory, setFormCategory] = useState('DIESEL_GENSET');
+  const [formCategory, setFormCategory] = useState(categories[0]?.code || 'DIESEL_GENSET');
   const [formAmount, setFormAmount] = useState('');
   const [formPaymentMode, setFormPaymentMode] = useState('CASH_DRAWER');
   const [formPaidTo, setFormPaidTo] = useState('');
   const [formInvoiceRef, setFormInvoiceRef] = useState('');
   const [formNotes, setFormNotes] = useState('');
+
+  // Quick Add Vendor State
+  const [newVendorName, setNewVendorName] = useState('');
+  const [newVendorPhone, setNewVendorPhone] = useState('');
+  const [newVendorGstin, setNewVendorGstin] = useState('');
+
+  const getCategoryMeta = (code: string) => {
+    const found = categories.find((c) => c.code === code);
+    if (found) {
+      return {
+        label: found.name,
+        icon: found.icon || '📦',
+        badge: found.badgeColor || 'bg-slate-100 text-slate-800',
+      };
+    }
+    return { label: code, icon: '📦', badge: 'bg-slate-100 text-slate-800' };
+  };
 
   const filteredExpenses = expenses.filter((e) => {
     const matchesCategory = selectedCategory === 'ALL' || e.category === selectedCategory;
@@ -114,12 +163,38 @@ export function ExpenseClient({
     }
   };
 
+  const handleQuickAddVendor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newVendorName.trim()) return;
+    setLoading(true);
+    try {
+      const res = await createVendorAction({
+        name: newVendorName.trim(),
+        phone: newVendorPhone.trim() || undefined,
+        gstin: newVendorGstin.trim().toUpperCase() || undefined,
+        category: categories.find((c) => c.code === formCategory)?.name || 'General Supplier',
+      });
+      if (res.ok && res.vendor) {
+        setVendors([res.vendor, ...vendors]);
+        setFormPaidTo(res.vendor.name);
+        setIsQuickAddVendor(false);
+        setNewVendorName('');
+        setNewVendorPhone('');
+        setNewVendorGstin('');
+      } else {
+        alert(res.error || 'Failed to add vendor');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const exportCSV = () => {
     const headers = ['Voucher Number', 'Date', 'Category', 'Amount (INR)', 'Payment Mode', 'Paid To', 'Invoice Ref', 'Logged By', 'Notes'];
     const rows = filteredExpenses.map((e) => [
       e.voucherNumber,
       e.expenseDate,
-      CATEGORY_META[e.category]?.label || e.category,
+      getCategoryMeta(e.category).label,
       e.amount,
       e.paymentMode,
       `"${e.paidTo.replace(/"/g, '""')}"`,
@@ -128,9 +203,8 @@ export function ExpenseClient({
       `"${(e.notes || '').replace(/"/g, '""')}"`,
     ]);
     const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', encodeURI(csvContent));
     link.setAttribute('download', `hotel_petty_cash_expenses_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
@@ -154,19 +228,25 @@ export function ExpenseClient({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Link
+            href="/settings?tab=expenses"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+          >
+            <span>⚙️ Manage Categories &amp; Vendors</span>
+          </Link>
           <button
             type="button"
             onClick={() => setIsShiftHandoverOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
           >
-            <span>🖨️ Shift Handover Sheet</span>
+            <span>🖨️ Shift Handover</span>
           </button>
           <button
             type="button"
             onClick={exportCSV}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
           >
-            <span>📥 Export CSV</span>
+            <span>📥 CSV</span>
           </button>
           <button
             type="button"
@@ -180,7 +260,6 @@ export function ExpenseClient({
 
       {/* Cash Drawer Reconciliation Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Total Cash Inflow */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Cash Collected Today</span>
@@ -194,7 +273,6 @@ export function ExpenseClient({
           <p className="mt-1 text-[11px] text-slate-500">From guest folios &amp; walk-in cash payments</p>
         </div>
 
-        {/* Total Petty Cash Outflow */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Cash Payouts Today</span>
@@ -208,7 +286,6 @@ export function ExpenseClient({
           <p className="mt-1 text-[11px] text-slate-500">{summary.today.voucherCount} expense vouchers paid from drawer</p>
         </div>
 
-        {/* Net Drawer Physical Cash */}
         <div className="rounded-2xl border-2 border-slate-900 bg-slate-950 p-4 text-white shadow-md dark:border-teal-500/40 dark:bg-slate-900">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-300">Expected Physical Drawer Cash</span>
@@ -222,23 +299,19 @@ export function ExpenseClient({
           <p className="mt-1 text-[11px] text-slate-400">Cash In minus Cash Payouts</p>
         </div>
 
-        {/* Month Breakdown Pill */}
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Top Month Outflow</span>
-          <div className="mt-2 space-y-1">
-            {summary.categoryBreakdownMonth.slice(0, 2).map((c) => (
-              <div key={c.category} className="flex items-center justify-between text-xs">
-                <span className="truncate text-slate-700 dark:text-slate-300">
-                  {CATEGORY_META[c.category]?.icon || '•'} {CATEGORY_META[c.category]?.label || c.category}
-                </span>
-                <span className="font-bold text-slate-900 dark:text-white">
-                  ₹{c.total.toLocaleString('en-IN')}
-                </span>
-              </div>
-            ))}
-            {summary.categoryBreakdownMonth.length === 0 && (
-              <p className="text-xs text-slate-400">No monthly expenses recorded yet.</p>
-            )}
+          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Approved Vendors &amp; Categories</span>
+          <div className="mt-2 flex items-center justify-between">
+            <div>
+              <p className="text-lg font-bold text-slate-900 dark:text-white">{vendors.length} Vendors</p>
+              <p className="text-[11px] text-slate-500">{categories.length} Categories configured</p>
+            </div>
+            <Link
+              href="/settings?tab=expenses"
+              className="text-xs font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 underline"
+            >
+              Configure ›
+            </Link>
           </div>
         </div>
       </div>
@@ -263,9 +336,9 @@ export function ExpenseClient({
             className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
           >
             <option value="ALL">All Categories</option>
-            {Object.entries(CATEGORY_META).map(([key, meta]) => (
-              <option key={key} value={key}>
-                {meta.icon} {meta.label}
+            {categories.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.icon} {c.name}
               </option>
             ))}
           </select>
@@ -290,7 +363,7 @@ export function ExpenseClient({
             </thead>
             <tbody className="divide-y divide-slate-200/60 text-xs dark:divide-slate-800">
               {filteredExpenses.map((e) => {
-                const meta = CATEGORY_META[e.category] || CATEGORY_META.OTHER;
+                const meta = getCategoryMeta(e.category);
                 return (
                   <tr key={e.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="px-4 py-3 font-mono font-bold text-slate-900 dark:text-white">
@@ -345,14 +418,17 @@ export function ExpenseClient({
       {/* Log Expense Voucher Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 max-h-[92vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>🧾</span> Log Front Desk Expense Voucher
               </h2>
               <button
                 type="button"
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setIsQuickAddVendor(false);
+                }}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg font-bold"
               >
                 ✕
@@ -375,9 +451,9 @@ export function ExpenseClient({
                   onChange={(e) => setFormCategory(e.target.value)}
                   className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 >
-                  {Object.entries(CATEGORY_META).map(([k, meta]) => (
-                    <option key={k} value={k}>
-                      {meta.icon} {meta.label}
+                  {categories.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.icon} {c.name}
                     </option>
                   ))}
                 </select>
@@ -417,18 +493,77 @@ export function ExpenseClient({
                 </div>
               </div>
 
+              {/* Vendor Selector with Quick Add */}
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Paid To / Vendor Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Bharat Petroleum, City Dairy, Local Hardware"
-                  value={formPaidTo}
-                  onChange={(e) => setFormPaidTo(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                />
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Paid To / Vendor Name *
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsQuickAddVendor(!isQuickAddVendor)}
+                    className="text-[11px] font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 cursor-pointer"
+                  >
+                    {isQuickAddVendor ? '✕ Select from list' : '+ Quick Add New Vendor'}
+                  </button>
+                </div>
+
+                {isQuickAddVendor ? (
+                  <div className="mt-2 p-3 rounded-xl border border-teal-500/30 bg-teal-50/50 dark:bg-slate-950 space-y-2">
+                    <p className="text-[11px] font-bold text-teal-800 dark:text-teal-300">
+                      Register Vendor to Approved List:
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="Vendor Legal / Trade Name (e.g. Bharat Petroleum)"
+                      value={newVendorName}
+                      onChange={(e) => setNewVendorName(e.target.value)}
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="tel"
+                        placeholder="Phone (e.g. +91 98210 11223)"
+                        value={newVendorPhone}
+                        onChange={(e) => setNewVendorPhone(e.target.value)}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                      />
+                      <input
+                        type="text"
+                        placeholder="GSTIN (Optional)"
+                        value={newVendorGstin}
+                        onChange={(e) => setNewVendorGstin(e.target.value.toUpperCase())}
+                        className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-mono text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleQuickAddVendor}
+                      className="w-full rounded-lg bg-teal-600 py-1.5 text-xs font-bold text-white hover:bg-teal-500"
+                    >
+                      Save &amp; Select Vendor
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5 mt-1.5">
+                    <input
+                      type="text"
+                      list="approved-vendors-list"
+                      required
+                      placeholder="Type vendor or select from approved list…"
+                      value={formPaidTo}
+                      onChange={(e) => setFormPaidTo(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    />
+                    <datalist id="approved-vendors-list">
+                      {vendors.map((v) => (
+                        <option key={v.id} value={v.name}>
+                          {v.category} {v.phone ? `(${v.phone})` : ''}
+                        </option>
+                      ))}
+                    </datalist>
+                  </div>
+                )}
               </div>
 
               <div>
@@ -531,7 +666,7 @@ export function ExpenseClient({
                 <div className="space-y-1">
                   {expenses.filter(e => e.paymentMode === 'CASH_DRAWER' && e.expenseDate === new Date().toISOString().slice(0, 10)).map(e => (
                     <div key={e.id} className="flex justify-between text-[11px]">
-                      <span>{e.voucherNumber} ({e.paidTo} - {e.category})</span>
+                      <span>{e.voucherNumber} ({e.paidTo} - {getCategoryMeta(e.category).label})</span>
                       <span>₹{e.amount.toFixed(2)}</span>
                     </div>
                   ))}

@@ -33,8 +33,19 @@ const QUICK_REQUESTS = [
 
 export function GuestPortalClient({
   searchParams,
+  initialSettings,
 }: {
   searchParams: Promise<{ room?: string }>;
+  initialSettings?: {
+    wifiSsid?: string;
+    wifiPassword?: string;
+    receptionPhone?: string;
+    receptionWhatsapp?: string;
+    breakfastTiming?: string;
+    poolTiming?: string;
+    gymTiming?: string;
+    googleReviewUrl?: string;
+  } | null;
 }) {
   const params = use(searchParams);
   const [roomNumber, setRoomNumber] = useState(params.room || '204');
@@ -46,13 +57,21 @@ export function GuestPortalClient({
   const [copiedWifi, setCopiedWifi] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
 
+  const wifiSsid = initialSettings?.wifiSsid || 'GrandAzure_Guest_5G';
+  const wifiPassword = initialSettings?.wifiPassword || 'Welcome2026!';
+  const receptionWhatsapp = initialSettings?.receptionWhatsapp || '+91 98765 43210';
+  const breakfastTiming = initialSettings?.breakfastTiming || '7:00 AM - 10:30 AM (Coral Cafe)';
+  const poolTiming = initialSettings?.poolTiming || '6:00 AM - 8:00 PM';
+  const gymTiming = initialSettings?.gymTiming || '24 Hours (Keycard Access)';
+  const googleReviewUrl = initialSettings?.googleReviewUrl || 'https://maps.google.com';
+
   const showToast = (msg: string) => {
     setActiveToast(msg);
     setTimeout(() => setActiveToast(null), 4000);
   };
 
   const handleCopyWifi = () => {
-    navigator.clipboard.writeText('Welcome2026!');
+    navigator.clipboard.writeText(wifiPassword);
     setCopiedWifi(true);
     setTimeout(() => setCopiedWifi(false), 2500);
     showToast('Wi-Fi Password copied to clipboard!');
@@ -145,8 +164,8 @@ export function GuestPortalClient({
         <div className="rounded-2xl border border-white/10 bg-slate-900/80 p-4 backdrop-blur-sm flex items-center justify-between shadow-lg">
           <div className="space-y-0.5">
             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">📶 Room High-Speed Wi-Fi</span>
-            <p className="text-xs font-bold text-white">SSID: GrandAzure_Guest_5G</p>
-            <p className="text-[11px] font-mono text-teal-300">Password: Welcome2026!</p>
+            <p className="text-xs font-bold text-white">SSID: {wifiSsid}</p>
+            <p className="text-[11px] font-mono text-teal-300">Password: {wifiPassword}</p>
           </div>
           <button
             type="button"
@@ -331,20 +350,20 @@ export function GuestPortalClient({
               <h3 className="font-bold text-white uppercase tracking-wider text-[11px]">🏨 Hotel Amenities &amp; Timings</h3>
               <div className="space-y-2 text-slate-300">
                 <div className="flex justify-between border-b border-white/5 pb-1.5">
-                  <span>🍳 Breakfast Buffet (Coral Cafe):</span>
-                  <span className="font-semibold text-white">7:00 AM - 10:30 AM</span>
+                  <span>🍳 Breakfast Buffet:</span>
+                  <span className="font-semibold text-white">{breakfastTiming}</span>
                 </div>
                 <div className="flex justify-between border-b border-white/5 pb-1.5">
-                  <span>🏊 Infinity Swimming Pool:</span>
-                  <span className="font-semibold text-white">6:00 AM - 8:00 PM</span>
+                  <span>🏊 Swimming Pool:</span>
+                  <span className="font-semibold text-white">{poolTiming}</span>
                 </div>
                 <div className="flex justify-between border-b border-white/5 pb-1.5">
                   <span>🏋️ Fitness Center (Gym):</span>
-                  <span className="font-semibold text-white">24 Hours (Use Room Key)</span>
+                  <span className="font-semibold text-white">{gymTiming}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>🛎️ Reception &amp; Concierge:</span>
-                  <span className="font-semibold text-teal-400">Dial 9 from room phone</span>
+                  <span className="font-semibold text-teal-400">Dial 9 or WhatsApp</span>
                 </div>
               </div>
             </div>
@@ -374,7 +393,7 @@ export function GuestPortalClient({
                 ))}
               </div>
               <a
-                href="https://maps.google.com"
+                href={googleReviewUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-block mt-2 rounded-xl bg-amber-400 text-slate-950 px-4 py-2 text-xs font-bold shadow-md hover:bg-amber-300 transition"

@@ -241,3 +241,174 @@ export async function onboardStaffSetting(fd: FormData) {
   }
   redirect(`/settings?tab=staff&ok=Onboarded+${encodeURIComponent(fullName)}+successfully`);
 }
+
+// --- Petty Cash Categories & Vendors Actions ---
+
+export async function createExpenseCategorySetting(fd: FormData) {
+  let error: string | null = null;
+  const name = String(fd.get('name') ?? '').trim();
+  const icon = String(fd.get('icon') ?? '📦').trim();
+  const description = String(fd.get('description') ?? '').trim();
+  try {
+    await api('/hotel/expenses/categories', {
+      method: 'POST',
+      body: JSON.stringify({ name, icon, description: description || undefined }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/expenses');
+  if (error) {
+    redirect(`/settings?tab=expenses&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=expenses&ok=Expense+category+created+successfully');
+}
+
+export async function deleteExpenseCategorySetting(id: string) {
+  let error: string | null = null;
+  try {
+    await api(`/hotel/expenses/categories/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/expenses');
+  if (error) {
+    redirect(`/settings?tab=expenses&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=expenses&ok=Category+deleted+successfully');
+}
+
+export async function createVendorSetting(fd: FormData) {
+  let error: string | null = null;
+  const name = String(fd.get('name') ?? '').trim();
+  const category = String(fd.get('category') ?? 'General Supplier').trim();
+  const contactPerson = String(fd.get('contactPerson') ?? '').trim();
+  const phone = String(fd.get('phone') ?? '').trim();
+  const email = String(fd.get('email') ?? '').trim();
+  const gstin = String(fd.get('gstin') ?? '').trim().toUpperCase();
+  const panNumber = String(fd.get('panNumber') ?? '').trim().toUpperCase();
+  const paymentTerms = String(fd.get('paymentTerms') ?? 'Cash on Delivery').trim();
+  const address = String(fd.get('address') ?? '').trim();
+
+  try {
+    await api('/hotel/expenses/vendors', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        category,
+        contactPerson: contactPerson || undefined,
+        phone: phone || undefined,
+        email: email || undefined,
+        gstin: gstin || undefined,
+        panNumber: panNumber || undefined,
+        paymentTerms,
+        address: address || undefined,
+      }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/expenses');
+  if (error) {
+    redirect(`/settings?tab=expenses&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=expenses&ok=Vendor+registered+successfully');
+}
+
+export async function deleteVendorSetting(id: string) {
+  let error: string | null = null;
+  try {
+    await api(`/hotel/expenses/vendors/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/expenses');
+  if (error) {
+    redirect(`/settings?tab=expenses&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=expenses&ok=Vendor+deactivated+successfully');
+}
+
+// --- Banquet Venues Actions ---
+
+export async function createVenueSetting(fd: FormData) {
+  let error: string | null = null;
+  const name = String(fd.get('name') ?? '').trim();
+  const type = String(fd.get('type') ?? 'BANQUET_HALL').trim();
+  const maxPax = Number(fd.get('maxPax') ?? 100);
+  const baseRentalRate = Number(fd.get('baseRentalRate') ?? 0);
+  const amenitiesStr = String(fd.get('amenities') ?? '').trim();
+  const amenities = amenitiesStr ? amenitiesStr.split(',').map((s) => s.trim()) : [];
+
+  try {
+    await api('/hotel/banquets/venues', {
+      method: 'POST',
+      body: JSON.stringify({ name, type, maxPax, baseRentalRate, amenities }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/banquets');
+  if (error) {
+    redirect(`/settings?tab=banquets&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=banquets&ok=Banquet+venue+created+successfully');
+}
+
+export async function deleteVenueSetting(id: string) {
+  let error: string | null = null;
+  try {
+    await api(`/hotel/banquets/venues/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/banquets');
+  if (error) {
+    redirect(`/settings?tab=banquets&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=banquets&ok=Venue+deactivated+successfully');
+}
+
+// --- Digital Concierge Actions ---
+
+export async function updateConciergeSetting(fd: FormData) {
+  let error: string | null = null;
+  const wifiSsid = String(fd.get('wifiSsid') ?? '').trim();
+  const wifiPassword = String(fd.get('wifiPassword') ?? '').trim();
+  const receptionPhone = String(fd.get('receptionPhone') ?? '').trim();
+  const receptionWhatsapp = String(fd.get('receptionWhatsapp') ?? '').trim();
+  const breakfastTiming = String(fd.get('breakfastTiming') ?? '').trim();
+  const poolTiming = String(fd.get('poolTiming') ?? '').trim();
+  const gymTiming = String(fd.get('gymTiming') ?? '').trim();
+  const googleReviewUrl = String(fd.get('googleReviewUrl') ?? '').trim();
+
+  try {
+    await api('/hotel/expenses/concierge-settings', {
+      method: 'POST',
+      body: JSON.stringify({
+        wifiSsid,
+        wifiPassword,
+        receptionPhone,
+        receptionWhatsapp,
+        breakfastTiming: breakfastTiming || undefined,
+        poolTiming: poolTiming || undefined,
+        gymTiming: gymTiming || undefined,
+        googleReviewUrl: googleReviewUrl || undefined,
+      }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/guest-portal');
+  if (error) {
+    redirect(`/settings?tab=concierge&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=concierge&ok=In-Room+Concierge+configuration+saved+successfully');
+}

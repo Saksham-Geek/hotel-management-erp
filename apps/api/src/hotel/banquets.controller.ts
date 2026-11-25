@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   NotFoundException,
   Param,
@@ -68,6 +69,74 @@ export class BanquetsController {
         ],
       );
       return { success: true, venue: res.rows[0] };
+    });
+  }
+
+  @Patch('venues/:id')
+  @RequirePermission(PERMISSIONS.BANQUET_MANAGE)
+  async updateVenue(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body()
+    body: {
+      name?: string;
+      type?: string;
+      maxPax?: number;
+      baseRentalRate?: number;
+      amenities?: string[];
+      isActive?: boolean;
+    },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const updates: string[] = [];
+      const params: any[] = [id, user.propertyId];
+
+      if (body.name) {
+        params.push(body.name.trim());
+        updates.push(`name = $${params.length}`);
+      }
+      if (body.type) {
+        params.push(body.type);
+        updates.push(`type = $${params.length}`);
+      }
+      if (body.maxPax !== undefined) {
+        params.push(Number(body.maxPax));
+        updates.push(`max_pax = $${params.length}`);
+      }
+      if (body.baseRentalRate !== undefined) {
+        params.push(Number(body.baseRentalRate));
+        updates.push(`base_rental_rate = $${params.length}`);
+      }
+      if (body.amenities !== undefined) {
+        params.push(body.amenities);
+        updates.push(`amenities = $${params.length}`);
+      }
+      if (body.isActive !== undefined) {
+        params.push(body.isActive);
+        updates.push(`is_active = $${params.length}`);
+      }
+
+      if (!updates.length) throw new BadRequestException('No fields to update.');
+
+      const res = await c.query(
+        `update banquet_venues set ${updates.join(', ')} where id = $1 and property_id = $2 returning id, name, is_active as "isActive"`,
+        params,
+      );
+      if (!res.rowCount) throw new NotFoundException('Venue not found.');
+      return { success: true, venue: res.rows[0] };
+    });
+  }
+
+  @Delete('venues/:id')
+  @RequirePermission(PERMISSIONS.BANQUET_MANAGE)
+  async deleteVenue(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `update banquet_venues set is_active = false where id = $1 and property_id = $2 returning name`,
+        [id, user.propertyId],
+      );
+      if (!res.rowCount) throw new NotFoundException('Venue not found.');
+      return { success: true, message: `Venue "${res.rows[0].name}" deactivated.` };
     });
   }
 

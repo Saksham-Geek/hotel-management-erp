@@ -6,6 +6,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
 } from '@nestjs/common';
@@ -111,6 +112,328 @@ export class ExpensesController {
     });
   }
 
+  // =========================================================================
+  // EXPENSE CATEGORIES (CRUD)
+  // =========================================================================
+  @Get('categories')
+  @RequirePermission(PERMISSIONS.EXPENSES_VIEW)
+  async getCategories(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select id, code, name, icon, badge_color as "badgeColor",
+                description, is_system as "isSystem", created_at as "createdAt"
+         from expense_categories
+         where property_id = $1
+         order by is_system desc, name asc`,
+        [user.propertyId],
+      );
+      return res.rows;
+    });
+  }
+
+  @Post('categories')
+  @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
+  async createCategory(
+    @CurrentUser() user: AuthUser,
+    @Body()
+    body: {
+      name: string;
+      code?: string;
+      icon?: string;
+      badgeColor?: string;
+      description?: string;
+    },
+  ) {
+    if (!body?.name?.trim()) throw new BadRequestException('Category name is required.');
+    const code = (body.code || body.name.toUpperCase().replace(/[^A-Z0-9]/g, '_')).trim();
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `insert into expense_categories (
+           tenant_id, property_id, code, name, icon, badge_color, description, is_system
+         ) values ($1, $2, $3, $4, $5, $6, $7, false)
+         on conflict (property_id, code)
+         do update set name = excluded.name, icon = excluded.icon, description = excluded.description
+         returning id, code, name, icon, badge_color as "badgeColor",
+                   description, is_system as "isSystem"`,
+        [
+          user.tenantId,
+          user.propertyId,
+          code,
+          body.name.trim(),
+          body.icon || '📦',
+          body.badgeColor || 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300',
+          body.description?.trim() || null,
+        ],
+      );
+      return { success: true, category: res.rows[0], message: `Category "${body.name}" created.` };
+    });
+  }
+
+  @Delete('categories/:id')
+  @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
+  async deleteCategory(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `delete from expense_categories
+         where id = $1 and property_id = $2 and is_system = false
+         returning name`,
+        [id, user.propertyId],
+      );
+      if (!res.rowCount) {
+        throw new BadRequestException('Cannot delete default system category or category not found.');
+      }
+      return { success: true, message: `Category "${res.rows[0].name}" deleted.` };
+    });
+  }
+
+  // =========================================================================
+  // APPROVED HOTEL VENDORS (CRUD)
+  // =========================================================================
+  @Get('vendors')
+  @RequirePermission(PERMISSIONS.EXPENSES_VIEW)
+  async getVendors(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select id, name, category, contact_person as "contactPerson",
+                phone, email, gstin, pan_number as "panNumber", address,
+                payment_terms as "paymentTerms", is_active as "isActive",
+                created_at as "createdAt"
+         from hotel_vendors
+         where property_id = $1
+         order by is_active desc, name asc`,
+        [user.propertyId],
+      );
+      return res.rows;
+    });
+  }
+
+  @Post('vendors')
+  @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
+  async createVendor(
+    @CurrentUser() user: AuthUser,
+    @Body()
+    body: {
+      name: string;
+      category?: string;
+      contactPerson?: string;
+      phone?: string;
+      email?: string;
+      gstin?: string;
+      panNumber?: string;
+      address?: string;
+      paymentTerms?: string;
+    },
+  ) {
+    if (!body?.name?.trim()) throw new BadRequestException('Vendor legal or trade name is required.');
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `insert into hotel_vendors (
+           tenant_id, property_id, name, category, contact_person, phone,
+           email, gstin, pan_number, address, payment_terms
+         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+         on conflict (property_id, name)
+         do update set
+           category = excluded.category,
+           contact_person = excluded.contact_person,
+           phone = excluded.phone,
+           email = excluded.email,
+           gstin = excluded.gstin,
+           pan_number = excluded.pan_number,
+           address = excluded.address,
+           payment_terms = excluded.payment_terms,
+           is_active = true
+         returning id, name, category, contact_person as "contactPerson",
+                   phone, email, gstin, pan_number as "panNumber", address,
+                   payment_terms as "paymentTerms", is_active as "isActive"`,
+        [
+          user.tenantId,
+          user.propertyId,
+          body.name.trim(),
+          body.category?.trim() || 'General Supplier',
+          body.contactPerson?.trim() || null,
+          body.phone?.trim() || null,
+          body.email?.trim() || null,
+          body.gstin?.trim()?.toUpperCase() || null,
+          body.panNumber?.trim()?.toUpperCase() || null,
+          body.address?.trim() || null,
+          body.paymentTerms?.trim() || 'Cash on Delivery',
+        ],
+      );
+      return { success: true, vendor: res.rows[0], message: `Vendor "${body.name}" registered.` };
+    });
+  }
+
+  @Patch('vendors/:id')
+  @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
+  async updateVendor(
+    @CurrentUser() user: AuthUser,
+    @Param('id') id: string,
+    @Body()
+    body: {
+      name?: string;
+      category?: string;
+      contactPerson?: string;
+      phone?: string;
+      email?: string;
+      gstin?: string;
+      panNumber?: string;
+      address?: string;
+      paymentTerms?: string;
+      isActive?: boolean;
+    },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const updates: string[] = [];
+      const params: any[] = [id, user.propertyId];
+
+      if (body.name) {
+        params.push(body.name.trim());
+        updates.push(`name = $${params.length}`);
+      }
+      if (body.category) {
+        params.push(body.category.trim());
+        updates.push(`category = $${params.length}`);
+      }
+      if (body.contactPerson !== undefined) {
+        params.push(body.contactPerson?.trim() || null);
+        updates.push(`contact_person = $${params.length}`);
+      }
+      if (body.phone !== undefined) {
+        params.push(body.phone?.trim() || null);
+        updates.push(`phone = $${params.length}`);
+      }
+      if (body.email !== undefined) {
+        params.push(body.email?.trim() || null);
+        updates.push(`email = $${params.length}`);
+      }
+      if (body.gstin !== undefined) {
+        params.push(body.gstin?.trim()?.toUpperCase() || null);
+        updates.push(`gstin = $${params.length}`);
+      }
+      if (body.paymentTerms) {
+        params.push(body.paymentTerms.trim());
+        updates.push(`payment_terms = $${params.length}`);
+      }
+      if (body.isActive !== undefined) {
+        params.push(body.isActive);
+        updates.push(`is_active = $${params.length}`);
+      }
+
+      if (!updates.length) throw new BadRequestException('No fields to update.');
+
+      const res = await c.query(
+        `update hotel_vendors set ${updates.join(', ')} where id = $1 and property_id = $2 returning id, name, is_active as "isActive"`,
+        params,
+      );
+      if (!res.rowCount) throw new NotFoundException('Vendor not found.');
+      return { success: true, vendor: res.rows[0] };
+    });
+  }
+
+  @Delete('vendors/:id')
+  @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
+  async deleteVendor(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `update hotel_vendors set is_active = false where id = $1 and property_id = $2 returning name`,
+        [id, user.propertyId],
+      );
+      if (!res.rowCount) throw new NotFoundException('Vendor not found.');
+      return { success: true, message: `Vendor "${res.rows[0].name}" deactivated.` };
+    });
+  }
+
+  // =========================================================================
+  // DIGITAL CONCIERGE SETTINGS
+  // =========================================================================
+  @Get('concierge-settings')
+  @RequirePermission(PERMISSIONS.EXPENSES_VIEW)
+  async getConciergeSettings(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select wifi_ssid as "wifiSsid", wifi_password as "wifiPassword",
+                reception_phone as "receptionPhone", reception_whatsapp as "receptionWhatsapp",
+                breakfast_timing as "breakfastTiming", pool_timing as "poolTiming",
+                gym_timing as "gymTiming", google_review_url as "googleReviewUrl"
+         from concierge_settings
+         where property_id = $1`,
+        [user.propertyId],
+      );
+      if (!res.rowCount) {
+        return {
+          wifiSsid: 'GrandAzure_Guest_5G',
+          wifiPassword: 'Welcome2026!',
+          receptionPhone: '+91 98765 43210',
+          receptionWhatsapp: '+91 98765 43210',
+          breakfastTiming: '7:00 AM - 10:30 AM (Coral Cafe)',
+          poolTiming: '6:00 AM - 8:00 PM',
+          gymTiming: '24 Hours (Keycard Access)',
+          googleReviewUrl: 'https://maps.google.com',
+        };
+      }
+      return res.rows[0];
+    });
+  }
+
+  @Post('concierge-settings')
+  @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
+  async updateConciergeSettings(
+    @CurrentUser() user: AuthUser,
+    @Body()
+    body: {
+      wifiSsid: string;
+      wifiPassword: string;
+      receptionPhone: string;
+      receptionWhatsapp: string;
+      breakfastTiming?: string;
+      poolTiming?: string;
+      gymTiming?: string;
+      googleReviewUrl?: string;
+    },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `insert into concierge_settings (
+           tenant_id, property_id, wifi_ssid, wifi_password, reception_phone,
+           reception_whatsapp, breakfast_timing, pool_timing, gym_timing, google_review_url, updated_at
+         ) values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, now())
+         on conflict (property_id)
+         do update set
+           wifi_ssid = excluded.wifi_ssid,
+           wifi_password = excluded.wifi_password,
+           reception_phone = excluded.reception_phone,
+           reception_whatsapp = excluded.reception_whatsapp,
+           breakfast_timing = excluded.breakfast_timing,
+           pool_timing = excluded.pool_timing,
+           gym_timing = excluded.gym_timing,
+           google_review_url = excluded.google_review_url,
+           updated_at = now()
+         returning wifi_ssid as "wifiSsid", wifi_password as "wifiPassword",
+                   reception_phone as "receptionPhone", reception_whatsapp as "receptionWhatsapp",
+                   breakfast_timing as "breakfastTiming", pool_timing as "poolTiming",
+                   gym_timing as "gymTiming", google_review_url as "googleReviewUrl"`,
+        [
+          user.tenantId,
+          user.propertyId,
+          body.wifiSsid || 'GrandAzure_Guest_5G',
+          body.wifiPassword || 'Welcome2026!',
+          body.receptionPhone || '+91 98765 43210',
+          body.receptionWhatsapp || '+91 98765 43210',
+          body.breakfastTiming || '7:00 AM - 10:30 AM (Coral Cafe)',
+          body.poolTiming || '6:00 AM - 8:00 PM',
+          body.gymTiming || '24 Hours (Keycard Access)',
+          body.googleReviewUrl || 'https://maps.google.com',
+        ],
+      );
+      return { success: true, settings: res.rows[0], message: 'In-Room Digital Concierge configuration saved.' };
+    });
+  }
+
+  // =========================================================================
+  // EXPENSE VOUCHERS
+  // =========================================================================
   @Post()
   @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
   async createExpense(

@@ -21,7 +21,16 @@ import {
   createPosTerminalSetting,
   saveChannelConnectionSetting,
   onboardStaffSetting,
+  createExpenseCategorySetting,
+  deleteExpenseCategorySetting,
+  createVendorSetting,
+  deleteVendorSetting,
+  createVenueSetting,
+  deleteVenueSetting,
+  updateConciergeSetting,
 } from './actions';
+import { createRawMaterialAction } from '../inventory/actions';
+import { createCorporateAccountAction } from '../corporate/actions';
 import {
   createRestaurantTableAction,
   updateRestaurantTableAction,
@@ -120,6 +129,64 @@ interface SettingsViewProps {
     keySystemMode: 'brass_only' | 'rfid_only' | 'hybrid';
     enableMobileQr: boolean;
   };
+  expenseCategories?: {
+    id: string;
+    code: string;
+    name: string;
+    icon: string;
+    badgeColor: string;
+    description: string | null;
+    isSystem: boolean;
+  }[];
+  vendors?: {
+    id: string;
+    name: string;
+    category: string;
+    contactPerson: string | null;
+    phone: string | null;
+    email: string | null;
+    gstin: string | null;
+    paymentTerms: string;
+    isActive: boolean;
+  }[];
+  venues?: {
+    id: string;
+    name: string;
+    type: string;
+    maxPax: number;
+    baseRentalRate: number;
+    amenities: string[];
+    isActive: boolean;
+  }[];
+  rawMaterials?: {
+    id: string;
+    name: string;
+    category: string;
+    unit: string;
+    currentStock: number;
+    minimumAlertStock: number;
+    costPerUnit: number;
+  }[];
+  corporateAccounts?: {
+    id: string;
+    companyName: string;
+    gstin: string | null;
+    panNumber: string | null;
+    contactPerson: string | null;
+    creditLimit: number;
+    currentBalance: number;
+    creditPeriodDays: number;
+  }[];
+  conciergeSettings?: {
+    wifiSsid: string;
+    wifiPassword: string;
+    receptionPhone: string;
+    receptionWhatsapp: string;
+    breakfastTiming?: string;
+    poolTiming?: string;
+    gymTiming?: string;
+    googleReviewUrl?: string;
+  } | null;
   readOnly: boolean;
 }
 
@@ -138,6 +205,12 @@ export function SettingsView({
   users,
   keycards,
   keySystemSettings,
+  expenseCategories = [],
+  vendors = [],
+  venues = [],
+  rawMaterials = [],
+  corporateAccounts = [],
+  conciergeSettings = null,
   readOnly,
 }: SettingsViewProps) {
   const router = useRouter();
@@ -462,6 +535,11 @@ export function SettingsView({
     { id: 'compliance', label: 'Police & GST Reports', icon: '⚖️', count: 'Govt Reports' },
     { id: 'marketing', label: 'Loyalty & Offers', icon: '📣', count: 'Loyalty CRM' },
     { id: 'keycards', label: 'Door Locks & Keys', icon: '🔑', count: `${keycards.length} Keys` },
+    { id: 'expenses', label: 'Petty Cash & Vendors', icon: '💵', count: `${expenseCategories.length} Cats • ${vendors.length} Vendors` },
+    { id: 'banquets', label: 'Banquets & Lawns', icon: '🎉', count: `${venues.length} Spaces` },
+    { id: 'inventory', label: 'Stores & Stock', icon: '📦', count: `${rawMaterials.length} SKUs` },
+    { id: 'corporate', label: 'Corporate Accounts (BTC)', icon: '💼', count: `${corporateAccounts.length} B2B` },
+    { id: 'concierge', label: 'Digital Guest Concierge', icon: '🛎️', count: 'In-Room QR' },
   ];
 
   const totalMenuItems = menu.reduce((acc, cat) => acc + (cat.items?.length || 0), 0);
@@ -2731,6 +2809,669 @@ export function SettingsView({
               </div>
             </div>
           </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 9. PETTY CASH CATEGORIES & APPROVED HOTEL VENDORS CONSOLE */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'expenses') && (
+        <section id="settings-expenses" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">💵</span>
+                <h2 className="text-lg font-bold text-slate-900">Petty Cash Categories &amp; Approved Vendors</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                  {expenseCategories.length} Categories • {vendors.length} Vendors
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Configure expense categories and approved suppliers (fuel, milk, laundry, electrical) with payment terms and GSTIN.
+              </p>
+            </div>
+            <Link
+              href="/expenses"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+            >
+              <span>Go to Front Desk Expense Ledger ›</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+            {/* Category Configuration Form & List */}
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Create Expense Category</h3>
+                <form action={createExpenseCategorySetting} className="space-y-3">
+                  <div className="grid grid-cols-3 gap-2">
+                    <div className="col-span-2">
+                      <label className="block text-[11px] font-bold text-slate-600">Category Name *</label>
+                      <input
+                        name="name"
+                        required
+                        placeholder="e.g. Pest Control, Gardening, Pool Chemicals"
+                        className={inputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Icon Emoji</label>
+                      <input
+                        name="icon"
+                        defaultValue="📦"
+                        placeholder="e.g. 🌿"
+                        className={`${inputCls} text-center`}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Description</label>
+                    <input
+                      name="description"
+                      placeholder="e.g. Monthly pest fumigation or garden fertilizers"
+                      className={inputCls}
+                    />
+                  </div>
+                  <button type="submit" disabled={readOnly} className={btnCls}>
+                    + Add Category
+                  </button>
+                </form>
+              </div>
+
+              {/* Categories List */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Categories</h4>
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs">
+                  {expenseCategories.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-lg">{c.icon || '📦'}</span>
+                        <div>
+                          <p className="font-bold text-slate-900">{c.name}</p>
+                          <p className="text-[11px] text-slate-400 font-mono">{c.code}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {c.isSystem ? (
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 uppercase">
+                            System
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={readOnly}
+                            onClick={() => deleteExpenseCategorySetting(c.id)}
+                            className="rounded-md bg-rose-50 px-2 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition"
+                          >
+                            Delete
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Approved Vendors Configuration Form & List */}
+            <div className="space-y-5">
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Register Approved Hotel Vendor</h3>
+                <form action={createVendorSetting} className="space-y-3">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Vendor / Trade Name *</label>
+                      <input name="name" required placeholder="e.g. Bharat Petroleum, City Dairy" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Category Tag</label>
+                      <input name="category" placeholder="e.g. Fuel, Dairy, Hardware" className={inputCls} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Contact Person</label>
+                      <input name="contactPerson" placeholder="e.g. Ramesh Kumar" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Phone</label>
+                      <input name="phone" placeholder="+91 98210 11223" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">GSTIN</label>
+                      <input name="gstin" placeholder="15 Digits" className={`${inputCls} font-mono`} />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Payment Terms</label>
+                      <select name="paymentTerms" className={inputCls}>
+                        <option value="Cash on Delivery">Cash on Delivery</option>
+                        <option value="Weekly Cheque">Weekly Cheque</option>
+                        <option value="Monthly Account">Monthly Account</option>
+                        <option value="Net 15 Days">Net 15 Days</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Supplier Address / Depot</label>
+                      <input name="address" placeholder="e.g. Station Road Sector 4" className={inputCls} />
+                    </div>
+                  </div>
+
+                  <button type="submit" disabled={readOnly} className={btnCls}>
+                    Register Vendor
+                  </button>
+                </form>
+              </div>
+
+              {/* Vendors List */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Registered Approved Suppliers</h4>
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-80 overflow-y-auto">
+                  {vendors.map((v) => (
+                    <div key={v.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-slate-900">{v.name}</p>
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                            {v.category}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          {v.contactPerson && `${v.contactPerson} • `}{v.phone && `${v.phone} • `}Terms: {v.paymentTerms}
+                        </p>
+                        {v.gstin && <p className="text-[10px] font-mono text-slate-400">GST: {v.gstin}</p>}
+                      </div>
+                      <button
+                        type="button"
+                        disabled={readOnly}
+                        onClick={() => deleteVendorSetting(v.id)}
+                        className="rounded-md bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition shrink-0"
+                      >
+                        Deactivate
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 10. BANQUETS, LAWNS & CONFERENCE VENUES CONFIGURATION */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'banquets') && (
+        <section id="settings-banquets" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🎉</span>
+                <h2 className="text-lg font-bold text-slate-900">Banquet Venues &amp; Event Lawns Configuration</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                  {venues.length} Configured Venues
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Setup banquet halls, wedding lawns, and corporate boardrooms with capacity, base rental tariffs, and AV/decor amenities.
+              </p>
+            </div>
+            <Link
+              href="/banquets"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+            >
+              <span>Go to Live Banquet Calendar &amp; BEO ›</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {/* Form */}
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Banquet / Event Space</h3>
+              <form action={createVenueSetting} className="space-y-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Venue Space Name *</label>
+                  <input name="name" required placeholder="e.g. Royal Palms Wedding Lawn" className={inputCls} />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Venue Type</label>
+                    <select name="type" className={inputCls}>
+                      <option value="BANQUET_HALL">Banquet Hall</option>
+                      <option value="LAWN">Outdoor Lawn</option>
+                      <option value="BOARDROOM">Executive Boardroom</option>
+                      <option value="ROOFTOP_TERRACE">Rooftop Terrace</option>
+                      <option value="CONFERENCE_CENTER">Conference Center</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Max Pax Capacity *</label>
+                    <input name="maxPax" type="number" min="5" defaultValue="150" className={inputCls} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Base Session Rental Rate (₹ INR) *</label>
+                  <input name="baseRentalRate" type="number" min="0" defaultValue="45000" className={inputCls} />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Key Amenities (Comma-separated)</label>
+                  <input
+                    name="amenities"
+                    placeholder="Central AC, Stage, Projector, Sound System, Valet"
+                    defaultValue="Central AC, Stage, Sound System, Valet Parking"
+                    className={inputCls}
+                  />
+                </div>
+
+                <button type="submit" disabled={readOnly} className={btnCls}>
+                  + Create Event Space
+                </button>
+              </form>
+            </div>
+
+            {/* List */}
+            <div className="col-span-2 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Event Venues</h4>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                {venues.map((v) => (
+                  <div key={v.id} className="rounded-xl border border-slate-200 bg-white p-4 space-y-2 text-xs flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-900 text-sm">{v.name}</span>
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 uppercase">
+                          {v.type.replace('_', ' ')}
+                        </span>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-slate-600">
+                        <span>Max Capacity: <strong>{v.maxPax} Pax</strong></span>
+                        <span>Base Rental: <strong>₹{v.baseRentalRate.toLocaleString('en-IN')}</strong></span>
+                      </div>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {v.amenities.map((a: string, idx: number) => (
+                          <span key={idx} className="rounded bg-slate-50 px-1.5 py-0.5 text-[10px] text-slate-500 border border-slate-200/60">
+                            {a}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-slate-100 flex justify-end">
+                      <button
+                        type="button"
+                        disabled={readOnly}
+                        onClick={() => deleteVenueSetting(v.id)}
+                        className="rounded-md bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition"
+                      >
+                        Deactivate Space
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 11. STORES & KITCHEN RAW MATERIAL INVENTORY CONFIGURATION */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'inventory') && (
+        <section id="settings-inventory" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📦</span>
+                <h2 className="text-lg font-bold text-slate-900">Stores &amp; Kitchen Raw Material Catalog</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                  {rawMaterials.length} Active SKUs
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Configure raw materials, ingredients, unit of measurement, reorder alert thresholds, and standard cost rates.
+              </p>
+            </div>
+            <Link
+              href="/inventory"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+            >
+              <span>Go to Stores &amp; Stock Ledger ›</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {/* Add Item Form */}
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Material / Store SKU</h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.currentTarget);
+                  await createRawMaterialAction({
+                    name: String(fd.get('name') || '').trim(),
+                    category: String(fd.get('category') || 'Grocery'),
+                    unit: String(fd.get('unit') || 'kg'),
+                    currentStock: parseFloat(String(fd.get('currentStock') || 0)),
+                    minimumAlertStock: parseFloat(String(fd.get('minimumAlertStock') || 5)),
+                    costPerUnit: parseFloat(String(fd.get('costPerUnit') || 0)),
+                  });
+                  router.refresh();
+                }}
+                className="space-y-3"
+              >
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Item Name *</label>
+                  <input name="name" required placeholder="e.g. Basmati Rice, Butter, Paneer" className={inputCls} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Category</label>
+                    <select name="category" className={inputCls}>
+                      <option value="Grocery">Grocery</option>
+                      <option value="Dairy & Perishables">Dairy &amp; Perishables</option>
+                      <option value="Meat & Poultry">Meat &amp; Poultry</option>
+                      <option value="Spices & Condiments">Spices &amp; Condiments</option>
+                      <option value="Beverages & Bar">Beverages &amp; Bar</option>
+                      <option value="Housekeeping & Linen">Housekeeping &amp; Linen</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Unit</label>
+                    <select name="unit" className={inputCls}>
+                      <option value="kg">kg</option>
+                      <option value="litres">litres</option>
+                      <option value="packets">packets</option>
+                      <option value="pcs">pcs</option>
+                      <option value="grams">grams</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Stock</label>
+                    <input name="currentStock" type="number" defaultValue="20" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Min Alert</label>
+                    <input name="minimumAlertStock" type="number" defaultValue="5" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Cost/Unit</label>
+                    <input name="costPerUnit" type="number" defaultValue="120" className={inputCls} />
+                  </div>
+                </div>
+                <button type="submit" disabled={readOnly} className={btnCls}>
+                  + Register SKU
+                </button>
+              </form>
+            </div>
+
+            {/* List */}
+            <div className="col-span-2 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Raw Materials</h4>
+              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-80 overflow-y-auto">
+                {rawMaterials.map((m) => (
+                  <div key={m.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
+                    <div>
+                      <p className="font-bold text-slate-900">{m.name}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {m.category} • Current: <strong>{m.currentStock} {m.unit}</strong> • Reorder at: ≤{m.minimumAlertStock} {m.unit}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono font-bold text-slate-900">₹{m.costPerUnit}/{m.unit}</p>
+                      <p className="text-[10px] text-slate-400">Value: ₹{(m.currentStock * m.costPerUnit).toFixed(0)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 12. CORPORATE ACCOUNTS & CITY LEDGER CONFIGURATION */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'corporate') && (
+        <section id="settings-corporate" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">💼</span>
+                <h2 className="text-lg font-bold text-slate-900">Corporate Accounts &amp; Travel Agencies (BTC)</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                  {corporateAccounts.length} B2B Accounts
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Manage B2B company accounts, GSTIN, sanctioned credit limits, and credit period days for direct folio billing.
+              </p>
+            </div>
+            <Link
+              href="/corporate"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+            >
+              <span>Go to City Ledger &amp; Aging Summary ›</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            {/* Add B2B Account Form */}
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Register Corporate Account</h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.currentTarget);
+                  await createCorporateAccountAction({
+                    companyName: String(fd.get('companyName') || '').trim(),
+                    gstin: String(fd.get('gstin') || '').trim().toUpperCase() || undefined,
+                    panNumber: String(fd.get('panNumber') || '').trim().toUpperCase() || undefined,
+                    contactPerson: String(fd.get('contactPerson') || '').trim() || undefined,
+                    creditLimit: parseFloat(String(fd.get('creditLimit') || 0)),
+                    creditPeriodDays: parseInt(String(fd.get('creditPeriodDays') || 30)),
+                    billingAddress: { address: String(fd.get('address') || '').trim() },
+                  });
+                  router.refresh();
+                }}
+                className="space-y-3"
+              >
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Company / Agency Name *</label>
+                  <input name="companyName" required placeholder="e.g. Infosys Ltd, TCS" className={inputCls} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">GSTIN</label>
+                    <input name="gstin" placeholder="15 Digits" className={`${inputCls} font-mono`} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">PAN</label>
+                    <input name="panNumber" placeholder="10 Digits" className={`${inputCls} font-mono`} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Contact Person</label>
+                  <input name="contactPerson" placeholder="e.g. Rajiv Menon" className={inputCls} />
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Credit Limit (₹)</label>
+                    <input name="creditLimit" type="number" defaultValue="200000" className={inputCls} />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Terms (Days)</label>
+                    <select name="creditPeriodDays" className={inputCls}>
+                      <option value="15">15 Days</option>
+                      <option value="30">30 Days</option>
+                      <option value="45">45 Days</option>
+                      <option value="60">60 Days</option>
+                    </select>
+                  </div>
+                </div>
+                <button type="submit" disabled={readOnly} className={btnCls}>
+                  + Register Corporate Account
+                </button>
+              </form>
+            </div>
+
+            {/* List */}
+            <div className="col-span-2 space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Active Corporate Accounts</h4>
+              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-80 overflow-y-auto">
+                {corporateAccounts.map((a) => (
+                  <div key={a.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
+                    <div>
+                      <p className="font-bold text-slate-900">{a.companyName}</p>
+                      <p className="text-[11px] text-slate-500">
+                        {a.contactPerson && `${a.contactPerson} • `}Terms: {a.creditPeriodDays} Days
+                      </p>
+                      {a.gstin && <p className="text-[10px] font-mono text-slate-400">GST: {a.gstin}</p>}
+                    </div>
+                    <div className="text-right">
+                      <p className="font-mono font-bold text-slate-900">Limit: ₹{a.creditLimit.toLocaleString('en-IN')}</p>
+                      <p className="font-mono text-rose-600 font-bold">Due: ₹{a.currentBalance.toLocaleString('en-IN')}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 13. IN-ROOM DIGITAL GUEST CONCIERGE SETTINGS */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'concierge') && (
+        <section id="settings-concierge" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🛎️</span>
+                <h2 className="text-lg font-bold text-slate-900">In-Room Digital Guest Concierge Configuration</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                  Guest QR Portal
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Configure in-room guest Wi-Fi details, front desk WhatsApp helpline, hotel amenity timings, and Google review link.
+              </p>
+            </div>
+            <a
+              href="/guest-portal?room=204"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition"
+            >
+              <span>Preview Live In-Room Concierge (Room 204) ›</span>
+            </a>
+          </div>
+
+          <form action={updateConciergeSetting} className="space-y-6">
+            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {/* Wi-Fi Settings */}
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">📶 Guest Wi-Fi Network</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Wi-Fi Network Name (SSID) *</label>
+                    <input
+                      name="wifiSsid"
+                      required
+                      defaultValue={conciergeSettings?.wifiSsid || 'GrandAzure_Guest_5G'}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Wi-Fi Password *</label>
+                    <input
+                      name="wifiPassword"
+                      required
+                      defaultValue={conciergeSettings?.wifiPassword || 'Welcome2026!'}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Front Desk Helpline & WhatsApp */}
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">💬 Front Desk Contact &amp; WhatsApp</h3>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Reception Phone Helpline *</label>
+                    <input
+                      name="receptionPhone"
+                      required
+                      defaultValue={conciergeSettings?.receptionPhone || '+91 98765 43210'}
+                      className={inputCls}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Front Desk WhatsApp Direct *</label>
+                    <input
+                      name="receptionWhatsapp"
+                      required
+                      defaultValue={conciergeSettings?.receptionWhatsapp || '+91 98765 43210'}
+                      className={inputCls}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Hotel Amenities & Timings */}
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">🏨 Hotel Operating Hours &amp; Review Link</h3>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Breakfast Buffet Hours</label>
+                  <input
+                    name="breakfastTiming"
+                    defaultValue={conciergeSettings?.breakfastTiming || '7:00 AM - 10:30 AM (Coral Cafe)'}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Swimming Pool Hours</label>
+                  <input
+                    name="poolTiming"
+                    defaultValue={conciergeSettings?.poolTiming || '6:00 AM - 8:00 PM'}
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600">Fitness Gym Hours</label>
+                  <input
+                    name="gymTiming"
+                    defaultValue={conciergeSettings?.gymTiming || '24 Hours (Keycard Access)'}
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600">Google Maps 5-Star Review Link</label>
+                <input
+                  name="googleReviewUrl"
+                  defaultValue={conciergeSettings?.googleReviewUrl || 'https://maps.google.com'}
+                  placeholder="https://g.page/r/your-hotel-review"
+                  className={inputCls}
+                />
+              </div>
+            </div>
+
+            <button type="submit" disabled={readOnly} className={btnCls}>
+              Save In-Room Digital Concierge Settings
+            </button>
+          </form>
         </section>
       )}
     </div>

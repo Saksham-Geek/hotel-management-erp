@@ -31,6 +31,12 @@ export default async function SettingsHubPage({
     users,
     keycards,
     keySystemSettings,
+    expenseCategories,
+    vendors,
+    venues,
+    rawMaterials,
+    corporateAccounts,
+    conciergeSettings,
   ] = await Promise.all([
     getMe(),
     searchParams,
@@ -50,6 +56,21 @@ export default async function SettingsHubPage({
     api<{ keySystemMode: 'brass_only' | 'rfid_only' | 'hybrid'; enableMobileQr: boolean }>(
       '/hotel/keycards/settings',
     ).catch(() => ({ keySystemMode: 'hybrid' as const, enableMobileQr: true })),
+    api<any[]>('/hotel/expenses/categories').catch(() => []),
+    api<any[]>('/hotel/expenses/vendors').catch(() => []),
+    api<any[]>('/hotel/banquets/venues').catch(() => []),
+    api<any[]>('/hotel/restaurant/inventory/raw-materials').catch(() => []),
+    api<any[]>('/hotel/billing/corporate-accounts').catch(() => []),
+    api<any>('/hotel/expenses/concierge-settings').catch(() => ({
+      wifiSsid: 'GrandAzure_Guest_5G',
+      wifiPassword: 'Welcome2026!',
+      receptionPhone: '+91 98765 43210',
+      receptionWhatsapp: '+91 98765 43210',
+      breakfastTiming: '7:00 AM - 10:30 AM (Coral Cafe)',
+      poolTiming: '6:00 AM - 8:00 PM',
+      gymTiming: '24 Hours (Keycard Access)',
+      googleReviewUrl: 'https://maps.google.com',
+    })),
   ]);
 
   const staffList = Array.isArray(users) ? users : (users?.staff ?? []);
@@ -88,6 +109,12 @@ export default async function SettingsHubPage({
         users={staffList}
         keycards={keycards}
         keySystemSettings={keySystemSettings}
+        expenseCategories={expenseCategories}
+        vendors={vendors}
+        venues={venues}
+        rawMaterials={rawMaterials}
+        corporateAccounts={corporateAccounts}
+        conciergeSettings={conciergeSettings}
         readOnly={ent.readOnly}
       />
     </>

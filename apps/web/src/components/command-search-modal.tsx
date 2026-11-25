@@ -14,7 +14,7 @@ interface SearchItem {
 }
 
 const STATIC_ACTIONS: SearchItem[] = [
-  { id: 'tape-chart', title: 'Tape Chart (Room Rack Gantt)', category: 'Navigation', href: '/tape-chart', icon: '📅', description: 'Visual multi-day room timeline and drag-to-book' },
+  { id: 'tape-chart', title: 'Room Calendar (Tape Chart Gantt)', category: 'Navigation', href: '/room-calendar', icon: '📅', description: 'Visual multi-day room timeline and drag-to-book' },
   { id: 'reservations', title: 'Reservations & Stays', category: 'Navigation', href: '/reservations', icon: '🛎️', description: 'Guest bookings, walk-ins, and check-in roster' },
   { id: 'billing', title: 'Cashiering & GST Invoices', category: 'Navigation', href: '/billing', icon: '💳', description: 'Folios, Dynamic UPI QR, EDC card terminals' },
   { id: 'housekeeping', title: 'Housekeeping & Attendant Hub', category: 'Navigation', href: '/housekeeping', icon: '🧹', description: '1-tap room turnaround, minibar billing, defect tickets' },

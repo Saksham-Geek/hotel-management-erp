@@ -49,7 +49,7 @@ export function QuickStartChecklist({
       id: 'checkin',
       title: '3. Punch First Test Walk-In',
       description: 'Drag-to-select dates on the room rack or click New Walk-In.',
-      href: '/tape-chart',
+      href: '/room-calendar',
       actionText: reservationCount > 0 ? '✓ Practiced' : 'Try Walk-In',
       icon: '🛎️',
       isDone: reservationCount > 0,

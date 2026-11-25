@@ -14,6 +14,8 @@ type FormAction = (formData: FormData) => void | Promise<void>;
 
 const pageNames: Record<string, string> = {
   '/dashboard': 'Today at Front Desk',
+  '/room-calendar': 'Room Calendar & Availability',
+  '/room-calander': 'Room Calendar & Availability',
   '/tape-chart': 'Room Calendar & Availability',
   '/reservations': 'Bookings & Reservations',
   '/rooms': 'Rooms & Floors',

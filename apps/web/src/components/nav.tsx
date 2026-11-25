@@ -76,7 +76,8 @@ export function Nav({
           </div>
           <div className="flex flex-col gap-0.5">
             {group.items.map((item) => {
-              const active = path === item.href || (item.href !== '/dashboard' && path.startsWith(item.href + '/'));
+              const isRoomCalendar = item.href === '/room-calendar' && (path === '/tape-chart' || path === '/room-calander' || path.startsWith('/tape-chart/'));
+              const active = path === item.href || isRoomCalendar || (item.href !== '/dashboard' && path.startsWith(item.href + '/'));
               const isPending = pendingHref === item.href && !active;
               return (
                 <Link

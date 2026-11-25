@@ -35,7 +35,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   } else if (role === 'frontdesk') {
     featureItems = [
       { href: '/dashboard', label: 'Today at Front Desk', icon: 'today', group: 'Front Desk & Operations' },
-      { href: '/tape-chart', label: 'Room Calendar', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Desk & Operations' },
+      { href: '/room-calendar', label: 'Room Calendar', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Desk & Operations' },
       { href: '/reservations', label: 'Bookings & Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
       { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Front Desk & Operations' },
       { href: '/guests', label: 'Guest Directory', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
@@ -52,7 +52,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     // General Manager & Property Owner
     featureItems = [
       { href: '/dashboard', label: 'Today at Front Desk', icon: 'today', group: 'Front Desk & Operations' },
-      { href: '/tape-chart', label: 'Room Calendar', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Desk & Operations' },
+      { href: '/room-calendar', label: 'Room Calendar', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Desk & Operations' },
       { href: '/reservations', label: 'Bookings & Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
       { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Front Desk & Operations' },
       { href: '/guests', label: 'Guest Directory', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },

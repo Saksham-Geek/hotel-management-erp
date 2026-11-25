@@ -83,7 +83,7 @@ export default async function Dashboard({
           <span aria-hidden className="text-sm font-bold">+</span>
           New Reservation
         </Link>
-        <Link href="/tape-chart" className={btnGhostCls}>
+        <Link href="/room-calendar" className={btnGhostCls}>
           📅 Room Calendar
         </Link>
         <Link href="/billing" className={btnGhostCls}>

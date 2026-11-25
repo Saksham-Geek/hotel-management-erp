@@ -305,11 +305,12 @@ export function TapeChartView({
   function navigateDate(newStart: string, newDays: number = daysCount) {
     setStartDateStr(newStart);
     setDaysCount(newDays);
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '/room-calendar';
     const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '');
     params.set('startDate', newStart);
     params.set('days', String(newDays));
     startTransition(() => {
-      router.push(`/tape-chart?${params.toString()}`);
+      router.push(`${currentPath}?${params.toString()}`);
     });
   }
 

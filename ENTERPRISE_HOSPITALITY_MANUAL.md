@@ -79,7 +79,22 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 
 ---
 
-## 3. End-to-End Operational User Journeys
+## 3. Subscription Plan Tiers & Feature Gating Matrix
+
+The platform strictly gates capabilities across 3 subscription tiers based on property size, operational complexity, and F&B requirements:
+
+| Plan Tier | Monthly Price | Capacity Limits | Included Capabilities |
+| :--- | :--- | :--- | :--- |
+| **🥉 Starter**<br>*(Homestays & Boutique B&Bs)* | **₹1,499 / mo**<br>*(₹15,000 / yr)* | Max 20 Rooms<br>Max 3 Staff Users | • Visual Tape Chart Room Rack (Gantt View)<br>• Direct Walk-ins & Hourly / Day-Use Stays<br>• Dynamic UPI QR Cashiering & Cash Register<br>• Commission-Free Direct Guest Booking Engine (`/book`)<br>• Statutory Daily Police Beat Sheet & BoI Form C<br>• Client-Side Aadhaar 8-Digit Masking Canvas |
+| **🥈 Growth**<br>*(Mid-Scale & Resorts)* | **₹3,799 / mo**<br>*(₹38,000 / yr)* | Max 60 Rooms<br>Max 10 Staff Users | **Everything in Starter, plus:**<br>• Aura Dine F&B Restaurant POS with Multi-Round KOTs & KDS<br>• Mobile-Ready Housekeeping Attendant Hub (1-Tap Turnaround)<br>• In-Room Minibar Billing Directly to Guest Folio<br>• Stores & Kitchen Raw Material Inventory with GRN Stock-In<br>• Front Desk Petty Cash Drawer & Approved Vendor Registry<br>• Banquets & Event Spaces Scheduling with Billing<br>• Daily Automated 02:00 AM Night Audit Rollover<br>• EDC POS Card Terminal Integration (Pine Labs, Paytm, Innoviti) |
+| **🥇 Enterprise Chain**<br>*(Taj & Luxury Edition)* | **₹8,999 / mo**<br>*(₹90,000 / yr)* | Unlimited Rooms<br>Unlimited Staff Users | **Everything in Growth, plus:**<br>• Native Double-Entry General Ledger with Certified P&L & Balance Sheet<br>• Recipe Bill of Materials (BOM) with Automated Kitchen Depletion & Live Food Margins<br>• Dynamic Pricing Rules Engine (RMS) with Occupancy Surge Multipliers<br>• Two-Way OTA Channel Manager (MakeMyTrip, Booking.com, Agoda, Expedia)<br>• W3C Web Serial RFID Keycard Encoder Hardware Bridge (MIFARE 1K)<br>• Corporate City Ledger (BTC) & B2B 30/60/90-Day Aging Accounts Receivable<br>• Multi-Property Portfolio Governance (`/super-admin` Cluster Switcher)<br>• 24/7 Priority SLA & Dedicated Account Engineering |
+
+### Route & Page Gating Enforcement
+When a hotel user navigates to an unauthorized module for their plan, the application automatically redirects them to `/upgrade?feature=[feature_key]`. Sub-tabs within modules (such as the *Double-Entry General Ledger* in `/income` and *Recipe BOM* in `/inventory`) render contextual upgrade cards explaining the feature benefits and directing the property owner to upgrade.
+
+---
+
+## 4. End-to-End Operational User Journeys
 
 ### A. ⚡ SaaS Platform Founder Journey (Software Business & MRR)
 1. **Sign In**: Log into `platform-hq` as `founder@antigravity-erp.com`.
@@ -90,7 +105,7 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
    - Track monthly subscription growth via the 12-month visual timeline chart.
 4. **Manage Client Subscriptions**:
    - Locate any client hotel in the searchable directory.
-   - Upgrade/downgrade client tiers (Starter ₹1,999, Growth ₹5,999, Enterprise ₹19,999).
+   - Upgrade/downgrade client tiers (Starter ₹1,499/mo, Growth ₹3,799/mo, Enterprise ₹8,999/mo).
    - Suspend delinquent accounts or reactivate canceled accounts.
 5. **Analyze Churn Retention**:
    - Review hotels that left the platform, their exit reasons (e.g. *Seasonal monsoon closure & lease expired*), and their historical lifetime value (LTV).

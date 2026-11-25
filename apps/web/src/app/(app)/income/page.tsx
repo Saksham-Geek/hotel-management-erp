@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
-import { api, getMe } from '@/lib/api';
+import { FEATURES } from '@erp/shared';
+import { api, getMe, getEntitlements } from '@/lib/api';
 import { IncomeDashboardView } from './income-dashboard-view';
 import type { IncomeReportDto } from '@/app/(app)/income/types';
 
@@ -8,10 +9,11 @@ export default async function IncomePage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [me, sp, financialStatements] = await Promise.all([
+  const [me, sp, financialStatements, ent] = await Promise.all([
     getMe(),
     searchParams,
     api<any>('/hotel/accounting/financial-statements').catch(() => null),
+    getEntitlements().catch(() => null),
   ]);
 
   // Strict Role-Based Access Control: Strictly restricted to Property Owners
@@ -76,6 +78,7 @@ export default async function IncomePage({
       financialStatements={financialStatements}
       propertyName={me.property?.name ?? 'Grand Azure Hotel'}
       role={me.role}
+      hasAccountingGl={Boolean(ent?.features?.[FEATURES.HOTEL_ACCOUNTING_GL])}
     />
   );
 }

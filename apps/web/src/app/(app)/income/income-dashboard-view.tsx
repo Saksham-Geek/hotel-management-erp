@@ -12,6 +12,7 @@ export function IncomeDashboardView({
   financialStatements,
   propertyName,
   role,
+  hasAccountingGl = true,
 }: {
   initialData: IncomeReportDto;
   financialStatements?: {
@@ -21,6 +22,7 @@ export function IncomeDashboardView({
   } | null;
   propertyName: string;
   role: string;
+  hasAccountingGl?: boolean;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -1077,7 +1079,32 @@ export function IncomeDashboardView({
   )}
 
   {/* DOUBLE-ENTRY GENERAL LEDGER & FINANCIAL STATEMENTS VIEW */}
-  {activeTab === 'general_ledger' && (
+  {activeTab === 'general_ledger' && !hasAccountingGl && (
+    <div className="rounded-3xl border border-indigo-200 dark:border-indigo-900 bg-gradient-to-br from-indigo-50/60 via-white to-amber-50/40 dark:from-slate-900 dark:via-slate-950 dark:to-indigo-950/40 p-8 sm:p-12 text-center shadow-lg">
+      <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-3xl text-white shadow-md">
+        💎
+      </div>
+      <span className="mt-4 inline-block rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-3.5 py-1 text-xs font-bold uppercase tracking-wider">
+        Enterprise Chain Feature
+      </span>
+      <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white font-display">
+        Native Double-Entry General Ledger &amp; Certified Financial Statements
+      </h2>
+      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 max-w-xl mx-auto leading-relaxed">
+        Eliminate reliance on external accounting exports. Unlock automatic journal vouchers, customizable Chart of Accounts, real-time Trial Balance, Profit &amp; Loss, and Balance Sheet reporting.
+      </p>
+      <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+        <Link
+          href="/upgrade?feature=hotel.accounting_gl"
+          className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 text-xs font-bold shadow-md transition-all active:scale-[0.98]"
+        >
+          🚀 Upgrade to Enterprise Chain Plan
+        </Link>
+      </div>
+    </div>
+  )}
+
+  {activeTab === 'general_ledger' && hasAccountingGl && (
     <div className="space-y-8">
       {/* Overview Banner */}
       <div className="rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-900 to-indigo-950 p-6 text-white shadow-sm flex flex-wrap items-center justify-between gap-4">

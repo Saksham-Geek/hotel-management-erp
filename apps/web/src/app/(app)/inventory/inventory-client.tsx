@@ -81,6 +81,7 @@ export function InventoryClient({
   vendors = [],
   recipesOverview = [],
   menuCategories = [],
+  hasRecipesBom = true,
 }: {
   initialMaterials: RawMaterial[];
   initialCategories?: InventoryCategory[];
@@ -100,6 +101,7 @@ export function InventoryClient({
     name: string;
     items?: Array<{ id: string; name: string; price: number }>;
   }>;
+  hasRecipesBom?: boolean;
 }) {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'ledger' | 'movements' | 'recipes'>('ledger');
@@ -707,7 +709,32 @@ export function InventoryClient({
       )}
 
       {/* TAB 3: DISH RECIPE BOM & KITCHEN DEPLETION */}
-      {activeTab === 'recipes' && (
+      {activeTab === 'recipes' && !hasRecipesBom && (
+        <div className="rounded-3xl border border-indigo-200 dark:border-indigo-900 bg-gradient-to-br from-indigo-50/60 via-white to-amber-50/40 dark:from-slate-900 dark:via-slate-950 dark:to-indigo-950/40 p-8 sm:p-12 text-center shadow-lg">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-indigo-600 text-3xl text-white shadow-md">
+            🥗
+          </div>
+          <span className="mt-4 inline-block rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-3.5 py-1 text-xs font-bold uppercase tracking-wider">
+            Enterprise Chain Feature
+          </span>
+          <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white font-display">
+            Recipe Bill of Materials (BOM) &amp; Automated Kitchen Depletion
+          </h2>
+          <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 max-w-xl mx-auto leading-relaxed">
+            Eliminate kitchen food waste and inventory shrinkage. Automatically decrement raw store ingredients when KOTs are prepared, and calculate real-time dish recipe costs and gross margins.
+          </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <Link
+              href="/upgrade?feature=hotel.recipes_bom"
+              className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 text-xs font-bold shadow-md transition-all active:scale-[0.98]"
+            >
+              🚀 Upgrade to Enterprise Chain Plan
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'recipes' && hasRecipesBom && (
         <div className="space-y-4">
           <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4 text-xs text-indigo-950 dark:border-indigo-900/50 dark:bg-indigo-950/20 dark:text-indigo-200 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">

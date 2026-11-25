@@ -1,4 +1,5 @@
-import { api } from '@/lib/api';
+import { FEATURES } from '@erp/shared';
+import { api, requireFeature } from '@/lib/api';
 import { InventoryClient } from './inventory-client';
 
 export const metadata = {
@@ -7,13 +8,16 @@ export const metadata = {
 };
 
 export default async function InventoryPage() {
-  const [materials, categories, movements, vendors, recipesOverview, menuCategories] = await Promise.all([
-    api<any[]>('/hotel/restaurant/inventory/raw-materials').catch(() => []),
-    api<any[]>('/hotel/restaurant/inventory/categories').catch(() => []),
-    api<any[]>('/hotel/restaurant/inventory/movements').catch(() => []),
-    api<any[]>('/hotel/expenses/vendors').catch(() => []),
-    api<any[]>('/hotel/restaurant/inventory/recipes-overview').catch(() => []),
-    api<any[]>('/hotel/restaurant/menu').catch(() => []),
+  const [ent, [materials, categories, movements, vendors, recipesOverview, menuCategories]] = await Promise.all([
+    requireFeature(FEATURES.HOTEL_INVENTORY),
+    Promise.all([
+      api<any[]>('/hotel/restaurant/inventory/raw-materials').catch(() => []),
+      api<any[]>('/hotel/restaurant/inventory/categories').catch(() => []),
+      api<any[]>('/hotel/restaurant/inventory/movements').catch(() => []),
+      api<any[]>('/hotel/expenses/vendors').catch(() => []),
+      api<any[]>('/hotel/restaurant/inventory/recipes-overview').catch(() => []),
+      api<any[]>('/hotel/restaurant/menu').catch(() => []),
+    ]),
   ]);
 
   return (
@@ -24,6 +28,7 @@ export default async function InventoryPage() {
       vendors={vendors}
       recipesOverview={recipesOverview}
       menuCategories={menuCategories}
+      hasRecipesBom={Boolean(ent.features[FEATURES.HOTEL_RECIPES_BOM])}
     />
   );
 }

@@ -26,6 +26,7 @@ export default {
       { source: '/calendar', destination: '/room-calendar', permanent: false },
 
       // Front Desk & Operations aliases
+      { source: '/rooms', destination: '/settings?tab=rooms', permanent: false },
       { source: '/front-desk', destination: '/dashboard', permanent: false },
       { source: '/today', destination: '/dashboard', permanent: false },
       { source: '/bookings', destination: '/reservations', permanent: false },

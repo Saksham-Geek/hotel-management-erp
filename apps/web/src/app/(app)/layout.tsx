@@ -28,7 +28,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   if (role === 'housekeeping') {
     featureItems = [
       { href: '/housekeeping', label: 'Housekeeping & Cleaning', icon: 'housekeeping', feature: FEATURES.HOTEL_HOUSEKEEPING, group: 'Front Desk & Operations' },
-      { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Front Desk & Operations' },
       { href: '/keycards', label: 'Room Keys & Locks', icon: 'keycard', feature: FEATURES.HOTEL_KEYCARDS, group: 'Front Desk & Operations' },
       { href: '/guide', label: 'Help & Training Guide', icon: 'guide', group: 'Help & Support' },
     ];
@@ -37,7 +36,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       { href: '/dashboard', label: 'Today at Front Desk', icon: 'today', group: 'Front Desk & Operations' },
       { href: '/room-calendar', label: 'Room Calendar', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Desk & Operations' },
       { href: '/reservations', label: 'Bookings & Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
-      { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Front Desk & Operations' },
       { href: '/guests', label: 'Guest Directory', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
       { href: '/billing', label: 'Bills & Payments', icon: 'billing', feature: FEATURES.HOTEL_BILLING, group: 'Front Desk & Operations' },
       { href: '/expenses', label: 'Petty Cash & Expenses', icon: 'expenses', group: 'Front Desk & Operations' },
@@ -54,7 +52,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       { href: '/dashboard', label: 'Today at Front Desk', icon: 'today', group: 'Front Desk & Operations' },
       { href: '/room-calendar', label: 'Room Calendar', icon: 'tape-chart', feature: FEATURES.HOTEL_TAPE_CHART, group: 'Front Desk & Operations' },
       { href: '/reservations', label: 'Bookings & Reservations', icon: 'reservations', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
-      { href: '/rooms', label: 'Rooms & Floors', icon: 'rooms', feature: FEATURES.HOTEL_ROOMS, group: 'Front Desk & Operations' },
       { href: '/guests', label: 'Guest Directory', icon: 'guests', feature: FEATURES.HOTEL_RESERVATIONS, group: 'Front Desk & Operations' },
       { href: '/billing', label: 'Bills & Payments', icon: 'billing', feature: FEATURES.HOTEL_BILLING, group: 'Front Desk & Operations' },
       { href: '/expenses', label: 'Petty Cash & Expenses', icon: 'expenses', group: 'Front Desk & Operations' },

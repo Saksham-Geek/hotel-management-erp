@@ -4,8 +4,6 @@ import { useEffect, useRef, useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { btnCls, inputCls } from '@/components/ui';
-import { FormSubmit } from '@/components/form-submit';
-import { login, sendEmailOtpAction, verifyEmailOtpAction } from './actions';
 
 export function LoginForm() {
   const router = useRouter();
@@ -61,17 +59,26 @@ export function LoginForm() {
     }
 
     startTransition(async () => {
-      const res = await sendEmailOtpAction(cleanTenant, cleanEmail);
-      if (!res.ok) {
-        setOtpError(res.error || 'Failed to send verification code.');
-        return;
+      try {
+        const res = await fetch('/api/auth/otp/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tenant: cleanTenant, email: cleanEmail }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          setOtpError(data.error || 'Failed to send verification code.');
+          return;
+        }
+        setOtpSuccess(data.message || 'Verification code sent to your email.');
+        if (data.devOtp) {
+          setDevOtp(data.devOtp);
+        }
+        setOtpStep('verify');
+        setCooldown(60);
+      } catch {
+        setOtpError('API server is unreachable. Check your connection.');
       }
-      setOtpSuccess(res.message || 'Verification code sent to your email.');
-      if (res.devOtp) {
-        setDevOtp(res.devOtp);
-      }
-      setOtpStep('verify');
-      setCooldown(60);
     });
   };
 
@@ -86,15 +93,24 @@ export function LoginForm() {
     }
 
     startTransition(async () => {
-      const res = await verifyEmailOtpAction(tenant.trim(), email.trim(), cleanOtp);
-      if (!res.ok) {
-        setOtpError(res.error || 'Invalid or expired code.');
-        return;
-      }
-      if (res.redirectUrl) {
-        window.location.href = res.redirectUrl;
-      } else {
-        router.push('/dashboard');
+      try {
+        const res = await fetch('/api/auth/otp/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tenant: tenant.trim(), email: email.trim(), otp: cleanOtp }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.ok) {
+          setOtpError(data.error || 'Invalid or expired code.');
+          return;
+        }
+        if (data.redirectUrl) {
+          window.location.href = data.redirectUrl;
+        } else {
+          router.push('/dashboard');
+        }
+      } catch {
+        setOtpError('Unable to connect to authentication service. Please check your connection.');
       }
     });
   };

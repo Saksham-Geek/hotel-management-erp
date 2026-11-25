@@ -346,6 +346,96 @@ export class ExpensesController {
   }
 
   // =========================================================================
+  // COMMON EXPENSE ITEMS / STANDARD RECURRING EXPENSES (CRUD)
+  // =========================================================================
+  @Get('common-items')
+  @RequirePermission(PERMISSIONS.EXPENSES_VIEW)
+  async getCommonExpenseItems(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `select id, name, category_code as "categoryCode",
+                default_amount::float8 as "defaultAmount",
+                default_vendor_name as "defaultVendorName",
+                default_payment_mode as "defaultPaymentMode",
+                description, is_active as "isActive", created_at as "createdAt"
+         from common_expense_items
+         where property_id = $1 and is_active = true
+         order by name asc`,
+        [user.propertyId],
+      );
+      return res.rows;
+    });
+  }
+
+  @Post('common-items')
+  @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
+  async createCommonExpenseItem(
+    @CurrentUser() user: AuthUser,
+    @Body()
+    body: {
+      name: string;
+      categoryCode: string;
+      defaultAmount?: number;
+      defaultVendorName?: string;
+      defaultPaymentMode?: string;
+      description?: string;
+    },
+  ) {
+    if (!body?.name?.trim()) throw new BadRequestException('Expense item name is required.');
+    if (!body?.categoryCode?.trim()) throw new BadRequestException('Category code is required.');
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `insert into common_expense_items (
+           tenant_id, property_id, name, category_code, default_amount,
+           default_vendor_name, default_payment_mode, description, is_active
+         ) values ($1, $2, $3, $4, coalesce($5, 0), $6, coalesce($7, 'CASH_DRAWER'), $8, true)
+         on conflict (property_id, name)
+         do update set
+           category_code = excluded.category_code,
+           default_amount = excluded.default_amount,
+           default_vendor_name = excluded.default_vendor_name,
+           default_payment_mode = excluded.default_payment_mode,
+           description = excluded.description,
+           is_active = true
+         returning id, name, category_code as "categoryCode",
+                   default_amount::float8 as "defaultAmount",
+                   default_vendor_name as "defaultVendorName",
+                   default_payment_mode as "defaultPaymentMode",
+                   description, is_active as "isActive"`,
+        [
+          user.tenantId,
+          user.propertyId,
+          body.name.trim(),
+          body.categoryCode.trim(),
+          body.defaultAmount ?? 0,
+          body.defaultVendorName?.trim() || null,
+          body.defaultPaymentMode?.trim() || 'CASH_DRAWER',
+          body.description?.trim() || null,
+        ],
+      );
+      return {
+        success: true,
+        item: res.rows[0],
+        message: `Common expense item "${res.rows[0].name}" registered.`,
+      };
+    });
+  }
+
+  @Delete('common-items/:id')
+  @RequirePermission(PERMISSIONS.EXPENSES_MANAGE)
+  async deleteCommonExpenseItem(@CurrentUser() user: AuthUser, @Param('id') id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = await c.query(
+        `update common_expense_items set is_active = false where id = $1 and property_id = $2 returning name`,
+        [id, user.propertyId],
+      );
+      if (!res.rowCount) throw new NotFoundException('Expense item not found.');
+      return { success: true, message: `Common expense "${res.rows[0].name}" removed.` };
+    });
+  }
+
+  // =========================================================================
   // DIGITAL CONCIERGE SETTINGS
   // =========================================================================
   @Get('concierge-settings')

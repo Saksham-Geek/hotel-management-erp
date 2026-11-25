@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { inputCls, selectCls } from './ui';
+import { inputCls, CustomDropdown } from './ui';
 
 export interface IdDocumentInputProps {
   nameIdType?: string;
@@ -88,36 +88,18 @@ export function IdDocumentInput({
         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
           ID document type <span className="text-rose-500 font-bold">*</span>
         </label>
-        <div className="relative">
-          <select
-            name={nameIdType}
-            required={required}
-            disabled={disabled}
-            value={selectedType}
-            onChange={(e) => handleTypeChange(e.target.value)}
-            className={selectCls}
-          >
-            <option value="" disabled>
-              Select identity document type…
-            </option>
-            {ID_TYPE_OPTIONS.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3.5 text-slate-400">
-            <svg
-              className="h-4 w-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </div>
-        </div>
+        <CustomDropdown
+          name={nameIdType}
+          required={required}
+          disabled={disabled}
+          value={selectedType}
+          onChange={handleTypeChange}
+          placeholder="Select identity document type…"
+          options={ID_TYPE_OPTIONS.map((opt) => ({
+            value: opt.value,
+            label: opt.label,
+          }))}
+        />
       </div>
 
       {/* Required Identity Number */}

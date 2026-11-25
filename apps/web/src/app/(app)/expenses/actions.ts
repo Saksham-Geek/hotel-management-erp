@@ -158,3 +158,38 @@ export async function updateConciergeSettingsAction(input: {
     return { ok: false, error: errorMessage(err) };
   }
 }
+
+// Common Expense Items Actions
+export async function createCommonExpenseAction(input: {
+  name: string;
+  categoryCode: string;
+  defaultAmount?: number;
+  defaultVendorName?: string;
+  defaultPaymentMode?: string;
+  description?: string;
+}) {
+  try {
+    const res = await api<any>('/hotel/expenses/common-items', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+    revalidatePath('/expenses');
+    revalidatePath('/settings');
+    return { ok: true, item: res.item, message: res.message };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}
+
+export async function deleteCommonExpenseAction(id: string) {
+  try {
+    const res = await api<any>(`/hotel/expenses/common-items/${id}`, {
+      method: 'DELETE',
+    });
+    revalidatePath('/expenses');
+    revalidatePath('/settings');
+    return { ok: true, message: res.message };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CustomDropdown } from '@/components/ui';
 import { createRawMaterialAction, restockRawMaterialAction } from './actions';
 
 export interface RawMaterial {
@@ -230,20 +231,19 @@ export function InventoryClient({ initialMaterials }: { initialMaterials: RawMat
           className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
         />
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-500">Category:</span>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-          >
-            <option value="ALL">All Categories</option>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-2 min-w-[200px]">
+          <span className="text-xs font-semibold text-slate-500 shrink-0">Category:</span>
+          <div className="flex-1">
+            <CustomDropdown
+              size="sm"
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+              options={[
+                { value: 'ALL', label: 'All Categories' },
+                ...CATEGORIES.map((c) => ({ value: c, label: c })),
+              ]}
+            />
+          </div>
         </div>
       </div>
 
@@ -366,37 +366,31 @@ export function InventoryClient({ initialMaterials }: { initialMaterials: RawMat
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     Category *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
+                    onChange={setCategory}
+                    options={CATEGORIES.map((c) => ({ value: c, label: c }))}
+                  />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     Unit of Measure *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={unit}
-                    onChange={(e) => setUnit(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  >
-                    <option value="kg">kg (Kilograms)</option>
-                    <option value="litres">litres (Litres)</option>
-                    <option value="packets">packets (Packs)</option>
-                    <option value="pcs">pcs (Pieces / Units)</option>
-                    <option value="grams">grams (Grams)</option>
-                  </select>
+                    onChange={setUnit}
+                    options={[
+                      { value: 'kg', label: 'kg (Kilograms)' },
+                      { value: 'litres', label: 'litres (Litres)' },
+                      { value: 'packets', label: 'packets (Packs)' },
+                      { value: 'pcs', label: 'pcs (Pieces / Units)' },
+                      { value: 'grams', label: 'grams (Grams)' },
+                    ]}
+                  />
                 </div>
               </div>
 

@@ -9,6 +9,7 @@ import {
   btnDangerCls,
   inputCls,
   CustomDropdown,
+  type DropdownOption,
   EmptyState,
 } from '@/components/ui';
 import { getRoomTypeTheme } from '@/lib/room-types';
@@ -25,6 +26,8 @@ import {
   deleteExpenseCategorySetting,
   createVendorSetting,
   deleteVendorSetting,
+  createCommonExpenseSetting,
+  deleteCommonExpenseSetting,
   createVenueSetting,
   deleteVenueSetting,
   updateConciergeSetting,
@@ -187,6 +190,16 @@ interface SettingsViewProps {
     gymTiming?: string;
     googleReviewUrl?: string;
   } | null;
+  commonExpenses?: {
+    id: string;
+    name: string;
+    categoryCode: string;
+    defaultAmount: number;
+    defaultVendorName: string | null;
+    defaultPaymentMode: string;
+    description: string | null;
+    isActive: boolean;
+  }[];
   readOnly: boolean;
 }
 
@@ -211,6 +224,7 @@ export function SettingsView({
   rawMaterials = [],
   corporateAccounts = [],
   conciergeSettings = null,
+  commonExpenses = [],
   readOnly,
 }: SettingsViewProps) {
   const router = useRouter();
@@ -2946,13 +2960,17 @@ export function SettingsView({
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="block text-[11px] font-bold text-slate-600">Payment Terms</label>
-                      <select name="paymentTerms" className={inputCls}>
-                        <option value="Cash on Delivery">Cash on Delivery</option>
-                        <option value="Weekly Cheque">Weekly Cheque</option>
-                        <option value="Monthly Account">Monthly Account</option>
-                        <option value="Net 15 Days">Net 15 Days</option>
-                      </select>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Terms</label>
+                      <CustomDropdown
+                        name="paymentTerms"
+                        defaultValue="Cash on Delivery"
+                        options={[
+                          { value: 'Cash on Delivery', label: 'Cash on Delivery' },
+                          { value: 'Weekly Cheque', label: 'Weekly Cheque' },
+                          { value: 'Monthly Account', label: 'Monthly Account' },
+                          { value: 'Net 15 Days', label: 'Net 15 Days' },
+                        ]}
+                      />
                     </div>
                     <div>
                       <label className="block text-[11px] font-bold text-slate-600">Supplier Address / Depot</label>
@@ -2998,6 +3016,162 @@ export function SettingsView({
               </div>
             </div>
           </div>
+
+          {/* Recurring Common Expense Items Catalog */}
+          <div className="border-t border-slate-200/80 pt-6 space-y-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                  <span>⚡</span> Recurring Common Expense Items Catalog
+                </h3>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Pre-configure common recurring operational items (GenSet Diesel, Dairy Milk, Thermal Paper, Spares) for 1-click entry on front desk vouchers.
+                </p>
+              </div>
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                {commonExpenses.length} Items Configured
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              {/* Form to add Common Expense Item */}
+              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Common Expense Template</h4>
+                <form action={createCommonExpenseSetting} className="space-y-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Item Name *</label>
+                    <input
+                      name="name"
+                      required
+                      placeholder="e.g. GenSet Diesel (40L) or Dairy Milk (20L)"
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Expense Category *</label>
+                      <CustomDropdown
+                        name="categoryCode"
+                        defaultValue={expenseCategories[0]?.code || 'DIESEL_GENSET'}
+                        options={expenseCategories.map((c) => ({
+                          value: c.code,
+                          label: c.name,
+                          icon: <span>{c.icon || '🏷️'}</span>,
+                        }))}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Default Amount (₹ INR)</label>
+                      <input
+                        name="defaultAmount"
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        defaultValue="0"
+                        placeholder="e.g. 2800"
+                        className={inputCls}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600">Default Supplier / Vendor</label>
+                      <input
+                        name="defaultVendorName"
+                        list="settings-vendor-suggestions"
+                        placeholder="e.g. Bharat Petroleum"
+                        className={inputCls}
+                      />
+                      <datalist id="settings-vendor-suggestions">
+                        {vendors.map((v) => (
+                          <option key={v.id} value={v.name} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-600 mb-1">Disbursed Mode</label>
+                      <CustomDropdown
+                        name="defaultPaymentMode"
+                        defaultValue="CASH_DRAWER"
+                        options={[
+                          { value: 'CASH_DRAWER', label: 'Cash Drawer', icon: <span>💵</span> },
+                          { value: 'UPI', label: 'Manager UPI', icon: <span>📱</span> },
+                          { value: 'BANK_TRANSFER', label: 'Net Banking', icon: <span>🏦</span> },
+                          { value: 'COMPANY_CARD', label: 'Company Card', icon: <span>💳</span> },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-600">Standard Purpose / Description</label>
+                    <input
+                      name="description"
+                      placeholder="e.g. Backup generator diesel refilling during power outages"
+                      className={inputCls}
+                    />
+                  </div>
+
+                  <button type="submit" disabled={readOnly} className={btnCls}>
+                    + Add to Common Catalog
+                  </button>
+                </form>
+              </div>
+
+              {/* List of Configured Common Expense Items */}
+              <div className="space-y-2 lg:col-span-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Standard Items</h4>
+                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-96 overflow-y-auto">
+                  {commonExpenses.map((ci) => {
+                    const cat = expenseCategories.find((c) => c.code === ci.categoryCode);
+                    return (
+                      <div key={ci.id} className="flex items-center justify-between p-3.5 hover:bg-slate-50/60">
+                        <div className="flex items-start gap-3">
+                          <span className="text-2xl mt-0.5">{cat?.icon || '🏷️'}</span>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-slate-900 text-[13px]">{ci.name}</p>
+                              <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                                {cat?.name || ci.categoryCode}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-slate-500 mt-0.5">
+                              {ci.defaultVendorName && `Vendor: ${ci.defaultVendorName} • `}
+                              Disbursed: {ci.defaultPaymentMode.replace('_', ' ')}
+                              {ci.description && ` • ${ci.description}`}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4 shrink-0">
+                          <div className="text-right">
+                            <p className="font-mono font-bold text-slate-900 text-sm">
+                              ₹{ci.defaultAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </p>
+                            <p className="text-[10px] text-slate-400">Default rate</p>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={readOnly}
+                            onClick={() => deleteCommonExpenseSetting(ci.id)}
+                            className="rounded-md bg-rose-50 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-100 transition"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  {commonExpenses.length === 0 && (
+                    <div className="p-8 text-center text-xs text-slate-400">
+                      No common expense items configured yet. Add recurring items above.
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </section>
       )}
 
@@ -3039,14 +3213,18 @@ export function SettingsView({
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600">Venue Type</label>
-                    <select name="type" className={inputCls}>
-                      <option value="BANQUET_HALL">Banquet Hall</option>
-                      <option value="LAWN">Outdoor Lawn</option>
-                      <option value="BOARDROOM">Executive Boardroom</option>
-                      <option value="ROOFTOP_TERRACE">Rooftop Terrace</option>
-                      <option value="CONFERENCE_CENTER">Conference Center</option>
-                    </select>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Venue Type</label>
+                    <CustomDropdown
+                      name="type"
+                      defaultValue="BANQUET_HALL"
+                      options={[
+                        { value: 'BANQUET_HALL', label: 'Banquet Hall' },
+                        { value: 'LAWN', label: 'Outdoor Lawn' },
+                        { value: 'BOARDROOM', label: 'Executive Boardroom' },
+                        { value: 'ROOFTOP_TERRACE', label: 'Rooftop Terrace' },
+                        { value: 'CONFERENCE_CENTER', label: 'Conference Center' },
+                      ]}
+                    />
                   </div>
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600">Max Pax Capacity *</label>
@@ -3170,25 +3348,33 @@ export function SettingsView({
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600">Category</label>
-                    <select name="category" className={inputCls}>
-                      <option value="Grocery">Grocery</option>
-                      <option value="Dairy & Perishables">Dairy &amp; Perishables</option>
-                      <option value="Meat & Poultry">Meat &amp; Poultry</option>
-                      <option value="Spices & Condiments">Spices &amp; Condiments</option>
-                      <option value="Beverages & Bar">Beverages &amp; Bar</option>
-                      <option value="Housekeeping & Linen">Housekeeping &amp; Linen</option>
-                    </select>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Category</label>
+                    <CustomDropdown
+                      name="category"
+                      defaultValue="Grocery"
+                      options={[
+                        { value: 'Grocery', label: 'Grocery' },
+                        { value: 'Dairy & Perishables', label: 'Dairy & Perishables' },
+                        { value: 'Meat & Poultry', label: 'Meat & Poultry' },
+                        { value: 'Spices & Condiments', label: 'Spices & Condiments' },
+                        { value: 'Beverages & Bar', label: 'Beverages & Bar' },
+                        { value: 'Housekeeping & Linen', label: 'Housekeeping & Linen' },
+                      ]}
+                    />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600">Unit</label>
-                    <select name="unit" className={inputCls}>
-                      <option value="kg">kg</option>
-                      <option value="litres">litres</option>
-                      <option value="packets">packets</option>
-                      <option value="pcs">pcs</option>
-                      <option value="grams">grams</option>
-                    </select>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Unit</label>
+                    <CustomDropdown
+                      name="unit"
+                      defaultValue="kg"
+                      options={[
+                        { value: 'kg', label: 'kg' },
+                        { value: 'litres', label: 'litres' },
+                        { value: 'packets', label: 'packets' },
+                        { value: 'pcs', label: 'pcs' },
+                        { value: 'grams', label: 'grams' },
+                      ]}
+                    />
                   </div>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
@@ -3306,13 +3492,17 @@ export function SettingsView({
                     <input name="creditLimit" type="number" defaultValue="200000" className={inputCls} />
                   </div>
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-600">Terms (Days)</label>
-                    <select name="creditPeriodDays" className={inputCls}>
-                      <option value="15">15 Days</option>
-                      <option value="30">30 Days</option>
-                      <option value="45">45 Days</option>
-                      <option value="60">60 Days</option>
-                    </select>
+                    <label className="block text-[11px] font-bold text-slate-600 mb-1">Terms (Days)</label>
+                    <CustomDropdown
+                      name="creditPeriodDays"
+                      defaultValue="30"
+                      options={[
+                        { value: '15', label: '15 Days' },
+                        { value: '30', label: '30 Days' },
+                        { value: '45', label: '45 Days' },
+                        { value: '60', label: '60 Days' },
+                      ]}
+                    />
                   </div>
                 </div>
                 <button type="submit" disabled={readOnly} className={btnCls}>

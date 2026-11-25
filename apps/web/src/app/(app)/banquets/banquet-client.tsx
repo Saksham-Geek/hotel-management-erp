@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CustomDropdown } from '@/components/ui';
 import {
   createBanquetBookingAction,
   updateBanquetBookingAction,
@@ -308,19 +309,22 @@ export function BanquetClient({
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
           />
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-slate-500">Status:</span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-            >
-              <option value="ALL">All Statuses</option>
-              <option value="CONFIRMED">Confirmed</option>
-              <option value="ENQUIRY">Enquiry</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
+          <div className="flex items-center gap-2 min-w-[170px]">
+            <span className="text-xs font-semibold text-slate-500 shrink-0">Status:</span>
+            <div className="flex-1">
+              <CustomDropdown
+                size="sm"
+                value={statusFilter}
+                onChange={setStatusFilter}
+                options={[
+                  { value: 'ALL', label: 'All Statuses' },
+                  { value: 'CONFIRMED', label: 'Confirmed' },
+                  { value: 'ENQUIRY', label: 'Enquiry' },
+                  { value: 'COMPLETED', label: 'Completed' },
+                  { value: 'CANCELLED', label: 'Cancelled' },
+                ]}
+              />
+            </div>
           </div>
         </div>
 
@@ -440,24 +444,21 @@ export function BanquetClient({
             <form onSubmit={handleCreateBooking} className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     Select Venue Space *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={venueId}
-                    onChange={(e) => {
-                      setVenueId(e.target.value);
-                      const v = venues.find((x) => x.id === e.target.value);
+                    onChange={(val) => {
+                      setVenueId(val);
+                      const v = venues.find((x) => x.id === val);
                       if (v) setHallRental(String(v.baseRentalRate));
                     }}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  >
-                    {venues.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        {v.name} (Max {v.maxPax} Pax)
-                      </option>
-                    ))}
-                  </select>
+                    options={venues.map((v) => ({
+                      value: v.id,
+                      label: `${v.name} (Max ${v.maxPax} Pax)`,
+                    }))}
+                  />
                 </div>
 
                 <div>
@@ -533,18 +534,18 @@ export function BanquetClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     Session Slot *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={slot}
-                    onChange={(e) => setSlot(e.target.value as any)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  >
-                    <option value="MORNING">Morning (9:00 AM - 3:00 PM)</option>
-                    <option value="EVENING">Evening (6:00 PM - 11:30 PM)</option>
-                    <option value="FULL_DAY">Full Day (24 Hours)</option>
-                  </select>
+                    onChange={(val) => setSlot(val as any)}
+                    options={[
+                      { value: 'MORNING', label: 'Morning (9:00 AM - 3:00 PM)' },
+                      { value: 'EVENING', label: 'Evening (6:00 PM - 11:30 PM)' },
+                      { value: 'FULL_DAY', label: 'Full Day (24 Hours)' },
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -564,24 +565,21 @@ export function BanquetClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     Menu Package
                   </label>
-                  <select
+                  <CustomDropdown
                     value={menuPackage}
-                    onChange={(e) => {
-                      setMenuPackage(e.target.value);
-                      const pkg = MENU_PACKAGES.find((p) => p.name === e.target.value);
+                    onChange={(val) => {
+                      setMenuPackage(val);
+                      const pkg = MENU_PACKAGES.find((p) => p.name === val);
                       if (pkg) setRatePerPax(String(pkg.defaultRate));
                     }}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  >
-                    {MENU_PACKAGES.map((p) => (
-                      <option key={p.name} value={p.name}>
-                        {p.name} (₹{p.defaultRate}/pax)
-                      </option>
-                    ))}
-                  </select>
+                    options={MENU_PACKAGES.map((p) => ({
+                      value: p.name,
+                      label: `${p.name} (₹${p.defaultRate}/pax)`,
+                    }))}
+                  />
                 </div>
 
                 <div>

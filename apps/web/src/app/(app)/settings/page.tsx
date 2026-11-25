@@ -37,6 +37,7 @@ export default async function SettingsHubPage({
     rawMaterials,
     corporateAccounts,
     conciergeSettings,
+    commonExpenses,
   ] = await Promise.all([
     getMe(),
     searchParams,
@@ -71,6 +72,7 @@ export default async function SettingsHubPage({
       gymTiming: '24 Hours (Keycard Access)',
       googleReviewUrl: 'https://maps.google.com',
     })),
+    api<any[]>('/hotel/expenses/common-items').catch(() => []),
   ]);
 
   const staffList = Array.isArray(users) ? users : (users?.staff ?? []);
@@ -115,6 +117,7 @@ export default async function SettingsHubPage({
         rawMaterials={rawMaterials}
         corporateAccounts={corporateAccounts}
         conciergeSettings={conciergeSettings}
+        commonExpenses={commonExpenses}
         readOnly={ent.readOnly}
       />
     </>

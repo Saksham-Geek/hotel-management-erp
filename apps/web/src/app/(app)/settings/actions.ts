@@ -333,6 +333,57 @@ export async function deleteVendorSetting(id: string) {
   redirect('/settings?tab=expenses&ok=Vendor+deactivated+successfully');
 }
 
+export async function createCommonExpenseSetting(fd: FormData) {
+  let error: string | null = null;
+  const name = String(fd.get('name') ?? '').trim();
+  const categoryCode = String(fd.get('categoryCode') ?? '').trim();
+  const defaultAmount = Number(fd.get('defaultAmount') ?? 0);
+  const defaultVendorName = String(fd.get('defaultVendorName') ?? '').trim();
+  const defaultPaymentMode = String(fd.get('defaultPaymentMode') ?? 'CASH_DRAWER').trim();
+  const description = String(fd.get('description') ?? '').trim();
+
+  if (!name || !categoryCode) {
+    redirect('/settings?tab=expenses&error=Expense+item+name+and+category+are+required.');
+  }
+
+  try {
+    await api('/hotel/expenses/common-items', {
+      method: 'POST',
+      body: JSON.stringify({
+        name,
+        categoryCode,
+        defaultAmount,
+        defaultVendorName: defaultVendorName || undefined,
+        defaultPaymentMode,
+        description: description || undefined,
+      }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/expenses');
+  if (error) {
+    redirect(`/settings?tab=expenses&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=expenses&ok=Common+recurring+expense+item+saved+successfully');
+}
+
+export async function deleteCommonExpenseSetting(id: string) {
+  let error: string | null = null;
+  try {
+    await api(`/hotel/expenses/common-items/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/expenses');
+  if (error) {
+    redirect(`/settings?tab=expenses&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=expenses&ok=Common+expense+item+removed');
+}
+
 // --- Banquet Venues Actions ---
 
 export async function createVenueSetting(fd: FormData) {

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { CustomDropdown } from '@/components/ui';
 import { createCorporateAccountAction } from './actions';
 
 export interface CorporateAccount {
@@ -347,20 +348,20 @@ export function CorporateClient({ initialAccounts }: { initialAccounts: Corporat
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     Payment Terms / Credit Days *
                   </label>
-                  <select
+                  <CustomDropdown
                     value={creditPeriodDays}
-                    onChange={(e) => setCreditPeriodDays(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  >
-                    <option value="7">7 Days</option>
-                    <option value="15">15 Days</option>
-                    <option value="30">30 Days (Net 30)</option>
-                    <option value="45">45 Days</option>
-                    <option value="60">60 Days (Net 60)</option>
-                  </select>
+                    onChange={setCreditPeriodDays}
+                    options={[
+                      { value: '7', label: '7 Days' },
+                      { value: '15', label: '15 Days' },
+                      { value: '30', label: '30 Days (Net 30)' },
+                      { value: '45', label: '45 Days' },
+                      { value: '60', label: '60 Days (Net 60)' },
+                    ]}
+                  />
                 </div>
               </div>
 

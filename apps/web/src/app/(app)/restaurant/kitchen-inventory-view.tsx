@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { CustomDropdown } from '@/components/ui';
 import {
   getRawMaterialsAction,
   createRawMaterialAction,
@@ -588,27 +589,19 @@ export function KitchenInventoryView({
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       + Add Ingredient to Recipe
                     </label>
-                    <select
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          addIngredientToDish(e.target.value);
-                          e.target.value = '';
-                        }
+                    <CustomDropdown
+                      placeholder="Select a raw material to link..."
+                      value=""
+                      onChange={(val) => {
+                        if (val) addIngredientToDish(val);
                       }}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800 focus:outline-none dark:border-white/10 dark:bg-slate-800 dark:text-white"
-                      defaultValue=""
-                    >
-                      <option value="" disabled>
-                        Select a raw material to link...
-                      </option>
-                      {materials
+                      options={materials
                         .filter((m) => !recipeIngredients.some((r) => r.rawMaterialId === m.id))
-                        .map((m) => (
-                          <option key={m.id} value={m.id}>
-                            {m.name} ({m.category} • ₹{m.costPerUnit}/{m.unit})
-                          </option>
-                        ))}
-                    </select>
+                        .map((m) => ({
+                          value: m.id,
+                          label: `${m.name} (${m.category} • ₹${m.costPerUnit}/${m.unit})`,
+                        }))}
+                    />
                   </div>
 
                   {/* Save CTA */}
@@ -734,36 +727,36 @@ export function KitchenInventoryView({
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Category
                   </label>
-                  <select
+                  <CustomDropdown
                     value={newMatCat}
-                    onChange={(e) => setNewMatCat(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs dark:border-white/10 dark:bg-slate-800"
-                  >
-                    <option value="Dairy">Dairy</option>
-                    <option value="Grocery">Grocery</option>
-                    <option value="Produce">Produce</option>
-                    <option value="Meat & Poultry">Meat &amp; Poultry</option>
-                    <option value="Spices">Spices</option>
-                    <option value="Beverages">Beverages</option>
-                  </select>
+                    onChange={setNewMatCat}
+                    options={[
+                      { value: 'Dairy', label: 'Dairy' },
+                      { value: 'Grocery', label: 'Grocery' },
+                      { value: 'Produce', label: 'Produce' },
+                      { value: 'Meat & Poultry', label: 'Meat & Poultry' },
+                      { value: 'Spices', label: 'Spices' },
+                      { value: 'Beverages', label: 'Beverages' },
+                    ]}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                     Unit
                   </label>
-                  <select
+                  <CustomDropdown
                     value={newMatUnit}
-                    onChange={(e) => setNewMatUnit(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 p-2.5 text-xs dark:border-white/10 dark:bg-slate-800"
-                  >
-                    <option value="kg">kg (Kilograms)</option>
-                    <option value="g">g (Grams)</option>
-                    <option value="l">l (Litres)</option>
-                    <option value="ml">ml (Millilitres)</option>
-                    <option value="pcs">pcs (Pieces)</option>
-                    <option value="pkt">pkt (Packets)</option>
-                  </select>
+                    onChange={setNewMatUnit}
+                    options={[
+                      { value: 'kg', label: 'kg (Kilograms)' },
+                      { value: 'g', label: 'g (Grams)' },
+                      { value: 'l', label: 'l (Litres)' },
+                      { value: 'ml', label: 'ml (Millilitres)' },
+                      { value: 'pcs', label: 'pcs (Pieces)' },
+                      { value: 'pkt', label: 'pkt (Packets)' },
+                    ]}
+                  />
                 </div>
               </div>
 

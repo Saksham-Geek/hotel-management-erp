@@ -3,7 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { createExpenseAction, createVendorAction } from './actions';
+import { CustomDropdown, type DropdownOption } from '@/components/ui';
+import {
+  createExpenseAction,
+  createVendorAction,
+  createCommonExpenseAction,
+} from './actions';
 
 export interface ExpenseVoucher {
   id: string;
@@ -42,6 +47,17 @@ export interface HotelVendor {
   isActive: boolean;
 }
 
+export interface CommonExpenseItem {
+  id: string;
+  name: string;
+  categoryCode: string;
+  defaultAmount: number;
+  defaultVendorName: string | null;
+  defaultPaymentMode: string;
+  description: string | null;
+  isActive: boolean;
+}
+
 export interface CashSummary {
   today: {
     totalCashIn: number;
@@ -72,11 +88,13 @@ export function ExpenseClient({
   initialSummary,
   initialCategories = [],
   initialVendors = [],
+  initialCommonExpenses = [],
 }: {
   initialExpenses: ExpenseVoucher[];
   initialSummary: CashSummary;
   initialCategories?: ExpenseCategory[];
   initialVendors?: HotelVendor[];
+  initialCommonExpenses?: CommonExpenseItem[];
 }) {
   const router = useRouter();
   const [expenses, setExpenses] = useState<ExpenseVoucher[]>(initialExpenses);
@@ -85,6 +103,7 @@ export function ExpenseClient({
     initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES,
   );
   const [vendors, setVendors] = useState<HotelVendor[]>(initialVendors);
+  const [commonExpenses, setCommonExpenses] = useState<CommonExpenseItem[]>(initialCommonExpenses);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -94,17 +113,69 @@ export function ExpenseClient({
   const [error, setError] = useState<string | null>(null);
 
   // Form State
+  const [selectedCommonItemId, setSelectedCommonItemId] = useState('');
   const [formCategory, setFormCategory] = useState(categories[0]?.code || 'DIESEL_GENSET');
   const [formAmount, setFormAmount] = useState('');
   const [formPaymentMode, setFormPaymentMode] = useState('CASH_DRAWER');
   const [formPaidTo, setFormPaidTo] = useState('');
   const [formInvoiceRef, setFormInvoiceRef] = useState('');
   const [formNotes, setFormNotes] = useState('');
+  const [saveAsCommonItem, setSaveAsCommonItem] = useState(false);
+  const [commonItemName, setCommonItemName] = useState('');
 
   // Quick Add Vendor State
   const [newVendorName, setNewVendorName] = useState('');
   const [newVendorPhone, setNewVendorPhone] = useState('');
   const [newVendorGstin, setNewVendorGstin] = useState('');
+
+  // Dropdown options
+  const categoryFilterOptions: DropdownOption[] = [
+    { value: 'ALL', label: 'All Categories' },
+    ...categories.map((c) => ({
+      value: c.code,
+      label: c.name,
+      icon: <span>{c.icon || '🏷️'}</span>,
+    })),
+  ];
+
+  const categorySelectOptions: DropdownOption[] = categories.map((c) => ({
+    value: c.code,
+    label: c.name,
+    icon: <span>{c.icon || '🏷️'}</span>,
+  }));
+
+  const paymentModeOptions: DropdownOption[] = [
+    { value: 'CASH_DRAWER', label: 'Front Desk Cash Drawer', icon: <span>💵</span>, badge: 'Drawer' },
+    { value: 'UPI', label: 'Hotel Manager UPI', icon: <span>📱</span>, badge: 'UPI' },
+    { value: 'BANK_TRANSFER', label: 'Direct Net Banking', icon: <span>🏦</span>, badge: 'NEFT/IMPS' },
+    { value: 'COMPANY_CARD', label: 'Company Credit Card', icon: <span>💳</span>, badge: 'Card' },
+  ];
+
+  const commonExpenseOptions: DropdownOption[] = [
+    { value: '', label: '⚡ Custom One-Off Expense (Manual Entry)' },
+    ...commonExpenses.map((item) => {
+      const cat = categories.find((c) => c.code === item.categoryCode);
+      return {
+        value: item.id,
+        label: `${item.name} — ₹${item.defaultAmount}`,
+        icon: <span>{cat?.icon || '🏷️'}</span>,
+        badge: cat?.name || item.categoryCode,
+      };
+    }),
+  ];
+
+  const handleSelectCommonExpense = (itemId: string) => {
+    setSelectedCommonItemId(itemId);
+    if (!itemId) return;
+    const match = commonExpenses.find((ci) => ci.id === itemId);
+    if (match) {
+      setFormCategory(match.categoryCode);
+      if (match.defaultAmount > 0) setFormAmount(String(match.defaultAmount));
+      if (match.defaultVendorName) setFormPaidTo(match.defaultVendorName);
+      if (match.defaultPaymentMode) setFormPaymentMode(match.defaultPaymentMode);
+      if (match.description) setFormNotes(match.description);
+    }
+  };
 
   const getCategoryMeta = (code: string) => {
     const found = categories.find((c) => c.code === code);
@@ -147,11 +218,33 @@ export function ExpenseClient({
         throw new Error(res.error || 'Failed to log expense voucher.');
       }
 
+      // If user opted to save this recurring expense into common expenses catalog
+      if (saveAsCommonItem) {
+        const itemName = commonItemName.trim() || formPaidTo.trim();
+        if (itemName) {
+          createCommonExpenseAction({
+            name: itemName,
+            categoryCode: formCategory,
+            defaultAmount: parseFloat(formAmount) || 0,
+            defaultVendorName: formPaidTo.trim() || undefined,
+            defaultPaymentMode: formPaymentMode,
+            description: formNotes.trim() || undefined,
+          }).then((r) => {
+            if (r.ok && r.item) {
+              setCommonExpenses((prev) => [...prev, r.item]);
+            }
+          });
+        }
+      }
+
       setIsModalOpen(false);
+      setSelectedCommonItemId('');
       setFormAmount('');
       setFormPaidTo('');
       setFormInvoiceRef('');
       setFormNotes('');
+      setSaveAsCommonItem(false);
+      setCommonItemName('');
       router.refresh();
       if (res.voucher) {
         setExpenses([res.voucher, ...expenses]);
@@ -328,20 +421,16 @@ export function ExpenseClient({
           />
         </div>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-2 min-w-[220px]">
           <span className="text-xs font-semibold text-slate-500 shrink-0">Category:</span>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-200"
-          >
-            <option value="ALL">All Categories</option>
-            {categories.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.icon} {c.name}
-              </option>
-            ))}
-          </select>
+          <div className="flex-1">
+            <CustomDropdown
+              size="sm"
+              options={categoryFilterOptions}
+              value={selectedCategory}
+              onChange={setSelectedCategory}
+            />
+          </div>
         </div>
       </div>
 
@@ -442,21 +531,35 @@ export function ExpenseClient({
             )}
 
             <form onSubmit={handleCreateExpense} className="mt-4 space-y-4">
+              {/* Quick-Fill Recurring Expense Item */}
+              <div className="rounded-xl border border-teal-500/20 bg-teal-50/40 p-3 dark:bg-teal-950/20">
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-xs font-extrabold text-teal-900 dark:text-teal-300">
+                    ⚡ Quick-Fill Recurring Expense Item
+                  </label>
+                  {selectedCommonItemId && (
+                    <span className="text-[10px] font-bold text-teal-700 dark:text-teal-400 bg-teal-100 dark:bg-teal-900/60 px-2 py-0.5 rounded-full">
+                      ✓ Auto-Filled
+                    </span>
+                  )}
+                </div>
+                <CustomDropdown
+                  placeholder="Choose common expense (Diesel, Milk, Paper rolls...)"
+                  options={commonExpenseOptions}
+                  value={selectedCommonItemId}
+                  onChange={handleSelectCommonExpense}
+                />
+              </div>
+
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   Expense Category *
                 </label>
-                <select
+                <CustomDropdown
+                  options={categorySelectOptions}
                   value={formCategory}
-                  onChange={(e) => setFormCategory(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                >
-                  {categories.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.icon} {c.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setFormCategory}
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -477,19 +580,14 @@ export function ExpenseClient({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     Disbursed From *
                   </label>
-                  <select
+                  <CustomDropdown
+                    options={paymentModeOptions}
                     value={formPaymentMode}
-                    onChange={(e) => setFormPaymentMode(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  >
-                    <option value="CASH_DRAWER">Front Desk Cash Drawer</option>
-                    <option value="UPI">Hotel Manager UPI</option>
-                    <option value="BANK_TRANSFER">Direct Net Banking</option>
-                    <option value="COMPANY_CARD">Company Credit Card</option>
-                  </select>
+                    onChange={setFormPaymentMode}
+                  />
                 </div>
               </div>
 
@@ -590,6 +688,28 @@ export function ExpenseClient({
                   onChange={(e) => setFormNotes(e.target.value)}
                   className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 />
+              </div>
+
+              {/* Option to save as recurring expense item */}
+              <div className="rounded-xl border border-dashed border-teal-300 dark:border-teal-800/60 p-3 bg-teal-50/30 dark:bg-teal-950/20 space-y-2">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-800 dark:text-slate-200">
+                  <input
+                    type="checkbox"
+                    checked={saveAsCommonItem}
+                    onChange={(e) => setSaveAsCommonItem(e.target.checked)}
+                    className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                  />
+                  <span>Save this as a Common Recurring Expense template</span>
+                </label>
+                {saveAsCommonItem && (
+                  <input
+                    type="text"
+                    placeholder="Template Item Name (e.g. GenSet Diesel 40L, Morning Bread Tray)"
+                    value={commonItemName}
+                    onChange={(e) => setCommonItemName(e.target.value)}
+                    className="w-full rounded-lg border border-teal-300 bg-white px-3 py-1.5 text-xs text-slate-900 dark:border-teal-700 dark:bg-slate-950 dark:text-white"
+                  />
+                )}
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">

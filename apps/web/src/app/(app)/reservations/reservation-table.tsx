@@ -5,7 +5,7 @@ import { useMemo, useState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { Banner, btnGhostCls, CustomDropdown, EmptyState, inputCls, selectCls, StatusBadge } from '@/components/ui';
 import { formatStayDates } from '@/lib/format';
-import { changeReservation } from './actions';
+import { changeReservation, markReservationNoShowAction } from './actions';
 import { WhatsAppVoucherModal } from './whatsapp-voucher-modal';
 
 export interface ReservationRow {
@@ -268,6 +268,26 @@ function Actions({
           </ActionButton>
         </form>
       ))}
+
+      {reservation.status === 'reserved' && !readOnly && (
+        <form
+          action={markReservationNoShowAction}
+          onSubmit={(e) => {
+            if (!window.confirm(`Mark ${reservation.guestName} as No-Show and release Room ${reservation.roomNumber}?`)) {
+              e.preventDefault();
+            }
+          }}
+        >
+          <input type="hidden" name="id" value={reservation.id} />
+          <button
+            type="submit"
+            className="inline-flex min-h-9 items-center justify-center rounded-lg border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-800 hover:bg-amber-100 transition-colors"
+            title="Mark as No-Show and release room for walk-ins"
+          >
+            No-Show
+          </button>
+        </form>
+      )}
     </div>
   );
 }

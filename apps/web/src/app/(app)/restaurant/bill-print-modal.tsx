@@ -296,7 +296,8 @@ export function BillPrintModal({
             <div className="text-center text-[10px] text-slate-600 space-y-0.5 mt-2">
               <p className="font-bold">Thank you for dining with us!</p>
               <p>Please visit again.</p>
-              <p className="text-[8px] text-slate-400 mt-1">SAC: 996331 (Restaurant Service)</p>
+              <p className="text-[8px] text-slate-500 font-semibold mt-1">SAC: 996331 · GST on Restaurant Service @ 5.00% without ITC</p>
+              <p className="text-[8px] text-slate-400">FSSAI Lic: {data.fssaiNumber || '10022021000123'}</p>
             </div>
           </div>
         </div>

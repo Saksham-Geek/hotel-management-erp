@@ -6,6 +6,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -878,6 +879,62 @@ export class RestaurantController {
       await c.query(`update kot_order_items set status = $1 where order_id = $2`, [itemStatus, id]);
 
       return res.rows[0];
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Supervised KOT Item Voiding with Audit Reason
+  // -------------------------------------------------------------
+  @Post('kots/items/:itemId/void')
+  @RequirePermission(PERMISSIONS.RESTAURANT_MANAGE)
+  async voidKotItem(
+    @CurrentUser() user: AuthUser,
+    @Param('itemId', ParseUUIDPipe) itemId: string,
+    @Body() body: { voidReason: string },
+  ) {
+    if (!body.voidReason) throw new BadRequestException('Void reason is mandatory');
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const item = (
+        await c.query(
+          `SELECT i.id, i.order_id, i.unit_price, i.quantity, i.is_voided, o.status as order_status
+           FROM kot_order_items i
+           JOIN kot_orders o ON o.id = i.order_id
+           WHERE i.id = $1`,
+          [itemId],
+        )
+      ).rows[0];
+      if (!item) throw new NotFoundException('KOT item not found');
+      if (item.is_voided) throw new BadRequestException('Item is already voided');
+
+      // Update item
+      await c.query(
+        `UPDATE kot_order_items
+         SET is_voided = true, status = 'voided', void_reason = $2, voided_at = now()
+         WHERE id = $1`,
+        [itemId, body.voidReason],
+      );
+
+      // Recalculate KOT subtotal and total
+      const totalsRes = await c.query(
+        `SELECT coalesce(sum(quantity * unit_price), 0) as subtotal,
+                coalesce(sum(quantity * unit_price * (gst_rate / 100)), 0) as tax
+         FROM kot_order_items
+         WHERE order_id = $1 AND is_voided = false`,
+        [item.order_id],
+      );
+      const subtotal = Number(totalsRes.rows[0].subtotal);
+      const tax = Number(totalsRes.rows[0].tax);
+      const total = Math.round((subtotal + tax) * 100) / 100;
+
+      await c.query(
+        `UPDATE kot_orders
+         SET subtotal = $1, tax_amount = $2, total_amount = $3
+         WHERE id = $4`,
+        [subtotal, tax, total, item.order_id],
+      );
+
+      return { success: true, itemId, voidReason: body.voidReason, newTotal: total };
     });
   }
 

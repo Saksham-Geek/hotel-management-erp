@@ -296,4 +296,169 @@ export class ReservationsController {
       return { id, status: target };
     });
   }
+
+  // -------------------------------------------------------------
+  // Room Shift / Upgrade During Stay
+  // -------------------------------------------------------------
+  @Post(':id/shift-room')
+  @RequirePermission(PERMISSIONS.RESERVATION_WRITE)
+  async shiftRoom(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { targetRoomId: string; tariffAdjustment?: number; shiftReason?: string },
+  ) {
+    if (!body.targetRoomId) throw new BadRequestException('Target room is required');
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = (
+        await c.query(
+          `SELECT r.id, r.status, r.room_id AS "currentRoomId", r.arrival_date AS "arrivalDate", r.departure_date AS "departureDate", r.property_id AS "propertyId"
+           FROM reservations r
+           WHERE r.id = $1 FOR UPDATE`,
+          [id],
+        )
+      ).rows[0];
+      if (!res) throw new NotFoundException('Reservation not found');
+
+      // Check target room availability
+      const targetRoom = (
+        await c.query(`SELECT id, number, status FROM rooms WHERE id = $1 AND property_id = $2 FOR UPDATE`, [
+          body.targetRoomId,
+          user.propertyId,
+        ])
+      ).rows[0];
+      if (!targetRoom) throw new NotFoundException('Target room not found');
+
+      // Verify no overlapping bookings on target room
+      const overlap = (
+        await c.query(
+          `SELECT id FROM reservations
+           WHERE room_id = $1 AND property_id = $2 AND status IN ('confirmed', 'checked_in') AND id != $3
+             AND arrival_date < $4 AND departure_date > $5`,
+          [body.targetRoomId, user.propertyId, id, res.departureDate, res.arrivalDate],
+        )
+      ).rows[0];
+      if (overlap) throw new BadRequestException('Target room already has an overlapping reservation for these dates');
+
+      // Update reservation room
+      await c.query(`UPDATE reservations SET room_id = $1 WHERE id = $2`, [body.targetRoomId, id]);
+
+      // If guest was checked in, previous room goes to cleaning, target room becomes occupied
+      if (res.status === 'checked_in') {
+        await c.query(`UPDATE rooms SET status = 'cleaning' WHERE id = $1`, [res.currentRoomId]);
+        await c.query(`UPDATE rooms SET status = 'occupied' WHERE id = $1`, [body.targetRoomId]);
+
+        // Reassign keys
+        await c.query(
+          `UPDATE room_keys SET room_id = $1 WHERE issued_to_reservation_id = $2`,
+          [body.targetRoomId, id],
+        );
+      }
+
+      // If tariff adjustment is provided, post upgrade charge to folio
+      if (body.tariffAdjustment && body.tariffAdjustment > 0) {
+        const folio = (await c.query(`SELECT id FROM folios WHERE reservation_id = $1 LIMIT 1`, [id])).rows[0];
+        if (folio) {
+          const adj = body.tariffAdjustment;
+          const gst = Math.round(adj * 0.12 * 100) / 100;
+          await c.query(
+            `INSERT INTO folio_items (tenant_id, folio_id, description, quantity, unit_price, tax_rate, total_amount, cgst_amount, sgst_amount, tax_category_code, hsn_sac)
+             VALUES ($1, $2, $3, 1, $4, 12, $5, $6, $7, 'SAC_HOTEL_ROOM', '996311')`,
+            [user.tenantId, folio.id, `Room Upgrade / Shift: Room ${targetRoom.number} (${body.shiftReason || 'Guest Request'})`, adj, adj + gst, gst / 2, gst / 2],
+          );
+          await c.query(
+            `UPDATE folios SET total_amount = total_amount + $2, balance = balance + $2 WHERE id = $1`,
+            [folio.id, adj + gst],
+          );
+        }
+      }
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'reservation.room_shift',
+        entity: 'reservation',
+        entityId: id,
+      });
+
+      return { success: true, shiftedToRoom: targetRoom.number };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Early Check-In / Late Check-Out Policy Surcharge
+  // -------------------------------------------------------------
+  @Post(':id/policy-charge')
+  @RequirePermission(PERMISSIONS.RESERVATION_WRITE)
+  async postPolicyCharge(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { type: 'early_checkin' | 'late_checkout'; amount: number; notes?: string },
+  ) {
+    if (!body.amount || body.amount <= 0) throw new BadRequestException('Amount must be positive');
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const folio = (await c.query(`SELECT id FROM folios WHERE reservation_id = $1 LIMIT 1`, [id])).rows[0];
+      if (!folio) throw new NotFoundException('Guest folio not found');
+
+      const label = body.type === 'early_checkin' ? 'Early Check-In Surcharge' : 'Late Check-Out Policy Extension';
+      const amt = Number(body.amount);
+      const gst = Math.round(amt * 0.12 * 100) / 100;
+
+      await c.query(
+        `INSERT INTO folio_items (tenant_id, folio_id, description, quantity, unit_price, tax_rate, total_amount, cgst_amount, sgst_amount, tax_category_code, hsn_sac)
+         VALUES ($1, $2, $3, 1, $4, 12, $5, $6, $7, 'SAC_HOTEL_ROOM', '996311')`,
+        [user.tenantId, folio.id, `${label}${body.notes ? ` (${body.notes})` : ''}`, amt, amt + gst, gst / 2, gst / 2],
+      );
+
+      await c.query(
+        `UPDATE folios SET total_amount = total_amount + $2, balance = balance + $2 WHERE id = $1`,
+        [folio.id, amt + gst],
+      );
+
+      return { success: true, chargeAdded: amt + gst };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Mark No-Show & Retain Cancellation Penalty
+  // -------------------------------------------------------------
+  @Post(':id/no-show')
+  @RequirePermission(PERMISSIONS.RESERVATION_WRITE)
+  async markNoShow(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { retainDeposit?: boolean },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const res = (
+        await c.query(`SELECT id, status, room_id FROM reservations WHERE id = $1 FOR UPDATE`, [id])
+      ).rows[0];
+      if (!res) throw new NotFoundException('Reservation not found');
+      if (res.status === 'checked_in' || res.status === 'checked_out') {
+        throw new BadRequestException('Cannot mark checked-in or checked-out reservation as no-show');
+      }
+
+      await c.query(
+        `UPDATE reservations SET status = 'cancelled', special_requests = coalesce(special_requests, '') || ' [MARKED NO-SHOW]' WHERE id = $1`,
+        [id],
+      );
+
+      // Release room
+      await c.query(`UPDATE rooms SET status = 'available' WHERE id = $1`, [res.room_id]);
+
+      // Release keys
+      await c.query(`UPDATE room_keys SET status = 'in_slot', issued_to_reservation_id = null WHERE room_id = $1`, [res.room_id]);
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'reservation.no_show',
+        entity: 'reservation',
+        entityId: id,
+      });
+
+      return { success: true, message: 'Reservation marked as No-Show and room released for walk-ins' };
+    });
+  }
 }

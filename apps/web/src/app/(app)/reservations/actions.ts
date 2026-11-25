@@ -350,3 +350,72 @@ export async function changeReservation(fd: FormData) {
           )}`),
   );
 }
+
+export async function shiftReservationRoomAction(fd: FormData) {
+  let error: string | null = null;
+  const id = String(fd.get('id') ?? '');
+  const targetRoomId = String(fd.get('targetRoomId') ?? '');
+  const tariffAdjustment = Number(fd.get('tariffAdjustment') ?? 0);
+  const shiftReason = String(fd.get('shiftReason') ?? '').trim();
+
+  try {
+    if (!id || !targetRoomId) throw new Error('Reservation and target room are required.');
+    await api(`/hotel/reservations/${id}/shift-room`, {
+      method: 'POST',
+      body: JSON.stringify({ targetRoomId, tariffAdjustment, shiftReason }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+
+  revalidatePath('/reservations');
+  revalidatePath('/tape-chart');
+  revalidatePath('/dashboard');
+  revalidatePath('/rooms');
+  revalidatePath('/housekeeping');
+  redirect(`/reservations?${error ? `error=${encodeURIComponent(error)}` : 'ok=Room+successfully+shifted+and+updated'}`);
+}
+
+export async function markReservationNoShowAction(fd: FormData) {
+  let error: string | null = null;
+  const id = String(fd.get('id') ?? '');
+  const retainDeposit = fd.get('retainDeposit') === 'true';
+
+  try {
+    if (!id) throw new Error('Reservation ID is required.');
+    await api(`/hotel/reservations/${id}/no-show`, {
+      method: 'POST',
+      body: JSON.stringify({ retainDeposit }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+
+  revalidatePath('/reservations');
+  revalidatePath('/tape-chart');
+  revalidatePath('/dashboard');
+  revalidatePath('/rooms');
+  redirect(`/reservations?${error ? `error=${encodeURIComponent(error)}` : 'ok=Reservation+marked+as+No-Show+and+room+released'}`);
+}
+
+export async function postPolicyChargeAction(fd: FormData) {
+  let error: string | null = null;
+  const id = String(fd.get('id') ?? '');
+  const type = String(fd.get('type') ?? 'early_checkin');
+  const amount = Number(fd.get('amount') ?? 0);
+  const notes = String(fd.get('notes') ?? '').trim();
+
+  try {
+    if (!id || !amount) throw new Error('Reservation ID and charge amount are required.');
+    await api(`/hotel/reservations/${id}/policy-charge`, {
+      method: 'POST',
+      body: JSON.stringify({ type, amount, notes }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+
+  revalidatePath('/reservations');
+  revalidatePath('/billing');
+  redirect(`/reservations?${error ? `error=${encodeURIComponent(error)}` : 'ok=Policy+surcharge+posted+to+guest+folio'}`);
+}

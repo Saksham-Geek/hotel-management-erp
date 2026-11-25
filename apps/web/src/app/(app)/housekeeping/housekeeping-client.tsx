@@ -2,7 +2,13 @@
 
 import { useState } from 'react';
 import { CustomDropdown } from '@/components/dropdown';
-import { turnaroundRoomAction, postMinibarChargeHousekeepingAction } from './actions';
+import {
+  turnaroundRoomAction,
+  postMinibarChargeHousekeepingAction,
+  createLostAndFoundAction,
+  claimLostAndFoundAction,
+  toggleRoomDndAction,
+} from './actions';
 
 export interface HousekeepingRoom {
   id: string;
@@ -10,6 +16,8 @@ export interface HousekeepingRoom {
   floor: number;
   status: 'available' | 'occupied' | 'cleaning' | 'maintenance';
   roomType: string;
+  dndStatus?: boolean;
+  cleaningType?: string;
 }
 
 export interface HousekeepingLog {
@@ -32,15 +40,39 @@ export interface MinibarItem {
   isActive: boolean;
 }
 
+export interface LostAndFoundItem {
+  id: string;
+  roomNumber: string;
+  itemName: string;
+  description?: string | null;
+  category: string;
+  storageLocation: string;
+  status: 'found' | 'claimed' | 'disposed';
+  finderName: string;
+  guestName?: string | null;
+  guestContact?: string | null;
+  foundAt: string;
+  claimedAt?: string | null;
+}
+
 interface HousekeepingClientProps {
   rooms: HousekeepingRoom[];
   logs: HousekeepingLog[];
   minibarCatalog: MinibarItem[];
+  lostAndFound?: LostAndFoundItem[];
+  initialTab?: 'turnaround' | 'audit' | 'lost_found';
   readOnly?: boolean;
 }
 
-export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = false }: HousekeepingClientProps) {
-  const [activeTab, setActiveTab] = useState<'turnaround' | 'audit'>('turnaround');
+export function HousekeepingClient({
+  rooms,
+  logs,
+  minibarCatalog,
+  lostAndFound = [],
+  initialTab = 'turnaround',
+  readOnly = false,
+}: HousekeepingClientProps) {
+  const [activeTab, setActiveTab] = useState<'turnaround' | 'audit' | 'lost_found'>(initialTab);
   const [selectedFloor, setSelectedFloor] = useState<number | 'all'>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | 'needs_attention' | 'available' | 'occupied' | 'maintenance'>('needs_attention');
   const [searchQuery, setSearchQuery] = useState('');
@@ -48,6 +80,8 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
   // Modals state
   const [maintenanceRoom, setMaintenanceRoom] = useState<HousekeepingRoom | null>(null);
   const [minibarRoom, setMinibarRoom] = useState<HousekeepingRoom | null>(null);
+  const [isLostFoundModalOpen, setIsLostFoundModalOpen] = useState(false);
+  const [claimItem, setClaimItem] = useState<LostAndFoundItem | null>(null);
   const [selectedMinibarItem, setSelectedMinibarItem] = useState(minibarCatalog[0]?.id || '');
   const [minibarQty, setMinibarQty] = useState(1);
 
@@ -59,6 +93,7 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
   const availableCount = rooms.filter((r) => r.status === 'available').length;
   const occupiedCount = rooms.filter((r) => r.status === 'occupied').length;
   const maintenanceCount = rooms.filter((r) => r.status === 'maintenance').length;
+  const dndCount = rooms.filter((r) => r.dndStatus).length;
 
   // Filtered rooms
   const filteredRooms = rooms.filter((r) => {
@@ -121,7 +156,10 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Occupied</span>
             <span className="text-lg">🛎️</span>
           </div>
-          <div className="mt-2 text-2xl sm:text-3xl font-black text-blue-500">{occupiedCount}</div>
+          <div className="mt-2 text-2xl sm:text-3xl font-black text-blue-500">
+            {occupiedCount}
+            {dndCount > 0 && <span className="ml-2 text-xs font-bold text-rose-500">({dndCount} DND)</span>}
+          </div>
           <div className="text-[11px] text-muted-foreground mt-0.5">Stay-Over In-House</div>
         </button>
 
@@ -144,22 +182,30 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
 
       {/* Main Tab Controls & Mobile Bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card border border-border p-3 rounded-2xl shadow-sm">
-        <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl">
+        <div className="flex items-center gap-1.5 p-1 bg-muted/60 rounded-xl overflow-x-auto">
           <button
             onClick={() => setActiveTab('turnaround')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
               activeTab === 'turnaround' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            📱 Room Turnaround & Attendant Hub
+            📱 Room Turnaround Hub
+          </button>
+          <button
+            onClick={() => setActiveTab('lost_found')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
+              activeTab === 'lost_found' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            📦 Lost &amp; Found ({lostAndFound.length})
           </button>
           <button
             onClick={() => setActiveTab('audit')}
-            className={`flex-1 sm:flex-none px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
               activeTab === 'audit' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >
-            📋 Inspection History & Turnaround Logs ({logs.length})
+            📋 Turnaround Audit Logs ({logs.length})
           </button>
         </div>
 
@@ -173,6 +219,16 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
               className="w-full sm:w-44 px-3 py-1.5 rounded-xl border border-input bg-background text-xs font-medium focus:ring-2 focus:ring-primary/20 outline-none"
             />
           </div>
+        )}
+
+        {activeTab === 'lost_found' && !readOnly && (
+          <button
+            type="button"
+            onClick={() => setIsLostFoundModalOpen(true)}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm flex items-center justify-center gap-1.5"
+          >
+            <span>+</span> Log Found Item
+          </button>
         )}
       </div>
 
@@ -262,11 +318,16 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
                       {/* Card Header */}
                       <div className="flex items-start justify-between gap-2">
                         <div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <span className="text-2xl font-black tracking-tight text-foreground">{room.number}</span>
                             <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-muted text-muted-foreground">
                               Fl. {room.floor}
                             </span>
+                            {room.dndStatus && (
+                              <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-rose-500 text-white animate-pulse">
+                                🔴 DND
+                              </span>
+                            )}
                           </div>
                           <p className="text-xs font-medium text-muted-foreground mt-0.5">{room.roomType}</p>
                         </div>
@@ -340,15 +401,15 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
                       )}
 
                       {/* Secondary Actions Row */}
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="grid grid-cols-3 gap-1.5">
                         {/* Report Issue Button */}
                         {!readOnly && (
                           <button
                             type="button"
                             onClick={() => setMaintenanceRoom(room)}
-                            className="py-1.5 px-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 text-[11px] font-bold transition-all border border-rose-500/20 flex items-center justify-center gap-1"
+                            className="py-1.5 px-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 text-[10px] font-bold transition-all border border-rose-500/20 flex items-center justify-center gap-1"
                           >
-                            <span>⚠️</span> Report Issue
+                            <span>⚠️</span> Issue
                           </button>
                         )}
 
@@ -357,10 +418,28 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
                           <button
                             type="button"
                             onClick={() => setMinibarRoom(room)}
-                            className="py-1.5 px-2 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-400 text-[11px] font-bold transition-all border border-sky-500/20 flex items-center justify-center gap-1"
+                            className="py-1.5 px-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-400 text-[10px] font-bold transition-all border border-sky-500/20 flex items-center justify-center gap-1"
                           >
-                            <span>🍾</span> Minibar Bill
+                            <span>🍾</span> Minibar
                           </button>
+                        )}
+
+                        {/* DND Toggle Button */}
+                        {!readOnly && (
+                          <form action={toggleRoomDndAction}>
+                            <input type="hidden" name="roomId" value={room.id} />
+                            <button
+                              type="submit"
+                              className={`w-full py-1.5 px-1.5 rounded-xl text-[10px] font-bold transition-all border flex items-center justify-center gap-1 ${
+                                room.dndStatus
+                                  ? 'bg-rose-500 text-white border-rose-600'
+                                  : 'bg-muted/70 hover:bg-muted text-muted-foreground border-border'
+                              }`}
+                              title="Toggle Do Not Disturb (DND)"
+                            >
+                              <span>{room.dndStatus ? '🚫 DND' : '🔔 DND'}</span>
+                            </button>
+                          </form>
                         )}
                       </div>
                     </div>
@@ -370,12 +449,90 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
             </div>
           )}
         </div>
+      ) : activeTab === 'lost_found' ? (
+        /* Lost & Found Register Tab */
+        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+          <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-bold text-foreground">Lost &amp; Found Item Register</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Central custody log of items left behind in guest rooms and public spaces.</p>
+            </div>
+            <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-indigo-500/10 text-indigo-600">
+              {lostAndFound.length} Items Logged
+            </span>
+          </div>
+
+          {lostAndFound.length === 0 ? (
+            <div className="p-12 text-center text-xs text-muted-foreground">
+              No lost items reported yet. Tap &ldquo;+ Log Found Item&rdquo; above to record an item.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr className="border-b border-border bg-muted/40 font-bold text-muted-foreground">
+                    <th className="py-2.5 px-3">Date Found</th>
+                    <th className="py-2.5 px-3">Room / Loc</th>
+                    <th className="py-2.5 px-3">Item Name</th>
+                    <th className="py-2.5 px-3">Category</th>
+                    <th className="py-2.5 px-3">Locker Storage</th>
+                    <th className="py-2.5 px-3">Finder</th>
+                    <th className="py-2.5 px-3">Status</th>
+                    <th className="py-2.5 px-3">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {lostAndFound.map((item) => (
+                    <tr key={item.id} className="hover:bg-muted/20">
+                      <td className="py-2.5 px-3 font-mono text-muted-foreground">
+                        {new Date(item.foundAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
+                      </td>
+                      <td className="py-2.5 px-3 font-bold text-foreground">Room {item.roomNumber}</td>
+                      <td className="py-2.5 px-3 font-medium text-foreground">
+                        <div>{item.itemName}</div>
+                        {item.description && <div className="text-[11px] text-muted-foreground">{item.description}</div>}
+                      </td>
+                      <td className="py-2.5 px-3 capitalize text-muted-foreground">{item.category}</td>
+                      <td className="py-2.5 px-3 text-muted-foreground">{item.storageLocation}</td>
+                      <td className="py-2.5 px-3 text-muted-foreground">{item.finderName}</td>
+                      <td className="py-2.5 px-3">
+                        <span
+                          className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                            item.status === 'claimed'
+                              ? 'bg-emerald-500/20 text-emerald-600'
+                              : 'bg-amber-500/20 text-amber-600'
+                          }`}
+                        >
+                          {item.status}
+                        </span>
+                        {item.guestName && (
+                          <div className="text-[10px] text-muted-foreground mt-0.5">Claimed by: {item.guestName}</div>
+                        )}
+                      </td>
+                      <td className="py-2.5 px-3">
+                        {item.status === 'found' && !readOnly && (
+                          <button
+                            type="button"
+                            onClick={() => setClaimItem(item)}
+                            className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px]"
+                          >
+                            Mark Claimed
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       ) : (
         /* Audit & Turnaround History Tab */
         <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
           <div className="p-4 border-b border-border bg-muted/20 flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-foreground">Live Housekeeping Turnaround & Inspection Log</h3>
+              <h3 className="text-sm font-bold text-foreground">Live Housekeeping Turnaround &amp; Inspection Log</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Immutable audit trail of room status changes and maintenance logs.</p>
             </div>
             <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-primary/10 text-primary">
@@ -587,6 +744,168 @@ export function HousekeepingClient({ rooms, logs, minibarCatalog, readOnly = fal
                   className="px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shadow-sm"
                 >
                   Post to Guest Folio
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Log Found Item Modal */}
+      {isLostFoundModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-4 border-b border-border">
+              <div>
+                <h3 className="text-base font-black text-foreground flex items-center gap-1.5">
+                  <span>📦</span> Log Lost &amp; Found Item
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">Register an item found in guest rooms or public areas.</p>
+              </div>
+              <button
+                onClick={() => setIsLostFoundModalOpen(false)}
+                className="text-muted-foreground hover:text-foreground text-sm font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form action={createLostAndFoundAction} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">Room # or Location *</label>
+                <input
+                  type="text"
+                  name="roomNumber"
+                  required
+                  placeholder="e.g. 204 or Lobby Sofa"
+                  className="w-full px-3 py-2 rounded-xl border border-input bg-background text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">Item Name *</label>
+                <input
+                  type="text"
+                  name="itemName"
+                  required
+                  placeholder="e.g. Apple Watch Series 8, Gold Ring, Ray-Ban Sunglasses"
+                  className="w-full px-3 py-2 rounded-xl border border-input bg-background text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">Category *</label>
+                <select
+                  name="category"
+                  className="w-full px-3 py-2 rounded-xl border border-input bg-background text-xs font-medium outline-none"
+                >
+                  <option value="electronics">Electronics (Phones, Chargers, Laptops)</option>
+                  <option value="valuables">Valuables (Jewelry, Cash, Watches)</option>
+                  <option value="clothing">Clothing &amp; Footwear</option>
+                  <option value="documents">Documents (Passports, IDs, Wallets)</option>
+                  <option value="other">Other Sundry Items</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">Storage Locker / Safe Location *</label>
+                <input
+                  type="text"
+                  name="storageLocation"
+                  required
+                  defaultValue="Housekeeping Safe Locker A"
+                  className="w-full px-3 py-2 rounded-xl border border-input bg-background text-xs font-medium outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">Finder Name *</label>
+                <input
+                  type="text"
+                  name="finderName"
+                  required
+                  defaultValue="Floor Attendant"
+                  className="w-full px-3 py-2 rounded-xl border border-input bg-background text-xs font-medium outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsLostFoundModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm"
+                >
+                  Save Item in Register
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Claim Lost Item Modal */}
+      {claimItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-md bg-card border border-border rounded-3xl p-6 shadow-2xl animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-4 border-b border-border">
+              <div>
+                <h3 className="text-base font-black text-foreground flex items-center gap-1.5">
+                  <span>✓</span> Mark Item Claimed
+                </h3>
+                <p className="text-xs text-muted-foreground mt-0.5">{claimItem.itemName} (Found in Room {claimItem.roomNumber})</p>
+              </div>
+              <button
+                onClick={() => setClaimItem(null)}
+                className="text-muted-foreground hover:text-foreground text-sm font-bold p-1"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form action={claimLostAndFoundAction} className="mt-4 space-y-4">
+              <input type="hidden" name="id" value={claimItem.id} />
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">Claimant Guest Name *</label>
+                <input
+                  type="text"
+                  name="guestName"
+                  required
+                  placeholder="e.g. Vikram Sharma"
+                  className="w-full px-3 py-2 rounded-xl border border-input bg-background text-xs font-medium outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-foreground mb-1">Guest Contact Phone *</label>
+                <input
+                  type="text"
+                  name="guestContact"
+                  required
+                  placeholder="e.g. +91 98210 11223"
+                  className="w-full px-3 py-2 rounded-xl border border-input bg-background text-xs font-medium outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setClaimItem(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                >
+                  Confirm Handover &amp; Claim
                 </button>
               </div>
             </form>

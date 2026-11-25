@@ -4,6 +4,7 @@ import type { RoomStatus } from '@erp/shared';
 import { FEATURES } from '@erp/shared';
 import { Banner, btnCls, btnGhostCls, EmptyState, PageHeader, RoomTile, StatCard } from '@/components/ui';
 import { ContingencySheetButton } from '@/components/contingency-sheet-button';
+import { QuickStartChecklist } from '@/components/quick-start-checklist';
 import { api, getMe, requireFeature } from '@/lib/api';
 
 interface Room {
@@ -60,6 +61,14 @@ export default async function Dashboard({
     <div className="space-y-8">
       {/* Search Param Alerts */}
       <Banner error={error} ok={ok} />
+
+      {/* Day 1 Quick Start Checklist */}
+      <QuickStartChecklist
+        roomCount={totalRooms}
+        hasUpiConfigured={true}
+        reservationCount={safeDash.arrivalsToday + occupied}
+        kotCount={1}
+      />
 
       {/* Header with Quick Actions */}
       <PageHeader

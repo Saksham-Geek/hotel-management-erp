@@ -584,9 +584,9 @@ export function InventoryClient({
                               type="button"
                               onClick={() => setAdjustItem(mat)}
                               className="rounded-lg bg-slate-800 px-2 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600"
-                              title="Department Issue or Spoilage"
+                              title="Department Issue, Spoilage or Physical Audit"
                             >
-                              - Issue
+                              - Issue / Spoilage
                             </button>
                             <button
                               type="button"

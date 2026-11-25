@@ -7,6 +7,7 @@ import { useEffect, useState, useRef } from 'react';
 import { Nav, type NavItem } from './nav';
 import { CustomDropdown } from './dropdown';
 import { RolePersonaSwitcher } from './role-persona-switcher';
+import { CommandSearchModal } from './command-search-modal';
 
 type PropertyOption = { id: string; name: string };
 type FormAction = (formData: FormData) => void | Promise<void>;
@@ -66,8 +67,21 @@ export function AppShell({
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [addPropertyOpen, setAddPropertyOpen] = useState(false);
   const propertyFormRef = useRef<HTMLFormElement>(null);
+
+  // Global Ctrl+K / Cmd+K search listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setSearchOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem('erp.sidebar.collapsed') === 'true');
@@ -330,6 +344,20 @@ export function AppShell({
 
           {/* Header Right Actions */}
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2.5 lg:gap-3">
+            {/* Universal Search (Ctrl + K) Button */}
+            <button
+              type="button"
+              onClick={() => setSearchOpen(true)}
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
+              title="Click or press Ctrl+K to search any page, room, or action"
+            >
+              <span>🔍</span>
+              <span className="hidden sm:inline">Search</span>
+              <kbd className="hidden md:inline-block rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-mono text-slate-500 border border-slate-300">
+                Ctrl K
+              </kbd>
+            </button>
+
             {/* Quick ERP Guide & Journeys Pill */}
             <Link
               href="/guide"
@@ -427,6 +455,9 @@ export function AppShell({
           {children}
         </main>
       </div>
+
+      {/* Global Command Search Modal */}
+      <CommandSearchModal isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }

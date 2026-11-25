@@ -301,6 +301,114 @@ export class RoomsController {
   }
 
   // -------------------------------------------------------------
+  // Lost & Found Register for Housekeeping
+  // -------------------------------------------------------------
+  @Get('housekeeping/lost-and-found')
+  @RequirePermission(PERMISSIONS.ROOM_STATUS_UPDATE)
+  async getLostAndFound(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const rows = (
+        await c.query(
+          `SELECT id, room_id AS "roomId", room_number AS "roomNumber", item_name AS "itemName",
+                  description, category, storage_location AS "storageLocation", status,
+                  finder_name AS "finderName", guest_name AS "guestName", guest_contact AS "guestContact",
+                  found_at AS "foundAt", claimed_at AS "claimedAt"
+           FROM lost_and_found_items
+           WHERE property_id = $1
+           ORDER BY found_at DESC
+           LIMIT 100`,
+          [user.propertyId],
+        )
+      ).rows;
+      return rows;
+    });
+  }
+
+  @Post('housekeeping/lost-and-found')
+  @RequirePermission(PERMISSIONS.ROOM_STATUS_UPDATE)
+  async createLostAndFoundItem(
+    @CurrentUser() user: AuthUser,
+    @Body()
+    body: {
+      roomNumber: string;
+      itemName: string;
+      category?: string;
+      description?: string;
+      storageLocation?: string;
+      finderName?: string;
+      guestName?: string;
+      guestContact?: string;
+    },
+  ) {
+    if (!body.roomNumber || !body.itemName) {
+      throw new BadRequestException('Room number and item name are required');
+    }
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const row = (
+        await c.query(
+          `INSERT INTO lost_and_found_items (
+             tenant_id, property_id, room_number, item_name, description, category,
+             storage_location, finder_name, guest_name, guest_contact
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+           RETURNING id, room_number AS "roomNumber", item_name AS "itemName"`,
+          [
+            user.tenantId,
+            user.propertyId,
+            body.roomNumber,
+            body.itemName,
+            body.description || null,
+            body.category || 'electronics',
+            body.storageLocation || 'Housekeeping Locker A',
+            body.finderName || 'Floor Attendant',
+            body.guestName || null,
+            body.guestContact || null,
+          ],
+        )
+      ).rows[0];
+      return row;
+    });
+  }
+
+  @Post('housekeeping/lost-and-found/:id/claim')
+  @RequirePermission(PERMISSIONS.ROOM_STATUS_UPDATE)
+  async claimLostAndFoundItem(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { guestName: string; guestContact?: string },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      await c.query(
+        `UPDATE lost_and_found_items
+         SET status = 'claimed',
+             guest_name = coalesce($3, guest_name),
+             guest_contact = coalesce($4, guest_contact),
+             claimed_at = now()
+         WHERE id = $1 AND property_id = $2`,
+        [id, user.propertyId, body.guestName || null, body.guestContact || null],
+      );
+      return { success: true, id };
+    });
+  }
+
+  @Post(':id/toggle-dnd')
+  @RequirePermission(PERMISSIONS.ROOM_STATUS_UPDATE)
+  async toggleRoomDnd(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const row = (
+        await c.query(
+          `UPDATE rooms SET dnd_status = NOT coalesce(dnd_status, false)
+           WHERE id = $1 AND property_id = $2
+           RETURNING id, number, dnd_status AS "dndStatus"`,
+          [id, user.propertyId],
+        )
+      ).rows[0];
+      if (!row) throw new NotFoundException('Room not found');
+      return row;
+    });
+  }
+
+  // -------------------------------------------------------------
   // Minibar Catalog & Folio Billing
   // -------------------------------------------------------------
   @Get('minibar/catalog')

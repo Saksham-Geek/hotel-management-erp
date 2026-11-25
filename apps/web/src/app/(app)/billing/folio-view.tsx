@@ -388,6 +388,32 @@ export function FolioView({
                 <p className="font-semibold text-amber-900">Statutory Cash Limits (India):</p>
                 <p>• Max single cash transaction is ₹1,99,999 (Sec 269ST). ₹2L+ must be paid via UPI/Card.</p>
                 <p>• Cash &gt; ₹50,000 requires PAN card collection (Rule 114B).</p>
+                {paymentAmount >= 200000 && (
+                  <p className="mt-1 text-danger font-bold text-xs bg-red-100 p-2 rounded border border-red-300">
+                    ❌ Section 269ST Hard Block: You cannot accept ₹2 Lakh or more in cash. Split the payment into Cash (&lt; ₹2L) and UPI/Card.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Split Tender Helper Pill */}
+            {folio.balanceDue > 1000 && (
+              <div className="flex items-center gap-2 pt-1 pb-1">
+                <span className="text-[11px] text-muted font-medium">Split Tender:</span>
+                <button
+                  type="button"
+                  onClick={() => setPaymentAmount(Math.round(folio.balanceDue / 2))}
+                  className="rounded-lg border border-slate-300 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200"
+                >
+                  50% Partial ({money(Math.round(folio.balanceDue / 2), currency)})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPaymentAmount(Math.min(49999, folio.balanceDue))}
+                  className="rounded-lg border border-slate-300 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-200"
+                >
+                  Max Cash under PAN (₹49,999)
+                </button>
               </div>
             )}
 
@@ -415,8 +441,14 @@ export function FolioView({
               />
             </label>
 
-            <FormSubmit className={`${btnCls} w-full`} pendingLabel="Recording payment…">
-              Collect {money(paymentAmount, currency)}
+            <FormSubmit
+              disabled={paymentMethod === 'cash' && paymentAmount >= 200000}
+              className={`${btnCls} w-full ${paymentMethod === 'cash' && paymentAmount >= 200000 ? 'opacity-50 cursor-not-allowed bg-slate-400' : ''}`}
+              pendingLabel="Recording payment…"
+            >
+              {paymentMethod === 'cash' && paymentAmount >= 200000
+                ? '❌ Blocked by Sec 269ST (₹2L+ Cash)'
+                : `Collect ${money(paymentAmount, currency)}`}
             </FormSubmit>
           </form>
 

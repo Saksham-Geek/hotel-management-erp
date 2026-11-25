@@ -39,6 +39,12 @@ export default async function SettingsHubPage({
     conciergeSettings,
     commonExpenses,
     inventoryCategories,
+    nightAuditSchedule,
+    chartOfAccounts,
+    recipesOverview,
+    minibarCatalog,
+    dynamicPricingRules,
+    housekeepingLogs,
   ] = await Promise.all([
     getMe(),
     searchParams,
@@ -75,6 +81,14 @@ export default async function SettingsHubPage({
     })),
     api<any[]>('/hotel/expenses/common-items').catch(() => []),
     api<any[]>('/hotel/restaurant/inventory/categories').catch(() => []),
+    api<{ autoAuditEnabled: boolean; autoAuditTime: string; autoAuditLastRunAt?: string | null }>(
+      '/hotel/night-audit/schedule-settings',
+    ).catch(() => ({ autoAuditEnabled: false, autoAuditTime: '02:00', autoAuditLastRunAt: null })),
+    api<any[]>('/hotel/accounting/chart-of-accounts').catch(() => []),
+    api<any[]>('/hotel/restaurant/inventory/recipes-overview').catch(() => []),
+    api<any[]>('/hotel/rooms/minibar/catalog').catch(() => []),
+    api<any[]>('/hotel/rooms/pricing-rules').catch(() => []),
+    api<any[]>('/hotel/rooms/housekeeping/logs').catch(() => []),
   ]);
 
   const staffList = Array.isArray(users) ? users : (users?.staff ?? []);
@@ -121,6 +135,12 @@ export default async function SettingsHubPage({
         conciergeSettings={conciergeSettings}
         commonExpenses={commonExpenses}
         inventoryCategories={inventoryCategories}
+        nightAuditSchedule={nightAuditSchedule}
+        chartOfAccounts={chartOfAccounts}
+        recipesOverview={recipesOverview}
+        minibarCatalog={minibarCatalog}
+        dynamicPricingRules={dynamicPricingRules}
+        housekeepingLogs={housekeepingLogs}
         readOnly={ent.readOnly}
       />
     </>

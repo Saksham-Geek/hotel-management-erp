@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, ForbiddenException, Get, NotFoundException, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, ParseUUIDPipe, Patch, Post } from '@nestjs/common';
 import {
   CreateRoomInput, CreateRoomTypeInput, FEATURES, PERMISSIONS, createRoomSchema, createRoomTypeSchema, updateRoomSchema, updateRoomTypeSchema, updateRoomStatusSchema, RoomStatus, UpdateRoomInput, UpdateRoomTypeInput,
 } from '@erp/shared';
@@ -237,6 +237,388 @@ export class RoomsController {
       if (!row) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Room not found' });
       await this.audit.log(c, { tenantId: user.tenantId, userId: user.id, action: 'room.status', entity: 'room', entityId: id, meta: { status: b.status } });
       return row;
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Housekeeping Turnaround & Inspection Logs
+  // -------------------------------------------------------------
+  @Get('housekeeping/logs')
+  @RequirePermission(PERMISSIONS.ROOM_STATUS_UPDATE)
+  async getHousekeepingLogs(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const rows = (
+        await c.query(
+          `SELECT l.id, l.room_id AS "roomId", r.number AS "roomNumber",
+                  l.attendant_name AS "attendantName", l.from_status AS "fromStatus",
+                  l.to_status AS "toStatus", l.inspection_notes AS "inspectionNotes",
+                  l.maintenance_issue AS "maintenanceIssue", l.logged_at AS "loggedAt"
+           FROM housekeeping_logs l
+           JOIN rooms r ON r.id = l.room_id
+           WHERE l.property_id = $1
+           ORDER BY l.logged_at DESC
+           LIMIT 50`,
+          [user.propertyId],
+        )
+      ).rows;
+      return rows;
+    });
+  }
+
+  @Post('housekeeping/turnaround')
+  @RequirePermission(PERMISSIONS.ROOM_STATUS_UPDATE)
+  async logHousekeepingTurnaround(
+    @CurrentUser() user: AuthUser,
+    @Body()
+    body: {
+      roomId: string;
+      toStatus: string;
+      attendantName?: string;
+      inspectionNotes?: string;
+      maintenanceIssue?: string;
+    },
+  ) {
+    if (!body.roomId || !body.toStatus) {
+      throw new BadRequestException('Room and target status are required');
+    }
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const room = (await c.query(`SELECT status, number FROM rooms WHERE id = $1 AND property_id = $2`, [body.roomId, user.propertyId])).rows[0];
+      if (!room) throw new NotFoundException('Room not found');
+
+      const fromStatus = room.status;
+      const attendantName = body.attendantName?.trim() || user.id;
+
+      await c.query(
+        `INSERT INTO housekeeping_logs (tenant_id, property_id, room_id, attendant_name, from_status, to_status, inspection_notes, maintenance_issue)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        [user.tenantId, user.propertyId, body.roomId, attendantName, fromStatus, body.toStatus, body.inspectionNotes || null, body.maintenanceIssue || null],
+      );
+
+      await c.query(`UPDATE rooms SET status = $1 WHERE id = $2 AND property_id = $3`, [body.toStatus, body.roomId, user.propertyId]);
+
+      return { success: true, roomNumber: room.number, fromStatus, toStatus: body.toStatus };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Minibar Catalog & Folio Billing
+  // -------------------------------------------------------------
+  @Get('minibar/catalog')
+  @RequirePermission(PERMISSIONS.ROOM_READ)
+  async getMinibarCatalog(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const rows = (
+        await c.query(
+          `SELECT id, item_name AS "itemName", category, unit_price::float8 AS "unitPrice",
+                  is_active AS "isActive", created_at AS "createdAt"
+           FROM minibar_items
+           WHERE property_id = $1
+           ORDER BY category ASC, item_name ASC`,
+          [user.propertyId],
+        )
+      ).rows;
+      return rows;
+    });
+  }
+
+  @Post('minibar/catalog')
+  @RequirePermission(PERMISSIONS.ROOM_MAINTENANCE_MANAGE)
+  async addMinibarItem(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { itemName: string; category: string; unitPrice: number },
+  ) {
+    if (!body.itemName || !body.unitPrice) throw new BadRequestException('Item name and unit price are required');
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const row = (
+        await c.query(
+          `INSERT INTO minibar_items (tenant_id, property_id, item_name, category, unit_price)
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING id, item_name AS "itemName", category, unit_price::float8 AS "unitPrice"`,
+          [user.tenantId, user.propertyId, body.itemName.trim(), body.category || 'BEVERAGE', body.unitPrice],
+        )
+      ).rows[0];
+      return row;
+    });
+  }
+
+  @Patch('minibar/catalog/:id')
+  @RequirePermission(PERMISSIONS.ROOM_MAINTENANCE_MANAGE)
+  async updateMinibarItem(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: { itemName?: string; category?: string; unitPrice?: number; isActive?: boolean },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const row = (
+        await c.query(
+          `UPDATE minibar_items
+           SET item_name = coalesce($3, item_name),
+               category = coalesce($4, category),
+               unit_price = coalesce($5, unit_price),
+               is_active = coalesce($6, is_active)
+           WHERE id = $1 AND property_id = $2
+           RETURNING id, item_name AS "itemName", category, unit_price::float8 AS "unitPrice", is_active AS "isActive"`,
+          [id, user.propertyId, body.itemName?.trim() || null, body.category || null, body.unitPrice, body.isActive],
+        )
+      ).rows[0];
+      if (!row) throw new NotFoundException('Minibar item not found');
+      return row;
+    });
+  }
+
+  @Delete('minibar/catalog/:id')
+  @RequirePermission(PERMISSIONS.ROOM_MAINTENANCE_MANAGE)
+  async deleteMinibarItem(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      await c.query(`DELETE FROM minibar_items WHERE id = $1 AND property_id = $2`, [id, user.propertyId]);
+      return { success: true };
+    });
+  }
+
+  @Post('minibar/post-charge')
+  @RequirePermission(PERMISSIONS.ROOM_STATUS_UPDATE)
+  async postMinibarCharge(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { roomId: string; minibarItemId: string; quantity: number },
+  ) {
+    if (!body.roomId || !body.minibarItemId || !body.quantity || body.quantity <= 0) {
+      throw new BadRequestException('Room, minibar item, and quantity are required');
+    }
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      // Find active checked-in reservation for room
+      const res = (
+        await c.query(
+          `SELECT r.id, f.id AS "folioId"
+           FROM reservations r
+           LEFT JOIN reservation_folios f ON f.reservation_id = r.id
+           WHERE r.room_id = $1 AND r.property_id = $2 AND r.status = 'checked_in'`,
+          [body.roomId, user.propertyId],
+        )
+      ).rows[0];
+      if (!res) throw new BadRequestException('No active checked-in guest found in this room to bill');
+
+      const item = (
+        await c.query(`SELECT item_name, unit_price FROM minibar_items WHERE id = $1 AND property_id = $2`, [
+          body.minibarItemId,
+          user.propertyId,
+        ])
+      ).rows[0];
+      if (!item) throw new NotFoundException('Minibar item not found');
+
+      let folioId = res.folioId;
+      if (!folioId) {
+        const nf = (
+          await c.query(
+            `INSERT INTO reservation_folios (tenant_id, property_id, reservation_id, subtotal, tax_total, total)
+             VALUES ($1, $2, $3, 0, 0, 0) RETURNING id`,
+            [user.tenantId, user.propertyId, res.id],
+          )
+        ).rows[0];
+        folioId = nf.id;
+      }
+
+      const unitPrice = parseFloat(item.unit_price);
+      const lineTotal = unitPrice * body.quantity;
+      const gstRate = 18.0; // 18% on sundry snacks/beverages
+      const cgst = (lineTotal * 0.09);
+      const sgst = (lineTotal * 0.09);
+
+      await c.query(
+        `INSERT INTO folio_items (
+           tenant_id, folio_id, description, quantity, unit_price, tax_rate, line_total,
+           tax_category_code, hsn_sac, cgst_amount, sgst_amount, igst_amount
+         )
+         VALUES ($1, $2, $3, $4, $5, $6, $7, 'FOOD_BEVERAGE', '996331', $8, $9, 0)`,
+        [
+          user.tenantId,
+          folioId,
+          `Minibar: ${body.quantity}x ${item.item_name}`,
+          body.quantity,
+          unitPrice,
+          gstRate,
+          lineTotal + cgst + sgst,
+          cgst,
+          sgst,
+        ],
+      );
+
+      // Update folio total
+      await c.query(
+        `UPDATE reservation_folios
+         SET subtotal = subtotal + $2,
+             tax_total = tax_total + $3 + $4,
+             total = total + $2 + $3 + $4,
+             updated_at = now()
+         WHERE id = $1`,
+        [folioId, lineTotal, cgst, sgst],
+      );
+
+      return { success: true, item: item.item_name, quantity: body.quantity, totalBilled: lineTotal + cgst + sgst };
+    });
+  }
+
+  // -------------------------------------------------------------
+  // Dynamic Pricing Rules (RMS Engine)
+  // -------------------------------------------------------------
+  @Get('pricing-rules')
+  @RequirePermission(PERMISSIONS.ROOM_READ)
+  async getPricingRules(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const rows = (
+        await c.query(
+          `SELECT id, rule_name AS "ruleName", rule_type AS "ruleType",
+                  condition_min_occupancy::float8 AS "conditionMinOccupancy",
+                  condition_max_occupancy::float8 AS "conditionMaxOccupancy",
+                  price_multiplier::float8 AS "priceMultiplier",
+                  is_active AS "isActive", created_at AS "createdAt"
+           FROM dynamic_pricing_rules
+           WHERE property_id = $1
+           ORDER BY created_at ASC`,
+          [user.propertyId],
+        )
+      ).rows;
+      return rows;
+    });
+  }
+
+  @Post('pricing-rules')
+  @RequirePermission(PERMISSIONS.ROOM_MAINTENANCE_MANAGE)
+  async createPricingRule(
+    @CurrentUser() user: AuthUser,
+    @Body()
+    body: {
+      ruleName: string;
+      ruleType: string;
+      conditionMinOccupancy?: number;
+      conditionMaxOccupancy?: number;
+      priceMultiplier: number;
+    },
+  ) {
+    if (!body.ruleName || !body.priceMultiplier) {
+      throw new BadRequestException('Rule name and price multiplier are required');
+    }
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const row = (
+        await c.query(
+          `INSERT INTO dynamic_pricing_rules (
+             tenant_id, property_id, rule_name, rule_type, condition_min_occupancy, condition_max_occupancy, price_multiplier
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $7)
+           RETURNING id, rule_name AS "ruleName", rule_type AS "ruleType",
+                     condition_min_occupancy::float8 AS "conditionMinOccupancy",
+                     condition_max_occupancy::float8 AS "conditionMaxOccupancy",
+                     price_multiplier::float8 AS "priceMultiplier",
+                     is_active AS "isActive"`,
+          [
+            user.tenantId,
+            user.propertyId,
+            body.ruleName.trim(),
+            body.ruleType || 'OCCUPANCY_SURGE',
+            body.conditionMinOccupancy ?? null,
+            body.conditionMaxOccupancy ?? null,
+            body.priceMultiplier,
+          ],
+        )
+      ).rows[0];
+      return row;
+    });
+  }
+
+  @Patch('pricing-rules/:id')
+  @RequirePermission(PERMISSIONS.ROOM_MAINTENANCE_MANAGE)
+  async updatePricingRule(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body()
+    body: {
+      ruleName?: string;
+      priceMultiplier?: number;
+      conditionMinOccupancy?: number;
+      conditionMaxOccupancy?: number;
+      isActive?: boolean;
+    },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const row = (
+        await c.query(
+          `UPDATE dynamic_pricing_rules
+           SET rule_name = coalesce($3, rule_name),
+               price_multiplier = coalesce($4, price_multiplier),
+               condition_min_occupancy = coalesce($5, condition_min_occupancy),
+               condition_max_occupancy = coalesce($6, condition_max_occupancy),
+               is_active = coalesce($7, is_active)
+           WHERE id = $1 AND property_id = $2
+           RETURNING id, rule_name AS "ruleName", rule_type AS "ruleType",
+                     price_multiplier::float8 AS "priceMultiplier",
+                     is_active AS "isActive"`,
+          [id, user.propertyId, body.ruleName?.trim() || null, body.priceMultiplier, body.conditionMinOccupancy, body.conditionMaxOccupancy, body.isActive],
+        )
+      ).rows[0];
+      if (!row) throw new NotFoundException('Pricing rule not found');
+      return row;
+    });
+  }
+
+  @Delete('pricing-rules/:id')
+  @RequirePermission(PERMISSIONS.ROOM_MAINTENANCE_MANAGE)
+  async deletePricingRule(@CurrentUser() user: AuthUser, @Param('id', ParseUUIDPipe) id: string) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      await c.query(`DELETE FROM dynamic_pricing_rules WHERE id = $1 AND property_id = $2`, [id, user.propertyId]);
+      return { success: true };
+    });
+  }
+
+  @Post('pricing-rules/calculate')
+  @RequirePermission(PERMISSIONS.ROOM_READ)
+  async calculateDynamicRate(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { baseRate: number; checkInDate?: string },
+  ) {
+    const baseRate = body.baseRate || 1000;
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      // Calculate current occupancy
+      const total = Number((await c.query(`SELECT count(*)::int AS n FROM rooms WHERE property_id = $1`, [user.propertyId])).rows[0]?.n || 0);
+      const occupied = Number(
+        (await c.query(`SELECT count(*)::int AS n FROM reservations WHERE property_id = $1 AND status = 'checked_in'`, [user.propertyId])).rows[0]?.n || 0,
+      );
+      const occupancyRate = total > 0 ? (occupied / total) * 100 : 0;
+
+      // Check active rules
+      const rules = (
+        await c.query(
+          `SELECT rule_name AS "ruleName", rule_type AS "ruleType",
+                  condition_min_occupancy::float8 AS "minOcc",
+                  condition_max_occupancy::float8 AS "maxOcc",
+                  price_multiplier::float8 AS "multiplier"
+           FROM dynamic_pricing_rules
+           WHERE property_id = $1 AND is_active = true`,
+          [user.propertyId],
+        )
+      ).rows;
+
+      let appliedMultiplier = 1.0;
+      let matchedRule: string | null = null;
+
+      for (const r of rules) {
+        if (r.ruleType === 'OCCUPANCY_SURGE' && r.minOcc !== null && occupancyRate >= r.minOcc) {
+          appliedMultiplier = r.multiplier;
+          matchedRule = r.ruleName;
+          break;
+        } else if (r.ruleType === 'LAST_MINUTE_DISCOUNT' && r.maxOcc !== null && occupancyRate <= r.maxOcc) {
+          appliedMultiplier = r.multiplier;
+          matchedRule = r.ruleName;
+          break;
+        }
+      }
+
+      const calculatedRate = Math.round(baseRate * appliedMultiplier);
+      return {
+        baseRate,
+        occupancyRate: Math.round(occupancyRate * 10) / 10,
+        appliedMultiplier,
+        matchedRule,
+        calculatedRate,
+      };
     });
   }
 }

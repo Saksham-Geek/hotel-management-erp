@@ -149,20 +149,67 @@ Built on **Next.js 15 App Router**, **NestJS 10 Modular Core**, and **PostgreSQL
 - Mandatory **Bureau of Immigration (BoI) Form C** filing for foreign national guests within 24 hours of arrival.
 - Daily local police station beat register export formatted for local law enforcement submission.
 
-### 20. 🌙 Automated Night Audit Rollover (`/night-audit`)
+### 20. 🌙 Automated Night Audit Rollover & Scheduler (`/night-audit`)
 - 1-click midnight business date rollover and daily room rate posting.
+- **Configurable Automated Scheduler**: Toggle automated scheduled audit execution at fixed midnight hours (e.g. 02:00 AM) with auto-posting of room accommodation tariffs and GST to active guest folios.
 - Daily Manager Flash Revenue Report with live ADR, RevPAR, and occupancy calculations.
 
-### 21. 🌐 Two-Way OTA Channel Manager (`/channel-manager`)
+### 21. 🥗 Recipe Costing & Kitchen Bill of Materials (`/restaurant` & `/settings?tab=recipes`)
+- **Menu Dish to Store SKU Ingredient Mapping**: Directly maps restaurant menu items to raw material inventory items (e.g. 1 portion of Butter Chicken = 300g Chicken, 50g Butter, 100ml Cream).
+- **Automated Inventory Depletion**: Automatically decrements kitchen store stock when KOT orders are prepared.
+- **Theoretical Food Cost & Margin Analytics**: Tracks theoretical recipe cost vs selling price and calculates live gross profit margin %.
+
+### 22. 📊 Chart of Accounts (COA) & Double-Entry General Ledger (`/settings?tab=accounting`)
+- **Integrated Chart of Accounts**: Standard Assets (1010-1050), Liabilities (2010-2050), Equity (3010), Operating Revenue (4010-4040), and Operating Expenses (5010-5060).
+- **Automated Journal Entries**: Auto-creates double-entry journal vouchers for folio settlements, petty cash vouchers, and GRN purchase receipts.
+- **Live Financial Statements**: Generates real-time Trial Balance, Profit & Loss (P&L) Statement, and Balance Sheet.
+- **Multi-Folio Corporate Routing Rules**: Configure corporate split rules (e.g., Master Folio A for room tariff to Company BTC with GSTIN, and Folio B for guest personal extras).
+
+### 23. 🍾 Minibar Amenities & In-Room Folio Billing (`/settings?tab=minibar`)
+- Configurable in-room minibar catalog (Beverages, Snacks, Confectionery, Premium).
+- 1-click consumption posting directly onto active guest room folios with automated GST tax calculation.
+
+### 24. 📈 Dynamic Pricing & Revenue Management Engine (`/settings?tab=pricing`)
+- Configurable automated pricing triggers based on live property occupancy thresholds.
+- Supports Occupancy Surge Multipliers (+15% when occupancy &ge; 75%), Weekend Premiums, and Last-Minute Vacancy Savers (-15%).
+
+### 25. 🧹 Housekeeping Turnaround & Inspection Console (`/settings?tab=housekeeping` & `/housekeeping`)
+- Dedicated turnaround logging console: `dirty` ➔ `cleaning` ➔ `available` (ready) ➔ `maintenance`.
+- Log room attendant names, inspection checklists, and maintenance work orders.
+
+### 26. 🌐 Two-Way OTA Channel Manager (`/channel-manager`)
 - Real-time ARI (Availability, Rates & Inventory) synchronization with MakeMyTrip, Booking.com, Agoda, and Expedia.
 - Inbound booking simulation and webhook audit logging.
 
-### 22. 👥 Staff Hierarchy & Delegation Governance (`/staff`)
+### 27. 👥 Staff Hierarchy & Delegation Governance (`/staff`)
 - Strict hierarchy enforcement: Super Admin ➔ Property Owner ➔ General Manager ➔ Front Desk / Housekeeping.
 - General Managers are restricted to recruiting Front Desk and Housekeeping staff.
 - Shift assignments (Morning, Evening, Night Audit, General).
 
-### 23. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
+### 28. ⚙️ Unified Settings & Management Hub (`/settings`)
+- 20 unified administrative tabs equipped with end-to-end CRUD:
+  1. `rooms`: Room Types, Base/Hourly Tariffs, Lock Types, Key Allocations
+  2. `restaurant`: Aura Dine Dining Outlets, Tables, Floor Zones, Menu Categories, Menu Items
+  3. `payments`: Bank UPI Receiver VPA, Merchant Name, EDC POS Machines & PIN-Pads
+  4. `channels`: OTA Channel Connections, Two-Way Sync Logs
+  5. `staff`: Staff Onboarding, Role Assignments, Hierarchy Permissions
+  6. `compliance`: Bureau of Immigration (BoI) Form C, Police Beat Register
+  7. `marketing`: Guest Loyalty CRM, Tier Thresholds, Promotional Coupons
+  8. `keycards`: RFID Door Key Provisioning, Brass Key Rack Modes
+  9. `expenses`: Petty Cash Categories, Approved Vendor Registry, Preset Common Expenses
+  10. `banquets`: Event Spaces, Halls, Lawn Capacity, Base Rental Tariffs
+  11. `inventory`: Store Raw Material SKUs, Dynamic Inventory Categories, Storage Locations
+  12. `corporate`: Corporate Accounts (BTC), Credit Limits, GSTIN & PAN
+  13. `concierge`: In-Room QR Wi-Fi Credentials, Reception Helpline, Timing Announcements
+  14. `nightaudit`: Automated Scheduled Night Audit Toggle & Execution Time
+  15. `accounting`: Chart of Accounts (COA) Ledger Management
+  16. `recipes`: Recipe Costing & Kitchen Bill of Materials (BOM)
+  17. `minibar`: In-Room Minibar Amenities Catalog & Tariffs
+  18. `pricing`: Dynamic Pricing Rules (RMS Engine)
+  19. `housekeeping`: Housekeeping Turnaround & Maintenance Work Order Logging
+  20. `all`: Global Overview of All Configured Modules
+
+### 29. 📖 Role-Aware Master Guide & SOP Handbook (`/guide`)
 - In-site operational handbook that dynamically detects the user's role and displays the exact procedures authorized for their access level.
 - Role-Based Access Control (RBAC) permissions matrix comparing all 4 tiers.
 - Front desk cashiering procedures with dynamic NPCI UPI QR code generation, Aura Dine POS, Keycard RFID encoding, and owner banking security rules.

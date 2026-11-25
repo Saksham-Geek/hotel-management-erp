@@ -14,7 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
   const { sessionId } = await params;
-  const session = getKycBridgeSession(sessionId);
+  const session = await getKycBridgeSession(sessionId);
 
   if (!session) {
     return NextResponse.json(
@@ -25,7 +25,7 @@ export async function GET(
 
   if (session.status === 'uploaded' && session.data) {
     // Claim the uploaded data and discard the session
-    const data = claimKycBridgeSession(sessionId);
+    const data = await claimKycBridgeSession(sessionId);
     return NextResponse.json({
       status: 'uploaded',
       data,
@@ -47,7 +47,7 @@ export async function POST(
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
   const { sessionId } = await params;
-  const session = getKycBridgeSession(sessionId);
+  const session = await getKycBridgeSession(sessionId);
 
   if (!session || session.status !== 'pending') {
     return NextResponse.json(
@@ -80,7 +80,7 @@ export async function POST(
       );
     }
 
-    const success = uploadToKycBridgeSession(sessionId, {
+    const success = await uploadToKycBridgeSession(sessionId, {
       fileName: fileName || `kyc-snap-${Date.now()}.jpg`,
       mimeType: mimeType || 'image/jpeg',
       base64,

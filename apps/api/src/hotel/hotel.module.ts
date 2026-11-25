@@ -19,6 +19,7 @@ import { RestaurantController } from './restaurant.controller';
 import { KeycardsController } from './keycards.controller';
 import { ExpensesController } from './expenses.controller';
 import { BanquetsController } from './banquets.controller';
+import { AccountingController } from './accounting.controller';
 
 @Module({
   imports: [EntitlementsModule],
@@ -41,6 +42,7 @@ import { BanquetsController } from './banquets.controller';
     KeycardsController,
     ExpensesController,
     BanquetsController,
+    AccountingController,
   ],
   providers: [CustomFieldsService],
 })

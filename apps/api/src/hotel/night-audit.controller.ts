@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Body,
   Controller,
   Get,
   Post,
@@ -75,6 +76,46 @@ export class NightAuditController {
         occupancyRate,
         overdueNoShowsCount: pendingArrivals,
       };
+    });
+  }
+
+  @Get('schedule-settings')
+  @RequirePermission(PERMISSIONS.NIGHT_AUDIT_EXECUTE)
+  async getScheduleSettings(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const row = (
+        await c.query(
+          `SELECT auto_audit_enabled AS "autoAuditEnabled",
+                  auto_audit_time AS "autoAuditTime",
+                  auto_audit_last_run_at AS "autoAuditLastRunAt"
+           FROM hotel_business_dates
+           WHERE tenant_id = $1 AND property_id = $2`,
+          [user.tenantId, user.propertyId],
+        )
+      ).rows[0];
+      return {
+        autoAuditEnabled: row?.autoAuditEnabled ?? false,
+        autoAuditTime: row?.autoAuditTime ?? '02:00',
+        autoAuditLastRunAt: row?.autoAuditLastRunAt ?? null,
+      };
+    });
+  }
+
+  @Post('schedule-settings')
+  @RequirePermission(PERMISSIONS.NIGHT_AUDIT_EXECUTE)
+  async updateScheduleSettings(
+    @CurrentUser() user: AuthUser,
+    @Body() body: { autoAuditEnabled: boolean; autoAuditTime: string },
+  ) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      await c.query(
+        `UPDATE hotel_business_dates
+         SET auto_audit_enabled = $3,
+             auto_audit_time = coalesce($4, auto_audit_time)
+         WHERE tenant_id = $1 AND property_id = $2`,
+        [user.tenantId, user.propertyId, !!body.autoAuditEnabled, body.autoAuditTime || '02:00'],
+      );
+      return { success: true, autoAuditEnabled: !!body.autoAuditEnabled, autoAuditTime: body.autoAuditTime || '02:00' };
     });
   }
 

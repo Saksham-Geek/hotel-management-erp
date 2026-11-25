@@ -463,3 +463,198 @@ export async function updateConciergeSetting(fd: FormData) {
   }
   redirect('/settings?tab=concierge&ok=In-Room+Concierge+configuration+saved+successfully');
 }
+
+// --- Automated Night Audit Actions ---
+export async function updateNightAuditScheduleSetting(fd: FormData) {
+  let error: string | null = null;
+  const autoAuditEnabled = fd.get('autoAuditEnabled') === 'true' || fd.get('autoAuditEnabled') === 'on';
+  const autoAuditTime = String(fd.get('autoAuditTime') ?? '02:00').trim();
+
+  try {
+    await api('/hotel/night-audit/schedule-settings', {
+      method: 'POST',
+      body: JSON.stringify({ autoAuditEnabled, autoAuditTime }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/night-audit');
+  if (error) {
+    redirect(`/settings?tab=nightaudit&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=nightaudit&ok=Automated+Night+Audit+schedule+updated+successfully');
+}
+
+// --- Chart of Accounts (COA) Actions ---
+export async function createChartOfAccountSetting(fd: FormData) {
+  let error: string | null = null;
+  const accountCode = String(fd.get('accountCode') ?? '').trim();
+  const accountName = String(fd.get('accountName') ?? '').trim();
+  const accountType = String(fd.get('accountType') ?? '').trim();
+  const subCategory = String(fd.get('subCategory') ?? '').trim();
+
+  try {
+    await api('/hotel/accounting/chart-of-accounts', {
+      method: 'POST',
+      body: JSON.stringify({ accountCode, accountName, accountType, subCategory: subCategory || undefined }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/income');
+  if (error) {
+    redirect(`/settings?tab=accounting&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=accounting&ok=Account+created+successfully');
+}
+
+export async function deleteChartOfAccountSetting(fd: FormData) {
+  let error: string | null = null;
+  const id = String(fd.get('id') ?? '');
+  try {
+    await api(`/hotel/accounting/chart-of-accounts/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/income');
+  if (error) {
+    redirect(`/settings?tab=accounting&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=accounting&ok=Account+deleted+successfully');
+}
+
+// --- Recipe Bill of Materials (BOM) Actions ---
+export async function configureRecipeBOMSetting(fd: FormData) {
+  let error: string | null = null;
+  const menuItemId = String(fd.get('menuItemId') ?? '');
+  const rawMaterialId = String(fd.get('rawMaterialId') ?? '');
+  const quantityPerPortion = parseFloat(String(fd.get('quantityPerPortion') ?? '1'));
+
+  try {
+    await api('/hotel/restaurant/inventory/recipes', {
+      method: 'POST',
+      body: JSON.stringify({
+        menuItemId,
+        ingredients: [{ rawMaterialId, quantityPerPortion }],
+      }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/restaurant');
+  revalidatePath('/inventory');
+  if (error) {
+    redirect(`/settings?tab=recipes&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=recipes&ok=Recipe+ingredient+linked+successfully');
+}
+
+// --- Minibar Catalog Actions ---
+export async function createMinibarItemSetting(fd: FormData) {
+  let error: string | null = null;
+  const itemName = String(fd.get('itemName') ?? '').trim();
+  const category = String(fd.get('category') ?? 'BEVERAGE').trim();
+  const unitPrice = parseFloat(String(fd.get('unitPrice') ?? '0'));
+
+  try {
+    await api('/hotel/rooms/minibar/catalog', {
+      method: 'POST',
+      body: JSON.stringify({ itemName, category, unitPrice }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/rooms');
+  if (error) {
+    redirect(`/settings?tab=minibar&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=minibar&ok=Minibar+item+added+successfully');
+}
+
+export async function deleteMinibarItemSetting(fd: FormData) {
+  let error: string | null = null;
+  const id = String(fd.get('id') ?? '');
+  try {
+    await api(`/hotel/rooms/minibar/catalog/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  if (error) {
+    redirect(`/settings?tab=minibar&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=minibar&ok=Minibar+item+removed');
+}
+
+// --- Dynamic Pricing Rules Actions ---
+export async function createDynamicPricingRuleSetting(fd: FormData) {
+  let error: string | null = null;
+  const ruleName = String(fd.get('ruleName') ?? '').trim();
+  const ruleType = String(fd.get('ruleType') ?? 'OCCUPANCY_SURGE').trim();
+  const conditionMinOccupancy = fd.get('conditionMinOccupancy') ? parseFloat(String(fd.get('conditionMinOccupancy'))) : undefined;
+  const conditionMaxOccupancy = fd.get('conditionMaxOccupancy') ? parseFloat(String(fd.get('conditionMaxOccupancy'))) : undefined;
+  const priceMultiplier = parseFloat(String(fd.get('priceMultiplier') ?? '1.0'));
+
+  try {
+    await api('/hotel/rooms/pricing-rules', {
+      method: 'POST',
+      body: JSON.stringify({ ruleName, ruleType, conditionMinOccupancy, conditionMaxOccupancy, priceMultiplier }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/tape-chart');
+  revalidatePath('/rooms');
+  if (error) {
+    redirect(`/settings?tab=pricing&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=pricing&ok=Dynamic+pricing+rule+configured+successfully');
+}
+
+export async function deleteDynamicPricingRuleSetting(fd: FormData) {
+  let error: string | null = null;
+  const id = String(fd.get('id') ?? '');
+  try {
+    await api(`/hotel/rooms/pricing-rules/${id}`, { method: 'DELETE' });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  if (error) {
+    redirect(`/settings?tab=pricing&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=pricing&ok=Pricing+rule+deleted');
+}
+
+// --- Housekeeping Turnaround Log Action ---
+export async function logHousekeepingTurnaroundSetting(fd: FormData) {
+  let error: string | null = null;
+  const roomId = String(fd.get('roomId') ?? '');
+  const toStatus = String(fd.get('toStatus') ?? '');
+  const attendantName = String(fd.get('attendantName') ?? '').trim();
+  const inspectionNotes = String(fd.get('inspectionNotes') ?? '').trim();
+  const maintenanceIssue = String(fd.get('maintenanceIssue') ?? '').trim();
+
+  try {
+    await api('/hotel/rooms/housekeeping/turnaround', {
+      method: 'POST',
+      body: JSON.stringify({ roomId, toStatus, attendantName, inspectionNotes, maintenanceIssue }),
+    });
+  } catch (e) {
+    error = errorMessage(e);
+  }
+  revalidatePath('/settings');
+  revalidatePath('/rooms');
+  revalidatePath('/housekeeping');
+  if (error) {
+    redirect(`/settings?tab=housekeeping&error=${encodeURIComponent(error)}`);
+  }
+  redirect('/settings?tab=housekeeping&ok=Room+turnaround+status+logged+successfully');
+}
+

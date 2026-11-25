@@ -77,6 +77,33 @@ export class ReservationsController {
       if ((b.priceOverride !== undefined || b.hourlyRateOverride !== undefined || b.unitRateOverride !== undefined) && !hasPermission(user.role, PERMISSIONS.RESERVATION_PRICE_OVERRIDE)) {
         throw new ForbiddenException({ code: 'PRICE_OVERRIDE_FORBIDDEN', message: 'Only an owner or manager can override reservation pricing.' });
       }
+
+      // Concurrency protection: Lock the room row to prevent simultaneous overlapping allocations
+      const roomLock = (
+        await c.query(`SELECT id, number FROM rooms WHERE id = $1 AND property_id = $2 FOR UPDATE`, [
+          b.roomId,
+          user.propertyId,
+        ])
+      ).rows[0];
+      if (!roomLock) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Room not found' });
+
+      // Check for overlapping confirmed or checked-in reservations
+      const overlap = (
+        await c.query(
+          `SELECT id FROM reservations
+           WHERE room_id = $1 AND status IN ('confirmed', 'checked_in')
+             AND check_in < $3::date AND check_out > $2::date
+           LIMIT 1`,
+          [b.roomId, b.checkIn, b.checkOut],
+        )
+      ).rows[0];
+      if (overlap) {
+        throw new ConflictException({
+          code: 'ROOM_OVERBOOKING_PREVENTED',
+          message: `Room ${roomLock.number} is already booked for the selected dates. Please select an available room.`,
+        });
+      }
+
       const row = (await c.query(
         `with room_rate as (
            select r.id, coalesce(r.hourly_rate, rt.hourly_rate) as hourly_rate,

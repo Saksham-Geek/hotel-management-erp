@@ -2368,4 +2368,35 @@ export class RestaurantController {
       return { success: true, count: body.ingredients.length, message: 'Dish recipe BOM updated successfully.' };
     });
   }
+
+  @Get('inventory/recipes-overview')
+  @RequirePermission(PERMISSIONS.RESTAURANT_VIEW)
+  async getRecipesCostingOverview(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const rows = (
+        await c.query(
+          `SELECT m.id AS "menuItemId", m.name AS "itemName", m.selling_price::float8 AS "sellingPrice",
+                  c.name AS "categoryName",
+                  count(r.id)::int AS "ingredientsCount",
+                  coalesce(sum(r.quantity_per_portion * mat.cost_per_unit), 0)::float8 AS "theoreticalCost"
+           FROM menu_items m
+           LEFT JOIN menu_categories c ON c.id = m.category_id
+           LEFT JOIN dish_recipes r ON r.menu_item_id = m.id AND r.property_id = $1
+           LEFT JOIN raw_materials mat ON mat.id = r.raw_material_id
+           WHERE m.property_id = $1
+           GROUP BY m.id, m.name, m.selling_price, c.name
+           ORDER BY m.name ASC`,
+          [user.propertyId],
+        )
+      ).rows;
+
+      return rows.map((r) => {
+        const grossMargin = r.sellingPrice > 0 ? ((r.sellingPrice - r.theoreticalCost) / r.sellingPrice) * 100 : 0;
+        return {
+          ...r,
+          grossMarginPercent: Math.round(grossMargin * 10) / 10,
+        };
+      });
+    });
+  }
 }

@@ -495,4 +495,101 @@ export class PublicBookingController {
       };
     });
   }
+
+  // -----------------------------------------------------------------
+  // Database-Backed Ephemeral KYC Bridge Sessions (Clustered & Multi-Instance Safe)
+  // -----------------------------------------------------------------
+  @Public()
+  @Post('kyc-bridge/create')
+  async createKycBridgeSession() {
+    // Purge expired sessions
+    await this.db.query(`DELETE FROM kyc_bridge_sessions WHERE expires_at < now() OR status = 'claimed'`);
+
+    const sessionCode = (await this.db.query(
+      `INSERT INTO kyc_bridge_sessions (session_code, status, expires_at)
+       VALUES (gen_random_uuid()::text, 'pending', now() + interval '10 minutes')
+       RETURNING session_code AS "id",
+                 extract(epoch from created_at)*1000 AS "createdAt",
+                 extract(epoch from expires_at)*1000 AS "expiresAt",
+                 status`,
+    )).rows[0];
+
+    return {
+      id: sessionCode.id,
+      createdAt: Number(sessionCode.createdAt),
+      expiresAt: Number(sessionCode.expiresAt),
+      status: sessionCode.status,
+    };
+  }
+
+  @Public()
+  @Get('kyc-bridge/:sessionId')
+  async getKycBridgeSession(@Param('sessionId') sessionId: string) {
+    const row = (
+      await this.db.query(
+        `SELECT session_code AS "id", status, data,
+                extract(epoch from created_at)*1000 AS "createdAt",
+                extract(epoch from expires_at)*1000 AS "expiresAt"
+         FROM kyc_bridge_sessions
+         WHERE session_code = $1 AND expires_at > now()`,
+        [sessionId],
+      )
+    ).rows[0];
+
+    if (!row) {
+      return { status: 'expired', message: 'Bridge session has expired or does not exist.' };
+    }
+
+    return {
+      id: row.id,
+      status: row.status,
+      data: row.data,
+      expiresAt: Number(row.expiresAt),
+    };
+  }
+
+  @Public()
+  @Post('kyc-bridge/:sessionId/upload')
+  async uploadToKycBridgeSession(
+    @Param('sessionId') sessionId: string,
+    @Body() body: { fileName: string; mimeType: string; base64: string; fileSize: number },
+  ) {
+    const res = await this.db.query(
+      `UPDATE kyc_bridge_sessions
+       SET status = 'uploaded',
+           data = $2::jsonb
+       WHERE session_code = $1 AND status = 'pending' AND expires_at > now()
+       RETURNING session_code`,
+      [sessionId, JSON.stringify({ ...body, uploadedAt: Date.now() })],
+    );
+
+    if (res.rowCount === 0) {
+      throw new BadRequestException('Session is invalid, already used, or expired.');
+    }
+
+    return { success: true };
+  }
+
+  @Public()
+  @Post('kyc-bridge/:sessionId/claim')
+  async claimKycBridgeSession(@Param('sessionId') sessionId: string) {
+    const res = (
+      await this.db.query(
+        `UPDATE kyc_bridge_sessions
+         SET status = 'claimed'
+         WHERE session_code = $1 AND status = 'uploaded' AND expires_at > now()
+         RETURNING data`,
+        [sessionId],
+      )
+    ).rows[0];
+
+    if (!res || !res.data) {
+      throw new NotFoundException('No uploaded data found or session already claimed.');
+    }
+
+    // Delete claimed session immediately
+    await this.db.query(`DELETE FROM kyc_bridge_sessions WHERE session_code = $1`, [sessionId]);
+
+    return { success: true, data: res.data };
+  }
 }

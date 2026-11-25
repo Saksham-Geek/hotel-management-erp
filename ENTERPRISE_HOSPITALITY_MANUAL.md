@@ -70,6 +70,10 @@ This Enterprise Hospitality ERP is engineered to surpass legacy on-premise hotel
 | **`/staff`** | **Staff & Hierarchy** | Owner / GM | Multi-tier role delegation: Owners appoint GMs, GMs provision Front Desk/Housekeeping, shift assignments, account status toggles. |
 | **`/marketing`** | **Guest Follow-Up & CRM** | GM / Front Desk | Taj InnerCircle loyalty tier tracking, 1-click WhatsApp review requests (Google/TripAdvisor), targeted repeat booking broadcasts. |
 | **`/housekeeping`**| **Housekeeping Board** | Housekeeping Staff | Room cleaning turnover board: transitions rooms through `Cleaning`, `Inspected`, and `Available` states. |
+| **`/inventory`** | **Stores & Raw Materials** | Storekeeper / Chef / GM | Raw materials master catalog, dynamic store categories, GRN (Goods Receipt Note) Stock-In, Department Stock-Out (Kitchen, Bar, Housekeeping, Spoilage/Wastage), and audit movements ledger. |
+| **`/expenses`** | **Petty Cash & Expense Ledger**| Front Desk / Cashier / GM | Front desk petty cash vouchers, cash drawer reconciliation, dynamic expense categories, and approved hotel vendor registry. |
+| **`/banquets`** | **Banquets & Event Spaces** | Banquet Manager / GM | Event space inventory, lawn/hall capacity, base rental tariffs, and event calendar bookings. |
+| **`/settings`** | **Settings & Management Hub**| Owner / General Manager | Unified administrative console with 20 configuration modules: Rooms, Restaurant, UPI & POS Terminals, Channels, Staff, BoI Form C, Loyalty, Keycards, Expenses, Banquets, Stores SKUs & Categories, Corporate BTC Accounts, In-Room Concierge, Automated Night Audit Scheduler, Chart of Accounts (COA), Recipe Costing & BOM, Minibar Catalog, Dynamic Pricing (RMS), and Housekeeping Turnaround. |
 | **`/guide`** | **SOP & Master Handbook** | All Staff (Role-Aware) | Interactive handbook displaying operating procedures and permission matrices tailored to the user's active access level. |
 | **`/upgrade`** | **Plans & Subscription** | Owner / Super Admin | Subscription tiers (Starter, Growth, Enterprise Chain) and feature limit governance. |
 

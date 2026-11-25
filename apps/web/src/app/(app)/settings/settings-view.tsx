@@ -31,6 +31,15 @@ import {
   createVenueSetting,
   deleteVenueSetting,
   updateConciergeSetting,
+  updateNightAuditScheduleSetting,
+  createChartOfAccountSetting,
+  deleteChartOfAccountSetting,
+  configureRecipeBOMSetting,
+  createMinibarItemSetting,
+  deleteMinibarItemSetting,
+  createDynamicPricingRuleSetting,
+  deleteDynamicPricingRuleSetting,
+  logHousekeepingTurnaroundSetting,
 } from './actions';
 import {
   createRawMaterialAction,
@@ -217,6 +226,57 @@ interface SettingsViewProps {
     description: string | null;
     isActive: boolean;
   }[];
+  nightAuditSchedule?: {
+    autoAuditEnabled: boolean;
+    autoAuditTime: string;
+    autoAuditLastRunAt?: string | null;
+  };
+  chartOfAccounts?: {
+    id: string;
+    accountCode: string;
+    accountName: string;
+    accountType: string;
+    subCategory?: string | null;
+    isSystem: boolean;
+    isActive: boolean;
+    currentBalance: number;
+  }[];
+  recipesOverview?: {
+    menuItemId: string;
+    itemName: string;
+    categoryName?: string;
+    sellingPrice: number;
+    ingredientsCount: number;
+    theoreticalCost: number;
+    grossMarginPercent: number;
+  }[];
+  minibarCatalog?: {
+    id: string;
+    itemName: string;
+    category: string;
+    unitPrice: number;
+    isActive: boolean;
+  }[];
+  dynamicPricingRules?: {
+    id: string;
+    ruleName: string;
+    ruleType: string;
+    conditionMinOccupancy?: number | null;
+    conditionMaxOccupancy?: number | null;
+    priceMultiplier: number;
+    isActive: boolean;
+  }[];
+  housekeepingLogs?: {
+    id: string;
+    roomId: string;
+    roomNumber: string;
+    attendantName: string;
+    fromStatus: string;
+    toStatus: string;
+    inspectionNotes?: string | null;
+    maintenanceIssue?: string | null;
+    loggedAt: string;
+  }[];
   readOnly: boolean;
 }
 
@@ -243,6 +303,12 @@ export function SettingsView({
   conciergeSettings = null,
   commonExpenses = [],
   inventoryCategories = [],
+  nightAuditSchedule = { autoAuditEnabled: false, autoAuditTime: '02:00' },
+  chartOfAccounts = [],
+  recipesOverview = [],
+  minibarCatalog = [],
+  dynamicPricingRules = [],
+  housekeepingLogs = [],
   readOnly,
 }: SettingsViewProps) {
   const router = useRouter();
@@ -584,6 +650,12 @@ export function SettingsView({
     { id: 'inventory', label: 'Stores & Stock', icon: '📦', count: `${rawMaterials.length} SKUs` },
     { id: 'corporate', label: 'Corporate Accounts (BTC)', icon: '💼', count: `${corporateAccounts.length} B2B` },
     { id: 'concierge', label: 'Digital Guest Concierge', icon: '🛎️', count: 'In-Room QR' },
+    { id: 'nightaudit', label: 'Automated Night Audit', icon: '🌙', count: nightAuditSchedule?.autoAuditEnabled ? 'Auto ON' : 'Manual' },
+    { id: 'accounting', label: 'Chart of Accounts & GL', icon: '📊', count: `${chartOfAccounts?.length || 0} Accounts` },
+    { id: 'recipes', label: 'Recipe Costing & BOM', icon: '🥗', count: `${recipesOverview?.length || 0} Dishes` },
+    { id: 'minibar', label: 'Minibar Catalog', icon: '🍾', count: `${minibarCatalog?.length || 0} Items` },
+    { id: 'pricing', label: 'Dynamic Pricing (RMS)', icon: '📈', count: `${dynamicPricingRules?.length || 0} Rules` },
+    { id: 'housekeeping', label: 'Housekeeping Turnaround', icon: '🧹', count: `${housekeepingLogs?.length || 0} Logs` },
   ];
 
   const totalMenuItems = menu.reduce((acc, cat) => acc + (cat.items?.length || 0), 0);
@@ -3987,6 +4059,692 @@ export function SettingsView({
               Save In-Room Digital Concierge Settings
             </button>
           </form>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 15. AUTOMATED NIGHT AUDIT CONFIGURATION */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'nightaudit') && (
+        <section id="settings-nightaudit" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🌙</span>
+                <h2 className="text-lg font-bold text-slate-900">Automated Night Audit Scheduler</h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Configure auto-rollover of daily business dates, automatic room rate charge postings, and tax journal postings at a fixed midnight schedule.
+              </p>
+            </div>
+            <a
+              href="/night-audit"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors"
+            >
+              <span>Go to Live Night Audit Center</span>
+              <span>→</span>
+            </a>
+          </div>
+
+          <form action={updateNightAuditScheduleSetting} className="space-y-6 max-w-2xl">
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">Enable Automated Scheduled Rollover</h3>
+                  <p className="text-xs text-slate-500">When enabled, the system automatically runs the daily audit at the specified hour without requiring manual staff intervention.</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    name="autoAuditEnabled"
+                    value="true"
+                    defaultChecked={nightAuditSchedule?.autoAuditEnabled}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                </label>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Scheduled Execution Time *</label>
+                <CustomDropdown
+                  name="autoAuditTime"
+                  defaultValue={nightAuditSchedule?.autoAuditTime || '02:00'}
+                  options={[
+                    { value: '00:00', label: '12:00 AM Midnight' },
+                    { value: '01:00', label: '01:00 AM Early Morning' },
+                    { value: '02:00', label: '02:00 AM (Recommended Standard)' },
+                    { value: '03:00', label: '03:00 AM' },
+                    { value: '04:00', label: '04:00 AM' },
+                  ]}
+                />
+              </div>
+
+              {nightAuditSchedule?.autoAuditLastRunAt && (
+                <div className="text-[11px] text-slate-500 pt-2 border-t border-slate-200/60">
+                  Last automated audit executed at: <span className="font-semibold text-slate-700">{new Date(nightAuditSchedule.autoAuditLastRunAt).toLocaleString()}</span>
+                </div>
+              )}
+            </div>
+
+            <button type="submit" disabled={readOnly} className={btnCls}>
+              Save Night Audit Schedule
+            </button>
+          </form>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 16. CHART OF ACCOUNTS & GENERAL LEDGER */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'accounting') && (
+        <section id="settings-accounting" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📊</span>
+                <h2 className="text-lg font-bold text-slate-900">Chart of Accounts &amp; General Ledger (COA)</h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Configure double-entry accounting ledger accounts (Assets, Liabilities, Equity, Operating Revenue, and Operational Expenses).
+              </p>
+            </div>
+            <a
+              href="/income"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors"
+            >
+              <span>View Financial Income &amp; Analytics</span>
+              <span>→</span>
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Create Account Form */}
+            <form action={createChartOfAccountSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Ledger Account</h3>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Account Code *</label>
+                <input
+                  name="accountCode"
+                  required
+                  placeholder="e.g. 1060, 5070"
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Account Name *</label>
+                <input
+                  name="accountName"
+                  required
+                  placeholder="e.g. Laundry Chemicals Expense, Petty Cash"
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Account Type *</label>
+                <CustomDropdown
+                  name="accountType"
+                  defaultValue="EXPENSE"
+                  options={[
+                    { value: 'ASSET', label: 'ASSET (Cash, Bank, Debtors, Inventory)' },
+                    { value: 'LIABILITY', label: 'LIABILITY (Duties & Taxes, Creditors, Advances)' },
+                    { value: 'EQUITY', label: 'EQUITY (Capital, Retained Earnings)' },
+                    { value: 'REVENUE', label: 'REVENUE (Room Tariff, F&B, Banquets)' },
+                    { value: 'EXPENSE', label: 'EXPENSE (Cost of Goods, Fuel, Welfare)' },
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Sub-Category (Optional)</label>
+                <input
+                  name="subCategory"
+                  placeholder="e.g. Operating Expenses, Bank Accounts"
+                  className={inputCls}
+                />
+              </div>
+
+              <button type="submit" disabled={readOnly} className={btnCls}>
+                + Add Account to Ledger
+              </button>
+            </form>
+
+            {/* Configured Accounts Table */}
+            <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700">
+                Active Chart of Accounts ({chartOfAccounts.length} accounts configured)
+              </div>
+              <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+                {chartOfAccounts.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-400">No accounts configured yet.</div>
+                ) : (
+                  chartOfAccounts.map((acc) => (
+                    <div key={acc.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{acc.accountCode}</span>
+                          <span className="font-semibold text-slate-800">{acc.accountName}</span>
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            acc.accountType === 'ASSET' ? 'bg-blue-100 text-blue-800' :
+                            acc.accountType === 'LIABILITY' ? 'bg-amber-100 text-amber-800' :
+                            acc.accountType === 'REVENUE' ? 'bg-emerald-100 text-emerald-800' :
+                            acc.accountType === 'EXPENSE' ? 'bg-rose-100 text-rose-800' : 'bg-purple-100 text-purple-800'
+                          }`}>
+                            {acc.accountType}
+                          </span>
+                          {acc.isSystem && (
+                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono">SYSTEM</span>
+                          )}
+                        </div>
+                        {acc.subCategory && <div className="text-[11px] text-slate-400">{acc.subCategory}</div>}
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="font-mono font-bold text-slate-700">
+                          {money(acc.currentBalance || 0, currency)}
+                        </div>
+                        {!acc.isSystem && (
+                          <form action={deleteChartOfAccountSetting}>
+                            <input type="hidden" name="id" value={acc.id} />
+                            <button
+                              type="submit"
+                              disabled={readOnly}
+                              className="text-rose-600 hover:text-rose-800 font-bold text-[11px] px-2 py-1 rounded hover:bg-rose-50"
+                            >
+                              Delete
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 17. RECIPE COSTING & KITCHEN BOM */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'recipes') && (
+        <section id="settings-recipes" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🥗</span>
+                <h2 className="text-lg font-bold text-slate-900">Recipe Costing &amp; Kitchen Bill of Materials (BOM)</h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Link restaurant menu items to raw material SKUs. When orders are prepared in the kitchen, inventory is automatically depleted and theoretical food margins are tracked.
+              </p>
+            </div>
+            <a
+              href="/inventory"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors"
+            >
+              <span>View Stores &amp; Raw Materials</span>
+              <span>→</span>
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Configure Recipe Link Form */}
+            <form action={configureRecipeBOMSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Link Dish Ingredient BOM</h3>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Select Menu Dish *</label>
+                <CustomDropdown
+                  name="menuItemId"
+                  required
+                  placeholder="Select a menu item..."
+                  options={menu.flatMap((c) =>
+                    (c.items || []).map((i) => ({
+                      value: i.id,
+                      label: `${i.name} (₹${i.price})`,
+                    }))
+                  )}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Select Raw Material Ingredient *</label>
+                <CustomDropdown
+                  name="rawMaterialId"
+                  required
+                  placeholder="Select store SKU..."
+                  options={rawMaterials.map((m) => ({
+                    value: m.id,
+                    label: `${m.name} (${m.unit} @ ₹${m.costPerUnit})`,
+                  }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Portion Quantity Required *</label>
+                <input
+                  name="quantityPerPortion"
+                  type="number"
+                  step="0.001"
+                  required
+                  defaultValue="0.25"
+                  className={inputCls}
+                />
+                <span className="text-[10px] text-slate-400">e.g. 0.25 for 250g or 0.1 for 100ml</span>
+              </div>
+
+              <button type="submit" disabled={readOnly} className={btnCls}>
+                Save Recipe BOM Link
+              </button>
+            </form>
+
+            {/* Recipes Margin Overview Table */}
+            <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700 flex justify-between">
+                <span>Dishes &amp; Theoretical Costing Analysis ({recipesOverview.length} items)</span>
+                <span className="text-[11px] text-slate-500">Gross Margin % = (Price - Cost) / Price</span>
+              </div>
+              <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+                {recipesOverview.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-400">No dish recipe BOMs mapped yet.</div>
+                ) : (
+                  recipesOverview.map((item) => (
+                    <div key={item.menuItemId} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
+                      <div>
+                        <div className="font-semibold text-slate-900">{item.itemName}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {item.categoryName || 'General'} · <span className="font-mono text-indigo-600 font-semibold">{item.ingredientsCount} raw ingredients linked</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-right">
+                        <div>
+                          <div className="text-[11px] text-slate-400">Theoretical Cost</div>
+                          <div className="font-mono font-bold text-slate-700">{money(item.theoreticalCost, currency)}</div>
+                        </div>
+                        <div>
+                          <div className="text-[11px] text-slate-400">Selling Price</div>
+                          <div className="font-mono font-bold text-slate-900">{money(item.sellingPrice, currency)}</div>
+                        </div>
+                        <div className={`px-2 py-1 rounded-full text-[11px] font-bold ${
+                          item.grossMarginPercent >= 65 ? 'bg-emerald-100 text-emerald-800' :
+                          item.grossMarginPercent >= 45 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800'
+                        }`}>
+                          {item.grossMarginPercent}% Margin
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 18. MINIBAR AMENITIES & IN-ROOM CATALOG */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'minibar') && (
+        <section id="settings-minibar" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🍾</span>
+                <h2 className="text-lg font-bold text-slate-900">Minibar Amenities Catalog</h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Configure in-room minibar beverages, premium snacks, and confectionery with standardized prices for one-click billing to guest folios.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Add Minibar Item Form */}
+            <form action={createMinibarItemSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Minibar Item</h3>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Item Name *</label>
+                <input
+                  name="itemName"
+                  required
+                  placeholder="e.g. Perrier Sparkling Water (330ml)"
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Category *</label>
+                <CustomDropdown
+                  name="category"
+                  defaultValue="BEVERAGE"
+                  options={[
+                    { value: 'BEVERAGE', label: 'Beverage (Water, Soda, Juice)' },
+                    { value: 'SNACKS', label: 'Snacks (Nuts, Crisps, Cookies)' },
+                    { value: 'CONFECTIONERY', label: 'Confectionery & Chocolates' },
+                    { value: 'PREMIUM', label: 'Premium Alcoholic / Craft' },
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Unit Tariff (INR) *</label>
+                <input
+                  name="unitPrice"
+                  type="number"
+                  step="0.01"
+                  required
+                  placeholder="e.g. 150.00"
+                  className={inputCls}
+                />
+              </div>
+
+              <button type="submit" disabled={readOnly} className={btnCls}>
+                + Add Minibar Item
+              </button>
+            </form>
+
+            {/* Configured Minibar Items */}
+            <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700">
+                Active Minibar Catalog ({minibarCatalog.length} items)
+              </div>
+              <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+                {minibarCatalog.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-400">No minibar items configured.</div>
+                ) : (
+                  minibarCatalog.map((item) => (
+                    <div key={item.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
+                      <div>
+                        <div className="font-semibold text-slate-900">{item.itemName}</div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                          {item.category}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-4">
+                        <span className="font-mono font-bold text-slate-900">{money(item.unitPrice, currency)}</span>
+                        <form action={deleteMinibarItemSetting}>
+                          <input type="hidden" name="id" value={item.id} />
+                          <button
+                            type="submit"
+                            disabled={readOnly}
+                            className="text-rose-600 hover:text-rose-800 font-bold text-[11px] px-2 py-1 rounded hover:bg-rose-50"
+                          >
+                            Remove
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 19. DYNAMIC PRICING & REVENUE MANAGEMENT (RMS) */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'pricing') && (
+        <section id="settings-pricing" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">📈</span>
+                <h2 className="text-lg font-bold text-slate-900">Dynamic Pricing &amp; Revenue Management (RMS)</h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Configure automated rule triggers for occupancy surge pricing, weekend premiums, and last-minute vacancy discounts.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Create Rule Form */}
+            <form action={createDynamicPricingRuleSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Dynamic Pricing Rule</h3>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Rule Name *</label>
+                <input
+                  name="ruleName"
+                  required
+                  placeholder="e.g. Peak Occupancy Surge (+20%)"
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Rule Type *</label>
+                <CustomDropdown
+                  name="ruleType"
+                  defaultValue="OCCUPANCY_SURGE"
+                  options={[
+                    { value: 'OCCUPANCY_SURGE', label: 'Occupancy Surge (High Demand)' },
+                    { value: 'WEEKEND_MULTIPLIER', label: 'Weekend Fri/Sat Premium' },
+                    { value: 'LAST_MINUTE_DISCOUNT', label: 'Last-Minute Saver (Low Demand)' },
+                  ]}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Min Occupancy %</label>
+                  <input
+                    name="conditionMinOccupancy"
+                    type="number"
+                    step="1"
+                    placeholder="e.g. 75"
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Max Occupancy %</label>
+                  <input
+                    name="conditionMaxOccupancy"
+                    type="number"
+                    step="1"
+                    placeholder="e.g. 40"
+                    className={inputCls}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Price Multiplier *</label>
+                <input
+                  name="priceMultiplier"
+                  type="number"
+                  step="0.05"
+                  required
+                  defaultValue="1.15"
+                  className={inputCls}
+                />
+                <span className="text-[10px] text-slate-400">1.15 = +15% price increase · 0.85 = 15% discount</span>
+              </div>
+
+              <button type="submit" disabled={readOnly} className={btnCls}>
+                + Save Pricing Rule
+              </button>
+            </form>
+
+            {/* Active Pricing Rules List */}
+            <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700">
+                Configured Dynamic Tariff Rules ({dynamicPricingRules.length} rules)
+              </div>
+              <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+                {dynamicPricingRules.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-400">No dynamic pricing rules configured.</div>
+                ) : (
+                  dynamicPricingRules.map((r) => (
+                    <div key={r.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
+                      <div className="space-y-0.5">
+                        <div className="font-semibold text-slate-900">{r.ruleName}</div>
+                        <div className="text-[11px] text-slate-500">
+                          {r.ruleType.replace('_', ' ')} ·
+                          {r.conditionMinOccupancy && ` Trigger when occupancy ≥ ${r.conditionMinOccupancy}%`}
+                          {r.conditionMaxOccupancy && ` Trigger when occupancy ≤ ${r.conditionMaxOccupancy}%`}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <span className={`px-2.5 py-1 rounded-full font-mono font-bold text-xs ${
+                          r.priceMultiplier >= 1.0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                        }`}>
+                          {r.priceMultiplier}x Multiplier
+                        </span>
+                        <form action={deleteDynamicPricingRuleSetting}>
+                          <input type="hidden" name="id" value={r.id} />
+                          <button
+                            type="submit"
+                            disabled={readOnly}
+                            className="text-rose-600 hover:text-rose-800 font-bold text-[11px] px-2 py-1 rounded hover:bg-rose-50"
+                          >
+                            Delete
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 20. HOUSEKEEPING TURNAROUND & INSPECTION */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'housekeeping') && (
+        <section id="settings-housekeeping" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🧹</span>
+                <h2 className="text-lg font-bold text-slate-900">Housekeeping Turnaround &amp; Inspection Console</h2>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Log room turnaround inspections, maintenance work orders, and cleaning status transitions directly.
+              </p>
+            </div>
+            <a
+              href="/housekeeping"
+              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors"
+            >
+              <span>Go to Housekeeping Live Board</span>
+              <span>→</span>
+            </a>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Quick Turnaround Log Form */}
+            <form action={logHousekeepingTurnaroundSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Log Room Turnaround</h3>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Select Room *</label>
+                <CustomDropdown
+                  name="roomId"
+                  required
+                  placeholder="Select a room..."
+                  options={rooms.map((r) => ({
+                    value: r.id,
+                    label: `Room ${r.number} (Current: ${r.status})`,
+                  }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Target Cleanliness Status *</label>
+                <CustomDropdown
+                  name="toStatus"
+                  defaultValue="available"
+                  options={[
+                    { value: 'available', label: 'Ready / Inspected (Available)' },
+                    { value: 'cleaning', label: 'Cleaning In Progress' },
+                    { value: 'maintenance', label: 'Out of Order / Maintenance' },
+                  ]}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Attendant / Inspector Name</label>
+                <input
+                  name="attendantName"
+                  placeholder="e.g. Ramesh Kumar (Supervisor)"
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Inspection Notes</label>
+                <input
+                  name="inspectionNotes"
+                  placeholder="e.g. Fresh linen laid, bath amenities replenished"
+                  className={inputCls}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-600 mb-1">Maintenance Issue (If any)</label>
+                <input
+                  name="maintenanceIssue"
+                  placeholder="e.g. Washroom exhaust fan noisy"
+                  className={inputCls}
+                />
+              </div>
+
+              <button type="submit" disabled={readOnly} className={btnCls}>
+                Save Turnaround Status
+              </button>
+            </form>
+
+            {/* Recent Turnaround Logs Table */}
+            <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700">
+                Recent Room Inspections &amp; Turnaround History ({housekeepingLogs.length} events)
+              </div>
+              <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
+                {housekeepingLogs.length === 0 ? (
+                  <div className="p-6 text-center text-xs text-slate-400">No housekeeping logs recorded yet.</div>
+                ) : (
+                  housekeepingLogs.map((log) => (
+                    <div key={log.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">Room {log.roomNumber}</span>
+                          <span className="text-slate-400">→</span>
+                          <span className="font-semibold text-emerald-700 capitalize">{log.toStatus}</span>
+                          <span className="text-[10px] text-slate-400">by {log.attendantName}</span>
+                        </div>
+                        {log.inspectionNotes && <div className="text-[11px] text-slate-600">{log.inspectionNotes}</div>}
+                        {log.maintenanceIssue && (
+                          <div className="text-[11px] font-bold text-amber-700 flex items-center gap-1">
+                            <span>⚠️ Issue:</span>
+                            <span>{log.maintenanceIssue}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="text-[10px] text-slate-400 text-right">
+                        {new Date(log.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
         </section>
       )}
     </div>

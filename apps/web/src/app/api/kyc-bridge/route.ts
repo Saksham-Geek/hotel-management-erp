@@ -37,7 +37,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: 'Unauthorized. Staff session required.' }, { status: 401 });
   }
 
-  const session = createKycBridgeSession();
+  const session = await createKycBridgeSession();
   const url = new URL(request.url);
   const protocol = url.protocol;
   const port = url.port ? `:${url.port}` : '';

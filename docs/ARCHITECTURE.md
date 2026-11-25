@@ -24,6 +24,12 @@ This document defines the architectural decisions, database models, security bou
 | **Mobile Camera Bridge** | Ephemeral Token-Authenticated Memory Bridge (`/api/kyc-bridge`) | 5-minute ephemeral sessions. Transports camera photos directly from receptionist smartphones to front desk forms via temporary memory with zero photo trace on device storage. |
 | **Dynamic UPI Cashiering** | NPCI URI + Real-time SSE Stream Listener (`/payment-stream`) | Real-time Server-Sent Events stream and polling detect incoming UPI settlements instantly, pulse green, and record the bank UTR without manual receptionist verification. |
 | **Authentication Resilience** | Hybrid REST (`/api/auth/login`) + Server Action Layer | Prevents Next.js `UnrecognizedActionError` hash invalidations during code reloads or rolling deploys while preserving secure HTTP-only cookie storage. |
+| **Distributed KYC Bridge** | PostgreSQL Table Storage (`kyc_bridge_sessions`) with TTL | Ephemeral mobile phone photo sessions are shared across clustered server instances/pods, preventing 404s in multi-container production deployments. |
+| **Pessimistic Concurrency** | `SELECT ... FOR UPDATE` Row Locking | Eliminates room double-booking and folio settlement race conditions under high concurrent OTA and walk-in arrivals. |
+| **Automated Night Audit** | Scheduled Night Audit Engine (`hotel_business_dates`) | Automated 02:00 AM midnight rollover with automated room tariff and GST tax postings to all active in-house guest folios. |
+| **Kitchen BOM Depletion** | Recipe Bill of Materials Engine (`dish_recipes` & `menu_item_recipes`) | Links menu dishes to raw materials; automatically decrements kitchen stock upon KOT preparation and tracks theoretical food cost margins. |
+| **Double-Entry General Ledger** | Chart of Accounts (`chart_of_accounts`, `journal_entries`, `journal_lines`) | Standard double-entry bookkeeping with automated journal voucher postings and live Trial Balance, Profit & Loss, and Balance Sheet generation. |
+| **Revenue Management (RMS)** | Dynamic Pricing Engine (`dynamic_pricing_rules`) | Automatically adjusts tariffs based on property occupancy thresholds, weekend demand spikes, and last-minute vacancy discounts. |
 
 ---
 

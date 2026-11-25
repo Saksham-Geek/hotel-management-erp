@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState, useRef } from 'react';
 import { Nav, type NavItem } from './nav';
 import { CustomDropdown } from './dropdown';
+import { RolePersonaSwitcher } from './role-persona-switcher';
 
 type PropertyOption = { id: string; name: string };
 type FormAction = (formData: FormData) => void | Promise<void>;
@@ -45,18 +46,22 @@ export function AppShell({
   selectProperty,
   createProperty,
   logout,
+  switchRolePreview,
+  actualRole,
 }: {
   children: ReactNode;
   property: PropertyOption;
   properties: PropertyOption[];
   fullName: string;
   role: string;
+  actualRole?: string;
   plan: string | null;
   readOnly: boolean;
   items: NavItem[];
   selectProperty: FormAction;
   createProperty: FormAction;
   logout: FormAction;
+  switchRolePreview?: (role: string) => Promise<void>;
 }) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
@@ -356,14 +361,52 @@ export function AppShell({
               <span>{plan === 'enterprise' ? '👑 Enterprise' : plan === 'growth' || plan === 'plus' ? '⚡ Growth' : '🌱 Starter'}<span className="hidden md:inline"> Edition</span></span>
             </Link>
 
-            <span className="hidden rounded-full border border-slate-200 bg-white px-2.5 sm:px-3 py-1 text-xs font-medium capitalize text-slate-700 shadow-2xs sm:inline-flex">
-              {role.replaceAll('_', ' ')}
-            </span>
+            {/* Role Persona Switcher (RBAC Live Preview) */}
+            {switchRolePreview ? (
+              <RolePersonaSwitcher
+                currentRole={role}
+                actualRole={actualRole || 'owner'}
+                switchAction={switchRolePreview}
+              />
+            ) : (
+              <span className="hidden rounded-full border border-slate-200 bg-white px-2.5 sm:px-3 py-1 text-xs font-medium capitalize text-slate-700 shadow-2xs sm:inline-flex">
+                {role.replaceAll('_', ' ')}
+              </span>
+            )}
           </div>
         </header>
 
         {/* Page Content Body */}
         <main id="main-content" tabIndex={-1} className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 focus:outline-none">
+          {/* Active Role Preview Announcement Banner */}
+          {actualRole && role !== actualRole && (
+            <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-amber-400 bg-amber-50 p-3.5 sm:p-4 text-xs font-medium text-amber-950 shadow-sm dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-600/60 animate-in fade-in-50 duration-200">
+              <div className="flex items-center gap-2.5">
+                <span className="grid h-7 w-7 place-items-center rounded-xl bg-amber-400 text-slate-950 text-sm font-bold shadow-xs">
+                  👁️
+                </span>
+                <div>
+                  <p className="font-bold text-amber-950 dark:text-amber-100">
+                    Staff Role Preview Mode Active: Viewing as{' '}
+                    <span className="capitalize underline font-black">{role.replaceAll('_', ' ')}</span>
+                  </p>
+                  <p className="text-[11px] text-amber-800/90 dark:text-amber-300 mt-0.5">
+                    Navigation items, financial reports, and settings are strictly filtered according to this staff persona.
+                  </p>
+                </div>
+              </div>
+
+              {switchRolePreview && (
+                <button
+                  type="button"
+                  onClick={() => switchRolePreview('owner')}
+                  className="rounded-xl bg-amber-900 text-white px-3 py-1.5 text-xs font-bold hover:bg-amber-950 transition cursor-pointer shadow-xs dark:bg-amber-400 dark:text-slate-950"
+                >
+                  ✕ Exit Preview (Return to Owner)
+                </button>
+              )}
+            </div>
+          )}
           {readOnly && (
             <div
               role="status"

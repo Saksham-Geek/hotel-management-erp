@@ -3,7 +3,7 @@ import { FEATURES } from '@erp/shared';
 import { AppShell } from '@/components/app-shell';
 import type { NavItem } from '@/components/nav';
 import { getEntitlements, getMe } from '@/lib/api';
-import { createProperty, logout, selectProperty } from '../login/actions';
+import { createProperty, logout, selectProperty, switchRolePreviewAction } from '../login/actions';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   let me: Awaited<ReturnType<typeof getMe>>;
@@ -98,6 +98,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       selectProperty={selectProperty}
       createProperty={createProperty}
       logout={logout}
+      switchRolePreview={switchRolePreviewAction}
+      actualRole={(me as any).actualRole || 'owner'}
     >
       {children}
     </AppShell>

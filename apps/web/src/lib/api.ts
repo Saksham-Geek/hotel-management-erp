@@ -84,17 +84,34 @@ export function clearSessionCache(token?: string) {
 }
 
 export const getMe = cache(async (): Promise<MeDto> => {
-  const token = (await cookies()).get(TOKEN_COOKIE)?.value;
+  const cookieStore = await cookies();
+  const token = cookieStore.get(TOKEN_COOKIE)?.value;
   if (!token) return api<MeDto>('/auth/me');
 
   const cached = meCache.get(token);
   const now = Date.now();
+  let me: MeDto;
   if (cached && now - cached.timestamp < CACHE_TTL_MS) {
-    return cached.me;
+    me = cached.me;
+  } else {
+    me = await api<MeDto>('/auth/me');
+    meCache.set(token, { me, timestamp: now });
   }
 
-  const me = await api<MeDto>('/auth/me');
-  meCache.set(token, { me, timestamp: now });
+  // Interactive Demo / Role Preview Support:
+  // If the user's base role is owner or manager, allow previewing lower staff roles
+  const previewRole = cookieStore.get('erp_role_preview')?.value;
+  if (
+    previewRole &&
+    ['manager', 'frontdesk', 'housekeeping'].includes(previewRole) &&
+    (me.role === 'owner' || me.role === 'manager')
+  ) {
+    return {
+      ...me,
+      role: previewRole as any,
+    };
+  }
+
   return me;
 });
 

@@ -229,3 +229,47 @@ aside select option,
 }
 
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* Dedicated 80mm & 58mm POS Thermal Printer Formatting */
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* When printing thermal receipts or KOT slips */
+  .thermal-receipt-80mm {
+    width: 76mm !important;
+    max-width: 76mm !important;
+    margin: 0 auto !important;
+    padding: 2mm !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+
+  .thermal-receipt-58mm {
+    width: 52mm !important;
+    max-width: 52mm !important;
+    margin: 0 auto !important;
+    padding: 1mm !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
+
+  /* Force solid black lines for thermal printer paper cuts and dividers */
+  .thermal-divider {
+    border-top: 1px dashed #000000 !important;
+    margin: 4px 0 !important;
+  }
+}

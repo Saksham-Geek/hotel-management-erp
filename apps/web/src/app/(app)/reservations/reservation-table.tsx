@@ -6,6 +6,7 @@ import { useFormStatus } from 'react-dom';
 import { Banner, btnGhostCls, CustomDropdown, EmptyState, inputCls, selectCls, StatusBadge } from '@/components/ui';
 import { formatStayDates } from '@/lib/format';
 import { changeReservation } from './actions';
+import { WhatsAppVoucherModal } from './whatsapp-voucher-modal';
 
 export interface ReservationRow {
   id: string;
@@ -39,6 +40,7 @@ export function ReservationTable({
   const [status, setStatus] = useState('all');
   const [sort, setSort] = useState<'newest' | 'oldest'>('newest');
   const [page, setPage] = useState(1);
+  const [activeWhatsAppReservation, setActiveWhatsAppReservation] = useState<ReservationRow | null>(null);
   const pageSize = 10;
   const filtered = useMemo(() => {
     const term = query.trim().toLocaleLowerCase();
@@ -134,7 +136,13 @@ export function ReservationTable({
                       <td className="whitespace-nowrap px-5 py-4 font-semibold text-slate-800">{formatStayDates(reservation.checkIn, reservation.checkOut)}</td>
                       <td className="whitespace-nowrap px-5 py-4 font-black text-slate-950">{money(reservation.totalAmount, currency)}</td>
                       <td className="px-5 py-4"><StatusBadge status={reservation.status} /></td>
-                      <td className="px-5 py-4"><Actions reservation={reservation} readOnly={readOnly} /></td>
+                      <td className="px-5 py-4">
+                        <Actions
+                          reservation={reservation}
+                          readOnly={readOnly}
+                          onOpenWhatsApp={() => setActiveWhatsAppReservation(reservation)}
+                        />
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -156,7 +164,15 @@ export function ReservationTable({
                   <p className="text-xs sm:text-sm font-semibold text-slate-700">{formatStayDates(reservation.checkIn, reservation.checkOut)}</p>
                   <p className="text-sm sm:text-base font-black text-slate-950">{money(reservation.totalAmount, currency)}</p>
                 </div>
-                {!readOnly && <div className="mt-3"><Actions reservation={reservation} readOnly={readOnly} /></div>}
+                {!readOnly && (
+                  <div className="mt-3">
+                    <Actions
+                      reservation={reservation}
+                      readOnly={readOnly}
+                      onOpenWhatsApp={() => setActiveWhatsAppReservation(reservation)}
+                    />
+                  </div>
+                )}
               </article>
             ))}
           </div>
@@ -186,16 +202,45 @@ export function ReservationTable({
               </div>
             </nav>
           )}
+
+          {activeWhatsAppReservation && (
+            <WhatsAppVoucherModal
+              isOpen={true}
+              reservation={activeWhatsAppReservation}
+              hotelName="Grand Azure Hotel"
+              currency={currency}
+              onClose={() => setActiveWhatsAppReservation(null)}
+            />
+          )}
         </>
       )}
     </section>
   );
 }
 
-function Actions({ reservation, readOnly }: { reservation: ReservationRow; readOnly: boolean }) {
+function Actions({
+  reservation,
+  readOnly,
+  onOpenWhatsApp,
+}: {
+  reservation: ReservationRow;
+  readOnly: boolean;
+  onOpenWhatsApp: () => void;
+}) {
   const actions = readOnly ? [] : transitions[reservation.status];
   return (
-    <div className="flex flex-wrap justify-end items-center gap-2">
+    <div className="flex flex-wrap justify-end items-center gap-1.5">
+      <button
+        type="button"
+        onClick={onOpenWhatsApp}
+        aria-label={`Send WhatsApp Voucher to ${reservation.guestName}`}
+        className="inline-flex min-h-9 items-center justify-center gap-1 rounded-lg border border-emerald-300 bg-emerald-50 px-2.5 py-1.5 text-xs font-bold text-emerald-800 hover:bg-emerald-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 cursor-pointer"
+        title="Send Booking Voucher or Pre-Arrival Check-in via WhatsApp"
+      >
+        <span>💬</span>
+        <span className="hidden xl:inline">WhatsApp</span>
+      </button>
+
       <Link
         href={`/billing?reservationId=${reservation.id}`}
         aria-label={`View bill for ${reservation.guestName}, Room ${reservation.roomNumber}`}

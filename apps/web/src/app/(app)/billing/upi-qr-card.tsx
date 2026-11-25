@@ -37,6 +37,7 @@ export function UpiQrCard({
   const [secondsLeft, setSecondsLeft] = useState(600); // 10 minutes expiry countdown
   const [paymentReceived, setPaymentReceived] = useState<{ amount: number; utr: string } | null>(null);
   const [isSimulating, setIsSimulating] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Verified receiver UPI VPA & Payee Name
   const vpa = upiId?.trim() || `pay.${hotelName.toLowerCase().replace(/[^a-z0-9]/g, '')}@icici`;
@@ -283,10 +284,20 @@ export function UpiQrCard({
       <div className="flex flex-col sm:flex-row items-center gap-2 pt-1">
         <button
           type="button"
+          onClick={() => setIsFullscreen(true)}
+          className="w-full sm:w-auto flex-1 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 py-2 px-3 text-xs font-bold text-indigo-950 shadow-2xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          title="Open giant customer display QR for guests standing across the reception counter"
+        >
+          <span>🖥️</span>
+          <span>Fullscreen Counter QR</span>
+        </button>
+
+        <button
+          type="button"
           onClick={handleCopy}
           className="w-full sm:w-auto flex-1 rounded-xl border border-slate-200 bg-white py-2 px-3 text-xs font-bold text-slate-700 shadow-2xs hover:bg-slate-50 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          <span>{copied ? '✓ Copied UPI Link' : '📋 Copy UPI Intent Link'}</span>
+          <span>{copied ? '✓ Copied' : '📋 Copy Link'}</span>
         </button>
 
         <button
@@ -295,13 +306,73 @@ export function UpiQrCard({
           disabled={isSimulating || !!paymentReceived}
           className="w-full sm:w-auto flex-1 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white py-2 px-3 text-xs font-bold shadow-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
         >
-          <span>{isSimulating ? 'Processing Webhook…' : '⚡ Simulate Guest Scanned & Paid'}</span>
+          <span>{isSimulating ? 'Processing…' : '⚡ Simulate Paid'}</span>
         </button>
       </div>
 
       <p className="text-[10px] text-slate-400 text-center">
         🔒 0% MDR · Direct Instant Merchant Bank Settlement · NPCI Encrypted
       </p>
+
+      {/* Fullscreen Guest Counter Display Modal */}
+      {isFullscreen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md animate-in fade-in duration-150"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative w-full max-w-md rounded-3xl border border-white/20 bg-slate-900 p-6 text-white text-center shadow-2xl space-y-5">
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(false)}
+              className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-white/10 hover:text-white transition cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div>
+              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-500/20 border border-indigo-400/40 px-3 py-1 text-xs font-bold text-indigo-300 mb-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>NPCI Instant Settlement</span>
+              </div>
+              <h3 className="text-xl font-black text-white">{hotelName}</h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Room {roomNumber} · {guestName}
+              </p>
+            </div>
+
+            {/* Giant QR */}
+            <div className="mx-auto w-64 h-64 bg-white rounded-2xl p-4 shadow-2xl grid place-items-center">
+              {qrDataUrl ? (
+                <img src={qrDataUrl} alt="Scan to Pay UPI" className="w-full h-full object-contain" />
+              ) : (
+                <span className="text-xs text-slate-400">Loading...</span>
+              )}
+            </div>
+
+            <div>
+              <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
+                Scan to Pay Exact Amount
+              </p>
+              <p className="text-3xl font-black text-emerald-400 mt-1 font-display">
+                ₹{new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2 }).format(amount)}
+              </p>
+              <p className="text-xs text-slate-400 font-mono mt-1">{vpa}</p>
+            </div>
+
+            {paymentReceived ? (
+              <div className="rounded-2xl bg-emerald-500/20 border border-emerald-400 p-3 text-emerald-300 font-bold text-sm">
+                ✓ Payment Verified &amp; Received!
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>Waiting for UPI payment confirmation... ({mins}:{secs})</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

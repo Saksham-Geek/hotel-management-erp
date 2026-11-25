@@ -211,3 +211,18 @@ export async function changeMyPassword(fd: FormData) {
   (await cookies()).delete(TOKEN_COOKIE);
   redirect('/login?ok=' + encodeURIComponent('Password changed. Sign in again with your new password.'));
 }
+
+export async function switchRolePreviewAction(targetRole: string) {
+  const cookieStore = await cookies();
+  if (!targetRole || targetRole === 'reset' || targetRole === 'owner') {
+    cookieStore.delete('erp_role_preview');
+  } else {
+    cookieStore.set('erp_role_preview', targetRole, {
+      path: '/',
+      httpOnly: false,
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 4,
+    });
+  }
+  revalidatePath('/', 'layout');
+}

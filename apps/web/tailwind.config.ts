@@ -8,7 +8,14 @@ export default {
     extend: {
       colors: {
         ground: 'hsl(var(--background) / <alpha-value>)',
+        background: 'hsl(var(--background) / <alpha-value>)',
         surface: 'hsl(var(--card) / <alpha-value>)',
+        card: {
+          DEFAULT: 'hsl(var(--card) / <alpha-value>)',
+          foreground: 'hsl(var(--foreground) / <alpha-value>)',
+        },
+        border: 'hsl(var(--border) / <alpha-value>)',
+        foreground: 'hsl(var(--foreground) / <alpha-value>)',
         popover: {
           DEFAULT: 'hsl(var(--popover) / <alpha-value>)',
           foreground: 'hsl(var(--popover-foreground) / <alpha-value>)',

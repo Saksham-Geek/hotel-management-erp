@@ -97,11 +97,11 @@ export function CommandSearchModal({
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-20 bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
       <div
-        className="w-full max-w-xl bg-card border border-border rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95"
+        className="w-full max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh] animate-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Search Input Bar */}
-        <div className="flex items-center gap-3 p-4 border-b border-border bg-background">
+        <div className="flex items-center gap-3 p-4 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
           <span className="text-lg">🔍</span>
           <input
             ref={inputRef}
@@ -112,17 +112,17 @@ export function CommandSearchModal({
               setQuery(e.target.value);
               setSelectedIndex(0);
             }}
-            className="flex-1 bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground"
+            className="flex-1 bg-transparent text-sm font-medium text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
           />
-          <kbd className="rounded bg-muted px-2 py-0.5 text-[10px] font-mono text-muted-foreground border border-border">
+          <kbd className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-mono text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
             ESC
           </kbd>
         </div>
 
         {/* Results List */}
-        <div className="flex-1 overflow-y-auto p-2 divide-y divide-border/40">
+        <div className="flex-1 overflow-y-auto p-2 divide-y divide-slate-100 dark:divide-slate-800/60">
           {filteredItems.length === 0 ? (
-            <div className="p-8 text-center text-xs text-muted-foreground">
+            <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
               No matching pages or actions found for &ldquo;{query}&rdquo;.
             </div>
           ) : (
@@ -137,19 +137,19 @@ export function CommandSearchModal({
                   }}
                   onMouseEnter={() => setSelectedIndex(index)}
                   className={`w-full flex items-center justify-between p-3 rounded-xl text-left transition-all ${
-                    isSelected ? 'bg-primary/10 text-primary ring-1 ring-primary/20' : 'hover:bg-muted/50'
+                    isSelected ? 'bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-white font-medium' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50 text-slate-700 dark:text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <span className="text-xl shrink-0">{item.icon}</span>
                     <div className="min-w-0">
-                      <p className="text-xs font-bold text-foreground truncate">{item.title}</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{item.title}</p>
                       {item.description && (
-                        <p className="text-[11px] text-muted-foreground truncate">{item.description}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">{item.description}</p>
                       )}
                     </div>
                   </div>
-                  <span className="text-[10px] uppercase font-bold text-muted-foreground px-2 py-0.5 rounded bg-muted shrink-0 ml-2">
+                  <span className="text-[10px] uppercase font-bold text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 shrink-0 ml-2">
                     {item.category}
                   </span>
                 </button>
@@ -159,13 +159,13 @@ export function CommandSearchModal({
         </div>
 
         {/* Footer shortcuts helper */}
-        <div className="p-3 border-t border-border bg-muted/30 flex items-center justify-between text-[11px] text-muted-foreground">
+        <div className="p-3 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-950/40 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-3">
             <span>↑↓ Navigate</span>
             <span>↵ Select</span>
             <span>Esc Close</span>
           </div>
-          <span className="font-medium text-primary">Enterprise Global Hub</span>
+          <span className="font-semibold text-slate-900 dark:text-white">Enterprise Global Hub</span>
         </div>
       </div>
     </div>

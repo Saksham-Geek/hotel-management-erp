@@ -150,3 +150,21 @@ export async function getStockMovementsAction() {
     return { ok: false, error: errorMessage(err), movements: [] };
   }
 }
+
+export async function configureDishRecipeAction(input: {
+  menuItemId: string;
+  ingredients: Array<{ rawMaterialId: string; quantityPerPortion: number }>;
+}) {
+  try {
+    const res = await api<any>('/hotel/restaurant/inventory/recipes', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+    revalidatePath('/inventory');
+    revalidatePath('/restaurant');
+    revalidatePath('/settings');
+    return { ok: true, message: res.message };
+  } catch (err) {
+    return { ok: false, error: errorMessage(err) };
+  }
+}

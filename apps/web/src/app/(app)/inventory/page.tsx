@@ -7,11 +7,13 @@ export const metadata = {
 };
 
 export default async function InventoryPage() {
-  const [materials, categories, movements, vendors] = await Promise.all([
+  const [materials, categories, movements, vendors, recipesOverview, menuCategories] = await Promise.all([
     api<any[]>('/hotel/restaurant/inventory/raw-materials').catch(() => []),
     api<any[]>('/hotel/restaurant/inventory/categories').catch(() => []),
     api<any[]>('/hotel/restaurant/inventory/movements').catch(() => []),
     api<any[]>('/hotel/expenses/vendors').catch(() => []),
+    api<any[]>('/hotel/restaurant/inventory/recipes-overview').catch(() => []),
+    api<any[]>('/hotel/restaurant/menu').catch(() => []),
   ]);
 
   return (
@@ -20,6 +22,8 @@ export default async function InventoryPage() {
       initialCategories={categories}
       initialMovements={movements}
       vendors={vendors}
+      recipesOverview={recipesOverview}
+      menuCategories={menuCategories}
     />
   );
 }

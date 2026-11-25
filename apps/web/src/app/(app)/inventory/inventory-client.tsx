@@ -10,6 +10,7 @@ import {
   deleteRawMaterialAction,
   restockRawMaterialAction,
   adjustRawMaterialAction,
+  configureDishRecipeAction,
 } from './actions';
 
 export interface RawMaterial {
@@ -78,24 +79,46 @@ export function InventoryClient({
   initialCategories = [],
   initialMovements = [],
   vendors = [],
+  recipesOverview = [],
+  menuCategories = [],
 }: {
   initialMaterials: RawMaterial[];
   initialCategories?: InventoryCategory[];
   initialMovements?: StockMovement[];
   vendors?: { id: string; name: string }[];
+  recipesOverview?: Array<{
+    menuItemId: string;
+    itemName: string;
+    categoryName?: string;
+    sellingPrice: number;
+    ingredientsCount: number;
+    theoreticalCost: number;
+    grossMarginPercent: number;
+  }>;
+  menuCategories?: Array<{
+    id: string;
+    name: string;
+    items?: Array<{ id: string; name: string; price: number }>;
+  }>;
 }) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'ledger' | 'movements'>('ledger');
+  const [activeTab, setActiveTab] = useState<'ledger' | 'movements' | 'recipes'>('ledger');
   const [materials, setMaterials] = useState<RawMaterial[]>(initialMaterials);
   const [categories] = useState<InventoryCategory[]>(
     initialCategories.length > 0 ? initialCategories : DEFAULT_CATEGORIES
   );
   const [movements, setMovements] = useState<StockMovement[]>(initialMovements);
+  const [recipes] = useState(recipesOverview);
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isRecipeModalOpen, setIsRecipeModalOpen] = useState(false);
+  const [recipeDishId, setRecipeDishId] = useState('');
+  const [recipeMaterialId, setRecipeMaterialId] = useState('');
+  const [recipeQty, setRecipeQty] = useState('0.25');
+
   const [restockItem, setRestockItem] = useState<RawMaterial | null>(null);
   const [adjustItem, setAdjustItem] = useState<RawMaterial | null>(null);
   const [editItem, setEditItem] = useState<RawMaterial | null>(null);
@@ -119,51 +142,36 @@ export function InventoryClient({
   const [restockInvoiceRef, setRestockInvoiceRef] = useState('');
   const [restockNotes, setRestockNotes] = useState('');
 
-  // Stock Out / Issue State
-  const [adjustQty, setAdjustQty] = useState('');
+  // Adjust / Issue Form State
   const [adjustType, setAdjustType] = useState<'CONSUMPTION' | 'WASTAGE' | 'AUDIT_ADJUSTMENT'>('CONSUMPTION');
+  const [adjustQty, setAdjustQty] = useState('');
   const [adjustDept, setAdjustDept] = useState('Main Kitchen');
-  const [adjustNotes, setAdjustNotes] = useState('');
+  const [adjustReason, setAdjustReason] = useState('');
 
-  // Edit Item State
+  // Edit Item Form State
   const [editName, setEditName] = useState('');
   const [editCategory, setEditCategory] = useState('');
-  const [editUnit, setEditUnit] = useState('');
+  const [editUnit, setEditUnit] = useState('kg');
   const [editMinAlert, setEditMinAlert] = useState('');
   const [editCostPerUnit, setEditCostPerUnit] = useState('');
   const [editStorageLoc, setEditStorageLoc] = useState('');
   const [editVendor, setEditVendor] = useState('');
 
-  // Dynamic dropdown options
-  const categoryFilterOptions: DropdownOption[] = [
-    { value: 'ALL', label: 'All Categories' },
-    ...categories.map((c) => ({
-      value: c.name,
-      label: c.name,
-      icon: <span>{c.icon || '📦'}</span>,
-    })),
-  ];
-
-  const categorySelectOptions: DropdownOption[] = categories.map((c) => ({
-    value: c.name,
-    label: c.name,
-    icon: <span>{c.icon || '📦'}</span>,
-  }));
-
   const filtered = materials.filter((m) => {
-    const matchesCategory = selectedCategory === 'ALL' || m.category === selectedCategory;
     const matchesSearch =
       m.name.toLowerCase().includes(search.toLowerCase()) ||
       (m.storageLocation && m.storageLocation.toLowerCase().includes(search.toLowerCase())) ||
       (m.defaultVendorName && m.defaultVendorName.toLowerCase().includes(search.toLowerCase()));
-    return matchesCategory && matchesSearch;
+    const matchesCategory = selectedCategory === 'ALL' || m.category === selectedCategory;
+    return matchesSearch && matchesCategory;
   });
 
-  const lowStockCount = materials.filter((m) => m.isLowStock || m.currentStock <= m.minimumAlertStock).length;
-  const totalValuation = materials.reduce((sum, m) => sum + m.currentStock * m.costPerUnit, 0);
+  const lowStockCount = materials.filter((m) => m.currentStock <= m.minimumAlertStock).length;
+  const totalValuation = materials.reduce((acc, m) => acc + m.currentStock * m.costPerUnit, 0);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) return;
     setError(null);
     setLoading(true);
 
@@ -179,19 +187,17 @@ export function InventoryClient({
         defaultVendorName: defaultVendorName.trim() || undefined,
       });
 
-      if (!res.ok) throw new Error(res.error || 'Failed to add item');
+      if (!res.ok) throw new Error(res.error || 'Failed to create item');
 
       setIsAddModalOpen(false);
       setName('');
-      setCurrentStock('20');
-      setMinimumAlertStock('5');
-      setCostPerUnit('150');
       router.refresh();
+
       if (res.item) {
-        setMaterials([res.item, ...materials.filter((m) => m.id !== res.item.id)]);
+        setMaterials((prev) => [res.item, ...prev]);
       }
     } catch (err: any) {
-      setError(err.message || 'Error adding item');
+      setError(err.message || 'Error creating item');
     } finally {
       setLoading(false);
     }
@@ -199,28 +205,22 @@ export function InventoryClient({
 
   const handleRestock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!restockItem) return;
+    if (!restockItem || !restockQty) return;
     setError(null);
     setLoading(true);
 
     try {
-      const qty = parseFloat(restockQty) || 0;
-      const unitCost = restockUnitCost ? parseFloat(restockUnitCost) : undefined;
-      const combinedNotes = [
-        restockVendor ? `Supplier: ${restockVendor}` : '',
-        restockInvoiceRef ? `Bill: ${restockInvoiceRef}` : '',
-        restockNotes ? restockNotes.trim() : '',
-      ]
-        .filter(Boolean)
-        .join(' • ');
-
       const res = await restockRawMaterialAction(restockItem.id, {
-        quantity: qty,
-        costPerUnit: unitCost,
-        notes: combinedNotes || undefined,
+        quantity: parseFloat(restockQty),
+        costPerUnit: restockUnitCost ? parseFloat(restockUnitCost) : undefined,
+        notes: [
+          restockVendor.trim() ? `Vendor: ${restockVendor.trim()}` : '',
+          restockInvoiceRef.trim() ? `Ref: ${restockInvoiceRef.trim()}` : '',
+          restockNotes.trim(),
+        ].filter(Boolean).join(' | ') || undefined,
       });
 
-      if (!res.ok) throw new Error(res.error || 'Failed to restock material');
+      if (!res.ok) throw new Error(res.error || 'Failed to restock item');
 
       setRestockItem(null);
       setRestockQty('');
@@ -230,20 +230,11 @@ export function InventoryClient({
       setRestockNotes('');
       router.refresh();
 
-      setMaterials((prev) =>
-        prev.map((m) =>
-          m.id === restockItem.id
-            ? {
-                ...m,
-                currentStock: m.currentStock + qty,
-                costPerUnit: unitCost !== undefined ? unitCost : m.costPerUnit,
-                isLowStock: m.currentStock + qty <= m.minimumAlertStock,
-              }
-            : m,
-        ),
-      );
+      if (res.item) {
+        setMaterials((prev) => prev.map((m) => (m.id === restockItem.id ? { ...m, ...res.item } : m)));
+      }
     } catch (err: any) {
-      setError(err.message || 'Error restocking');
+      setError(err.message || 'Error restocking item');
     } finally {
       setLoading(false);
     }
@@ -251,37 +242,28 @@ export function InventoryClient({
 
   const handleAdjust = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adjustItem) return;
+    if (!adjustItem || !adjustQty) return;
     setError(null);
     setLoading(true);
 
     try {
-      const qty = parseFloat(adjustQty) || 0;
       const res = await adjustRawMaterialAction(adjustItem.id, {
-        quantity: qty,
         movementType: adjustType,
-        department: adjustDept,
-        notes: adjustNotes.trim() || undefined,
+        quantity: parseFloat(adjustQty),
+        department: adjustType === 'CONSUMPTION' ? adjustDept : undefined,
+        notes: adjustReason.trim() || undefined,
       });
 
       if (!res.ok) throw new Error(res.error || 'Failed to adjust stock');
 
       setAdjustItem(null);
       setAdjustQty('');
-      setAdjustNotes('');
+      setAdjustReason('');
       router.refresh();
 
-      setMaterials((prev) =>
-        prev.map((m) =>
-          m.id === adjustItem.id
-            ? {
-                ...m,
-                currentStock: Math.max(0, m.currentStock - qty),
-                isLowStock: m.currentStock - qty <= m.minimumAlertStock,
-              }
-            : m,
-        ),
-      );
+      if (res.item) {
+        setMaterials((prev) => prev.map((m) => (m.id === adjustItem.id ? { ...m, ...res.item } : m)));
+      }
     } catch (err: any) {
       setError(err.message || 'Error adjusting stock');
     } finally {
@@ -347,6 +329,27 @@ export function InventoryClient({
     setEditVendor(m.defaultVendorName || '');
   };
 
+  const handleLinkRecipe = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recipeDishId || !recipeMaterialId || !recipeQty) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await configureDishRecipeAction({
+        menuItemId: recipeDishId,
+        ingredients: [{ rawMaterialId: recipeMaterialId, quantityPerPortion: parseFloat(recipeQty) || 0.25 }],
+      });
+      if (!res.ok) throw new Error(res.error || 'Failed to link recipe');
+      setIsRecipeModalOpen(false);
+      router.refresh();
+      alert('Recipe ingredient BOM linked successfully! Inventory will auto-deplete on KOT orders.');
+    } catch (err: any) {
+      setError(err.message || 'Error linking recipe');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const exportCSV = () => {
     const headers = ['Item Name', 'Category', 'Unit', 'Current Stock', 'Min Alert Threshold', 'Unit Cost (INR)', 'Total Value (INR)', 'Location', 'Supplier', 'Status'];
     const rows = filtered.map((m) => [
@@ -372,18 +375,18 @@ export function InventoryClient({
 
   return (
     <div className="space-y-6">
-      {/* Top Header */}
+      {/* Header Actions */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <span>📦</span> Stores &amp; Kitchen Raw Material Inventory
           </h1>
-          <p className="mt-1 text-xs text-slate-500">
-            Track hotel stock, kitchen grocery consumption, Goods Receipt Notes (GRN), and department requisitions.
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            Track hotel stock, kitchen grocery consumption, reorder alerts, purchase receipt notes (GRN), and recipe BOM depletion.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/settings?tab=inventory"
             className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
@@ -440,7 +443,7 @@ export function InventoryClient({
         </div>
       </div>
 
-      {/* Tabs Switcher: Current Stock vs Movement Ledger */}
+      {/* Tabs Switcher: Current Stock vs Movement Ledger vs Recipe BOM */}
       <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800">
         <button
           type="button"
@@ -463,6 +466,17 @@ export function InventoryClient({
             {movements.length} Logs
           </span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('recipes')}
+          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${activeTab === 'recipes' ? 'border-slate-900 text-slate-900 dark:border-white dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+        >
+          <span>🥗 Dish Recipe BOM &amp; Kitchen Depletion</span>
+          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+            {recipes.length} Dishes
+          </span>
+        </button>
       </div>
 
       {/* TAB 1: CURRENT STORE INVENTORY */}
@@ -475,76 +489,78 @@ export function InventoryClient({
               placeholder="Search materials by name, location, or supplier…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+              className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-hidden dark:border-slate-800 dark:bg-slate-950 dark:text-white"
             />
 
-            <div className="flex items-center gap-2 min-w-[220px]">
-              <span className="text-xs font-semibold text-slate-500 shrink-0">Category:</span>
-              <div className="flex-1">
-                <CustomDropdown
-                  size="sm"
-                  value={selectedCategory}
-                  onChange={setSelectedCategory}
-                  options={categoryFilterOptions}
-                />
-              </div>
+            <div className="w-full sm:w-64">
+              <CustomDropdown
+                value={selectedCategory}
+                onChange={setSelectedCategory}
+                options={[
+                  { value: 'ALL', label: 'All Categories' },
+                  ...categories.map((c) => ({ value: c.name, label: `${c.icon} ${c.name}` })),
+                ]}
+              />
             </div>
           </div>
 
-          {/* Materials Table */}
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          {/* Table */}
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xs dark:border-slate-800 dark:bg-slate-900">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">
                     <th className="px-4 py-3">Item Name</th>
                     <th className="px-4 py-3">Category</th>
-                    <th className="px-4 py-3">Location / Vendor</th>
+                    <th className="px-4 py-3">Storage Location</th>
                     <th className="px-4 py-3 text-right">Current Stock</th>
-                    <th className="px-4 py-3 text-right">Reorder Alert</th>
                     <th className="px-4 py-3 text-right">Unit Cost (₹)</th>
                     <th className="px-4 py-3 text-right">Total Value (₹)</th>
-                    <th className="px-4 py-3 text-center">Status</th>
+                    <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200/60 text-xs dark:divide-slate-800">
-                  {filtered.map((m) => {
-                    const isLow = m.currentStock <= m.minimumAlertStock;
+                  {filtered.map((mat) => {
+                    const isLow = mat.currentStock <= mat.minimumAlertStock;
+                    const val = mat.currentStock * mat.costPerUnit;
                     return (
-                      <tr key={m.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="px-4 py-3 font-bold text-slate-900 dark:text-white">
-                          {m.name}
+                      <tr key={mat.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">
+                          <div className="flex items-center gap-2">
+                            <span>{mat.name}</span>
+                            {mat.defaultVendorName && (
+                              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                                · {mat.defaultVendorName}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                          {mat.category}
                         </td>
                         <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                          <span className="rounded-md bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300">
-                            {m.category}
+                          <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            📍 {mat.storageLocation || 'Main Store'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-[11px] text-slate-500">
-                          <p>{m.storageLocation || 'Main Store'}</p>
-                          {m.defaultVendorName && <p className="text-[10px] text-slate-400">{m.defaultVendorName}</p>}
+                        <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">
+                          {mat.currentStock} {mat.unit}
+                        </td>
+                        <td className="px-4 py-3 text-right font-mono text-slate-600 dark:text-slate-400">
+                          ₹{mat.costPerUnit.toFixed(2)}
                         </td>
                         <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">
-                          {m.currentStock.toFixed(2)} {m.unit}
+                          ₹{val.toFixed(2)}
                         </td>
-                        <td className="px-4 py-3 text-right font-mono text-slate-500">
-                          ≤ {m.minimumAlertStock.toFixed(2)} {m.unit}
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono text-slate-700 dark:text-slate-300">
-                          ₹{m.costPerUnit.toFixed(2)}
-                        </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-slate-950 dark:text-white">
-                          ₹{(m.currentStock * m.costPerUnit).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3">
                           {isLow ? (
-                            <span className="inline-flex rounded-full bg-rose-100 dark:bg-rose-950/60 px-2.5 py-0.5 text-[10px] font-bold text-rose-800 dark:text-rose-400 uppercase tracking-wider animate-pulse">
-                              ⚠️ Low Stock
+                            <span className="rounded-md bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
+                              ⚠️ LOW (≤{mat.minimumAlertStock})
                             </span>
                           ) : (
-                            <span className="inline-flex rounded-full bg-emerald-100 dark:bg-emerald-950/60 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider">
-                              ✓ Optimal
+                            <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                              ✓ OPTIMAL
                             </span>
                           )}
                         </td>
@@ -553,37 +569,35 @@ export function InventoryClient({
                             <button
                               type="button"
                               onClick={() => {
-                                setRestockItem(m);
-                                setRestockUnitCost(String(m.costPerUnit));
-                                setRestockVendor(m.defaultVendorName || '');
+                                setRestockItem(mat);
+                                setRestockUnitCost(String(mat.costPerUnit));
+                                setRestockVendor(mat.defaultVendorName || '');
                               }}
-                              className="rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-bold text-white hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 transition"
+                              className="rounded-lg bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-emerald-700"
+                              title="Record Goods Receipt Note (GRN)"
                             >
                               + Stock In
                             </button>
                             <button
                               type="button"
-                              onClick={() => {
-                                setAdjustItem(m);
-                                setAdjustQty('');
-                                setAdjustNotes('');
-                              }}
-                              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 transition"
+                              onClick={() => setAdjustItem(mat)}
+                              className="rounded-lg bg-slate-800 px-2 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600"
+                              title="Department Issue or Spoilage"
                             >
                               - Issue
                             </button>
                             <button
                               type="button"
-                              onClick={() => openEditModal(m)}
-                              className="rounded-lg bg-slate-100 p-1 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 transition"
-                              title="Edit SKU"
+                              onClick={() => openEditModal(mat)}
+                              className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                              title="Edit item properties"
                             >
                               ✏️
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleDelete(m)}
-                              className="rounded-lg bg-rose-50 p-1 text-rose-600 hover:bg-rose-100 dark:bg-rose-950/60 dark:text-rose-400 transition"
+                              onClick={() => handleDelete(mat)}
+                              className="rounded-lg border border-rose-200 px-1.5 py-1 text-[11px] font-bold text-rose-600 hover:bg-rose-50 dark:border-rose-900/60 dark:text-rose-400 dark:hover:bg-rose-950/30"
                               title="Delete SKU"
                             >
                               🗑️
@@ -595,8 +609,8 @@ export function InventoryClient({
                   })}
                   {filtered.length === 0 && (
                     <tr>
-                      <td colSpan={9} className="py-12 text-center text-xs text-slate-500">
-                        No store inventory items match your search.
+                      <td colSpan={8} className="py-12 text-center text-xs text-slate-500">
+                        No materials found matching your search.
                       </td>
                     </tr>
                   )}
@@ -610,7 +624,7 @@ export function InventoryClient({
       {/* TAB 2: GOODS RECEIPTS & STOCK MOVEMENTS AUDIT TRAIL */}
       {activeTab === 'movements' && (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xs dark:border-slate-800 dark:bg-slate-900">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
@@ -692,6 +706,98 @@ export function InventoryClient({
         </div>
       )}
 
+      {/* TAB 3: DISH RECIPE BOM & KITCHEN DEPLETION */}
+      {activeTab === 'recipes' && (
+        <div className="space-y-4">
+          <div className="rounded-2xl border border-indigo-200 bg-indigo-50/50 p-4 text-xs text-indigo-950 dark:border-indigo-900/50 dark:bg-indigo-950/20 dark:text-indigo-200 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <span className="text-xl">👨‍🍳</span>
+              <div>
+                <p className="font-bold">Automated Kitchen Inventory Depletion Active</p>
+                <p className="text-[11px] opacity-80">
+                  Every time restaurant waitstaff or room service punches a KOT, the linked raw materials are automatically deducted from the Store Inventory and logged in the Movements Audit Trail.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsRecipeModalOpen(true)}
+              className="rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white hover:bg-indigo-700 shadow-sm"
+            >
+              + Link Recipe Ingredient (BOM)
+            </button>
+          </div>
+
+          <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden dark:border-slate-800 dark:bg-slate-900">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+                  <tr>
+                    <th className="px-4 py-3">Menu Dish Item</th>
+                    <th className="px-4 py-3">Category</th>
+                    <th className="px-4 py-3 text-center">Linked Ingredients</th>
+                    <th className="px-4 py-3 text-right">Theoretical Raw Cost</th>
+                    <th className="px-4 py-3 text-right">Selling Price</th>
+                    <th className="px-4 py-3 text-right">Gross Food Margin</th>
+                    <th className="px-4 py-3 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {recipes.map((r) => (
+                    <tr key={r.menuItemId} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
+                      <td className="px-4 py-3 font-bold text-slate-900 dark:text-white">
+                        {r.itemName}
+                      </td>
+                      <td className="px-4 py-3 text-slate-500">
+                        {r.categoryName || 'General'}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="font-mono font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 px-2 py-0.5 rounded-full text-[11px]">
+                          {r.ingredientsCount} raw items
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono font-bold text-slate-700 dark:text-slate-300">
+                        ₹{r.theoreticalCost.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">
+                        ₹{r.sellingPrice.toFixed(2)}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${
+                          r.grossMarginPercent >= 65 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
+                          r.grossMarginPercent >= 45 ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                        }`}>
+                          {r.grossMarginPercent}%
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRecipeDishId(r.menuItemId);
+                            setIsRecipeModalOpen(true);
+                          }}
+                          className="rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1 text-[11px] font-bold text-slate-700 dark:text-slate-300"
+                        >
+                          + Add Ingredient
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {recipes.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-xs text-slate-500">
+                        No restaurant dishes mapped yet. Click "+ Link Recipe Ingredient" to link menu items to store SKUs.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Add Item Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
@@ -710,124 +816,114 @@ export function InventoryClient({
             </div>
 
             {error && (
-              <div className="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs font-semibold text-rose-800">
+              <div className="mt-3 rounded-xl bg-rose-50 p-3 text-xs font-semibold text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
                 ⚠️ {error}
               </div>
             )}
 
-            <form onSubmit={handleCreate} className="mt-4 space-y-4">
+            <form onSubmit={handleAdd} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Item Name *
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Item / SKU Name *
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="e.g. Basmati Biryani Rice, Amul Butter, Fresh Paneer"
+                  placeholder="e.g. Basmati Rice, Fresh Paneer, Amul Butter, Dental Kit"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-hidden dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Category *
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Store Category *
                   </label>
                   <CustomDropdown
                     value={category}
                     onChange={setCategory}
-                    options={categorySelectOptions}
+                    options={categories.map((c) => ({ value: c.name, label: `${c.icon} ${c.name}` }))}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Unit of Measure *
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Unit of Measurement *
                   </label>
-                  <CustomDropdown
-                    value={unit}
-                    onChange={setUnit}
-                    options={UNIT_OPTIONS}
+                  <CustomDropdown value={unit} onChange={setUnit} options={UNIT_OPTIONS} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Initial Stock *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={currentStock}
+                    onChange={(e) => setCurrentStock(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Min Alert *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={minimumAlertStock}
+                    onChange={(e) => setMinimumAlertStock(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Cost/Unit (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={costPerUnit}
+                    onChange={(e) => setCostPerUnit(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Storage Location
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Storage Location / Shelf
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Main Dry Store, Chiller, Bar Cellar"
+                    placeholder="e.g. Dry Store Rack A, Walk-In Chiller"
                     value={storageLocation}
                     onChange={(e) => setStorageLocation(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Default Supplier
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Preferred Supplier / Vendor
                   </label>
                   <input
                     type="text"
-                    list="inventory-vendor-list"
-                    placeholder="e.g. Metro Cash & Carry"
+                    placeholder="e.g. Metro Cash & Carry, Amrit Dairy"
                     value={defaultVendorName}
                     onChange={(e) => setDefaultVendorName(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  />
-                  <datalist id="inventory-vendor-list">
-                    {vendors.map((v) => (
-                      <option key={v.id} value={v.name} />
-                    ))}
-                  </datalist>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Initial Stock ({unit})
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={currentStock}
-                    onChange={(e) => setCurrentStock(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Min Alert Stock
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={minimumAlertStock}
-                    onChange={(e) => setMinimumAlertStock(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Cost / Unit (₹)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={costPerUnit}
-                    onChange={(e) => setCostPerUnit(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
               </div>
@@ -845,7 +941,7 @@ export function InventoryClient({
                   disabled={loading}
                   className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 disabled:opacity-50"
                 >
-                  {loading ? 'Adding…' : 'Add to Inventory'}
+                  {loading ? 'Adding…' : '+ Add SKU'}
                 </button>
               </div>
             </form>
@@ -853,7 +949,93 @@ export function InventoryClient({
         </div>
       )}
 
-      {/* Stock In / Restock Modal (GRN) */}
+      {/* Recipe Link Modal */}
+      {isRecipeModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
+              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>🥗</span> Link Recipe Ingredient BOM
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsRecipeModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleLinkRecipe} className="mt-4 space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Select Restaurant Menu Dish *
+                </label>
+                <CustomDropdown
+                  value={recipeDishId}
+                  onChange={setRecipeDishId}
+                  placeholder="Select a menu item…"
+                  options={menuCategories.flatMap((c) =>
+                    (c.items || []).map((i) => ({
+                      value: i.id,
+                      label: `${i.name} (₹${i.price})`,
+                    }))
+                  )}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Select Store Raw Material SKU *
+                </label>
+                <CustomDropdown
+                  value={recipeMaterialId}
+                  onChange={setRecipeMaterialId}
+                  placeholder="Select a raw material SKU…"
+                  options={materials.map((m) => ({
+                    value: m.id,
+                    label: `${m.name} (${m.unit} @ ₹${m.costPerUnit})`,
+                  }))}
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Portion Quantity Required *
+                </label>
+                <input
+                  type="number"
+                  step="0.001"
+                  required
+                  value={recipeQty}
+                  onChange={(e) => setRecipeQty(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  placeholder="e.g. 0.25 (250g) or 0.1 (100ml)"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setIsRecipeModalOpen(false)}
+                  className="rounded-xl px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="rounded-xl bg-indigo-600 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-indigo-700 disabled:opacity-50"
+                >
+                  {loading ? 'Linking…' : 'Save Recipe Link'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Stock In / Goods Receipt Note (GRN) Modal */}
       {restockItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
@@ -870,90 +1052,68 @@ export function InventoryClient({
               </button>
             </div>
 
-            <div className="mt-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 border border-slate-200/60 dark:border-slate-700 text-xs">
-              <p className="font-bold text-slate-900 dark:text-white">{restockItem.name}</p>
-              <p className="text-slate-500 mt-0.5">
-                Current Stock: <strong>{restockItem.currentStock} {restockItem.unit}</strong> | Current Cost: ₹{restockItem.costPerUnit}/{restockItem.unit}
+            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200/60 dark:border-slate-800">
+              <p className="font-bold text-xs text-slate-900 dark:text-white">{restockItem.name}</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Current Stock: <span className="font-bold">{restockItem.currentStock} {restockItem.unit}</span> | Current Cost: ₹{restockItem.costPerUnit}/{restockItem.unit}
               </p>
             </div>
 
             <form onSubmit={handleRestock} className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
                     Quantity Received ({restockItem.unit}) *
                   </label>
                   <input
                     type="number"
-                    min="0.01"
                     step="0.01"
                     required
                     placeholder="e.g. 25"
                     value={restockQty}
                     onChange={(e) => setRestockQty(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
                     Purchase Rate (₹/{restockItem.unit})
                   </label>
                   <input
                     type="number"
-                    min="0"
                     step="0.01"
-                    placeholder="Leave blank to keep current"
+                    placeholder={String(restockItem.costPerUnit)}
                     value={restockUnitCost}
                     onChange={(e) => setRestockUnitCost(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Supplier / Vendor
-                  </label>
-                  <input
-                    type="text"
-                    list="grn-vendor-list"
-                    placeholder="e.g. Metro Cash & Carry"
-                    value={restockVendor}
-                    onChange={(e) => setRestockVendor(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  />
-                  <datalist id="grn-vendor-list">
-                    {vendors.map((v) => (
-                      <option key={v.id} value={v.name} />
-                    ))}
-                  </datalist>
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Vendor Invoice / Bill #
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. INV-2026-948"
-                    value={restockInvoiceRef}
-                    onChange={(e) => setRestockInvoiceRef(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Notes / GRN Remarks (Optional)
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Vendor Bill / Supplier Note
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Morning fresh dairy delivery batch 04"
+                  placeholder="e.g. Metro Cash & Carry Invoice #88124"
+                  value={restockInvoiceRef}
+                  onChange={(e) => setRestockInvoiceRef(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Receiving Notes (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Fresh morning delivery, temperature verified"
                   value={restockNotes}
                   onChange={(e) => setRestockNotes(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 />
               </div>
 
@@ -968,9 +1128,9 @@ export function InventoryClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 disabled:opacity-50"
+                  className="rounded-xl bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-emerald-700 disabled:opacity-50"
                 >
-                  {loading ? 'Receiving…' : 'Record GRN Stock In'}
+                  {loading ? 'Recording…' : 'Record GRN Stock In'}
                 </button>
               </div>
             </form>
@@ -978,13 +1138,13 @@ export function InventoryClient({
         </div>
       )}
 
-      {/* Stock Out / Department Issue / Wastage Modal */}
+      {/* Stock Out / Issue Modal */}
       {adjustItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>📤</span> Stock Issue / Wastage Deduction
+                <span>📤</span> Stock Out / Department Issue
               </h2>
               <button
                 type="button"
@@ -995,76 +1155,76 @@ export function InventoryClient({
               </button>
             </div>
 
-            <div className="mt-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 p-3 border border-slate-200/60 dark:border-slate-700 text-xs">
-              <p className="font-bold text-slate-900 dark:text-white">{adjustItem.name}</p>
-              <p className="text-slate-500 mt-0.5">
-                Current Stock: <strong className="text-slate-800 dark:text-slate-200">{adjustItem.currentStock} {adjustItem.unit}</strong> | Location: {adjustItem.storageLocation || 'Main Store'}
+            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200/60 dark:border-slate-800">
+              <p className="font-bold text-xs text-slate-900 dark:text-white">{adjustItem.name}</p>
+              <p className="text-[11px] text-slate-500 mt-0.5">
+                Available to Issue: <span className="font-bold text-slate-900 dark:text-white">{adjustItem.currentStock} {adjustItem.unit}</span>
               </p>
             </div>
 
             <form onSubmit={handleAdjust} className="mt-4 space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Quantity to Deduct ({adjustItem.unit}) *
-                  </label>
-                  <input
-                    type="number"
-                    min="0.01"
-                    max={adjustItem.currentStock}
-                    step="0.01"
-                    required
-                    placeholder={`Max ${adjustItem.currentStock}`}
-                    value={adjustQty}
-                    onChange={(e) => setAdjustQty(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Movement Type *
-                  </label>
-                  <CustomDropdown
-                    value={adjustType}
-                    onChange={(val) => setAdjustType(val as any)}
-                    options={[
-                      { value: 'CONSUMPTION', label: 'Department Issue (Use)' },
-                      { value: 'WASTAGE', label: 'Spoiled / Damaged' },
-                      { value: 'AUDIT_ADJUSTMENT', label: 'Physical Audit Variance' },
-                    ]}
-                  />
-                </div>
-              </div>
-
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  Receiving Department *
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Movement Purpose *
                 </label>
                 <CustomDropdown
-                  value={adjustDept}
-                  onChange={setAdjustDept}
+                  value={adjustType}
+                  onChange={(v) => setAdjustType(v as any)}
                   options={[
-                    { value: 'Main Kitchen', label: 'Main Kitchen' },
-                    { value: 'Banquet Kitchen', label: 'Banquet & Events Kitchen' },
-                    { value: 'Bar & Lounge', label: 'Bar & Beverage Counter' },
-                    { value: 'Housekeeping & Linen', label: 'Housekeeping & Floor Pantry' },
-                    { value: 'Room Service', label: 'Room Service' },
-                    { value: 'Front Desk / Lobby', label: 'Front Desk / Reception' },
+                    { value: 'CONSUMPTION', label: 'Department Consumption / Requisition' },
+                    { value: 'WASTAGE', label: 'Spoilage, Expired or Damaged' },
+                    { value: 'AUDIT_ADJUSTMENT', label: 'Physical Store Count Audit Variance' },
                   ]}
                 />
               </div>
 
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Quantity ({adjustItem.unit}) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    max={adjustItem.currentStock}
+                    placeholder={`Max ${adjustItem.currentStock}`}
+                    value={adjustQty}
+                    onChange={(e) => setAdjustQty(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  />
+                </div>
+
+                {adjustType === 'CONSUMPTION' && (
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Destination Dept *
+                    </label>
+                    <CustomDropdown
+                      value={adjustDept}
+                      onChange={setAdjustDept}
+                      options={[
+                        { value: 'Main Kitchen', label: 'Main Kitchen' },
+                        { value: 'Banquet Kitchen', label: 'Banquet Kitchen' },
+                        { value: 'Bar & Lounge', label: 'Bar & Lounge' },
+                        { value: 'Housekeeping', label: 'Housekeeping' },
+                        { value: 'Staff Welfare Mess', label: 'Staff Mess' },
+                      ]}
+                    />
+                  </div>
+                )}
+              </div>
+
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Notes / Chef Requisition # (Optional)
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Reason / Requisition Note
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. Issued for Dinner Buffet prep / Batch #12"
-                  value={adjustNotes}
-                  onChange={(e) => setAdjustNotes(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  placeholder="e.g. Daily dinner buffet preparation requisition"
+                  value={adjustReason}
+                  onChange={(e) => setAdjustReason(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 />
               </div>
 
@@ -1079,9 +1239,9 @@ export function InventoryClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 disabled:opacity-50"
+                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-rose-600 dark:hover:bg-rose-500 disabled:opacity-50"
                 >
-                  {loading ? 'Deducting…' : 'Record Issue / Deduct Stock'}
+                  {loading ? 'Deducting…' : 'Confirm Stock Deduction'}
                 </button>
               </div>
             </form>
@@ -1089,13 +1249,13 @@ export function InventoryClient({
         </div>
       )}
 
-      {/* Edit SKU Modal */}
+      {/* Edit Item Modal */}
       {editItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>✏️</span> Edit Store SKU: {editItem.name}
+                <span>✏️</span> Edit Store Item / SKU Details
               </h2>
               <button
                 type="button"
@@ -1108,94 +1268,90 @@ export function InventoryClient({
 
             <form onSubmit={handleEdit} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                  Item Name *
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Item / SKU Name *
                 </label>
                 <input
                   type="text"
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Category *
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Store Category *
                   </label>
                   <CustomDropdown
                     value={editCategory}
                     onChange={setEditCategory}
-                    options={categorySelectOptions}
+                    options={categories.map((c) => ({ value: c.name, label: `${c.icon} ${c.name}` }))}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    Unit of Measure *
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Unit *
                   </label>
-                  <CustomDropdown
-                    value={editUnit}
-                    onChange={setEditUnit}
-                    options={UNIT_OPTIONS}
+                  <CustomDropdown value={editUnit} onChange={setEditUnit} options={UNIT_OPTIONS} />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Min Alert Threshold *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={editMinAlert}
+                    onChange={(e) => setEditMinAlert(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Cost Per Unit (₹) *
+                  </label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    value={editCostPerUnit}
+                    onChange={(e) => setEditCostPerUnit(e.target.value)}
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
                     Storage Location
                   </label>
                   <input
                     type="text"
                     value={editStorageLoc}
                     onChange={(e) => setEditStorageLoc(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
                     Default Supplier
                   </label>
                   <input
                     type="text"
                     value={editVendor}
                     onChange={(e) => setEditVendor(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Min Alert Threshold ({editUnit})
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={editMinAlert}
-                    onChange={(e) => setEditMinAlert(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Cost / Unit (₹)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={editCostPerUnit}
-                    onChange={(e) => setEditCostPerUnit(e.target.value)}
-                    className="mt-1.5 w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-900 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
                   />
                 </div>
               </div>

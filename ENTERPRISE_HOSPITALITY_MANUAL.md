@@ -489,3 +489,24 @@ To eliminate operational confusion and cognitive overload during rush hours, Aur
    - Pending arrivals and departures scheduled for today.
    - Outstanding folio balances and assigned room key statuses.
 5. Front desk can operate seamlessly on paper or tablet until power/network is restored.
+
+### SOP-07: Mobile Housekeeping Turnaround, Minibar Billing, and Maintenance Ticketing
+1. Attendants open [`/housekeeping`](http://localhost:3000/housekeeping) on their smartphone.
+2. Select your floor (e.g. Floor 1, Floor 2) or view the **"Needs Clean / Attention Queue"**.
+3. **1-Tap Room Ready**: Once a room is serviced, tap **"✨ Mark Clean & Ready"**. The room status instantly turns green (`available`) and Front Desk can check in new arrivals immediately.
+4. **Report Maintenance Issue**: Tap **"⚠️ Report Issue"**, enter the attendant's name and problem description (e.g., *AC dripping water*, *Geyser switch faulty*). The room is immediately placed in `maintenance` status and logged into the audit trail.
+5. **In-Room Minibar Billing**: For occupied rooms or upon guest departure, tap **"🍾 Minibar Bill"**, select the consumed snack or beverage from the catalog, specify quantity, and submit. The charge, along with statutory GST, is atomically posted to the guest's folio.
+
+### SOP-08: Recipe Bill of Materials (BOM), Live Food Costing, and Kitchen Depletion
+1. Open [`/inventory`](http://localhost:3000/inventory) and navigate to the **"Dish Recipe BOM & Kitchen Depletion"** tab (or via [`/settings?tab=recipes`](http://localhost:3000/settings?tab=recipes)).
+2. Click **"Configure Dish Recipe"**, select a menu item (e.g., *Butter Chicken*), and add raw material ingredients with exact recipe quantities (e.g., *0.3kg Chicken, 0.05kg Butter, 0.15kg Tomato Gravy*).
+3. The system automatically computes the total raw ingredient cost and live Gross Profit Margin %.
+4. When a dining KOT is punched in [`/restaurant`](http://localhost:3000/restaurant), the corresponding ingredient quantities are automatically deducted from store inventory with a `CONSUMPTION` movement record.
+
+### SOP-09: Real-time Double-Entry General Ledger & Internal Financial Statements
+1. Open [`/income`](http://localhost:3000/income) and click the **"Double-Entry General Ledger"** tab.
+2. Review the live **Trial Balance** to verify that Total Debits equals Total Credits.
+3. Review the **Certified Profit & Loss Statement** to audit Operating Revenues, Direct Costs, Petty Cash Disbursements, and Net Profit Margin.
+4. Review the **Balance Sheet** verifying the accounting equation ($\text{Assets} = \text{Liabilities} + \text{Equity}$).
+5. Customize accounts or add new GL heads at [`/settings?tab=accounting`](http://localhost:3000/settings?tab=accounting). Click **"🖨️ Print Auditor P&L Board Pack"** for immediate CA / Board of Directors review with zero reliance on external Tally exports.
+

@@ -8,7 +8,11 @@ export default async function IncomePage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const [me, sp] = await Promise.all([getMe(), searchParams]);
+  const [me, sp, financialStatements] = await Promise.all([
+    getMe(),
+    searchParams,
+    api<any>('/hotel/accounting/financial-statements').catch(() => null),
+  ]);
 
   // Strict Role-Based Access Control: Strictly restricted to Property Owners
   if (me.role !== 'owner') {
@@ -69,6 +73,7 @@ export default async function IncomePage({
   return (
     <IncomeDashboardView
       initialData={initialData}
+      financialStatements={financialStatements}
       propertyName={me.property?.name ?? 'Grand Azure Hotel'}
       role={me.role}
     />

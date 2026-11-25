@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { formatMoney } from '@/lib/format';
 import { CustomDatePicker } from '@/components/date-picker';
@@ -8,16 +9,23 @@ import type { IncomeReportDto } from './types';
 
 export function IncomeDashboardView({
   initialData,
+  financialStatements,
   propertyName,
   role,
 }: {
   initialData: IncomeReportDto;
+  financialStatements?: {
+    trialBalance: { items: any[]; totalDebit: number; totalCredit: number; isBalanced: boolean };
+    profitAndLoss: { revenueItems: any[]; expenseItems: any[]; totalRevenue: number; totalExpenses: number; netProfitOrLoss: number; profitMarginPercent: number };
+    balanceSheet: { assetItems: any[]; liabilityItems: any[]; equityItems: any[]; totalAssets: number; totalLiabilities: number; totalEquity: number; isBalanced: boolean };
+  } | null;
   propertyName: string;
   role: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
+  const [activeTab, setActiveTab] = useState<'analytics' | 'general_ledger'>('analytics');
   const [activePeriod, setActivePeriod] = useState<string>(initialData.period || 'monthly');
   const [customStart, setCustomStart] = useState<string>(initialData.startDate);
   const [customEnd, setCustomEnd] = useState<string>(initialData.endDate);
@@ -105,8 +113,40 @@ export function IncomeDashboardView({
         </div>
       </div>
 
-      {/* 2. Interactive Period & Calendar Selection Bar */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:p-4 shadow-sm print:hidden">
+      {/* Primary Navigation: USALI Operational Analytics vs Double-Entry General Ledger */}
+      <div className="flex items-center gap-3 border-b border-slate-200 print:hidden">
+        <button
+          type="button"
+          onClick={() => setActiveTab('analytics')}
+          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${
+            activeTab === 'analytics'
+              ? 'border-purple-600 text-purple-900 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span>📈 USALI Yield &amp; Operational Revenue</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('general_ledger')}
+          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${
+            activeTab === 'general_ledger'
+              ? 'border-purple-600 text-purple-900 font-extrabold'
+              : 'border-transparent text-slate-500 hover:text-slate-800'
+          }`}
+        >
+          <span>⚖️ Double-Entry General Ledger, P&amp;L &amp; Balance Sheet</span>
+          <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold">
+            Live COA
+          </span>
+        </button>
+      </div>
+
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          {/* 2. Interactive Period & Calendar Selection Bar */}
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:p-4 shadow-sm print:hidden">
         <div className="flex flex-col gap-3.5 xl:flex-row xl:items-center xl:justify-between">
           {/* Quick Period Selector Tabs */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -1033,6 +1073,232 @@ export function IncomeDashboardView({
           </table>
         </div>
       </div>
+    </div>
+  )}
+
+  {/* DOUBLE-ENTRY GENERAL LEDGER & FINANCIAL STATEMENTS VIEW */}
+  {activeTab === 'general_ledger' && (
+    <div className="space-y-8">
+      {/* Overview Banner */}
+      <div className="rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-900 to-indigo-950 p-6 text-white shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <span className="rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 px-3 py-0.5 text-xs font-bold uppercase tracking-wider">
+            ✓ Double-Entry Standard General Ledger
+          </span>
+          <h2 className="text-xl font-bold mt-2 font-display">Financial Statements &amp; Audit Balance Sheets</h2>
+          <p className="text-xs text-slate-300 mt-1 max-w-2xl">
+            Live double-entry accounting ledger mapping cash registers, bank settlements, room revenues, and operating expenses. Direct internal P&amp;L and Balance Sheet with zero dependence on external accounting exports.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <Link
+            href="/settings?tab=accounting"
+            className="rounded-xl border border-white/20 bg-white/10 px-4 py-2 text-xs font-bold text-white hover:bg-white/20 transition-all"
+          >
+            ⚙️ Manage Chart of Accounts
+          </Link>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 text-xs font-bold shadow-md transition-all"
+          >
+            🖨️ Print Auditor P&amp;L Board Pack
+          </button>
+        </div>
+      </div>
+
+      {financialStatements ? (
+        <div className="space-y-8">
+          {/* 1. PROFIT & LOSS STATEMENT (P&L) */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Profit &amp; Loss Statement (Income Statement)</h3>
+                <p className="text-xs text-slate-500">Operating revenues minus direct kitchen costs and operating expenses</p>
+              </div>
+              <div className="text-right">
+                <span className="text-xs text-slate-400">Net Operating Profit</span>
+                <p className={`text-xl font-mono font-black ${financialStatements.profitAndLoss.netProfitOrLoss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                  {formatMoney(financialStatements.profitAndLoss.netProfitOrLoss, currency)}
+                </p>
+                <span className="text-[11px] font-bold text-slate-500">
+                  {financialStatements.profitAndLoss.profitMarginPercent.toFixed(1)}% Operating Margin
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Revenue Column */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 font-bold text-xs text-slate-900">
+                  <span>Operating Revenues</span>
+                  <span className="font-mono text-emerald-700">{formatMoney(financialStatements.profitAndLoss.totalRevenue, currency)}</span>
+                </div>
+                <div className="divide-y divide-slate-100 text-xs">
+                  {financialStatements.profitAndLoss.revenueItems.map((r: any) => (
+                    <div key={r.id} className="py-2.5 flex justify-between items-center text-slate-700">
+                      <div>
+                        <span className="font-mono text-[11px] text-slate-400 mr-2">{r.accountCode}</span>
+                        <span>{r.accountName}</span>
+                      </div>
+                      <span className="font-mono font-semibold">{formatMoney(r.currentBalance, currency)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Expense Column */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 font-bold text-xs text-slate-900">
+                  <span>Operating Expenses</span>
+                  <span className="font-mono text-rose-700">{formatMoney(financialStatements.profitAndLoss.totalExpenses, currency)}</span>
+                </div>
+                <div className="divide-y divide-slate-100 text-xs">
+                  {financialStatements.profitAndLoss.expenseItems.map((e: any) => (
+                    <div key={e.id} className="py-2.5 flex justify-between items-center text-slate-700">
+                      <div>
+                        <span className="font-mono text-[11px] text-slate-400 mr-2">{e.accountCode}</span>
+                        <span>{e.accountName}</span>
+                      </div>
+                      <span className="font-mono font-semibold">{formatMoney(e.currentBalance, currency)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 2. CERTIFIED BALANCE SHEET */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-slate-900">Certified Balance Sheet</h3>
+                <p className="text-xs text-slate-500">Financial position: Total Assets = Total Liabilities + Equity</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                  financialStatements.balanceSheet.isBalanced
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : 'bg-rose-100 text-rose-800 border border-rose-300'
+                }`}>
+                  {financialStatements.balanceSheet.isBalanced ? '✓ Equation Balanced (A = L + E)' : '⚠️ Balance Discrepancy'}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Assets Column */}
+              <div className="space-y-3">
+                <div className="flex justify-between items-center bg-blue-50/60 p-3 rounded-xl border border-blue-100 font-bold text-xs text-blue-950">
+                  <span>Total Current &amp; Fixed Assets</span>
+                  <span className="font-mono">{formatMoney(financialStatements.balanceSheet.totalAssets, currency)}</span>
+                </div>
+                <div className="divide-y divide-slate-100 text-xs">
+                  {financialStatements.balanceSheet.assetItems.map((a: any) => (
+                    <div key={a.id} className="py-2.5 flex justify-between items-center text-slate-700">
+                      <div>
+                        <span className="font-mono text-[11px] text-slate-400 mr-2">{a.accountCode}</span>
+                        <span>{a.accountName}</span>
+                        {a.subCategory && <span className="text-[10px] text-slate-400 ml-1.5">({a.subCategory})</span>}
+                      </div>
+                      <span className="font-mono font-semibold">{formatMoney(a.currentBalance, currency)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Liabilities & Equity Column */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center bg-amber-50/60 p-3 rounded-xl border border-amber-100 font-bold text-xs text-amber-950">
+                    <span>Liabilities (Duties, Taxes &amp; Payables)</span>
+                    <span className="font-mono">{formatMoney(financialStatements.balanceSheet.totalLiabilities, currency)}</span>
+                  </div>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    {financialStatements.balanceSheet.liabilityItems.map((l: any) => (
+                      <div key={l.id} className="py-2 flex justify-between items-center text-slate-700">
+                        <div>
+                          <span className="font-mono text-[11px] text-slate-400 mr-2">{l.accountCode}</span>
+                          <span>{l.accountName}</span>
+                        </div>
+                        <span className="font-mono font-semibold">{formatMoney(l.currentBalance, currency)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2 border-t border-slate-100">
+                  <div className="flex justify-between items-center bg-purple-50/60 p-3 rounded-xl border border-purple-100 font-bold text-xs text-purple-950">
+                    <span>Equity &amp; Retained Earnings</span>
+                    <span className="font-mono">{formatMoney(financialStatements.balanceSheet.totalEquity, currency)}</span>
+                  </div>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    {financialStatements.balanceSheet.equityItems.map((eq: any) => (
+                      <div key={eq.id} className="py-2 flex justify-between items-center text-slate-700">
+                        <div>
+                          <span className="font-mono text-[11px] text-slate-400 mr-2">{eq.accountCode}</span>
+                          <span>{eq.accountName}</span>
+                        </div>
+                        <span className="font-mono font-semibold">{formatMoney(eq.currentBalance, currency)}</span>
+                      </div>
+                    ))}
+                    <div className="py-2 flex justify-between items-center text-emerald-800 font-semibold">
+                      <span>+ Current Period Operating Net Profit</span>
+                      <span className="font-mono">{formatMoney(financialStatements.profitAndLoss.netProfitOrLoss, currency)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3. TRIAL BALANCE */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-slate-900">Trial Balance Verification Ledger</h3>
+                <p className="text-xs text-slate-500">Every debit and credit line mathematically verified</p>
+              </div>
+              <div className="font-mono text-xs font-bold text-slate-700 flex items-center gap-4">
+                <span>Total Debit: <strong>{formatMoney(financialStatements.trialBalance.totalDebit, currency)}</strong></span>
+                <span>Total Credit: <strong>{formatMoney(financialStatements.trialBalance.totalCredit, currency)}</strong></span>
+              </div>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="border-b border-slate-100 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
+                  <tr>
+                    <th className="px-3 py-2">Code</th>
+                    <th className="px-3 py-2">Account Name</th>
+                    <th className="px-3 py-2">Category Type</th>
+                    <th className="px-3 py-2 text-right">Debit Balance</th>
+                    <th className="px-3 py-2 text-right">Credit Balance</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {financialStatements.trialBalance.items.map((tb: any) => (
+                    <tr key={tb.accountCode} className="hover:bg-slate-50">
+                      <td className="px-3 py-2 font-mono font-bold text-slate-800">{tb.accountCode}</td>
+                      <td className="px-3 py-2 font-medium text-slate-900">{tb.accountName}</td>
+                      <td className="px-3 py-2 text-slate-500">{tb.accountType}</td>
+                      <td className="px-3 py-2 text-right font-mono text-slate-700">{tb.debit > 0 ? formatMoney(tb.debit, currency) : '—'}</td>
+                      <td className="px-3 py-2 text-right font-mono text-slate-700">{tb.credit > 0 ? formatMoney(tb.credit, currency) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-500">
+          Double-entry ledger not initialized. Go to Settings &gt; Chart of Accounts to verify configuration.
+        </div>
+      )}
+    </div>
+  )}
     </div>
   );
 }

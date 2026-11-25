@@ -227,3 +227,24 @@ The SaaS revenue architecture tracks recurring income through:
 4. Serial reader responds with card UID (e.g. `04:A2:8F:12:5B:60:80`).
 5. ERP records UID in `room_keys` and marks key as `issued_to_guest`.
 6. Digital QR Mobile Pass is simultaneously generated for contactless keyless entry via smartphone cameras.
+
+---
+
+## 10. Advanced Operations & Enterprise Hospitality Engines
+
+### A. Kitchen BOM Depletion & Live Food Cost Margins
+- **Recipe Bill of Materials (`menu_item_recipes`)**: Maps restaurant dishes to store raw materials with precise unit quantities (e.g. 1x Paneer Butter Masala $\rightarrow$ 0.25kg Paneer, 0.15kg Tomato Puree, 0.05kg Butter).
+- **Automated KOT Depletion**: When kitchen captains punch a KOT order, raw material stock is automatically depleted from store inventory via transactional `CONSUMPTION` movements, preventing stock pilferage.
+- **Real-Time Food Costing**: Automatically calculates raw ingredient cost vs dish selling price to provide chefs and owners with live gross margin percentages in `/inventory` and `/settings?tab=recipes`.
+
+### B. Double-Entry General Ledger & Real-Time Financial Statements
+- **Chart of Accounts (`chart_of_accounts`)**: 21 pre-seeded accounts spanning ASSET, LIABILITY, EQUITY, REVENUE, and EXPENSE (Cash Drawers, Bank Accounts, Room Revenue, F&B Sales, Direct Costs, Petty Cash).
+- **Automated & Manual Journal Entries (`journal_entries`, `journal_lines`)**: Transactional double-entry balancing where $\sum \text{Debits} = \sum \text{Credits}$.
+- **Zero-Dependency Financial Statements**: Real-time generation of Trial Balance, Certified Profit & Loss Statement (Operating Revenue, Direct Expenses, Net Profit Margin), and Balance Sheet directly inside `/income` and `/settings?tab=accounting` with zero reliance on external Tally XML export.
+
+### C. Mobile Housekeeping Attendant Hub & Minibar Billing
+- **Mobile-First Attendant Screen (`/housekeeping`)**: Touch-friendly interface tailored for attendants on smartphones walking floor corridors.
+- **1-Tap Quick Actions**: Instant status turnaround (`cleaning` $\rightarrow$ `available`), automated room release for check-in.
+- **In-Room Minibar Billing (`/rooms/minibar/post-charge`)**: Attendants record consumed minibar items on mobile, posting charges directly to the in-house guest folio.
+- **Instant Maintenance Defect Ticketing**: Attendants report broken fixtures (e.g. leaking AC, faulty geyser) $\rightarrow$ room status switches to `maintenance` and logs into the immutable audit trail.
+

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -239,7 +239,7 @@ export function GuideView({
   const roleMeta: Record<string, { label: string; badgeCls: string; icon: string; desc: string }> = {
     founder: {
       label: 'SaaS Platform Founder & Staff',
-      badgeCls: 'bg-slate-900 text-white border-slate-700',
+      badgeCls: 'bg-primary text-primary-foreground border-slate-700',
       icon: '⚡',
       desc: 'Master software administrator governing platform subscription MRR/ARR, tenant lifecycles, and cloud operations.',
     },
@@ -275,10 +275,10 @@ export function GuideView({
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="border-b border-slate-200/80 pb-6">
+      <div className="border-b border-border/80 pb-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
-            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 shadow-2xs">
+            <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold uppercase tracking-wider text-foreground/90 shadow-2xs">
               Standard Operating Procedures (SOP)
             </span>
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -298,24 +298,24 @@ export function GuideView({
           </div>
         </div>
 
-        <h1 className="mt-3 font-display text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+        <h1 className="mt-3 font-display text-3xl font-black tracking-tight text-foreground sm:text-4xl">
           Hospitality ERP Master Guide &amp; SOP Handbook
         </h1>
-        <p className="mt-2 text-sm sm:text-base font-normal text-slate-600 max-w-4xl leading-relaxed">
+        <p className="mt-2 text-sm sm:text-base font-normal text-muted-foreground max-w-4xl leading-relaxed">
           Official operational procedures and module permissions tailored to your authenticated access level. Use this manual to execute daily workflows, train hotel staff, and uphold statutory compliance.
         </p>
       </div>
 
       {/* Role-Based Access Awareness Card */}
-      <div className="rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <span className="text-lg">{currentMeta.icon}</span>
-            <h3 className="text-base font-black text-slate-950 font-display">
+            <h3 className="text-base font-black text-foreground font-display">
               Logged in as {userName} ({currentMeta.label})
             </h3>
           </div>
-          <p className="text-xs sm:text-sm text-slate-600 max-w-2xl">
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
             {currentMeta.desc} The handbook below highlights procedures authorized for your role while allowing you to inspect subordinate staff workflows for cross-departmental coordination.
           </p>
         </div>
@@ -324,7 +324,7 @@ export function GuideView({
           <button
             type="button"
             onClick={() => setActiveTab(currentRoleKey)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 text-white px-4 py-2 text-xs font-bold shadow-xs hover:bg-slate-800 transition-all cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-primary text-primary-foreground px-4 py-2 text-xs font-bold shadow-xs hover:opacity-90 transition-all cursor-pointer"
           >
             <span>Jump to My Role SOP ({currentMeta.label.split(' ')[0]})</span>
             <span>➔</span>
@@ -333,14 +333,14 @@ export function GuideView({
       </div>
 
       {/* Modern Segmented Navigation Tabs */}
-      <div className="flex flex-wrap p-1 bg-slate-100 rounded-2xl border border-slate-200/80 gap-1.5">
+      <div className="flex flex-wrap p-1 bg-slate-100 rounded-2xl border border-border/80 gap-1.5">
         <button
           type="button"
           onClick={() => setActiveTab('pages')}
           className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'pages'
-              ? 'bg-white text-slate-950 shadow-xs'
-              : 'text-slate-600 hover:text-slate-950'
+              ? 'bg-white text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           📖 Which Page is For What ({allPages.length} Modules)
@@ -351,8 +351,8 @@ export function GuideView({
           onClick={() => setActiveTab('matrix')}
           className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'matrix'
-              ? 'bg-white text-slate-950 shadow-xs'
-              : 'text-slate-600 hover:text-slate-950'
+              ? 'bg-white text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           🔐 Role Permissions Matrix
@@ -364,8 +364,8 @@ export function GuideView({
             onClick={() => setActiveTab('founder')}
             className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'founder'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-700 hover:text-slate-950 font-black'
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'text-foreground/90 hover:text-foreground font-black'
             }`}
           >
             ⚡ SaaS Platform Founder SOP
@@ -378,7 +378,7 @@ export function GuideView({
           className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'owner'
               ? 'bg-amber-100 text-amber-950 shadow-xs border border-amber-300'
-              : 'text-slate-600 hover:text-slate-950'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           👑 Hotel Owner &amp; Director SOP
@@ -390,7 +390,7 @@ export function GuideView({
           className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'manager'
               ? 'bg-blue-100 text-blue-950 shadow-xs border border-blue-300'
-              : 'text-slate-600 hover:text-slate-950'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           👔 General Manager (GM) SOP
@@ -402,7 +402,7 @@ export function GuideView({
           className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'frontdesk'
               ? 'bg-emerald-100 text-emerald-950 shadow-xs border border-emerald-300'
-              : 'text-slate-600 hover:text-slate-950'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           🛎️ Front Desk &amp; Cashiering SOP
@@ -414,7 +414,7 @@ export function GuideView({
           className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'housekeeping'
               ? 'bg-teal-100 text-teal-950 shadow-xs border border-teal-300'
-              : 'text-slate-600 hover:text-slate-950'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           🧹 Housekeeping &amp; Turndown SOP
@@ -427,7 +427,7 @@ export function GuideView({
       {activeTab === 'pages' && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <p className="text-sm font-medium text-slate-700">
+            <p className="text-sm font-medium text-foreground/90">
               Browse modules below or filter by access level to see which pages each staff member can operate:
             </p>
 
@@ -447,8 +447,8 @@ export function GuideView({
                   onClick={() => setPageRoleFilter(rf.key)}
                   className={`px-2.5 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                     pageRoleFilter === rf.key
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-white border border-border text-muted-foreground hover:bg-slate-50'
                   }`}
                 >
                   {rf.label}
@@ -472,15 +472,15 @@ export function GuideView({
                   rel={isExternalOrPublic ? 'noopener noreferrer' : undefined}
                   className={`group flex flex-col justify-between rounded-3xl border p-6 transition-all duration-200 ${
                     isAllowedForMe
-                      ? 'border-slate-200 bg-white shadow-xs hover:border-slate-950 hover:shadow-md'
-                      : 'border-slate-200/70 bg-slate-50/60 opacity-80'
+                      ? 'border-border bg-white shadow-xs hover:border-slate-950 hover:shadow-md'
+                      : 'border-border/70 bg-slate-50/60 opacity-80'
                   }`}
                 >
                   <div>
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-3xl">{p.icon}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-slate-700">
+                        <span className="rounded-lg bg-slate-100 px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-foreground/90">
                           {p.badge}
                         </span>
                         {isAllowedForMe ? (
@@ -488,27 +488,27 @@ export function GuideView({
                             ✓ Unlocked
                           </span>
                         ) : (
-                          <span className="rounded-lg bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600">
+                          <span className="rounded-lg bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-muted-foreground">
                             🔒 Higher Tier
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <h3 className="mt-4 font-display text-lg font-black text-slate-950 group-hover:text-indigo-900 transition-colors">
+                    <h3 className="mt-4 font-display text-lg font-black text-foreground group-hover:text-indigo-900 transition-colors">
                       {p.name}
                     </h3>
                     <p className="mt-0.5 text-xs font-mono text-indigo-700 font-bold">
                       {p.route.includes('[slug]') ? `/book/${tenantSlug || 'grand-azure'}` : p.route}
                     </p>
-                    <p className="mt-3 text-xs sm:text-sm text-slate-600 leading-relaxed">{p.desc}</p>
+                    <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
                   </div>
 
-                  <div className="mt-5 pt-4 border-t border-slate-100 space-y-2">
+                  <div className="mt-5 pt-4 border-t border-border space-y-2">
                     <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">
                       Key Capabilities:
                     </p>
-                    <ul className="text-xs text-slate-800 space-y-1">
+                    <ul className="text-xs text-foreground space-y-1">
                       {p.actions.map((act, i) => (
                         <li key={i} className="flex items-center gap-1.5">
                           <span className="text-emerald-600 font-black">✓</span>
@@ -529,31 +529,31 @@ export function GuideView({
       {/* ========================================================= */}
       {activeTab === 'matrix' && (
         <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-xs">
-            <h2 className="font-display text-xl sm:text-2xl font-black text-slate-950">
+          <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-xs">
+            <h2 className="font-display text-xl sm:text-2xl font-black text-foreground">
               Role-Based Access Control (RBAC) Authority Matrix
             </h2>
-            <p className="mt-1 text-sm text-slate-600 leading-relaxed font-normal">
+            <p className="mt-1 text-sm text-muted-foreground leading-relaxed font-normal">
               Every operation and route is enforced cryptographically at the PostgreSQL Row Level Security (RLS) layer and verified on the server via NestJS Guards.
             </p>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white overflow-hidden shadow-xs">
+          <div className="rounded-3xl border border-border bg-card overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm">
-                <thead className="bg-slate-50 border-b border-slate-200 font-black uppercase tracking-wider text-slate-700">
+                <thead className="bg-slate-50 border-b border-border font-black uppercase tracking-wider text-foreground/90">
                   <tr>
                     <th className="px-5 py-3.5">ERP Module / Operational Capability</th>
                     <th className="px-4 py-3.5 text-center">Housekeeping</th>
                     <th className="px-4 py-3.5 text-center">Front Desk</th>
                     <th className="px-4 py-3.5 text-center">General Manager</th>
                     <th className="px-4 py-3.5 text-center">Hotel Owner</th>
-                    <th className="px-4 py-3.5 text-center bg-slate-900 text-white">SaaS Founder</th>
+                    <th className="px-4 py-3.5 text-center bg-primary text-primary-foreground">SaaS Founder</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
+                <tbody className="divide-y divide-slate-100 font-medium text-foreground">
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Room Turnover &amp; Cleaning Statuses (`/housekeeping`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Room Turnover &amp; Cleaning Statuses (`/housekeeping`)</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
@@ -561,7 +561,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A (Platform)</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Live Rack &amp; Front Desk Arrivals (`/dashboard`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Live Rack &amp; Front Desk Arrivals (`/dashboard`)</td>
                     <td className="px-4 py-3 text-center text-slate-400">View Only</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
@@ -569,7 +569,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Gantt Tape Chart Drag-to-Select (`/tape-chart`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Gantt Tape Chart Drag-to-Select (`/tape-chart`)</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
@@ -577,7 +577,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Cashiering, Folios &amp; GST Invoicing (`/billing`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Cashiering, Folios &amp; GST Invoicing (`/billing`)</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
@@ -585,7 +585,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Dynamic Scan-to-Pay NPCI UPI QR &amp; WhatsApp Invoicing</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Dynamic Scan-to-Pay NPCI UPI QR &amp; WhatsApp Invoicing</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
@@ -613,7 +613,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A (Property Bank)</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Direct Guest Booking Engine (`/book/[slug]`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Direct Guest Booking Engine (`/book/[slug]`)</td>
                     <td className="px-4 py-3 text-center text-slate-500 font-semibold">View Only</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
@@ -621,7 +621,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-emerald-600 font-bold">Live Portal</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">BoI Form C Foreign Registration (`/compliance`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">BoI Form C Foreign Registration (`/compliance`)</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
@@ -629,15 +629,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">OTA Channel Manager &amp; Sync (`/channel-manager`)</td>
-                    <td className="px-4 py-3 text-center text-rose-500">Locked</td>
-                    <td className="px-4 py-3 text-center text-slate-400">View Only</td>
-                    <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
-                    <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
-                    <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
-                  </tr>
-                  <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Night Audit Rollover &amp; Manager KPIs (`/night-audit`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">OTA Channel Manager &amp; Sync (`/channel-manager`)</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-slate-400">View Only</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
@@ -645,7 +637,15 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Staff Hierarchy &amp; Shifts Management (`/staff`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Night Audit Rollover &amp; Manager KPIs (`/night-audit`)</td>
+                    <td className="px-4 py-3 text-center text-rose-500">Locked</td>
+                    <td className="px-4 py-3 text-center text-slate-400">View Only</td>
+                    <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
+                    <td className="px-4 py-3 text-center text-emerald-700 font-black">Full Access</td>
+                    <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
+                  </tr>
+                  <tr>
+                    <td className="px-5 py-3 font-bold text-foreground">Staff Hierarchy &amp; Shifts Management (`/staff`)</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-emerald-700 font-black">FD &amp; HK Only</td>
@@ -653,7 +653,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Owner Income &amp; P&amp;L Intelligence (`/income`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Owner Income &amp; P&amp;L Intelligence (`/income`)</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
@@ -661,7 +661,7 @@ export function GuideView({
                     <td className="px-4 py-3 text-center bg-slate-50 text-slate-400">N/A</td>
                   </tr>
                   <tr>
-                    <td className="px-5 py-3 font-bold text-slate-950">Multi-Hotel Portfolio Switcher (`/super-admin`)</td>
+                    <td className="px-5 py-3 font-bold text-foreground">Multi-Hotel Portfolio Switcher (`/super-admin`)</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
                     <td className="px-4 py-3 text-center text-rose-500">Locked</td>
@@ -703,51 +703,51 @@ export function GuideView({
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   Procedure 1: Monitoring Software Recurring Revenue (MRR &amp; ARR)
                 </h3>
                 <Link href="/platform-admin" className="text-xs font-bold text-indigo-600 hover:underline">
                   Open Founder HQ ➔
                 </Link>
               </div>
-              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <li>• Navigate to <strong className="text-slate-950">/platform-admin</strong>.</li>
-                <li>• Inspect top-level cards: <strong className="text-slate-950">Monthly Recurring Revenue (MRR)</strong> (sum of all active monthly client fees: Starter ₹1,999, Growth ₹5,999, Enterprise ₹19,999) and <strong className="text-slate-950">Annual Run-Rate (ARR)</strong>.</li>
-                <li>• Review <strong className="text-slate-950">Lifetime Platform Income</strong> which reconciles all historical Razorpay / bank invoices collected in the platform ledger.</li>
-                <li>• Monitor <strong className="text-slate-950">SaaS Net Churn %</strong> to measure retention across client hotel properties.</li>
+              <ul className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <li>• Navigate to <strong className="text-foreground">/platform-admin</strong>.</li>
+                <li>• Inspect top-level cards: <strong className="text-foreground">Monthly Recurring Revenue (MRR)</strong> (sum of all active monthly client fees: Starter ₹1,999, Growth ₹5,999, Enterprise ₹19,999) and <strong className="text-foreground">Annual Run-Rate (ARR)</strong>.</li>
+                <li>• Review <strong className="text-foreground">Lifetime Platform Income</strong> which reconciles all historical Razorpay / bank invoices collected in the platform ledger.</li>
+                <li>• Monitor <strong className="text-foreground">SaaS Net Churn %</strong> to measure retention across client hotel properties.</li>
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   Procedure 2: Client Subscription Management &amp; Tier Changes
                 </h3>
                 <Link href="/platform-admin" className="text-xs font-bold text-indigo-600 hover:underline">
                   Client Directory ➔
                 </Link>
               </div>
-              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+              <ul className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
                 <li>• In the Client Directory table, search by hotel organization name, code, or owner email.</li>
-                <li>• Use the <strong className="text-slate-950">Plan Switcher dropdown</strong> to upgrade a hotel (e.g. from Growth ₹5,999 to Enterprise ₹19,999) when their room volume or multi-property cluster expands.</li>
+                <li>• Use the <strong className="text-foreground">Plan Switcher dropdown</strong> to upgrade a hotel (e.g. from Growth ₹5,999 to Enterprise ₹19,999) when their room volume or multi-property cluster expands.</li>
                 <li>• If an invoice payment is past due or a client pauses operations, click <strong className="text-rose-700 font-bold">Suspend</strong> to lock operational writes while preserving their data.</li>
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   Procedure 3: Fresh-Start Clean Slate Onboarding for New Clients
                 </h3>
                 <Link href="/onboard" className="text-xs font-bold text-emerald-700 hover:underline">
                   Open Self-Service Onboarding ➔
                 </Link>
               </div>
-              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <li>• Direct prospective hoteliers to the public onboarding wizard at <strong className="text-slate-950">/onboard</strong>.</li>
-                <li>• Choose between <strong className="text-slate-950">Option A: Clean Blank Slate (0 Rooms)</strong> (starts with 0 dummy bookings and 0 dummy rooms for custom property configurations) or <strong className="text-slate-950">Option B: Quick Starter Inventory</strong>.</li>
+              <ul className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <li>• Direct prospective hoteliers to the public onboarding wizard at <strong className="text-foreground">/onboard</strong>.</li>
+                <li>• Choose between <strong className="text-foreground">Option A: Clean Blank Slate (0 Rooms)</strong> (starts with 0 dummy bookings and 0 dummy rooms for custom property configurations) or <strong className="text-foreground">Option B: Quick Starter Inventory</strong>.</li>
                 <li>• Onboarding automatically creates the PostgreSQL tenant, property context, initial subscription invoice, and logs the hotel owner into their dashboard immediately.</li>
               </ul>
             </div>
@@ -770,53 +770,53 @@ export function GuideView({
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   SOP 1: Confidential Hotel Income &amp; P&amp;L Analytics
                 </h3>
                 <Link href="/income" className="text-xs font-bold text-amber-900 hover:underline">
                   Open Owner Income ➔
                 </Link>
               </div>
-              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <p>• Navigate to <strong className="text-slate-950">/income</strong> (restricted strictly to Property Owners).</p>
-                <p>• Select time horizons: <strong className="text-slate-950">Daily, Weekly (7d), Monthly (30d), Quarterly (3m), 6 Months, 1 Year, Annual Financial Year (FY), or Custom Date Range</strong>.</p>
+              <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <p>• Navigate to <strong className="text-foreground">/income</strong> (restricted strictly to Property Owners).</p>
+                <p>• Select time horizons: <strong className="text-foreground">Daily, Weekly (7d), Monthly (30d), Quarterly (3m), 6 Months, 1 Year, Annual Financial Year (FY), or Custom Date Range</strong>.</p>
                 <p>• Audit USALI revenue departments: Rooms gross/net revenue vs Food &amp; Beverage (F&amp;B) vs Ancillary services (Spa/Laundry).</p>
-                <p>• Review hotel health KPIs: <strong className="text-slate-950">Average Daily Rate (ADR)</strong>, <strong className="text-slate-950">Revenue Per Available Room (RevPAR)</strong>, and Occupancy %.</p>
-                <p>• Click <strong className="text-slate-950">"Print Board Pack"</strong> to produce a formal formatted P&amp;L statement for your chartered accountant or investor review.</p>
+                <p>• Review hotel health KPIs: <strong className="text-foreground">Average Daily Rate (ADR)</strong>, <strong className="text-foreground">Revenue Per Available Room (RevPAR)</strong>, and Occupancy %.</p>
+                <p>• Click <strong className="text-foreground">"Print Board Pack"</strong> to produce a formal formatted P&amp;L statement for your chartered accountant or investor review.</p>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   SOP 2: Multi-Hotel Property Cluster Switching
                 </h3>
                 <Link href="/super-admin" className="text-xs font-bold text-amber-900 hover:underline">
                   Open Multi-Hotel Console ➔
                 </Link>
               </div>
-              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <p>• If you own multiple hotels (e.g. Vikram Singhania owning Heritage Haveli Jaipur and Lakeview Resort Udaipur), open <strong className="text-slate-950">/super-admin</strong>.</p>
-                <p>• Click <strong className="text-slate-950">"Switch to Hotel"</strong> on any property card.</p>
+              <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <p>• If you own multiple hotels (e.g. Vikram Singhania owning Heritage Haveli Jaipur and Lakeview Resort Udaipur), open <strong className="text-foreground">/super-admin</strong>.</p>
+                <p>• Click <strong className="text-foreground">"Switch to Hotel"</strong> on any property card.</p>
                 <p>• The entire ERP instantly switches to that hotel property with zero data contamination.</p>
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   SOP 3: Appointing Leadership &amp; Delegating Operational Roles
                 </h3>
                 <Link href="/staff" className="text-xs font-bold text-amber-900 hover:underline">
                   Open Staff Hierarchy ➔
                 </Link>
               </div>
-              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <p>• Open <strong className="text-slate-950">/staff</strong>.</p>
-                <p>• Appoint your <strong className="text-slate-950">General Manager (GM)</strong> who will direct day-to-day front desk and housekeeping teams.</p>
-                <p>• Owners retain supreme administrative authority to reset staff passwords, reassign roles, and configure property room rates at <strong className="text-slate-950">/rooms</strong>.</p>
+              <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <p>• Open <strong className="text-foreground">/staff</strong>.</p>
+                <p>• Appoint your <strong className="text-foreground">General Manager (GM)</strong> who will direct day-to-day front desk and housekeeping teams.</p>
+                <p>• Owners retain supreme administrative authority to reset staff passwords, reassign roles, and configure property room rates at <strong className="text-foreground">/rooms</strong>.</p>
               </div>
             </div>
 
@@ -826,7 +826,7 @@ export function GuideView({
                   <span className="rounded-full bg-amber-200 text-amber-950 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
                     Owner Exclusive
                   </span>
-                  <h3 className="font-display text-lg font-black text-slate-950">
+                  <h3 className="font-display text-lg font-black text-foreground">
                     SOP 4: Receiver UPI ID &amp; Bank Settlement VPA Configuration
                   </h3>
                 </div>
@@ -834,11 +834,11 @@ export function GuideView({
                   Open Billing &amp; UPI Settings ➔
                 </Link>
               </div>
-              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <p>• Open <strong className="text-slate-950">/billing</strong>. Notice the top banner showing the active receiving Virtual Payment Address (VPA) and registered merchant name.</p>
-                <p>• Click <strong className="text-slate-950">"Configure Receiving Account"</strong> to open the secure banking modal.</p>
+              <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <p>• Open <strong className="text-foreground">/billing</strong>. Notice the top banner showing the active receiving Virtual Payment Address (VPA) and registered merchant name.</p>
+                <p>• Click <strong className="text-foreground">"Configure Receiving Account"</strong> to open the secure banking modal.</p>
                 <p>• Enter your official hotel bank UPI ID (e.g. <code className="bg-white px-1.5 py-0.5 rounded border border-amber-200 text-amber-900 font-bold font-mono">tajhotels@icici</code> or <code className="bg-white px-1.5 py-0.5 rounded border border-amber-200 text-amber-900 font-bold font-mono">hotelier@okhdfcbank</code>) and registered trade merchant name.</p>
-                <p>• <strong className="text-amber-950 font-bold">Cryptographic Access Guard:</strong> Only users with the <strong className="text-slate-950">Owner</strong> role are permitted to execute this update. General Managers, Front Desk Receptionists, and Housekeeping staff have read-only visibility and receive a strict <code className="bg-rose-100 text-rose-800 px-1 py-0.5 rounded font-mono text-xs font-bold">403 Forbidden</code> error if attempting changes. This guarantees complete protection against unauthorized diversion of hotel cashiering and direct booking deposits.</p>
+                <p>• <strong className="text-amber-950 font-bold">Cryptographic Access Guard:</strong> Only users with the <strong className="text-foreground">Owner</strong> role are permitted to execute this update. General Managers, Front Desk Receptionists, and Housekeeping staff have read-only visibility and receive a strict <code className="bg-rose-100 text-rose-800 px-1 py-0.5 rounded font-mono text-xs font-bold">403 Forbidden</code> error if attempting changes. This guarantees complete protection against unauthorized diversion of hotel cashiering and direct booking deposits.</p>
                 <p>• Once saved, this VPA immediately updates the dynamic NPCI QR codes across cashiering folios and powers the public direct guest booking engine.</p>
               </div>
             </div>
@@ -861,49 +861,49 @@ export function GuideView({
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   GM SOP 1: Morning Briefing &amp; Live Room Rack Review
                 </h3>
                 <Link href="/dashboard" className="text-xs font-bold text-blue-800 hover:underline">
                   Open Today's Board ➔
                 </Link>
               </div>
-              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <li>• At 08:00 hrs, open <strong className="text-slate-950">/dashboard</strong> to inspect expected arrivals, departures, and current occupancy %.</li>
-                <li>• Verify floor turndown statuses with the Executive Housekeeper on <strong className="text-slate-950">/housekeeping</strong>.</li>
-                <li>• Inspect <strong className="text-slate-950">/tape-chart</strong> to spot vacant room gaps across the upcoming 7–14 days and coordinate with revenue staff.</li>
+              <ul className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <li>• At 08:00 hrs, open <strong className="text-foreground">/dashboard</strong> to inspect expected arrivals, departures, and current occupancy %.</li>
+                <li>• Verify floor turndown statuses with the Executive Housekeeper on <strong className="text-foreground">/housekeeping</strong>.</li>
+                <li>• Inspect <strong className="text-foreground">/tape-chart</strong> to spot vacant room gaps across the upcoming 7–14 days and coordinate with revenue staff.</li>
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   GM SOP 2: OTA Distribution &amp; Two-Way Channel Parity
                 </h3>
                 <Link href="/channel-manager" className="text-xs font-bold text-blue-800 hover:underline">
                   Open Channel Manager ➔
                 </Link>
               </div>
-              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <li>• Open <strong className="text-slate-950">/channel-manager</strong> to verify connection status for MakeMyTrip, Agoda, and Booking.com.</li>
+              <ul className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <li>• Open <strong className="text-foreground">/channel-manager</strong> to verify connection status for MakeMyTrip, Agoda, and Booking.com.</li>
                 <li>• Push real-time ARI (Availability, Rates &amp; Inventory) updates when room rates or minimum stay requirements change.</li>
                 <li>• Review channel sync logs to ensure zero overbooking or rate disparity.</li>
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   GM SOP 3: Night Audit Supervision &amp; Revenue Reconciliation
                 </h3>
                 <Link href="/night-audit" className="text-xs font-bold text-blue-800 hover:underline">
                   Open Night Audit ➔
                 </Link>
               </div>
-              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <li>• Supervise the 1-click Night Audit rollover at 23:59 hrs on <strong className="text-slate-950">/night-audit</strong>.</li>
+              <ul className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <li>• Supervise the 1-click Night Audit rollover at 23:59 hrs on <strong className="text-foreground">/night-audit</strong>.</li>
                 <li>• Review room rate postings, cash drawer balancing, and the Daily Manager Flash Report with ADR, RevPAR, and total revenue.</li>
               </ul>
             </div>
@@ -914,7 +914,7 @@ export function GuideView({
                   <span className="rounded-full bg-blue-100 text-blue-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
                     Direct Distribution
                   </span>
-                  <h3 className="font-display text-lg font-black text-slate-950">
+                  <h3 className="font-display text-lg font-black text-foreground">
                     GM SOP 4: Direct Guest Booking Engine &amp; 0% Commission Distribution
                   </h3>
                 </div>
@@ -922,10 +922,10 @@ export function GuideView({
                   View Public Booking Engine ➔
                 </Link>
               </div>
-              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+              <ul className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
                 <li>• Deploy your property's branded public direct booking link (<code className="bg-white px-1.5 py-0.5 rounded border border-blue-200 text-blue-900 font-mono text-xs font-bold">/book/{tenantSlug}</code>) on Google My Business, hotel official Instagram/WhatsApp, and marketing campaigns.</li>
                 <li>• <strong className="text-blue-950 font-bold">Zero Commission Advantage:</strong> Direct bookings retain 100% of room tariff, bypassing the 18% to 25% commissions extracted by Online Travel Agencies (OTAs).</li>
-                <li>• Incoming direct guest reservations instantly inject into the Front Desk Room Rack (<strong className="text-slate-950">/tape-chart</strong>) and reserve real inventory, eliminating double-booking risk automatically.</li>
+                <li>• Incoming direct guest reservations instantly inject into the Front Desk Room Rack (<strong className="text-foreground">/tape-chart</strong>) and reserve real inventory, eliminating double-booking risk automatically.</li>
                 <li>• Guests provide advance deposits directly to the hotel's verified UPI receiving VPA, securing immediate liquidity.</li>
               </ul>
             </div>
@@ -936,7 +936,7 @@ export function GuideView({
                   <span className="rounded-full bg-indigo-100 text-indigo-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
                     Hardware POS Fleet
                   </span>
-                  <h3 className="font-display text-lg font-black text-slate-950">
+                  <h3 className="font-display text-lg font-black text-foreground">
                     GM SOP 5: Hardware POS Machine Management &amp; Counter Allocation
                   </h3>
                 </div>
@@ -944,10 +944,10 @@ export function GuideView({
                   Manage POS Machines ➔
                 </Link>
               </div>
-              <ul className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <li>• On <strong className="text-slate-950">/billing</strong>, click <strong className="text-slate-950">"POS Machines"</strong> to review the connected hardware terminals across Front Desk, Concierge, and F&amp;B outlets.</li>
-                <li>• Connect standard Indian EDC terminals: <strong className="text-slate-950">Pine Labs Plutus</strong>, <strong className="text-slate-950">Paytm Smart POS</strong>, <strong className="text-slate-950">Razorpay POS (EzeTap)</strong>, <strong className="text-slate-950">Innoviti uniPAY</strong>, or <strong className="text-slate-950">Direct USB Serial Cable</strong>.</li>
-                <li>• Use the <strong className="text-slate-950">"Test Ping"</strong> button to verify network latency (typically 12–25ms) before high-volume check-in hours.</li>
+              <ul className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <li>• On <strong className="text-foreground">/billing</strong>, click <strong className="text-foreground">"POS Machines"</strong> to review the connected hardware terminals across Front Desk, Concierge, and F&amp;B outlets.</li>
+                <li>• Connect standard Indian EDC terminals: <strong className="text-foreground">Pine Labs Plutus</strong>, <strong className="text-foreground">Paytm Smart POS</strong>, <strong className="text-foreground">Razorpay POS (EzeTap)</strong>, <strong className="text-foreground">Innoviti uniPAY</strong>, or <strong className="text-foreground">Direct USB Serial Cable</strong>.</li>
+                <li>• Use the <strong className="text-foreground">"Test Ping"</strong> button to verify network latency (typically 12–25ms) before high-volume check-in hours.</li>
                 <li>• Set default POS machines for specific workstation counters to streamline one-click cashier dispatch.</li>
               </ul>
             </div>
@@ -975,17 +975,17 @@ export function GuideView({
               <div className="absolute -left-10 sm:-left-12 top-0 grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-xs font-bold text-white shadow-xs">
                 1
               </div>
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-2">
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-display text-base font-bold text-slate-950">
+                  <h3 className="font-display text-base font-bold text-foreground">
                     Interactive Drag-to-Select Booking on Tape Chart
                   </h3>
                   <Link href="/tape-chart" className="text-xs font-bold text-emerald-700 hover:underline">
                     Open Tape Chart ➔
                   </Link>
                 </div>
-                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
-                  <p>• When a guest calls or arrives for a walk-in, navigate to <strong className="text-slate-950">/tape-chart</strong>.</p>
+                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-1.5">
+                  <p>• When a guest calls or arrives for a walk-in, navigate to <strong className="text-foreground">/tape-chart</strong>.</p>
                   <p>• Click and drag across the desired check-in to check-out dates on any room row. The system displays a floating summary pill (e.g. <em>"Room 201 · Nov 6 → Nov 9 · 3 Nights"</em>).</p>
                   <p>• Click <strong>"Book Selected Dates"</strong> to jump directly into the reservation form with room and dates pre-filled.</p>
                 </div>
@@ -997,18 +997,18 @@ export function GuideView({
               <div className="absolute -left-10 sm:-left-12 top-0 grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-xs font-bold text-white shadow-xs">
                 2
               </div>
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-2">
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-display text-base font-bold text-slate-950">
+                  <h3 className="font-display text-base font-bold text-foreground">
                     Identity Verification &amp; Statutory BoI Form C
                   </h3>
                   <Link href="/compliance" className="text-xs font-bold text-emerald-700 hover:underline">
                     Open Compliance ➔
                   </Link>
                 </div>
-                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
+                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-1.5">
                   <p>• Request government ID. For Indian citizens, record Aadhaar (the ERP automatically masks everything except the last 4 digits per UIDAI compliance).</p>
-                  <p>• <strong className="text-rose-900 font-bold">Foreign National Statutory Duty:</strong> If the guest carries a foreign passport, immediately open <strong className="text-slate-950">/compliance</strong> and file the <strong className="text-slate-950">Bureau of Immigration (BoI) Form C</strong> within 24 hours of arrival.</p>
+                  <p>• <strong className="text-rose-900 font-bold">Foreign National Statutory Duty:</strong> If the guest carries a foreign passport, immediately open <strong className="text-foreground">/compliance</strong> and file the <strong className="text-foreground">Bureau of Immigration (BoI) Form C</strong> within 24 hours of arrival.</p>
                   <p>• Click <strong>"Check-In Guest"</strong>. Room switches from <span className="bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded text-xs font-bold">Ready</span> to <span className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded text-xs font-bold">Occupied</span>.</p>
                 </div>
               </div>
@@ -1019,18 +1019,18 @@ export function GuideView({
               <div className="absolute -left-10 sm:-left-12 top-0 grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-xs font-bold text-white shadow-xs">
                 3
               </div>
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-2">
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-2">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-display text-base font-bold text-slate-950">
+                  <h3 className="font-display text-base font-bold text-foreground">
                     Cashiering, Dual-Slab GST &amp; Section 269ST Cash Guard
                   </h3>
                   <Link href="/billing" className="text-xs font-bold text-emerald-700 hover:underline">
                     Open Cashiering ➔
                   </Link>
                 </div>
-                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
-                  <p>• At checkout, open the reservation folio on <strong className="text-slate-950">/billing</strong>.</p>
-                  <p>• Review automatic Indian GST calculation: <strong className="text-slate-950">12%</strong> if tariff &le; ₹7,500; <strong className="text-slate-950">18%</strong> if tariff &gt; ₹7,500 under SAC Code <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">996311</code>.</p>
+                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-1.5">
+                  <p>• At checkout, open the reservation folio on <strong className="text-foreground">/billing</strong>.</p>
+                  <p>• Review automatic Indian GST calculation: <strong className="text-foreground">12%</strong> if tariff &le; ₹7,500; <strong className="text-foreground">18%</strong> if tariff &gt; ₹7,500 under SAC Code <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">996311</code>.</p>
                   <p>• <strong className="text-rose-900 font-bold">Section 269ST Enforcement:</strong> The ERP automatically blocks cash payments equal to or exceeding ₹2,00,000 per guest per stay. For cash &gt; ₹50,000, Rule 114B PAN validation is mandatory.</p>
                   <p>• Click <strong>"Issue GST Tax Invoice"</strong> and mark <strong>"Check-Out"</strong>.</p>
                 </div>
@@ -1048,7 +1048,7 @@ export function GuideView({
                     <span className="rounded-full bg-emerald-100 text-emerald-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
                       Zero Friction
                     </span>
-                    <h3 className="font-display text-base font-bold text-slate-950">
+                    <h3 className="font-display text-base font-bold text-foreground">
                       Dynamic NPCI Scan-to-Pay UPI QR &amp; Instant Settlement
                     </h3>
                   </div>
@@ -1056,8 +1056,8 @@ export function GuideView({
                     Open Folio QR ➔
                   </Link>
                 </div>
-                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
-                  <p>• In the guest folio settlement modal on <strong className="text-slate-950">/billing</strong>, select <strong className="text-slate-950">UPI / QR Code</strong>.</p>
+                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-1.5">
+                  <p>• In the guest folio settlement modal on <strong className="text-foreground">/billing</strong>, select <strong className="text-foreground">UPI / QR Code</strong>.</p>
                   <p>• The system instantly computes the remaining balance and renders a real-time, tamper-proof **NPCI-compliant UPI QR code** embedded with the hotel's verified VPA, merchant name, exact rupees amount, and transaction reference.</p>
                   <p>• A live 10-minute security countdown prevents double submission. Guest scans with Google Pay, PhonePe, Paytm, CRED, or BHIM.</p>
                   <p>• Once guest completes payment, enter the 12-digit bank UTR reference number and click <strong className="text-emerald-950 font-bold">"Record UPI Settlement"</strong>.</p>
@@ -1070,13 +1070,13 @@ export function GuideView({
               <div className="absolute -left-10 sm:-left-12 top-0 grid h-8 w-8 place-items-center rounded-full bg-slate-950 text-xs font-bold text-white shadow-xs">
                 5
               </div>
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-2">
+              <div className="rounded-3xl border border-border bg-card p-6 shadow-xs space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="rounded-full bg-emerald-100 text-emerald-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
                       Guest Delight
                     </span>
-                    <h3 className="font-display text-base font-bold text-slate-950">
+                    <h3 className="font-display text-base font-bold text-foreground">
                       Automated WhatsApp GST Tax Invoice &amp; Folio Dispatch
                     </h3>
                   </div>
@@ -1084,7 +1084,7 @@ export function GuideView({
                     WhatsApp Folio ➔
                   </Link>
                 </div>
-                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
+                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-1.5">
                   <p>• On any settled guest folio or issued invoice, click the <strong className="text-emerald-900 font-bold">"WhatsApp Invoice"</strong> button.</p>
                   <p>• The ERP instantly prepares and launches a direct WhatsApp Web/app message addressed to the guest's mobile phone number.</p>
                   <p>• Message includes verified hotel property branding, invoice number, room number, total amount paid, and direct link for paperless tax invoice storage.</p>
@@ -1103,7 +1103,7 @@ export function GuideView({
                     <span className="rounded-full bg-indigo-100 text-indigo-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
                       EDC Hardware
                     </span>
-                    <h3 className="font-display text-base font-bold text-slate-950">
+                    <h3 className="font-display text-base font-bold text-foreground">
                       Hardware POS EDC Terminal Card &amp; Contactless Tap Settlement
                     </h3>
                   </div>
@@ -1111,8 +1111,8 @@ export function GuideView({
                     Open POS Settlement ➔
                   </Link>
                 </div>
-                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
-                  <p>• When settling a folio via card, select <strong className="text-slate-950">POS Machine (Connected EDC Terminal)</strong>.</p>
+                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-1.5">
+                  <p>• When settling a folio via card, select <strong className="text-foreground">POS Machine (Connected EDC Terminal)</strong>.</p>
                   <p>• Select your counter machine (e.g. Pine Labs Plutus, Paytm Smart POS, or Innoviti uniPAY).</p>
                   <p>• Click <strong className="text-indigo-950 font-bold">"Send to POS Machine"</strong>. The physical terminal immediately wakes up and displays the exact invoice amount.</p>
                   <p>• Guest dips their EMV chip card (RuPay / Visa / Mastercard / Amex) or taps contactless NFC, then enters their PIN on the physical pinpad.</p>
@@ -1132,7 +1132,7 @@ export function GuideView({
                     <span className="rounded-full bg-amber-100 text-amber-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
                       Aura Dine POS
                     </span>
-                    <h3 className="font-display text-base font-bold text-slate-950">
+                    <h3 className="font-display text-base font-bold text-foreground">
                       F&amp;B Restaurant KOT &amp; 1-Click &quot;Charge to Room Folio&quot;
                     </h3>
                   </div>
@@ -1140,17 +1140,17 @@ export function GuideView({
                     Open Restaurant POS ➔
                   </Link>
                 </div>
-                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
-                  <p>• <strong className="text-slate-950">Dual Operating Mode:</strong> Use the top switcher to toggle between <strong className="text-slate-950">🏨 Hotel Integrated Mode</strong> (queries checked-in guests for direct room folio charging) and <strong className="text-amber-950 font-bold">🍽️ Standalone POS Mode</strong> (pure walk-in diners, mobile phone CRM, Swiggy/Zomato takeaway, and cash/card POS).</p>
-                  <p>• <strong className="text-slate-950">Adding &amp; Managing Tables:</strong> On the <strong className="text-slate-950">&quot;Floor Plan Tables&quot;</strong> tab, click <strong className="text-amber-950 font-bold">&quot;+ Add Table&quot;</strong> to configure tables (e.g., T-01, T-02, Terrace-04) with covers/capacity and zone sections (<strong className="text-slate-950">Main AC Hall, Open Terrace, Poolside Deck, Bar &amp; Lounge, Private Dining</strong>). Vacant tables feature quick-action buttons to Edit (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">✏️</code>) or Remove (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">🗑️</code>).</p>
-                  <p>• <strong className="text-slate-950">Floor Zones, Shifts &amp; Merges:</strong> Filter by section. Click <strong className="text-slate-950">&quot;Shift ➔&quot;</strong> to move active orders between tables, or <strong className="text-slate-950">&quot;Merge 🔗&quot;</strong> to combine adjacent tables for large family or corporate banquets into a single master check.</p>
-                  <p>• <strong className="text-slate-950">On-the-Fly Menu &amp; Dish Creation:</strong> Click <strong className="text-slate-950">&quot;+ Add Dish&quot;</strong> or <strong className="text-slate-950">&quot;+ Category&quot;</strong> directly on the POS Counter tab to instantly expand your digital catalog with dietary tags (Veg 🟢, Non-Veg 🔴, Egg 🟡), SAC 996331, and 5% GST.</p>
-                  <p>• <strong className="text-slate-950">Subsequent KOT Rounds:</strong> Click <strong className="text-amber-950 font-bold">&quot;+ Round&quot;</strong> on any occupied table to fire Round 2 (Mains) or Round 3 (Desserts) to the kitchen (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">KOT-101-R2</code>) while keeping the table bill consolidated.</p>
-                  <p>• <strong className="text-slate-950">Split Billing Engine:</strong> Settle dining checks split 2 to 5 ways with independent payment methods (e.g., Split 1 via Cash, Split 2 via Scan-to-Pay UPI QR, Split 3 via EDC POS Card, and Split 4 charged to Room Folio).</p>
-                  <p>• <strong className="text-slate-950">Swiggy &amp; Zomato Online Delivery Hub &amp; Live API Integration:</strong> Centralized incoming orders feed from Swiggy, Zomato, and direct web ordering. Incoming orders trigger an audible double-tone chime and an <strong className="text-orange-950 font-bold">Accept / Reject Pop-up Modal</strong> with full diner address, cooking instructions, 1-click rejection reasons, and prep timers (15m, 20m, 25m, 30m, 45m). Once accepted, the order transitions to the active kitchen &amp; rider tracking box with <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">📦 Food Ready &amp; Packed</code> alerts and thermal KOT printing. Click <strong className="text-slate-950">&quot;⚙️ API &amp; Webhook Credentials&quot;</strong> to view live webhook URLs and enter merchant RIDs.</p>
-                  <p>• <strong className="text-slate-950">Live Item 86&apos;ing &amp; Multi-Station Kitchen Routing:</strong> Instantly toggle dishes out-of-stock (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">🔴 86 (Out)</code>) across dine-in, Swiggy, and Zomato in 1 click. Route orders automatically to department KDS screens (<strong className="text-slate-950">🔥 Tandoor Station, 🍳 Main Curry, 🍸 Bar Counter, 🥗 Pantry &amp; Bakery</strong>).</p>
-                  <p>• <strong className="text-slate-950">Cashier Shifts &amp; Day-End Z-Report:</strong> Declare shift starting cash float, aggregate multi-tender collections (Cash, UPI, Card, Swiggy, Zomato, Room charges), audit cash drawer variance, and print official 80mm ESC/POS Day-End Z-Reports.</p>
-                  <p>• <strong className="text-slate-950">80mm ESC/POS Thermal Printing:</strong> Generates kitchen order slips (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">KotPrintModal</code>) and official customer tax bills (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">BillPrintModal</code>) with FSSAI, GSTIN, and 5% F&amp;B GST breakdown under SAC <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">996331</code>.</p>
+                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-1.5">
+                  <p>• <strong className="text-foreground">Dual Operating Mode:</strong> Use the top switcher to toggle between <strong className="text-foreground">🏨 Hotel Integrated Mode</strong> (queries checked-in guests for direct room folio charging) and <strong className="text-amber-950 font-bold">🍽️ Standalone POS Mode</strong> (pure walk-in diners, mobile phone CRM, Swiggy/Zomato takeaway, and cash/card POS).</p>
+                  <p>• <strong className="text-foreground">Adding &amp; Managing Tables:</strong> On the <strong className="text-foreground">&quot;Floor Plan Tables&quot;</strong> tab, click <strong className="text-amber-950 font-bold">&quot;+ Add Table&quot;</strong> to configure tables (e.g., T-01, T-02, Terrace-04) with covers/capacity and zone sections (<strong className="text-foreground">Main AC Hall, Open Terrace, Poolside Deck, Bar &amp; Lounge, Private Dining</strong>). Vacant tables feature quick-action buttons to Edit (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">✏️</code>) or Remove (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">🗑️</code>).</p>
+                  <p>• <strong className="text-foreground">Floor Zones, Shifts &amp; Merges:</strong> Filter by section. Click <strong className="text-foreground">&quot;Shift ➔&quot;</strong> to move active orders between tables, or <strong className="text-foreground">&quot;Merge 🔗&quot;</strong> to combine adjacent tables for large family or corporate banquets into a single master check.</p>
+                  <p>• <strong className="text-foreground">On-the-Fly Menu &amp; Dish Creation:</strong> Click <strong className="text-foreground">&quot;+ Add Dish&quot;</strong> or <strong className="text-foreground">&quot;+ Category&quot;</strong> directly on the POS Counter tab to instantly expand your digital catalog with dietary tags (Veg 🟢, Non-Veg 🔴, Egg 🟡), SAC 996331, and 5% GST.</p>
+                  <p>• <strong className="text-foreground">Subsequent KOT Rounds:</strong> Click <strong className="text-amber-950 font-bold">&quot;+ Round&quot;</strong> on any occupied table to fire Round 2 (Mains) or Round 3 (Desserts) to the kitchen (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">KOT-101-R2</code>) while keeping the table bill consolidated.</p>
+                  <p>• <strong className="text-foreground">Split Billing Engine:</strong> Settle dining checks split 2 to 5 ways with independent payment methods (e.g., Split 1 via Cash, Split 2 via Scan-to-Pay UPI QR, Split 3 via EDC POS Card, and Split 4 charged to Room Folio).</p>
+                  <p>• <strong className="text-foreground">Swiggy &amp; Zomato Online Delivery Hub &amp; Live API Integration:</strong> Centralized incoming orders feed from Swiggy, Zomato, and direct web ordering. Incoming orders trigger an audible double-tone chime and an <strong className="text-orange-950 font-bold">Accept / Reject Pop-up Modal</strong> with full diner address, cooking instructions, 1-click rejection reasons, and prep timers (15m, 20m, 25m, 30m, 45m). Once accepted, the order transitions to the active kitchen &amp; rider tracking box with <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">📦 Food Ready &amp; Packed</code> alerts and thermal KOT printing. Click <strong className="text-foreground">&quot;⚙️ API &amp; Webhook Credentials&quot;</strong> to view live webhook URLs and enter merchant RIDs.</p>
+                  <p>• <strong className="text-foreground">Live Item 86&apos;ing &amp; Multi-Station Kitchen Routing:</strong> Instantly toggle dishes out-of-stock (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">🔴 86 (Out)</code>) across dine-in, Swiggy, and Zomato in 1 click. Route orders automatically to department KDS screens (<strong className="text-foreground">🔥 Tandoor Station, 🍳 Main Curry, 🍸 Bar Counter, 🥗 Pantry &amp; Bakery</strong>).</p>
+                  <p>• <strong className="text-foreground">Cashier Shifts &amp; Day-End Z-Report:</strong> Declare shift starting cash float, aggregate multi-tender collections (Cash, UPI, Card, Swiggy, Zomato, Room charges), audit cash drawer variance, and print official 80mm ESC/POS Day-End Z-Reports.</p>
+                  <p>• <strong className="text-foreground">80mm ESC/POS Thermal Printing:</strong> Generates kitchen order slips (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">KotPrintModal</code>) and official customer tax bills (<code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">BillPrintModal</code>) with FSSAI, GSTIN, and 5% F&amp;B GST breakdown under SAC <code className="bg-slate-100 px-1 py-0.5 font-mono text-xs">996331</code>.</p>
                 </div>
               </div>
             </div>
@@ -1166,7 +1166,7 @@ export function GuideView({
                     <span className="rounded-full bg-sky-100 text-sky-900 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
                       Key Hardware
                     </span>
-                    <h3 className="font-display text-base font-bold text-slate-950">
+                    <h3 className="font-display text-base font-bold text-foreground">
                       Brass Key Rack Management &amp; RFID Card Encoding Bridge
                     </h3>
                   </div>
@@ -1174,11 +1174,11 @@ export function GuideView({
                     Open Keycards ➔
                   </Link>
                 </div>
-                <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-1.5">
-                  <p>• On guest arrival, navigate to <strong className="text-slate-950">/keycards</strong>.</p>
-                  <p>• <strong className="text-slate-950">Heritage Brass Keys:</strong> Check the visual wooden pigeonhole rack. When handing the physical key tag to the guest, click <strong className="text-sky-950 font-bold">&quot;Hand to Guest&quot;</strong> to link possession to the active reservation.</p>
-                  <p>• <strong className="text-slate-950">RFID Electronic Locks:</strong> Connect any USB RFID reader via Web Serial API. Click <strong className="text-sky-950 font-bold">&quot;Encode New Keycard&quot;</strong> to write checkout expiry to MIFARE smart cards or issue digital QR mobile passes for contactless keyless entry.</p>
-                  <p>• Upon checkout on <strong className="text-slate-950">/billing</strong>, keys are returned to slot in 1 click, de-provisioning room access immediately.</p>
+                <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-1.5">
+                  <p>• On guest arrival, navigate to <strong className="text-foreground">/keycards</strong>.</p>
+                  <p>• <strong className="text-foreground">Heritage Brass Keys:</strong> Check the visual wooden pigeonhole rack. When handing the physical key tag to the guest, click <strong className="text-sky-950 font-bold">&quot;Hand to Guest&quot;</strong> to link possession to the active reservation.</p>
+                  <p>• <strong className="text-foreground">RFID Electronic Locks:</strong> Connect any USB RFID reader via Web Serial API. Click <strong className="text-sky-950 font-bold">&quot;Encode New Keycard&quot;</strong> to write checkout expiry to MIFARE smart cards or issue digital QR mobile passes for contactless keyless entry.</p>
+                  <p>• Upon checkout on <strong className="text-foreground">/billing</strong>, keys are returned to slot in 1 click, de-provisioning room access immediately.</p>
                 </div>
               </div>
             </div>
@@ -1201,16 +1201,16 @@ export function GuideView({
           </div>
 
           <div className="space-y-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   Room Status State Machine Transitions
                 </h3>
                 <Link href="/housekeeping" className="text-xs font-bold text-teal-800 hover:underline">
                   Open Housekeeping Board ➔
                 </Link>
               </div>
-              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
+              <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
                 <p>1. When a guest checks out, the room status automatically flips to <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-xs font-bold">Cleaning</span>.</p>
                 <p>2. The floor attendant performs linen change, sanitation, and replenishment of bathroom amenities.</p>
                 <p>3. Once cleaned, the supervisor inspects the room and updates status to <span className="bg-blue-100 text-blue-900 px-2 py-0.5 rounded text-xs font-bold">Inspected</span>.</p>
@@ -1218,27 +1218,27 @@ export function GuideView({
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm space-y-3">
-              <h3 className="font-display text-lg font-black text-slate-950">
+            <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-sm space-y-3">
+              <h3 className="font-display text-lg font-black text-foreground">
                 Maintenance &amp; Out of Order Protocols
               </h3>
-              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <p>• If plumbing, HVAC, or electrical issues occur, mark the room as <span className="bg-rose-100 text-rose-900 px-2 py-0.5 rounded text-xs font-bold">Maintenance</span> on <strong className="text-slate-950">/housekeeping</strong>.</p>
+              <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <p>• If plumbing, HVAC, or electrical issues occur, mark the room as <span className="bg-rose-100 text-rose-900 px-2 py-0.5 rounded text-xs font-bold">Maintenance</span> on <strong className="text-foreground">/housekeeping</strong>.</p>
                 <p>• Maintenance rooms are automatically removed from sellable inventory on the Front Desk Tape Chart and OTA channels to prevent double booking.</p>
               </div>
             </div>
 
             <div className="rounded-3xl border border-teal-200 bg-teal-50/40 p-6 sm:p-7 shadow-sm space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-display text-lg font-black text-slate-950">
+                <h3 className="font-display text-lg font-black text-foreground">
                   Physical Brass Key &amp; Service Key Tag Protocol
                 </h3>
                 <Link href="/keycards" className="text-xs font-bold text-teal-800 hover:underline">
                   Open Key Rack ➔
                 </Link>
               </div>
-              <div className="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-2">
-                <p>• When attending to a vacant or cleaning room, collect the room key from the front desk key rack (<strong className="text-slate-950">/keycards</strong>).</p>
+              <div className="text-xs sm:text-sm text-foreground/90 leading-relaxed space-y-2">
+                <p>• When attending to a vacant or cleaning room, collect the room key from the front desk key rack (<strong className="text-foreground">/keycards</strong>).</p>
                 <p>• Ensure the key status reflects <span className="bg-amber-100 text-amber-900 px-2 py-0.5 rounded text-xs font-bold">With Housekeeping</span> during turndown.</p>
                 <p>• After servicing, return the key to its slot so receptionists can immediately issue it to incoming check-in guests.</p>
               </div>

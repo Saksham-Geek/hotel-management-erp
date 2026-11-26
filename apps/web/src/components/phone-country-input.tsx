@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect, useId } from 'react';
 import {
@@ -105,7 +105,7 @@ export function PhoneCountryInput({
       {/* Hidden input to submit full formatted international phone number to Server Action */}
       <input type="hidden" name={name} value={fullPhoneNumber} />
 
-      <div className="flex min-h-[44px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-2xs transition duration-150 focus-within:border-slate-900 dark:focus-within:border-white focus-within:ring-2 focus-within:ring-slate-950 dark:focus-within:ring-white focus-within:ring-offset-1">
+      <div className="flex min-h-[44px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] shadow-2xs transition duration-150 focus-within:border-slate-900 dark:focus-within:border-white focus-within:ring-2 focus-within:ring-slate-950 dark:focus-within:ring-white focus-within:ring-offset-1">
         {/* Country Flag & Dial Code Trigger Button */}
         <button
           type="button"
@@ -156,7 +156,7 @@ export function PhoneCountryInput({
 
       {/* Searchable Country Picker Popover */}
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-xl animate-in fade-in-50 zoom-in-95 duration-150 overflow-hidden">
+        <div className="absolute left-0 top-full z-50 mt-1.5 w-72 sm:w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] shadow-xl animate-in fade-in-50 zoom-in-95 duration-150 overflow-hidden">
           {/* Quick Search Field in Country Dropdown */}
           <div className="p-2 border-b border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/[0.02]">
             <input

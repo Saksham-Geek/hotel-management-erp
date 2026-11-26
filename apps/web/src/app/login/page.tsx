@@ -1,4 +1,4 @@
-import { Banner } from '@/components/ui';
+﻿import { Banner } from '@/components/ui';
 import { LoginForm } from './login-form';
 
 export default async function LoginPage({
@@ -10,7 +10,7 @@ export default async function LoginPage({
 
   return (
     <main className="grid min-h-dvh place-items-center bg-[#f8fafc] dark:bg-[#060913] px-4 py-8 sm:px-6 lg:py-12">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-[0_30px_90px_rgba(2,6,23,0.08)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.5)] lg:min-h-[640px] lg:grid-cols-[1.05fr_1.1fr]">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#141417] shadow-[0_30px_90px_rgba(2,6,23,0.08)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.5)] lg:min-h-[640px] lg:grid-cols-[1.05fr_1.1fr]">
         
         {/* Left Timeless Luxury Brand & Architecture Panel */}
         <section className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[#080d1a] via-[#0d162b] to-[#050811] p-10 text-white lg:flex xl:p-12">

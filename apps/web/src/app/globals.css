@@ -3,16 +3,17 @@
 @tailwind utilities;
 
 /* ==========================================================================
-   Aura PMS Design Tokens: Multi-Theme Color Engine
-   Themes: Obsidian (Zero Blue Neutral), Emerald (Resort), Bronze (Espresso), Slate (Classic)
+   Aura PMS Design Tokens: Signature Identity Engine (Petpooja-Inspired Red & White)
+   Universal Brand Accent: Imperial Crimson Red (#DC2626 / #F43F5E) across all themes
    ========================================================================== */
 
-/* 1. Modern Obsidian & Charcoal (Default — Pure Neutral, Zero Blue) */
+/* 1. Signature Brand Identity (Default — Red & White / Red & Obsidian) */
 :root,
-html[data-theme="obsidian"] {
+html[data-theme="obsidian"],
+html[data-theme="ruby"] {
   color-scheme: light;
   --background: 0 0% 98%; /* Clean titanium porcelain #fafafa */
-  --card: 0 0% 100%; /* #ffffff */
+  --card: 0 0% 100%; /* Crisp pure white #ffffff */
   --popover: 0 0% 100%;
   --popover-foreground: 240 10% 4%;
   --foreground: 240 10% 4%; /* Crisp dark charcoal #09090b */
@@ -23,14 +24,14 @@ html[data-theme="obsidian"] {
   --border: 240 6% 90%; /* #e4e4e7 */
   --input: 240 6% 90%;
   --ring: 348 83% 47%;
-  --primary: 348 83% 47%; /* Luxury Crimson Red #dc2626 */
-  --primary-foreground: 0 0% 100%;
+  --primary: 348 83% 47%; /* Signature Identity Crimson Red #dc2626 */
+  --primary-foreground: 0 0% 100%; /* Pure white text */
   --sidebar: 240 5% 96%; /* Clean executive titanium stone in light mode */
   --sidebar-foreground: 240 10% 4%;
   --sidebar-accent: 240 5% 91%;
   --accent: 348 83% 47%;
   --accent-strong: 348 90% 38%;
-  --accent-soft: 240 5% 96%;
+  --accent-soft: 348 90% 96%;
   --destructive: 0 84% 60%;
   --success: 153 60% 36%;
   --warning: 38 92% 50%;
@@ -40,9 +41,10 @@ html[data-theme="obsidian"] {
 
 .dark,
 html.dark,
-html.dark[data-theme="obsidian"] {
+html.dark[data-theme="obsidian"],
+html.dark[data-theme="ruby"] {
   color-scheme: dark;
-  --background: 240 10% 4%; /* #09090b deep neutral obsidian — ZERO blue */
+  --background: 240 10% 4%; /* #09090b deep neutral obsidian */
   --card: 240 6% 10%; /* #18181b elevated rich charcoal surface */
   --popover: 240 6% 10%;
   --popover-foreground: 0 0% 98%;
@@ -54,14 +56,14 @@ html.dark[data-theme="obsidian"] {
   --border: 240 4% 18%; /* #27272a crisp neutral border */
   --input: 240 4% 18%;
   --ring: 348 86% 56%;
-  --primary: 348 86% 56%; /* Radiant Luminous Crimson Rose #f43f5e */
-  --primary-foreground: 0 0% 100%;
+  --primary: 348 86% 56%; /* Signature Identity Luminous Crimson Rose #f43f5e */
+  --primary-foreground: 0 0% 100%; /* Pure white text on vibrant red */
   --sidebar: 240 10% 4%; /* #09090b matte obsidian sidebar in dark mode */
   --sidebar-foreground: 0 0% 98%;
   --sidebar-accent: 240 4% 16%;
   --accent: 348 86% 56%;
   --accent-strong: 348 90% 65%;
-  --accent-soft: 240 4% 16%;
+  --accent-soft: 348 86% 15%;
   --destructive: 0 84% 60%;
   --success: 153 60% 45%;
   --warning: 38 92% 55%;
@@ -69,29 +71,29 @@ html.dark[data-theme="obsidian"] {
   --status-muted: 240 5% 65%;
 }
 
-/* 2. Royal Velvet Violet & Amethyst (Luxury Boutique & VIP Theme) */
+/* 2. Royal Velvet Violet & Amethyst with Universal Red Identity Accent */
 html[data-theme="amethyst"] {
   color-scheme: light;
   --background: 270 30% 98%; /* Soft lilac porcelain #faf7fd */
   --card: 0 0% 100%;
   --popover: 0 0% 100%;
   --popover-foreground: 270 45% 10%;
-  --foreground: 270 45% 10%; /* Deep regal plum #180b26 */
-  --secondary: 270 20% 95%; /* #f4edf9 */
+  --foreground: 270 45% 10%;
+  --secondary: 270 20% 95%;
   --secondary-foreground: 270 45% 10%;
   --muted: 270 20% 95%;
   --muted-foreground: 270 15% 45%;
   --border: 270 20% 90%;
   --input: 270 20% 90%;
-  --ring: 270 70% 55%;
-  --primary: 271 76% 53%; /* Vivid Royal Purple #9333ea */
+  --ring: 348 83% 47%;
+  --primary: 348 83% 47%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 270 25% 97%; /* Delicate lilac mist #f7f2fa */
+  --sidebar: 270 25% 97%;
   --sidebar-foreground: 270 45% 10%;
   --sidebar-accent: 270 25% 92%;
-  --accent: 271 76% 53%;
-  --accent-strong: 272 80% 40%;
-  --accent-soft: 270 25% 95%;
+  --accent: 348 83% 47%;
+  --accent-strong: 348 90% 38%;
+  --accent-soft: 348 90% 96%;
   --destructive: 0 84% 60%;
   --success: 153 60% 36%;
   --warning: 38 92% 50%;
@@ -105,22 +107,22 @@ html.dark[data-theme="amethyst"] {
   --card: 270 35% 9%; /* #160e22 elevated royal amethyst surface */
   --popover: 270 35% 9%;
   --popover-foreground: 270 20% 98%;
-  --foreground: 270 20% 98%; /* #faf7fe crisp high-contrast violet white */
-  --secondary: 270 25% 15%; /* #26163b */
+  --foreground: 270 20% 98%;
+  --secondary: 270 25% 15%;
   --secondary-foreground: 270 20% 98%;
   --muted: 270 25% 15%;
-  --muted-foreground: 270 20% 68%; /* #bca5d8 readable lavender */
-  --border: 270 25% 18%; /* #2f1b4a rich jewel border */
+  --muted-foreground: 270 20% 68%;
+  --border: 270 25% 18%;
   --input: 270 25% 18%;
-  --ring: 270 70% 60%;
-  --primary: 270 85% 65%; /* Radiant Amethyst Violet #c084fc */
-  --primary-foreground: 270 40% 5%;
-  --sidebar: 270 40% 5%; /* Deep velvet violet sidebar */
+  --ring: 348 86% 56%;
+  --primary: 348 86% 56%;
+  --primary-foreground: 0 0% 100%;
+  --sidebar: 270 40% 5%;
   --sidebar-foreground: 270 20% 98%;
   --sidebar-accent: 270 25% 15%;
-  --accent: 270 85% 65%;
-  --accent-strong: 271 90% 75%;
-  --accent-soft: 270 25% 15%;
+  --accent: 348 86% 56%;
+  --accent-strong: 348 90% 65%;
+  --accent-soft: 348 86% 15%;
   --destructive: 0 84% 60%;
   --success: 153 60% 45%;
   --warning: 38 92% 55%;
@@ -128,35 +130,35 @@ html.dark[data-theme="amethyst"] {
   --status-muted: 270 20% 68%;
 }
 
-/* 3. Royal Forest & Sage (Botanical Eco-Resort Theme) */
+/* 3. Royal Forest & Sage with Universal Red Identity Accent */
 html[data-theme="emerald"] {
   color-scheme: light;
-  --background: 140 15% 98%; /* Soft organic linen #f6f9f7 */
+  --background: 140 15% 98%;
   --card: 0 0% 100%;
   --popover: 0 0% 100%;
   --popover-foreground: 150 40% 10%;
-  --foreground: 150 40% 10%; /* Deep forest ink #0f1a14 */
+  --foreground: 150 40% 10%;
   --secondary: 140 15% 94%;
   --secondary-foreground: 150 40% 10%;
   --muted: 140 15% 94%;
   --muted-foreground: 150 15% 45%;
   --border: 140 15% 88%;
   --input: 140 15% 88%;
-  --ring: 152 60% 36%;
-  --primary: 152 60% 32%;
+  --ring: 348 83% 47%;
+  --primary: 348 83% 47%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 140 18% 95%; /* Soft organic sage linen */
+  --sidebar: 140 18% 95%;
   --sidebar-foreground: 150 40% 10%;
   --sidebar-accent: 140 20% 90%;
-  --accent: 152 60% 36%;
-  --accent-strong: 152 70% 25%;
-  --accent-soft: 140 15% 94%;
+  --accent: 348 83% 47%;
+  --accent-strong: 348 90% 38%;
+  --accent-soft: 348 90% 96%;
 }
 
 html.dark[data-theme="emerald"] {
   color-scheme: dark;
-  --background: 150 30% 5%; /* #09110d deep botanical dark forest */
-  --card: 150 25% 9%; /* #111c15 dark moss surface */
+  --background: 150 30% 5%;
+  --card: 150 25% 9%;
   --popover: 150 25% 9%;
   --popover-foreground: 140 20% 98%;
   --foreground: 140 20% 98%;
@@ -166,46 +168,46 @@ html.dark[data-theme="emerald"] {
   --muted-foreground: 140 15% 65%;
   --border: 150 20% 16%;
   --input: 150 20% 16%;
-  --ring: 152 60% 45%;
-  --primary: 152 60% 45%;
-  --primary-foreground: 150 30% 5%;
+  --ring: 348 86% 56%;
+  --primary: 348 86% 56%;
+  --primary-foreground: 0 0% 100%;
   --sidebar: 150 30% 5%;
   --sidebar-foreground: 140 20% 98%;
   --sidebar-accent: 150 20% 14%;
-  --accent: 152 60% 45%;
-  --accent-strong: 152 70% 60%;
-  --accent-soft: 150 20% 14%;
+  --accent: 348 86% 56%;
+  --accent-strong: 348 90% 65%;
+  --accent-soft: 348 86% 15%;
 }
 
-/* 4. Warm Espresso & Champagne Bronze (Heritage Luxury) */
+/* 4. Warm Espresso & Champagne Bronze with Universal Red Identity Accent */
 html[data-theme="bronze"] {
   color-scheme: light;
-  --background: 35 25% 98%; /* Warm cream linen #fcfaf7 */
+  --background: 35 25% 98%;
   --card: 0 0% 100%;
   --popover: 0 0% 100%;
   --popover-foreground: 25 30% 12%;
-  --foreground: 25 30% 12%; /* Deep espresso #1f1814 */
+  --foreground: 25 30% 12%;
   --secondary: 35 20% 94%;
   --secondary-foreground: 25 30% 12%;
   --muted: 35 20% 94%;
   --muted-foreground: 25 15% 45%;
   --border: 35 20% 88%;
   --input: 35 20% 88%;
-  --ring: 38 92% 50%;
-  --primary: 32 80% 40%;
+  --ring: 348 83% 47%;
+  --primary: 348 83% 47%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 35 22% 95%; /* Warm parchment linen */
+  --sidebar: 35 22% 95%;
   --sidebar-foreground: 25 30% 12%;
   --sidebar-accent: 35 25% 90%;
-  --accent: 38 92% 50%;
-  --accent-strong: 32 80% 35%;
-  --accent-soft: 35 20% 94%;
+  --accent: 348 83% 47%;
+  --accent-strong: 348 90% 38%;
+  --accent-soft: 348 90% 96%;
 }
 
 html.dark[data-theme="bronze"] {
   color-scheme: dark;
-  --background: 25 25% 6%; /* #130f0d rich dark espresso */
-  --card: 25 20% 10%; /* #1c1714 warm dark taupe surface */
+  --background: 25 25% 6%;
+  --card: 25 20% 10%;
   --popover: 25 20% 10%;
   --popover-foreground: 35 20% 98%;
   --foreground: 35 20% 98%;
@@ -215,18 +217,18 @@ html.dark[data-theme="bronze"] {
   --muted-foreground: 35 15% 65%;
   --border: 25 15% 18%;
   --input: 25 15% 18%;
-  --ring: 38 92% 55%;
-  --primary: 38 92% 55%;
-  --primary-foreground: 25 25% 6%;
+  --ring: 348 86% 56%;
+  --primary: 348 86% 56%;
+  --primary-foreground: 0 0% 100%;
   --sidebar: 25 25% 6%;
   --sidebar-foreground: 35 20% 98%;
   --sidebar-accent: 25 15% 16%;
-  --accent: 38 92% 55%;
-  --accent-strong: 38 95% 65%;
-  --accent-soft: 25 15% 16%;
+  --accent: 348 86% 56%;
+  --accent-strong: 348 90% 65%;
+  --accent-soft: 348 86% 15%;
 }
 
-/* 5. Midnight Navy & Slate (Classic Operations Theme) */
+/* 5. Midnight Navy & Slate with Universal Red Identity Accent */
 html[data-theme="slate"] {
   color-scheme: light;
   --background: 210 20% 98%;
@@ -240,10 +242,10 @@ html[data-theme="slate"] {
   --muted-foreground: 215 16% 47%;
   --border: 214 20% 90%;
   --input: 214 20% 90%;
-  --ring: 222 47% 11%;
-  --primary: 222 47% 11%;
+  --ring: 348 83% 47%;
+  --primary: 348 83% 47%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 215 22% 95%; /* Executive ice slate */
+  --sidebar: 215 22% 95%;
   --sidebar-foreground: 222 47% 11%;
   --sidebar-accent: 215 22% 90%;
 }
@@ -261,9 +263,9 @@ html.dark[data-theme="slate"] {
   --muted-foreground: 215 20% 65%;
   --border: 217 33% 18%;
   --input: 217 33% 18%;
-  --ring: 217 91% 60%;
-  --primary: 210 40% 98%;
-  --primary-foreground: 222 47% 11%;
+  --ring: 348 86% 56%;
+  --primary: 348 86% 56%;
+  --primary-foreground: 0 0% 100%;
   --sidebar: 222 47% 7%;
   --sidebar-foreground: 210 40% 98%;
   --sidebar-accent: 217 91% 60%;

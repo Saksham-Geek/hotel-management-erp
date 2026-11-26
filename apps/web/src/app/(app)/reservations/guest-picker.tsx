@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState, useTransition, useId, useRef } from 'react';
 import { searchGuestProfiles } from './actions';
@@ -452,7 +452,7 @@ function GuestSearch({
         <div
           ref={listboxRef}
           id={listboxId}
-          className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-xl z-20 absolute left-0 right-0 top-full mt-1"
+          className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] shadow-xl z-20 absolute left-0 right-0 top-full mt-1"
           role="listbox"
           aria-label={`${label} matches`}
         >
@@ -760,7 +760,7 @@ export function GuestPicker() {
             <button
               type="button"
               onClick={handleAddCompanion}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-[#0c1222] px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-900 dark:hover:border-white hover:text-slate-950 dark:hover:text-white transition-all cursor-pointer"
+              className="inline-flex items-center gap-2 rounded-xl border border-slate-300 dark:border-white/15 bg-white dark:bg-[#141417] px-3.5 py-2 text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-900 dark:hover:border-white hover:text-slate-950 dark:hover:text-white transition-all cursor-pointer"
             >
               <svg className="h-4 w-4 text-emerald-600 dark:text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" />

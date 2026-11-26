@@ -104,22 +104,22 @@ export function ChannelView({
 
       {/* Simulator Quick Action Banner */}
       {!readOnly && (
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200/80 bg-white p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-border bg-card p-6 shadow-xs">
           <div>
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-slate-900" />
-              <h3 className="text-sm font-bold text-slate-950">
+              <span className="flex h-2 w-2 rounded-full bg-primary" />
+              <h3 className="text-sm font-bold text-foreground">
                 Live OTA Ingestion Simulator
               </h3>
             </div>
-            <p className="mt-1 text-xs text-slate-500 max-w-xl font-normal">
+            <p className="mt-1 text-xs text-muted-foreground max-w-xl font-normal">
               Test how live bookings from <strong>MakeMyTrip</strong> or <strong>Booking.com</strong> flow automatically into your Room Rack (Tape Chart), Front Desk occupancy, and Cashiering Folio.
             </p>
           </div>
           <button
             type="button"
             onClick={() => setSimulatorOpen((o) => !o)}
-            className="inline-flex min-h-[42px] items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors shrink-0"
+            className="inline-flex min-h-[42px] items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs font-semibold text-primary-foreground shadow-xs hover:opacity-90 active:scale-95 transition-all shrink-0"
           >
             {simulatorOpen ? '✕ Close Simulator' : '⚡ Simulate Incoming OTA Booking'}
           </button>

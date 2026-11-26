@@ -1,12 +1,12 @@
-import type { ReactNode } from 'react';
+﻿import type { ReactNode } from 'react';
 import type { RoomStatus } from '@erp/shared';
 import { getRoomTypeTheme } from '@/lib/room-types';
 
 export const inputCls =
-  'min-h-[44px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white shadow-2xs placeholder:text-slate-400 transition duration-150 focus-visible:border-slate-900 dark:focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
+  'min-h-[44px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-white shadow-2xs placeholder:text-slate-400 transition duration-150 focus-visible:border-slate-900 dark:focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
 
 export const selectCls =
-  'min-h-[44px] w-full appearance-none cursor-pointer rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] px-3.5 pr-10 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 focus-visible:border-slate-900 dark:focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-1 transition duration-150 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
+  'min-h-[44px] w-full appearance-none cursor-pointer rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] px-3.5 pr-10 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:border-slate-300 dark:hover:border-white/20 focus-visible:border-slate-900 dark:focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-1 transition duration-150 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400';
 
 export const btnCls =
   'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-5 py-2.5 text-sm font-semibold shadow-xs hover:opacity-90 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50';

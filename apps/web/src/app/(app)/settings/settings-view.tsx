@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
@@ -676,7 +676,7 @@ export function SettingsView({
               <span
                 className={`rounded-full px-2.5 py-0.5 text-xs font-bold flex items-center gap-1 ${
                   isOwner
-                    ? 'bg-amber-400 text-slate-950 border border-amber-300'
+                    ? 'bg-amber-400 text-foreground border border-amber-300'
                     : 'bg-indigo-500/30 text-indigo-200 border border-indigo-400/30'
                 }`}
               >
@@ -751,8 +751,8 @@ export function SettingsView({
               onClick={() => switchTab(t.id)}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all cursor-pointer ${
                 active
-                  ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/15 dark:bg-white dark:text-slate-950 dark:ring-white/20'
-                  : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+                  ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/15 dark:bg-white dark:text-foreground dark:ring-white/20'
+                  : 'bg-white text-foreground/80 border border-slate-200/90 hover:bg-slate-50 hover:text-foreground dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
               }`}
             >
               <span aria-hidden="true" className="text-sm">{t.icon}</span>
@@ -761,8 +761,8 @@ export function SettingsView({
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
                     active
-                      ? 'bg-white/25 text-white dark:bg-slate-950/20 dark:text-slate-950'
-                      : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300'
+                      ? 'bg-white/25 text-white dark:bg-slate-950/20 dark:text-foreground'
+                      : 'bg-slate-100 text-foreground/80 dark:bg-white/10 dark:text-slate-300'
                   }`}
                 >
                   {t.count}
@@ -784,21 +784,21 @@ export function SettingsView({
       {/* 01. ROOMS & ACCOMMODATION MANAGEMENT */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'rooms') && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs text-card-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-50 text-blue-700 font-extrabold text-sm">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary/10 text-primary font-extrabold text-sm">
                   🏨
                 </span>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-xl font-bold text-foreground">
                   Rooms, Types &amp; Inventory Configuration
                 </h2>
-                <span className="rounded-full bg-blue-100 border border-blue-200 px-2.5 py-0.5 text-xs font-bold text-blue-800">
+                <span className="rounded-full bg-primary/10 border border-primary/20 text-primary px-2.5 py-0.5 text-xs font-bold text-blue-800">
                   {rooms.length} Rooms Configured · {types.length} Types
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Setup room inventory, standard pricing tiers, hourly tariffs, and physical room number allocations.
               </p>
             </div>
@@ -806,7 +806,7 @@ export function SettingsView({
             {/* CRITICAL: Button beside manage linking directly to the live operational page */}
             <Link
               href="/rooms"
-              className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white hover:bg-slate-800 transition-all shadow-xs cursor-pointer group"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground hover:opacity-90 transition-all shadow-xs cursor-pointer group"
             >
               <span>🚀 Go to Live Rooms Rack</span>
               <span className="group-hover:translate-x-0.5 transition-transform">&rarr;</span>
@@ -817,21 +817,21 @@ export function SettingsView({
             {/* 01 Add Room Type Form */}
             <form
               action={createRoomTypeSetting}
-              className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
+              className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6"
             >
               <input type="hidden" name="back" value="/settings?tab=rooms" />
               <div className="flex items-center gap-3">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-blue-600 text-white text-xs font-bold shadow-2xs">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-2xs">
                   01
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Add a Room Type</h3>
-                  <p className="text-xs text-slate-500">Define base capacity and default night/hour tariffs.</p>
+                  <h3 className="text-sm font-bold text-foreground">Add a Room Type</h3>
+                  <p className="text-xs text-muted-foreground">Define base capacity and default night/hour tariffs.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Room Type Name</label>
+                <label className="block text-xs font-bold text-foreground/80 mb-1">Room Type Name</label>
                 <input
                   name="name"
                   required
@@ -842,7 +842,7 @@ export function SettingsView({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Nightly Rate ({currency})
                   </label>
                   <input
@@ -856,7 +856,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Hourly Rate ({currency}) <span className="font-normal text-slate-400">(Optional)</span>
                   </label>
                   <input
@@ -869,7 +869,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Guest Capacity</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Guest Capacity</label>
                   <input
                     name="capacity"
                     type="number"
@@ -881,7 +881,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Description <span className="font-normal text-slate-400">(Optional)</span>
                   </label>
                   <input
@@ -901,23 +901,23 @@ export function SettingsView({
             {/* 02 Add Room Form */}
             <form
               action={createRoomSetting}
-              className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
+              className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6"
             >
               <input type="hidden" name="back" value="/settings?tab=rooms" />
               <div className="flex items-center gap-3">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white text-xs font-bold shadow-2xs">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-2xs">
                   02
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Add a Room</h3>
-                  <p className="text-xs text-slate-500">Allocate room number to floor and link room type.</p>
+                  <h3 className="text-sm font-bold text-foreground">Add a Room</h3>
+                  <p className="text-xs text-muted-foreground">Allocate room number to floor and link room type.</p>
                 </div>
               </div>
 
               {types.length > 0 ? (
                 <>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Assigned Room Type</label>
+                    <label className="block text-xs font-bold text-foreground/80 mb-1">Assigned Room Type</label>
                     <CustomDropdown
                       name="roomTypeId"
                       required
@@ -942,7 +942,7 @@ export function SettingsView({
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Room Number</label>
+                      <label className="block text-xs font-bold text-foreground/80 mb-1">Room Number</label>
                       <input
                         name="number"
                         required
@@ -951,7 +951,7 @@ export function SettingsView({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">Floor Level</label>
+                      <label className="block text-xs font-bold text-foreground/80 mb-1">Floor Level</label>
                       <input
                         name="floor"
                         type="number"
@@ -962,7 +962,7 @@ export function SettingsView({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                      <label className="block text-xs font-bold text-foreground/80 mb-1">
                         Nightly Override ({currency}) <span className="font-normal text-slate-400">(Optional)</span>
                       </label>
                       <input
@@ -975,7 +975,7 @@ export function SettingsView({
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                      <label className="block text-xs font-bold text-foreground/80 mb-1">
                         Hourly Override ({currency}) <span className="font-normal text-slate-400">(Optional)</span>
                       </label>
                       <input
@@ -988,7 +988,7 @@ export function SettingsView({
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="block text-xs font-bold text-slate-700 mb-1">
+                      <label className="block text-xs font-bold text-foreground/80 mb-1">
                         Door Lock Hardware Type
                       </label>
                       <CustomDropdown
@@ -1020,26 +1020,26 @@ export function SettingsView({
           {/* Existing Room Types Management & Live Tariffs */}
           {types.length > 0 && (
             <div className="space-y-3 pt-4 border-t border-slate-100">
-              <h3 className="text-sm font-bold text-slate-900">Configured Room Types &amp; Default Tariffs</h3>
+              <h3 className="text-sm font-bold text-foreground">Configured Room Types &amp; Default Tariffs</h3>
               <div className="grid gap-4 xl:grid-cols-2">
                 {types.map((type) => {
                   const theme = getRoomTypeTheme(type.name);
                   return (
                     <details
                       key={type.id}
-                      className="group rounded-2xl border border-slate-200 bg-white p-4 shadow-2xs hover:border-slate-300 transition-colors"
+                      className="group rounded-2xl border border-border bg-card p-4 shadow-2xs hover:border-slate-300 transition-colors"
                     >
                       <summary className="flex cursor-pointer list-none items-center justify-between gap-3">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`h-2.5 w-2.5 rounded-full ${theme.dot} shadow-2xs`} />
-                            <p className="text-sm font-bold text-slate-900">{type.name}</p>
+                            <p className="text-sm font-bold text-foreground">{type.name}</p>
                             <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${theme.badge}`}>
                               <span>{theme.icon}</span>
                               <span>{theme.colorName}</span>
                             </span>
                           </div>
-                          <p className="text-xs text-slate-500 mt-1">
+                          <p className="text-xs text-muted-foreground mt-1">
                             {type.capacity} Guests · {money(type.baseRate, currency)} / night
                             {type.hourlyRate != null
                               ? ` · ${money(type.hourlyRate, currency)} / hr`
@@ -1057,7 +1057,7 @@ export function SettingsView({
                       <input type="hidden" name="id" value={type.id} />
                       <input type="hidden" name="back" value="/settings?tab=rooms" />
                       <div>
-                        <label className="text-[11px] font-bold text-slate-700">Type Name</label>
+                        <label className="text-[11px] font-bold text-foreground/80">Type Name</label>
                         <input
                           name="name"
                           required
@@ -1066,7 +1066,7 @@ export function SettingsView({
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-slate-700">Nightly Rate</label>
+                        <label className="text-[11px] font-bold text-foreground/80">Nightly Rate</label>
                         <input
                           name="baseRate"
                           type="number"
@@ -1078,7 +1078,7 @@ export function SettingsView({
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-slate-700">Hourly Rate</label>
+                        <label className="text-[11px] font-bold text-foreground/80">Hourly Rate</label>
                         <input
                           name="hourlyRate"
                           type="number"
@@ -1090,7 +1090,7 @@ export function SettingsView({
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-slate-700">Max Capacity</label>
+                        <label className="text-[11px] font-bold text-foreground/80">Max Capacity</label>
                         <input
                           name="capacity"
                           type="number"
@@ -1102,7 +1102,7 @@ export function SettingsView({
                         />
                       </div>
                       <div className="sm:col-span-2">
-                        <label className="text-[11px] font-bold text-slate-700">Description</label>
+                        <label className="text-[11px] font-bold text-foreground/80">Description</label>
                         <input
                           name="description"
                           maxLength={500}
@@ -1131,21 +1131,21 @@ export function SettingsView({
       {/* 02. RESTAURANT, F&B & OUTLETS MANAGEMENT */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'restaurant') && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs text-card-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-50 text-emerald-700 font-extrabold text-sm">
                   🍽️
                 </span>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-xl font-bold text-foreground">
                   Restaurant, Floor Zones &amp; Menu Dishes
                 </h2>
                 <span className="rounded-full bg-emerald-100 border border-emerald-200 px-2.5 py-0.5 text-xs font-bold text-emerald-800">
                   {tables.length} Tables · {zones.length} Floor Zones · {totalMenuItems} Menu Dishes
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Manage physical dining floor plans, custom dining zones, menu dish catalog, and Swiggy / Zomato order ingestion.
               </p>
             </div>
@@ -1164,10 +1164,10 @@ export function SettingsView({
           <div className="rounded-2xl border border-emerald-200/70 bg-emerald-50/30 p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <span>🗺️</span> Custom Floor Zones Configuration
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Hotels vary from beach shacks to rooftop bars. Add custom zones or rename existing ones across all tables.
                 </p>
               </div>
@@ -1177,7 +1177,7 @@ export function SettingsView({
                   value={newZoneName}
                   onChange={(e) => setNewZoneName(e.target.value)}
                   placeholder="e.g. Executive Lounge, Beach Cabana"
-                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
                 />
                 <button
                   type="button"
@@ -1282,7 +1282,7 @@ export function SettingsView({
                           setZoneToDelete(null);
                           setZoneToDeleteDropdown('');
                         }}
-                        className="rounded-xl border border-slate-300 bg-white text-slate-700 px-3 py-2 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="rounded-xl border border-slate-300 bg-white text-foreground/80 px-3 py-2 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -1308,7 +1308,7 @@ export function SettingsView({
                           setZoneToDelete(null);
                           setZoneToDeleteDropdown('');
                         }}
-                        className="rounded-xl border border-slate-300 bg-white text-slate-700 px-3 py-1.5 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
+                        className="rounded-xl border border-slate-300 bg-white text-foreground/80 px-3 py-1.5 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
                       >
                         Cancel
                       </button>
@@ -1320,7 +1320,7 @@ export function SettingsView({
 
             {/* Quick Rename Zone Across Tables */}
             <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-emerald-200/50">
-              <span className="text-xs font-bold text-slate-700">Rename Zone:</span>
+              <span className="text-xs font-bold text-foreground/80">Rename Zone:</span>
               <div className="w-48">
                 <CustomDropdown
                   placeholder="Select zone to rename"
@@ -1337,7 +1337,7 @@ export function SettingsView({
                 value={renameTo}
                 onChange={(e) => setRenameTo(e.target.value)}
                 placeholder="New name..."
-                className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-2xs w-44"
+                className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs w-44"
               />
               <button
                 type="button"
@@ -1412,20 +1412,20 @@ export function SettingsView({
                   setMsg({ type: 'error', text: res.error || 'Failed to add table.' });
                 }
               }}
-              className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
+              className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6"
             >
               <div className="flex items-center gap-3">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-emerald-700 text-white text-xs font-bold shadow-2xs">
                   01
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Add Dining Table</h3>
-                  <p className="text-xs text-slate-500">Configure table number, covers, and floor zone.</p>
+                  <h3 className="text-sm font-bold text-foreground">Add Dining Table</h3>
+                  <p className="text-xs text-muted-foreground">Configure table number, covers, and floor zone.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Floor Zone / Section</label>
+                <label className="block text-xs font-bold text-foreground/80 mb-1">Floor Zone / Section</label>
                 <CustomDropdown
                   name="section"
                   placeholder="Select Floor Zone"
@@ -1437,7 +1437,7 @@ export function SettingsView({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Table Number</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Table Number</label>
                   <input
                     name="tableNumber"
                     required
@@ -1446,7 +1446,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Seating Capacity (Covers)</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Seating Capacity (Covers)</label>
                   <input
                     name="capacity"
                     type="number"
@@ -1461,7 +1461,7 @@ export function SettingsView({
 
               {outlets.length > 1 && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Restaurant Outlet</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Restaurant Outlet</label>
                   <CustomDropdown
                     name="outletId"
                     defaultValue={outlets[0]?.id}
@@ -1508,20 +1508,20 @@ export function SettingsView({
                   setMsg({ type: 'error', text: res.error || 'Failed to add menu item.' });
                 }
               }}
-              className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
+              className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6"
             >
               <div className="flex items-center gap-3">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white text-xs font-bold shadow-2xs">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-2xs">
                   02
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Add Menu Item / Dish</h3>
-                  <p className="text-xs text-slate-500">Configure dish name, price, dietary, and 5% F&amp;B GST.</p>
+                  <h3 className="text-sm font-bold text-foreground">Add Menu Item / Dish</h3>
+                  <p className="text-xs text-muted-foreground">Configure dish name, price, dietary, and 5% F&amp;B GST.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Menu Category</label>
+                <label className="block text-xs font-bold text-foreground/80 mb-1">Menu Category</label>
                 {menu.length > 0 ? (
                   <CustomDropdown
                     name="categoryId"
@@ -1541,7 +1541,7 @@ export function SettingsView({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Dish Name</label>
+                <label className="block text-xs font-bold text-foreground/80 mb-1">Dish Name</label>
                 <input
                   name="name"
                   required
@@ -1552,7 +1552,7 @@ export function SettingsView({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Price ({currency})
                   </label>
                   <input
@@ -1566,7 +1566,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Dietary Tag</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Dietary Tag</label>
                   <CustomDropdown
                     name="dietary"
                     defaultValue="veg"
@@ -1580,7 +1580,7 @@ export function SettingsView({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[11px] text-slate-500 bg-white border border-slate-200/80 px-3 py-2 rounded-xl">
+              <div className="flex items-center justify-between text-[11px] text-muted-foreground bg-white border border-slate-200/80 px-3 py-2 rounded-xl">
                 <span>Indian Statutory GST: <strong>5% SAC 996331</strong> (F&amp;B Service)</span>
                 <span className="text-emerald-700 font-bold">Auto-applied</span>
               </div>
@@ -1598,19 +1598,19 @@ export function SettingsView({
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2.5">
-                  <span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white font-bold text-sm shadow-xs">
+                  <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-xs">
                     📋
                   </span>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h3 className="font-display text-base font-black text-slate-950">
+                      <h3 className="font-display text-base font-black text-foreground">
                         Menu Dishes Master &amp; Dietary Catalog
                       </h3>
-                      <span className="rounded-full bg-slate-100 border border-slate-300 px-2 py-0.5 text-[10px] font-black text-slate-700">
+                      <span className="rounded-full bg-slate-100 border border-slate-300 px-2 py-0.5 text-[10px] font-black text-foreground/80">
                         {allDishes.length} Total
                       </span>
                     </div>
-                    <p className="text-xs text-slate-500 font-medium">
+                    <p className="text-xs text-muted-foreground font-medium">
                       Filter by Veg / Non-Veg / Egg, live 86 out-of-stock toggle, and dish deletion.
                     </p>
                   </div>
@@ -1621,7 +1621,7 @@ export function SettingsView({
                 <button
                   type="button"
                   onClick={() => setIsAddCategoryOpen((prev) => !prev)}
-                  className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
+                  className="rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-foreground/80 hover:bg-slate-50 shadow-2xs transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <span>📁</span>
                   <span>{isAddCategoryOpen ? 'Cancel' : '+ New Category'}</span>
@@ -1639,7 +1639,7 @@ export function SettingsView({
                   <button
                     type="button"
                     onClick={() => setIsAddCategoryOpen(false)}
-                    className="text-xs text-slate-400 hover:text-slate-700"
+                    className="text-xs text-slate-400 hover:text-foreground/80"
                   >
                     ✕
                   </button>
@@ -1651,7 +1651,7 @@ export function SettingsView({
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                     placeholder="e.g. Tandoori Starters, Biryani, Italian Breads, Mocktails"
-                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-900 shadow-2xs flex-1 min-w-[240px]"
+                    className="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-foreground shadow-2xs flex-1 min-w-[240px]"
                   />
                   <button
                     type="submit"
@@ -1674,7 +1674,7 @@ export function SettingsView({
                   className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                     menuDietaryFilter === 'all'
                       ? 'bg-slate-950 text-white shadow-xs font-black'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                      : 'bg-white text-foreground/80 border border-slate-200 hover:bg-slate-100'
                   }`}
                 >
                   All ({allDishes.length})
@@ -1728,13 +1728,13 @@ export function SettingsView({
                     value={menuSearchQuery}
                     onChange={(e) => setMenuSearchQuery(e.target.value)}
                     placeholder="Search dish or code..."
-                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-900 shadow-2xs focus:outline-none focus:ring-2 focus:ring-slate-950/20"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-foreground shadow-2xs focus:outline-none focus:ring-2 focus:ring-slate-950/20"
                   />
                   {menuSearchQuery && (
                     <button
                       type="button"
                       onClick={() => setMenuSearchQuery('')}
-                      className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-slate-700 cursor-pointer"
+                      className="absolute right-2.5 top-2 text-xs text-slate-400 hover:text-foreground/80 cursor-pointer"
                     >
                       ✕
                     </button>
@@ -1777,7 +1777,7 @@ export function SettingsView({
             {filteredDishes.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center space-y-2">
                 <span className="text-2xl">🍽️</span>
-                <p className="text-xs font-bold text-slate-700">No dishes match the selected dietary or category filters.</p>
+                <p className="text-xs font-bold text-foreground/80">No dishes match the selected dietary or category filters.</p>
                 <button
                   type="button"
                   onClick={() => {
@@ -1786,15 +1786,15 @@ export function SettingsView({
                     setMenuStockFilter('all');
                     setMenuSearchQuery('');
                   }}
-                  className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer"
+                  className="rounded-xl border border-slate-300 bg-white px-3 py-1.5 text-xs font-bold text-foreground/80 hover:bg-slate-100 transition-colors cursor-pointer"
                 >
                   Reset Filters
                 </button>
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
+              <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-xs">
                 <table className="w-full min-w-[720px] text-left text-xs" aria-label="Menu dishes catalog">
-                  <thead className="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
+                  <thead className="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-muted-foreground">
                     <tr>
                       <th scope="col" className="px-4 py-3">Code</th>
                       <th scope="col" className="px-4 py-3">Dish Particulars</th>
@@ -1809,13 +1809,13 @@ export function SettingsView({
                   <tbody className="divide-y divide-slate-100 font-medium text-slate-800">
                     {filteredDishes.map((dish) => (
                       <tr key={dish.id} className="hover:bg-slate-50/70 transition-colors">
-                        <td className="px-4 py-3 font-mono font-bold text-slate-900">
+                        <td className="px-4 py-3 font-mono font-bold text-foreground">
                           {dish.itemCode || 'DISH'}
                         </td>
                         <td className="px-4 py-3">
-                          <p className="font-bold text-slate-950 text-sm">{dish.name}</p>
+                          <p className="font-bold text-foreground text-sm">{dish.name}</p>
                           {dish.description && (
-                            <p className="text-[11px] text-slate-500 line-clamp-1">{dish.description}</p>
+                            <p className="text-[11px] text-muted-foreground line-clamp-1">{dish.description}</p>
                           )}
                         </td>
                         <td className="px-4 py-3">
@@ -1837,14 +1837,14 @@ export function SettingsView({
                           )}
                         </td>
                         <td className="px-4 py-3">
-                          <span className="rounded-lg bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-slate-700">
+                          <span className="rounded-lg bg-slate-100 border border-slate-200 px-2 py-0.5 text-[11px] font-bold text-foreground/80">
                             {dish.categoryName}
                           </span>
                         </td>
-                        <td className="px-4 py-3 font-bold text-slate-950 text-sm">
+                        <td className="px-4 py-3 font-bold text-foreground text-sm">
                           ₹{Number(dish.price).toFixed(2)}
                         </td>
-                        <td className="px-4 py-3 font-mono text-[11px] text-slate-500">
+                        <td className="px-4 py-3 font-mono text-[11px] text-muted-foreground">
                           SAC 996331 (5%)
                         </td>
                         <td className="px-4 py-3 text-center">
@@ -1889,19 +1889,19 @@ export function SettingsView({
           <div className="space-y-4 pt-6 border-t border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="flex items-center gap-2.5">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white font-bold text-sm shadow-xs">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground font-bold text-sm shadow-xs">
                   🪑
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="font-display text-base font-black text-slate-950">
+                    <h3 className="font-display text-base font-black text-foreground">
                       Dining Tables Master &amp; Floor Inventory
                     </h3>
-                    <span className="rounded-full bg-slate-100 border border-slate-300 px-2 py-0.5 text-[10px] font-black text-slate-700">
+                    <span className="rounded-full bg-slate-100 border border-slate-300 px-2 py-0.5 text-[10px] font-black text-foreground/80">
                       {localTables.length} Tables
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 font-medium">
+                  <p className="text-xs text-muted-foreground font-medium">
                     View active dining tables, check seating covers, filter by zone, or delete vacant tables.
                   </p>
                 </div>
@@ -1933,12 +1933,12 @@ export function SettingsView({
                 return (
                   <div
                     key={t.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-3.5 shadow-2xs flex flex-col justify-between space-y-2.5 hover:border-slate-300 transition-all"
+                    className="rounded-2xl border border-border bg-card p-3.5 shadow-2xs flex flex-col justify-between space-y-2.5 hover:border-slate-300 transition-all"
                   >
                     <div className="flex items-start justify-between">
                       <div>
-                        <p className="font-display text-base font-black text-slate-950">{t.tableNumber}</p>
-                        <p className="text-[10px] font-bold text-slate-500 truncate max-w-[90px]">{t.section || 'Main AC Hall'}</p>
+                        <p className="font-display text-base font-black text-foreground">{t.tableNumber}</p>
+                        <p className="text-[10px] font-bold text-muted-foreground truncate max-w-[90px]">{t.section || 'Main AC Hall'}</p>
                       </div>
                       <span
                         className={`rounded-full px-2 py-0.2 text-[9px] font-black uppercase tracking-wider ${
@@ -1952,7 +1952,7 @@ export function SettingsView({
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
-                      <span className="text-slate-500 font-medium text-[11px]">👥 {t.capacity} Covers</span>
+                      <span className="text-muted-foreground font-medium text-[11px]">👥 {t.capacity} Covers</span>
                       <button
                         type="button"
                         disabled={!isVacant || readOnly || submitting}
@@ -1976,14 +1976,14 @@ export function SettingsView({
       {/* 03. BANKING, UPI & POS HARDWARE MANAGEMENT (OWNER AUTHORITY) */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'payments') && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs text-card-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-indigo-50 text-indigo-700 font-extrabold text-sm">
                   💳
                 </span>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-xl font-bold text-foreground">
                   Bank Settlement, Receiver UPI &amp; POS Machines
                 </h2>
                 {isOwner ? (
@@ -1996,7 +1996,7 @@ export function SettingsView({
                   </span>
                 )}
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Configure direct NPCI UPI receiver VPA and connect hardware EDC POS card swipe terminals (Pine Labs, Paytm, Innoviti).
               </p>
             </div>
@@ -2031,8 +2031,8 @@ export function SettingsView({
                     ₹
                   </span>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Front Desk Receiver UPI VPA</h3>
-                    <p className="text-xs text-slate-500">NPCI Direct Bank Settlement</p>
+                    <h3 className="text-sm font-bold text-foreground">Front Desk Receiver UPI VPA</h3>
+                    <p className="text-xs text-muted-foreground">NPCI Direct Bank Settlement</p>
                   </div>
                 </div>
                 <span className="rounded-full bg-emerald-100 border border-emerald-300 px-2 py-0.5 text-[10px] font-bold text-emerald-900">
@@ -2042,18 +2042,18 @@ export function SettingsView({
 
               <div className="rounded-xl border border-indigo-200 bg-white p-4 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-semibold">Active Receiver VPA:</span>
+                  <span className="text-muted-foreground font-semibold">Active Receiver VPA:</span>
                   <span className="font-mono font-black text-indigo-950 bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 rounded-lg text-sm">
                     {upiSettings?.upiId || 'grandazure@icici'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-semibold">Registered Merchant Name:</span>
-                  <span className="font-bold text-slate-900">
+                  <span className="text-muted-foreground font-semibold">Registered Merchant Name:</span>
+                  <span className="font-bold text-foreground">
                     {upiSettings?.upiMerchantName || property.name}
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-500 pt-1 border-t border-slate-100">
+                <p className="text-[11px] text-muted-foreground pt-1 border-t border-slate-100">
                   Guest QR scans on invoices, restaurant bills, and direct web booking deposits settle directly to this account with zero intermediary delay.
                 </p>
               </div>
@@ -2063,7 +2063,7 @@ export function SettingsView({
                   action={updateUpiSetting}
                   className="space-y-3 pt-2 border-t border-indigo-100"
                 >
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label className="block text-xs font-bold text-foreground/80">
                     Update Receiver UPI ID
                     <input
                       name="upiId"
@@ -2073,7 +2073,7 @@ export function SettingsView({
                       className={`${inputCls} mt-1`}
                     />
                   </label>
-                  <label className="block text-xs font-bold text-slate-700">
+                  <label className="block text-xs font-bold text-foreground/80">
                     Registered Merchant Name
                     <input
                       name="upiMerchantName"
@@ -2090,18 +2090,18 @@ export function SettingsView({
             </div>
 
             {/* POS EDC Card Swipe Terminals */}
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-slate-900 text-white font-extrabold text-sm shadow-xs">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground font-extrabold text-sm shadow-xs">
                     💳
                   </span>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Card Swipe Terminals (EDC)</h3>
-                    <p className="text-xs text-slate-500">Pine Labs · Paytm · Innoviti Cloud</p>
+                    <h3 className="text-sm font-bold text-foreground">Card Swipe Terminals (EDC)</h3>
+                    <p className="text-xs text-muted-foreground">Pine Labs · Paytm · Innoviti Cloud</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-foreground/80">
                   {terminals.length} Connected
                 </span>
               </div>
@@ -2112,10 +2112,10 @@ export function SettingsView({
                   terminals.map((term: any) => (
                     <div
                       key={term.id}
-                      className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 text-xs shadow-2xs"
+                      className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-3 text-xs shadow-2xs"
                     >
                       <div>
-                        <div className="font-bold text-slate-900 flex items-center gap-2">
+                        <div className="font-bold text-foreground flex items-center gap-2">
                           <span>{term.name}</span>
                           {term.isDefault && (
                             <span className="rounded-full bg-indigo-100 text-indigo-800 px-1.5 py-0.2 text-[9px] font-bold">
@@ -2123,7 +2123,7 @@ export function SettingsView({
                             </span>
                           )}
                         </div>
-                        <div className="text-slate-500 text-[11px] font-mono mt-0.5">
+                        <div className="text-muted-foreground text-[11px] font-mono mt-0.5">
                           TID: {term.terminalId} · {term.provider?.toUpperCase()} · {term.connectionType}
                         </div>
                       </div>
@@ -2133,7 +2133,7 @@ export function SettingsView({
                     </div>
                   ))
                 ) : (
-                  <p className="text-xs text-slate-500 py-2">
+                  <p className="text-xs text-muted-foreground py-2">
                     No hardware EDC terminals configured yet. Register front desk counter machines below.
                   </p>
                 )}
@@ -2147,7 +2147,7 @@ export function SettingsView({
                   <input type="hidden" name="back" value="/settings?tab=payments" />
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
-                      <label className="text-[11px] font-bold text-slate-700">Terminal Label</label>
+                      <label className="text-[11px] font-bold text-foreground/80">Terminal Label</label>
                       <input
                         name="name"
                         required
@@ -2156,7 +2156,7 @@ export function SettingsView({
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold text-slate-700">Terminal ID (TID)</label>
+                      <label className="text-[11px] font-bold text-foreground/80">Terminal ID (TID)</label>
                       <input
                         name="terminalId"
                         required
@@ -2165,7 +2165,7 @@ export function SettingsView({
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold text-slate-700">Provider</label>
+                      <label className="text-[11px] font-bold text-foreground/80">Provider</label>
                       <CustomDropdown
                         name="provider"
                         defaultValue="pine_labs"
@@ -2179,7 +2179,7 @@ export function SettingsView({
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] font-bold text-slate-700">Connection Mode</label>
+                      <label className="text-[11px] font-bold text-foreground/80">Connection Mode</label>
                       <CustomDropdown
                         name="connectionType"
                         defaultValue="cloud_lan"
@@ -2191,7 +2191,7 @@ export function SettingsView({
                       />
                     </div>
                   </div>
-                  <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer pt-1">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-foreground/80 cursor-pointer pt-1">
                     <input type="checkbox" name="isDefault" className="rounded" />
                     <span>Set as primary terminal for cashier folios</span>
                   </label>
@@ -2209,21 +2209,21 @@ export function SettingsView({
       {/* 04. OTA CHANNEL MANAGER & APIS */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'channels') && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs text-card-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-sky-50 text-sky-700 font-extrabold text-sm">
                   🌐
                 </span>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-xl font-bold text-foreground">
                   OTA Channel Manager &amp; External APIs
                 </h2>
                 <span className="rounded-full bg-sky-100 border border-sky-200 px-2.5 py-0.5 text-xs font-bold text-sky-800">
                   MakeMyTrip · Booking.com · Agoda · Swiggy · Zomato
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Synchronize 2-way room rate parity, live inventory calendars, and online delivery food orders.
               </p>
             </div>
@@ -2242,20 +2242,20 @@ export function SettingsView({
             {/* OTA Connection Setup Form */}
             <form
               action={saveChannelConnectionSetting}
-              className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
+              className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6"
             >
               <div className="flex items-center gap-3">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-sky-600 text-white text-xs font-bold shadow-2xs">
                   01
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Configure OTA Channel API</h3>
-                  <p className="text-xs text-slate-500">Bind API credentials and commission structure.</p>
+                  <h3 className="text-sm font-bold text-foreground">Configure OTA Channel API</h3>
+                  <p className="text-xs text-muted-foreground">Bind API credentials and commission structure.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Select OTA Channel</label>
+                <label className="block text-xs font-bold text-foreground/80 mb-1">Select OTA Channel</label>
                 <CustomDropdown
                   name="channelKey"
                   defaultValue="makemytrip"
@@ -2273,7 +2273,7 @@ export function SettingsView({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Channel Display Name</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Channel Display Name</label>
                   <input
                     name="channelName"
                     required
@@ -2282,7 +2282,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Hotel Property Code</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Hotel Property Code</label>
                   <input
                     name="hotelCode"
                     required
@@ -2291,7 +2291,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">API Key / Client ID</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">API Key / Client ID</label>
                   <input
                     name="apiKey"
                     type="password"
@@ -2300,7 +2300,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">API Secret / Token</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">API Secret / Token</label>
                   <input
                     name="apiSecret"
                     type="password"
@@ -2309,7 +2309,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Commission Rate (%)</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Commission Rate (%)</label>
                   <input
                     name="commissionRate"
                     type="number"
@@ -2320,7 +2320,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Sync Mode</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Sync Mode</label>
                   <CustomDropdown
                     name="syncMode"
                     defaultValue="two_way"
@@ -2334,7 +2334,7 @@ export function SettingsView({
                 </div>
               </div>
 
-              <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer">
+              <label className="flex items-center gap-2 text-xs font-semibold text-foreground/80 cursor-pointer">
                 <input type="checkbox" name="isActive" defaultChecked className="rounded" />
                 <span>Enable live real-time rate pushing &amp; instant booking ingestion</span>
               </label>
@@ -2345,23 +2345,23 @@ export function SettingsView({
             </form>
 
             {/* Webhook & Rate Sync Overview */}
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
               <div className="flex items-center gap-3">
-                <span className="grid h-8 w-8 place-items-center rounded-xl bg-slate-900 text-white text-xs font-bold shadow-2xs">
+                <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary text-primary-foreground text-xs font-bold shadow-2xs">
                   02
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">API Webhooks &amp; Status</h3>
-                  <p className="text-xs text-slate-500">Provide this endpoint to OTA technical portals.</p>
+                  <h3 className="text-sm font-bold text-foreground">API Webhooks &amp; Status</h3>
+                  <p className="text-xs text-muted-foreground">Provide this endpoint to OTA technical portals.</p>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-3">
+              <div className="rounded-xl border border-border bg-card p-4 space-y-3">
                 <div className="text-xs font-bold text-slate-800">Inbound Booking Webhook URL:</div>
                 <div className="font-mono text-xs text-indigo-900 bg-indigo-50 border border-indigo-200 p-2.5 rounded-xl break-all select-all">
                   https://api.grandazure.com/api/hotel/channels/webhook
                 </div>
-                <p className="text-[11px] text-slate-500 leading-relaxed">
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
                   When a guest books on MakeMyTrip, Agoda, or Swiggy, their servers dispatch an instant JSON webhook payload here. Aura PMS automatically maps the guest profile, confirms the reservation, and fires KOT if F&amp;B.
                 </p>
               </div>
@@ -2384,21 +2384,21 @@ export function SettingsView({
       {/* 05. STAFF DIRECTORY & ACCESS CONTROL */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'staff') && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs text-card-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-purple-50 text-purple-700 font-extrabold text-sm">
                   👥
                 </span>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-xl font-bold text-foreground">
                   Staff Directory &amp; Role-Based Permissions
                 </h2>
                 <span className="rounded-full bg-purple-100 border border-purple-200 px-2.5 py-0.5 text-xs font-bold text-purple-800">
                   {safeUsers.length} Team Members Configured
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Grant role-based access for Front Desk, Housekeeping, General Managers, and Owners.
               </p>
             </div>
@@ -2417,20 +2417,20 @@ export function SettingsView({
             {/* Quick Invite Staff Form */}
             <form
               action={onboardStaffSetting}
-              className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6"
+              className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6"
             >
               <div className="flex items-center gap-3">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-purple-600 text-white text-xs font-bold shadow-2xs">
                   +
                 </span>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Onboard New Team Member</h3>
-                  <p className="text-xs text-slate-500">Assign specific operational permission tier.</p>
+                  <h3 className="text-sm font-bold text-foreground">Onboard New Team Member</h3>
+                  <p className="text-xs text-muted-foreground">Assign specific operational permission tier.</p>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+                <label className="block text-xs font-bold text-foreground/80 mb-1">Full Name</label>
                 <input
                   name="fullName"
                   required
@@ -2441,7 +2441,7 @@ export function SettingsView({
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Work Email</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Work Email</label>
                   <input
                     name="email"
                     type="email"
@@ -2451,7 +2451,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Assigned Role</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Assigned Role</label>
                   <CustomDropdown
                     name="role"
                     defaultValue="frontdesk"
@@ -2466,7 +2466,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Department</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Department</label>
                   <input
                     name="department"
                     defaultValue="Front Office"
@@ -2475,7 +2475,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Initial Password</label>
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">Initial Password</label>
                   <input
                     name="password"
                     type="password"
@@ -2491,35 +2491,35 @@ export function SettingsView({
             </form>
 
             {/* Role Hierarchy Policy Matrix */}
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">System Role &amp; Permission Boundaries</h3>
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-sm font-bold text-foreground">System Role &amp; Permission Boundaries</h3>
               <div className="space-y-2.5 text-xs">
-                <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
-                  <div className="font-bold text-slate-900 flex items-center justify-between">
+                <div className="rounded-xl border border-border bg-card p-3 space-y-1">
+                  <div className="font-bold text-foreground flex items-center justify-between">
                     <span>Housekeeping</span>
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px]">Operations Only</span>
                   </div>
-                  <p className="text-slate-500 text-[11px]">
+                  <p className="text-muted-foreground text-[11px]">
                     Can view room status, toggle Ready / Cleaning / Maintenance, return keys. Zero access to billing, guests, or management.
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
-                  <div className="font-bold text-slate-900 flex items-center justify-between">
+                <div className="rounded-xl border border-border bg-card p-3 space-y-1">
+                  <div className="font-bold text-foreground flex items-center justify-between">
                     <span>Front Desk</span>
                     <span className="rounded-full bg-blue-100 text-blue-800 px-2 py-0.5 text-[10px]">Front Office Execution</span>
                   </div>
-                  <p className="text-slate-500 text-[11px]">
+                  <p className="text-muted-foreground text-[11px]">
                     Check-in, check-out, tape chart, guest master, billing folios, F&amp;B POS orders, BoI Form C. No configuration access.
                   </p>
                 </div>
 
-                <div className="rounded-xl border border-slate-200 bg-white p-3 space-y-1">
-                  <div className="font-bold text-slate-900 flex items-center justify-between">
+                <div className="rounded-xl border border-border bg-card p-3 space-y-1">
+                  <div className="font-bold text-foreground flex items-center justify-between">
                     <span>General Manager</span>
                     <span className="rounded-full bg-purple-100 text-purple-800 px-2 py-0.5 text-[10px]">Operational Management</span>
                   </div>
-                  <p className="text-slate-500 text-[11px]">
+                  <p className="text-muted-foreground text-[11px]">
                     Full access to Settings Hub: add rooms, set rates, dining zones, menu dishes, OTA APIs, staff invites, Night Audit.
                   </p>
                 </div>
@@ -2543,21 +2543,21 @@ export function SettingsView({
       {/* 06. STATUTORY BOI, POLICE & GST COMPLIANCE */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'compliance') && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs text-card-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-teal-50 text-teal-700 font-extrabold text-sm">
                   ⚖️
                 </span>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-xl font-bold text-foreground">
                   Statutory BoI &amp; Indian Legal Mandates
                 </h2>
                 <span className="rounded-full bg-teal-100 border border-teal-200 px-2.5 py-0.5 text-xs font-bold text-teal-800">
                   BoI Form C · Police Midnight Beat · Dual GST
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Statutory foreign guest passport registration with the Bureau of Immigration and local police jurisdiction beat book.
               </p>
             </div>
@@ -2573,11 +2573,11 @@ export function SettingsView({
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">Indian Compliance Configurations</h3>
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-sm font-bold text-foreground">Indian Compliance Configurations</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Bureau of Immigration (BoI) Hotel Code
                   </label>
                   <input
@@ -2587,7 +2587,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Local Police Station Jurisdiction
                   </label>
                   <input
@@ -2597,7 +2597,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Rule 114B PAN Cash Payment Limit (₹)
                   </label>
                   <input
@@ -2617,24 +2617,24 @@ export function SettingsView({
               </div>
             </div>
 
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">Mandatory GST HSN/SAC Mapping</h3>
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-sm font-bold text-foreground">Mandatory GST HSN/SAC Mapping</h3>
               <div className="space-y-2 text-xs">
-                <div className="rounded-xl border border-slate-200 bg-white p-3">
-                  <div className="font-bold text-slate-900">SAC 996311: Room Accommodation</div>
-                  <p className="text-slate-500 text-[11px] mt-0.5">
+                <div className="rounded-xl border border-border bg-card p-3">
+                  <div className="font-bold text-foreground">SAC 996311: Room Accommodation</div>
+                  <p className="text-muted-foreground text-[11px] mt-0.5">
                     12% GST when declared tariff &le; ₹7,500/night; 18% GST when declared tariff &gt; ₹7,500/night.
                   </p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-3">
-                  <div className="font-bold text-slate-900">SAC 996331: Restaurant &amp; In-Room Dining</div>
-                  <p className="text-slate-500 text-[11px] mt-0.5">
+                <div className="rounded-xl border border-border bg-card p-3">
+                  <div className="font-bold text-foreground">SAC 996331: Restaurant &amp; In-Room Dining</div>
+                  <p className="text-muted-foreground text-[11px] mt-0.5">
                     Flat 5% GST without input tax credit for hotel restaurants.
                   </p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-3">
-                  <div className="font-bold text-slate-900">Dual GST Engine (CGST + SGST vs IGST)</div>
-                  <p className="text-slate-500 text-[11px] mt-0.5">
+                <div className="rounded-xl border border-border bg-card p-3">
+                  <div className="font-bold text-foreground">Dual GST Engine (CGST + SGST vs IGST)</div>
+                  <p className="text-muted-foreground text-[11px] mt-0.5">
                     Automatically splits intra-state stays into 2.5%/6%/9% CGST + SGST, or 5%/12%/18% IGST for interstate guests.
                   </p>
                 </div>
@@ -2648,21 +2648,21 @@ export function SettingsView({
       {/* 07. MARKETING & LOYALTY CRM */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'marketing') && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs text-card-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-rose-50 text-rose-700 font-extrabold text-sm">
                   📣
                 </span>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-xl font-bold text-foreground">
                   Marketing, Loyalty Program &amp; Guest Retention
                 </h2>
                 <span className="rounded-full bg-rose-100 border border-rose-200 px-2.5 py-0.5 text-xs font-bold text-rose-800">
                   Silver · Gold · Platinum Tiers Active
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Setup loyalty tiers, points accumulation per stay, and automated WhatsApp guest review reminders.
               </p>
             </div>
@@ -2678,25 +2678,25 @@ export function SettingsView({
           </div>
 
           <div className="grid gap-6 xl:grid-cols-2">
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">Loyalty Tier Discount Settings</h3>
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-sm font-bold text-foreground">Loyalty Tier Discount Settings</h3>
               <div className="space-y-3">
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700">Silver Tier (%)</label>
+                    <label className="text-[11px] font-bold text-foreground/80">Silver Tier (%)</label>
                     <input defaultValue="5" type="number" min="0" max="30" className={`${inputCls} mt-1`} />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700">Gold Tier (%)</label>
+                    <label className="text-[11px] font-bold text-foreground/80">Gold Tier (%)</label>
                     <input defaultValue="10" type="number" min="0" max="40" className={`${inputCls} mt-1`} />
                   </div>
                   <div>
-                    <label className="text-[11px] font-bold text-slate-700">Platinum Tier (%)</label>
+                    <label className="text-[11px] font-bold text-foreground/80">Platinum Tier (%)</label>
                     <input defaultValue="15" type="number" min="0" max="50" className={`${inputCls} mt-1`} />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Loyalty Points per ₹100 Spent
                   </label>
                   <input defaultValue="10" type="number" className={inputCls} />
@@ -2711,11 +2711,11 @@ export function SettingsView({
               </div>
             </div>
 
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">WhatsApp Automation Engine</h3>
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-sm font-bold text-foreground">WhatsApp Automation Engine</h3>
               <div className="space-y-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Send Google Review Link After Checkout
                   </label>
                   <CustomDropdown
@@ -2729,7 +2729,7 @@ export function SettingsView({
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                  <label className="block text-xs font-bold text-foreground/80 mb-1">
                     Google Business Review URL
                   </label>
                   <input
@@ -2755,14 +2755,14 @@ export function SettingsView({
       {/* 08. KEYCARDS & ACCESS HARDWARE */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'keycards') && (
-        <section className="space-y-6 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <section className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs text-card-foreground">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2.5">
                 <span className="grid h-8 w-8 place-items-center rounded-xl bg-amber-50 text-amber-700 font-extrabold text-sm">
                   🔑
                 </span>
-                <h2 className="font-display text-xl font-bold text-slate-900">
+                <h2 className="font-display text-xl font-bold text-foreground">
                   Door Locks &amp; Key Access Architecture
                 </h2>
                 <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold border ${
@@ -2779,7 +2779,7 @@ export function SettingsView({
                     : '🗝️💳 Hybrid Combination Mode'}
                 </span>
               </div>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Configure your property lock standard: Traditional physical brass key tags, modern contactless MIFARE RFID smart cards, or a hybrid combination.
               </p>
             </div>
@@ -2795,9 +2795,9 @@ export function SettingsView({
 
           <div className="grid gap-6 xl:grid-cols-2">
             {/* Property Key System Configuration Form */}
-            <form action={updateKeySystemSetting} className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">Property Lock &amp; Key Policy</h3>
-              <p className="text-xs text-slate-500">
+            <form action={updateKeySystemSetting} className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-sm font-bold text-foreground">Property Lock &amp; Key Policy</h3>
+              <p className="text-xs text-muted-foreground">
                 Choose the lock hardware architecture that matches your property operations.
               </p>
 
@@ -2816,8 +2816,8 @@ export function SettingsView({
                       className="mt-0.5"
                     />
                     <div>
-                      <p className="text-xs font-bold text-slate-900">🗝️💳 Hybrid / Combination (Recommended)</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-xs font-bold text-foreground">🗝️💳 Hybrid / Combination (Recommended)</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         Supports both physical brass keychains and contactless RFID cards. Ideal for properties with heritage and modern wings, or smart locks with mechanical backup master keys.
                       </p>
                     </div>
@@ -2838,8 +2838,8 @@ export function SettingsView({
                       className="mt-0.5"
                     />
                     <div>
-                      <p className="text-xs font-bold text-slate-900">🗝️ Boutique / Heritage Hotel (Brass Keys Only)</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-xs font-bold text-foreground">🗝️ Boutique / Heritage Hotel (Brass Keys Only)</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         Traditional solid brass numbered key tags. Hides electronic RFID encoder interfaces and focuses entirely on front desk slot cabinet custody &amp; audits.
                       </p>
                     </div>
@@ -2860,8 +2860,8 @@ export function SettingsView({
                       className="mt-0.5"
                     />
                     <div>
-                      <p className="text-xs font-bold text-slate-900">💳 Modern Electronic Hotel (RFID Cards Only)</p>
-                      <p className="text-[11px] text-slate-500 mt-0.5">
+                      <p className="text-xs font-bold text-foreground">💳 Modern Electronic Hotel (RFID Cards Only)</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">
                         Contactless MIFARE / NFC smart keycards programmed via USB reader. Automatic expiration on checkout and instant replacement card invalidation.
                       </p>
                     </div>
@@ -2870,7 +2870,7 @@ export function SettingsView({
               </div>
 
               <div className="pt-2 border-t border-slate-200">
-                <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-700 cursor-pointer">
+                <label className="flex items-center gap-2.5 text-xs font-semibold text-foreground/80 cursor-pointer">
                   <input
                     type="checkbox"
                     name="enableMobileQr"
@@ -2891,31 +2891,31 @@ export function SettingsView({
             </form>
 
             {/* Inventory & Active Hardware Breakdown */}
-            <div className="space-y-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 sm:p-6 shadow-2xs">
-              <h3 className="text-sm font-bold text-slate-900">Access Key Inventory &amp; Custody</h3>
+            <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-5 sm:p-6 shadow-2xs">
+              <h3 className="text-sm font-bold text-foreground">Access Key Inventory &amp; Custody</h3>
               <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-1">
+                <div className="rounded-xl border border-border bg-card p-3.5 space-y-1">
                   <div className="text-[11px] font-bold text-amber-700 uppercase">🗝️ Brass Keychains</div>
-                  <div className="font-mono text-2xl font-black text-slate-900">
+                  <div className="font-mono text-2xl font-black text-foreground">
                     {keycards.filter((k: any) => k.keyType === 'physical_brass').length}
                   </div>
                   <p className="text-[10px] text-slate-400">Pigeonhole tag cabinet</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-1">
+                <div className="rounded-xl border border-border bg-card p-3.5 space-y-1">
                   <div className="text-[11px] font-bold text-indigo-700 uppercase">💳 RFID Smart Cards</div>
-                  <div className="font-mono text-2xl font-black text-slate-900">
+                  <div className="font-mono text-2xl font-black text-foreground">
                     {keycards.filter((k: any) => k.keyType === 'rfid_mifare').length}
                   </div>
                   <p className="text-[10px] text-slate-400">MIFARE / 13.56MHz</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-1">
+                <div className="rounded-xl border border-border bg-card p-3.5 space-y-1">
                   <div className="text-[11px] font-bold text-emerald-700 uppercase">In Slot / Cabinet</div>
                   <div className="font-mono text-2xl font-black text-emerald-600">
                     {keycards.filter((k: any) => k.status === 'in_slot').length}
                   </div>
                   <p className="text-[10px] text-slate-400">Available at front desk</p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-1">
+                <div className="rounded-xl border border-border bg-card p-3.5 space-y-1">
                   <div className="text-[11px] font-bold text-blue-700 uppercase">With Guests</div>
                   <div className="font-mono text-2xl font-black text-blue-600">
                     {keycards.filter((k: any) => k.status === 'issued_to_guest').length}
@@ -2924,8 +2924,8 @@ export function SettingsView({
                 </div>
               </div>
 
-              <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2 text-xs">
-                <p className="font-bold text-slate-900">Real-World PMS Automation Rules Active:</p>
+              <div className="rounded-xl border border-border bg-card p-4 space-y-2 text-xs">
+                <p className="font-bold text-foreground">Real-World PMS Automation Rules Active:</p>
                 <ul className="space-y-1 text-slate-600 list-disc list-inside text-[11px]">
                   <li>Automated custody return to slot upon guest checkout or cancellation.</li>
                   <li>Security integrity: keys can only be issued to verified occupants of that specific room.</li>
@@ -2941,17 +2941,17 @@ export function SettingsView({
       {/* 9. PETTY CASH CATEGORIES & APPROVED HOTEL VENDORS CONSOLE */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'expenses') && (
-        <section id="settings-expenses" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-expenses" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">💵</span>
-                <h2 className="text-lg font-bold text-slate-900">Petty Cash Categories &amp; Approved Vendors</h2>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                <h2 className="text-lg font-bold text-foreground">Petty Cash Categories &amp; Approved Vendors</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                   {expenseCategories.length} Categories • {vendors.length} Vendors
                 </span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Configure expense categories and approved suppliers (fuel, milk, laundry, electrical) with payment terms and GSTIN.
               </p>
             </div>
@@ -2966,8 +2966,8 @@ export function SettingsView({
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             {/* Category Configuration Form & List */}
             <div className="space-y-5">
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Create Expense Category</h3>
+              <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Create Expense Category</h3>
                 <form action={createExpenseCategorySetting} className="space-y-3">
                   <div className="grid grid-cols-3 gap-2">
                     <div className="col-span-2">
@@ -3005,20 +3005,20 @@ export function SettingsView({
 
               {/* Categories List */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Categories</h4>
-                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Configured Categories</h4>
+                <div className="divide-y divide-slate-100 rounded-xl border border-border bg-card overflow-hidden text-xs">
                   {expenseCategories.map((c) => (
                     <div key={c.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
                       <div className="flex items-center gap-2.5">
                         <span className="text-lg">{c.icon || '📦'}</span>
                         <div>
-                          <p className="font-bold text-slate-900">{c.name}</p>
+                          <p className="font-bold text-foreground">{c.name}</p>
                           <p className="text-[11px] text-slate-400 font-mono">{c.code}</p>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
                         {c.isSystem ? (
-                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 uppercase">
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-muted-foreground uppercase">
                             System
                           </span>
                         ) : (
@@ -3040,8 +3040,8 @@ export function SettingsView({
 
             {/* Approved Vendors Configuration Form & List */}
             <div className="space-y-5">
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Register Approved Hotel Vendor</h3>
+              <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Register Approved Hotel Vendor</h3>
                 <form action={createVendorSetting} className="space-y-3">
                   <div className="grid grid-cols-2 gap-2">
                     <div>
@@ -3097,18 +3097,18 @@ export function SettingsView({
 
               {/* Vendors List */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Registered Approved Suppliers</h4>
-                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-80 overflow-y-auto">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Registered Approved Suppliers</h4>
+                <div className="divide-y divide-slate-100 rounded-xl border border-border bg-card overflow-hidden text-xs max-h-80 overflow-y-auto">
                   {vendors.map((v) => (
                     <div key={v.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
                       <div>
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-slate-900">{v.name}</p>
+                          <p className="font-bold text-foreground">{v.name}</p>
                           <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
                             {v.category}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
+                        <p className="text-[11px] text-muted-foreground mt-0.5">
                           {v.contactPerson && `${v.contactPerson} • `}{v.phone && `${v.phone} • `}Terms: {v.paymentTerms}
                         </p>
                         {v.gstin && <p className="text-[10px] font-mono text-slate-400">GST: {v.gstin}</p>}
@@ -3132,22 +3132,22 @@ export function SettingsView({
           <div className="border-t border-slate-200/80 pt-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <span>⚡</span> Recurring Common Expense Items Catalog
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Pre-configure common recurring operational items (GenSet Diesel, Dairy Milk, Thermal Paper, Spares) for 1-click entry on front desk vouchers.
                 </p>
               </div>
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                 {commonExpenses.length} Items Configured
               </span>
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               {/* Form to add Common Expense Item */}
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Common Expense Template</h4>
+              <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Add Common Expense Template</h4>
                 <form action={createCommonExpenseSetting} className="space-y-3">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600">Item Name *</label>
@@ -3233,8 +3233,8 @@ export function SettingsView({
 
               {/* List of Configured Common Expense Items */}
               <div className="space-y-2 lg:col-span-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Standard Items</h4>
-                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-96 overflow-y-auto">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Configured Standard Items</h4>
+                <div className="divide-y divide-slate-100 rounded-xl border border-border bg-card overflow-hidden text-xs max-h-96 overflow-y-auto">
                   {commonExpenses.map((ci) => {
                     const cat = expenseCategories.find((c) => c.code === ci.categoryCode);
                     return (
@@ -3243,12 +3243,12 @@ export function SettingsView({
                           <span className="text-2xl mt-0.5">{cat?.icon || '🏷️'}</span>
                           <div>
                             <div className="flex items-center gap-2">
-                              <p className="font-bold text-slate-900 text-[13px]">{ci.name}</p>
+                              <p className="font-bold text-foreground text-[13px]">{ci.name}</p>
                               <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
                                 {cat?.name || ci.categoryCode}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-500 mt-0.5">
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
                               {ci.defaultVendorName && `Vendor: ${ci.defaultVendorName} • `}
                               Disbursed: {ci.defaultPaymentMode.replace('_', ' ')}
                               {ci.description && ` • ${ci.description}`}
@@ -3257,7 +3257,7 @@ export function SettingsView({
                         </div>
                         <div className="flex items-center gap-4 shrink-0">
                           <div className="text-right">
-                            <p className="font-mono font-bold text-slate-900 text-sm">
+                            <p className="font-mono font-bold text-foreground text-sm">
                               ₹{ci.defaultAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                             </p>
                             <p className="text-[10px] text-slate-400">Default rate</p>
@@ -3290,17 +3290,17 @@ export function SettingsView({
       {/* 10. BANQUETS, LAWNS & CONFERENCE VENUES CONFIGURATION */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'banquets') && (
-        <section id="settings-banquets" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-banquets" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🎉</span>
-                <h2 className="text-lg font-bold text-slate-900">Banquet Venues &amp; Event Lawns Configuration</h2>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                <h2 className="text-lg font-bold text-foreground">Banquet Venues &amp; Event Lawns Configuration</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                   {venues.length} Configured Venues
                 </span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Setup banquet halls, wedding lawns, and corporate boardrooms with capacity, base rental tariffs, and AV/decor amenities.
               </p>
             </div>
@@ -3314,8 +3314,8 @@ export function SettingsView({
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Form */}
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Banquet / Event Space</h3>
+            <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Add Banquet / Event Space</h3>
               <form action={createVenueSetting} className="space-y-3">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-600">Venue Space Name *</label>
@@ -3366,13 +3366,13 @@ export function SettingsView({
 
             {/* List */}
             <div className="col-span-2 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Event Venues</h4>
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Configured Event Venues</h4>
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {venues.map((v) => (
-                  <div key={v.id} className="rounded-xl border border-slate-200 bg-white p-4 space-y-2 text-xs flex flex-col justify-between">
+                  <div key={v.id} className="rounded-xl border border-border bg-card p-4 space-y-2 text-xs flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-900 text-sm">{v.name}</span>
+                        <span className="font-bold text-foreground text-sm">{v.name}</span>
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600 uppercase">
                           {v.type.replace('_', ' ')}
                         </span>
@@ -3383,7 +3383,7 @@ export function SettingsView({
                       </div>
                       <div className="mt-2 flex flex-wrap gap-1">
                         {v.amenities.map((a: string, idx: number) => (
-                          <span key={idx} className="rounded bg-slate-50 px-1.5 py-0.5 text-[10px] text-slate-500 border border-slate-200/60">
+                          <span key={idx} className="rounded bg-slate-50 px-1.5 py-0.5 text-[10px] text-muted-foreground border border-slate-200/60">
                             {a}
                           </span>
                         ))}
@@ -3411,20 +3411,20 @@ export function SettingsView({
       {/* 11. STORES & KITCHEN RAW MATERIAL INVENTORY CONFIGURATION */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'inventory') && (
-        <section id="settings-inventory" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-inventory" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">📦</span>
-                <h2 className="text-lg font-bold text-slate-900">Stores &amp; Kitchen Raw Material Catalog</h2>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                <h2 className="text-lg font-bold text-foreground">Stores &amp; Kitchen Raw Material Catalog</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                   {rawMaterials.length} Active SKUs
                 </span>
                 <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold text-amber-800">
                   {rawMaterials.filter((m) => m.currentStock <= m.minimumAlertStock).length} Low Stock
                 </span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Configure raw materials, store SKUs, units of measurement, storage locations, suppliers, and reorder alert thresholds.
               </p>
             </div>
@@ -3438,8 +3438,8 @@ export function SettingsView({
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Add Item Form */}
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Material / Store SKU</h3>
+            <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Add Material / Store SKU</h3>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
@@ -3542,15 +3542,15 @@ export function SettingsView({
 
             {/* List */}
             <div className="col-span-2 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Raw Materials &amp; Store SKUs</h4>
-              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-96 overflow-y-auto">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Configured Raw Materials &amp; Store SKUs</h4>
+              <div className="divide-y divide-slate-100 rounded-xl border border-border bg-card overflow-hidden text-xs max-h-96 overflow-y-auto">
                 {rawMaterials.map((m) => {
                   const isLow = m.currentStock <= m.minimumAlertStock;
                   return (
                     <div key={m.id} className="flex items-center justify-between p-3.5 hover:bg-slate-50/60 transition">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <p className="font-bold text-slate-900 text-sm">{m.name}</p>
+                          <p className="font-bold text-foreground text-sm">{m.name}</p>
                           <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">
                             {m.category}
                           </span>
@@ -3560,7 +3560,7 @@ export function SettingsView({
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-[11px] text-muted-foreground">
                           Stock: <strong className="text-slate-800">{m.currentStock} {m.unit}</strong> • Reorder at: ≤{m.minimumAlertStock} {m.unit}
                           {m.storageLocation && ` • Loc: ${m.storageLocation}`}
                           {m.defaultVendorName && ` • Vendor: ${m.defaultVendorName}`}
@@ -3568,14 +3568,14 @@ export function SettingsView({
                       </div>
                       <div className="flex items-center gap-3 shrink-0">
                         <div className="text-right">
-                          <p className="font-mono font-bold text-slate-900">₹{m.costPerUnit}/{m.unit}</p>
+                          <p className="font-mono font-bold text-foreground">₹{m.costPerUnit}/{m.unit}</p>
                           <p className="text-[10px] text-slate-400">Total: ₹{(m.currentStock * m.costPerUnit).toFixed(0)}</p>
                         </div>
                         <button
                           type="button"
                           disabled={readOnly}
                           onClick={() => setEditingSku(m)}
-                          className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition"
+                          className="rounded-md bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-foreground/80 hover:bg-slate-200 transition"
                         >
                           Edit
                         </button>
@@ -3609,22 +3609,22 @@ export function SettingsView({
           <div className="border-t border-slate-200/80 pt-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+                <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                   <span>🏷️</span> Store &amp; Inventory Categories Management
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   Configure department store categories (Groceries, Housekeeping Amenities, Linens, Pool Chemicals, Bar Stock).
                 </p>
               </div>
-              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+              <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                 {inventoryCategories.length} Categories Active
               </span>
             </div>
 
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               {/* Form */}
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Store Category</h4>
+              <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Add Store Category</h4>
                 <form
                   onSubmit={async (e) => {
                     e.preventDefault();
@@ -3661,20 +3661,20 @@ export function SettingsView({
 
               {/* List */}
               <div className="space-y-2 lg:col-span-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Configured Store Categories</h4>
-                <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-72 overflow-y-auto">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Configured Store Categories</h4>
+                <div className="divide-y divide-slate-100 rounded-xl border border-border bg-card overflow-hidden text-xs max-h-72 overflow-y-auto">
                   {inventoryCategories.map((c) => (
                     <div key={c.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
                       <div className="flex items-center gap-2.5">
                         <span className="text-xl">{c.icon || '📦'}</span>
                         <div>
-                          <p className="font-bold text-slate-900">{c.name}</p>
+                          <p className="font-bold text-foreground">{c.name}</p>
                           <p className="text-[11px] text-slate-400 font-mono">{c.code} {c.description ? `• ${c.description}` : ''}</p>
                         </div>
                       </div>
                       <div>
                         {c.isSystem ? (
-                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-500 uppercase">
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-muted-foreground uppercase">
                             System
                           </span>
                         ) : (
@@ -3705,7 +3705,7 @@ export function SettingsView({
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
               <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <h3 className="text-base font-bold text-foreground dark:text-white flex items-center gap-2">
                     <span>✏️</span> Edit Store Material SKU: {editingSku.name}
                   </h3>
                   <button
@@ -3831,17 +3831,17 @@ export function SettingsView({
       {/* 12. CORPORATE ACCOUNTS & CITY LEDGER CONFIGURATION */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'corporate') && (
-        <section id="settings-corporate" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-corporate" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">💼</span>
-                <h2 className="text-lg font-bold text-slate-900">Corporate Accounts &amp; Travel Agencies (BTC)</h2>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                <h2 className="text-lg font-bold text-foreground">Corporate Accounts &amp; Travel Agencies (BTC)</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                   {corporateAccounts.length} B2B Accounts
                 </span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Manage B2B company accounts, GSTIN, sanctioned credit limits, and credit period days for direct folio billing.
               </p>
             </div>
@@ -3855,8 +3855,8 @@ export function SettingsView({
 
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
             {/* Add B2B Account Form */}
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Register Corporate Account</h3>
+            <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Register Corporate Account</h3>
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();
@@ -3919,19 +3919,19 @@ export function SettingsView({
 
             {/* List */}
             <div className="col-span-2 space-y-3">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500">Active Corporate Accounts</h4>
-              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-xs max-h-80 overflow-y-auto">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Active Corporate Accounts</h4>
+              <div className="divide-y divide-slate-100 rounded-xl border border-border bg-card overflow-hidden text-xs max-h-80 overflow-y-auto">
                 {corporateAccounts.map((a) => (
                   <div key={a.id} className="flex items-center justify-between p-3 hover:bg-slate-50/60">
                     <div>
-                      <p className="font-bold text-slate-900">{a.companyName}</p>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="font-bold text-foreground">{a.companyName}</p>
+                      <p className="text-[11px] text-muted-foreground">
                         {a.contactPerson && `${a.contactPerson} • `}Terms: {a.creditPeriodDays} Days
                       </p>
                       {a.gstin && <p className="text-[10px] font-mono text-slate-400">GST: {a.gstin}</p>}
                     </div>
                     <div className="text-right">
-                      <p className="font-mono font-bold text-slate-900">Limit: ₹{a.creditLimit.toLocaleString('en-IN')}</p>
+                      <p className="font-mono font-bold text-foreground">Limit: ₹{a.creditLimit.toLocaleString('en-IN')}</p>
                       <p className="font-mono text-rose-600 font-bold">Due: ₹{a.currentBalance.toLocaleString('en-IN')}</p>
                     </div>
                   </div>
@@ -3946,17 +3946,17 @@ export function SettingsView({
       {/* 13. IN-ROOM DIGITAL GUEST CONCIERGE SETTINGS */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'concierge') && (
-        <section id="settings-concierge" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-concierge" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🛎️</span>
-                <h2 className="text-lg font-bold text-slate-900">In-Room Digital Guest Concierge Configuration</h2>
-                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700">
+                <h2 className="text-lg font-bold text-foreground">In-Room Digital Guest Concierge Configuration</h2>
+                <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                   Guest QR Portal
                 </span>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Configure in-room guest Wi-Fi details, front desk WhatsApp helpline, hotel amenity timings, and Google review link.
               </p>
             </div>
@@ -3973,8 +3973,8 @@ export function SettingsView({
           <form action={updateConciergeSetting} className="space-y-6">
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               {/* Wi-Fi Settings */}
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">📶 Guest Wi-Fi Network</h3>
+              <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">📶 Guest Wi-Fi Network</h3>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600">Wi-Fi Network Name (SSID) *</label>
@@ -3998,8 +3998,8 @@ export function SettingsView({
               </div>
 
               {/* Front Desk Helpline & WhatsApp */}
-              <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">💬 Front Desk Contact &amp; WhatsApp</h3>
+              <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">💬 Front Desk Contact &amp; WhatsApp</h3>
                 <div className="space-y-3">
                   <div>
                     <label className="block text-[11px] font-bold text-slate-600">Reception Phone Helpline *</label>
@@ -4024,8 +4024,8 @@ export function SettingsView({
             </div>
 
             {/* Hotel Amenities & Timings */}
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">🏨 Hotel Operating Hours &amp; Review Link</h3>
+            <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">🏨 Hotel Operating Hours &amp; Review Link</h3>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                   <label className="block text-[11px] font-bold text-slate-600">Breakfast Buffet Hours</label>
@@ -4075,14 +4075,14 @@ export function SettingsView({
       {/* 15. AUTOMATED NIGHT AUDIT CONFIGURATION */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'nightaudit') && (
-        <section id="settings-nightaudit" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-nightaudit" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🌙</span>
-                <h2 className="text-lg font-bold text-slate-900">Automated Night Audit Scheduler</h2>
+                <h2 className="text-lg font-bold text-foreground">Automated Night Audit Scheduler</h2>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Configure auto-rollover of daily business dates, automatic room rate charge postings, and tax journal postings at a fixed midnight schedule.
               </p>
             </div>
@@ -4096,11 +4096,11 @@ export function SettingsView({
           </div>
 
           <form action={updateNightAuditScheduleSetting} className="space-y-6 max-w-2xl">
-            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
+            <div className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Enable Automated Scheduled Rollover</h3>
-                  <p className="text-xs text-slate-500">When enabled, the system automatically runs the daily audit at the specified hour without requiring manual staff intervention.</p>
+                  <h3 className="text-sm font-bold text-foreground">Enable Automated Scheduled Rollover</h3>
+                  <p className="text-xs text-muted-foreground">When enabled, the system automatically runs the daily audit at the specified hour without requiring manual staff intervention.</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -4130,8 +4130,8 @@ export function SettingsView({
               </div>
 
               {nightAuditSchedule?.autoAuditLastRunAt && (
-                <div className="text-[11px] text-slate-500 pt-2 border-t border-slate-200/60">
-                  Last automated audit executed at: <span className="font-semibold text-slate-700">{new Date(nightAuditSchedule.autoAuditLastRunAt).toLocaleString()}</span>
+                <div className="text-[11px] text-muted-foreground pt-2 border-t border-slate-200/60">
+                  Last automated audit executed at: <span className="font-semibold text-foreground/80">{new Date(nightAuditSchedule.autoAuditLastRunAt).toLocaleString()}</span>
                 </div>
               )}
             </div>
@@ -4147,14 +4147,14 @@ export function SettingsView({
       {/* 16. CHART OF ACCOUNTS & GENERAL LEDGER */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'accounting') && (
-        <section id="settings-accounting" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-accounting" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">📊</span>
-                <h2 className="text-lg font-bold text-slate-900">Chart of Accounts &amp; General Ledger (COA)</h2>
+                <h2 className="text-lg font-bold text-foreground">Chart of Accounts &amp; General Ledger (COA)</h2>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Configure double-entry accounting ledger accounts (Assets, Liabilities, Equity, Operating Revenue, and Operational Expenses).
               </p>
             </div>
@@ -4169,8 +4169,8 @@ export function SettingsView({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Create Account Form */}
-            <form action={createChartOfAccountSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Ledger Account</h3>
+            <form action={createChartOfAccountSetting} className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Add Ledger Account</h3>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">Account Code *</label>
@@ -4223,7 +4223,7 @@ export function SettingsView({
 
             {/* Configured Accounts Table */}
             <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
-              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-foreground/80">
                 Active Chart of Accounts ({chartOfAccounts.length} accounts configured)
               </div>
               <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
@@ -4234,7 +4234,7 @@ export function SettingsView({
                     <div key={acc.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{acc.accountCode}</span>
+                          <span className="font-mono font-bold text-foreground bg-slate-100 px-1.5 py-0.5 rounded text-[11px]">{acc.accountCode}</span>
                           <span className="font-semibold text-slate-800">{acc.accountName}</span>
                           <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                             acc.accountType === 'ASSET' ? 'bg-blue-100 text-blue-800' :
@@ -4245,14 +4245,14 @@ export function SettingsView({
                             {acc.accountType}
                           </span>
                           {acc.isSystem && (
-                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono">SYSTEM</span>
+                            <span className="text-[10px] bg-slate-100 text-muted-foreground px-1.5 py-0.5 rounded font-mono">SYSTEM</span>
                           )}
                         </div>
                         {acc.subCategory && <div className="text-[11px] text-slate-400">{acc.subCategory}</div>}
                       </div>
 
                       <div className="flex items-center gap-3">
-                        <div className="font-mono font-bold text-slate-700">
+                        <div className="font-mono font-bold text-foreground/80">
                           {money(acc.currentBalance || 0, currency)}
                         </div>
                         {!acc.isSystem && (
@@ -4281,14 +4281,14 @@ export function SettingsView({
       {/* 17. RECIPE COSTING & KITCHEN BOM */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'recipes') && (
-        <section id="settings-recipes" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-recipes" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🥗</span>
-                <h2 className="text-lg font-bold text-slate-900">Recipe Costing &amp; Kitchen Bill of Materials (BOM)</h2>
+                <h2 className="text-lg font-bold text-foreground">Recipe Costing &amp; Kitchen Bill of Materials (BOM)</h2>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Link restaurant menu items to raw material SKUs. When orders are prepared in the kitchen, inventory is automatically depleted and theoretical food margins are tracked.
               </p>
             </div>
@@ -4303,8 +4303,8 @@ export function SettingsView({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Configure Recipe Link Form */}
-            <form action={configureRecipeBOMSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Link Dish Ingredient BOM</h3>
+            <form action={configureRecipeBOMSetting} className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Link Dish Ingredient BOM</h3>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">Select Menu Dish *</label>
@@ -4354,9 +4354,9 @@ export function SettingsView({
 
             {/* Recipes Margin Overview Table */}
             <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
-              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700 flex justify-between">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-foreground/80 flex justify-between">
                 <span>Dishes &amp; Theoretical Costing Analysis ({recipesOverview.length} items)</span>
-                <span className="text-[11px] text-slate-500">Gross Margin % = (Price - Cost) / Price</span>
+                <span className="text-[11px] text-muted-foreground">Gross Margin % = (Price - Cost) / Price</span>
               </div>
               <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
                 {recipesOverview.length === 0 ? (
@@ -4365,8 +4365,8 @@ export function SettingsView({
                   recipesOverview.map((item) => (
                     <div key={item.menuItemId} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
                       <div>
-                        <div className="font-semibold text-slate-900">{item.itemName}</div>
-                        <div className="text-[11px] text-slate-500">
+                        <div className="font-semibold text-foreground">{item.itemName}</div>
+                        <div className="text-[11px] text-muted-foreground">
                           {item.categoryName || 'General'} · <span className="font-mono text-indigo-600 font-semibold">{item.ingredientsCount} raw ingredients linked</span>
                         </div>
                       </div>
@@ -4374,11 +4374,11 @@ export function SettingsView({
                       <div className="flex items-center gap-4 text-right">
                         <div>
                           <div className="text-[11px] text-slate-400">Theoretical Cost</div>
-                          <div className="font-mono font-bold text-slate-700">{money(item.theoreticalCost, currency)}</div>
+                          <div className="font-mono font-bold text-foreground/80">{money(item.theoreticalCost, currency)}</div>
                         </div>
                         <div>
                           <div className="text-[11px] text-slate-400">Selling Price</div>
-                          <div className="font-mono font-bold text-slate-900">{money(item.sellingPrice, currency)}</div>
+                          <div className="font-mono font-bold text-foreground">{money(item.sellingPrice, currency)}</div>
                         </div>
                         <div className={`px-2 py-1 rounded-full text-[11px] font-bold ${
                           item.grossMarginPercent >= 65 ? 'bg-emerald-100 text-emerald-800' :
@@ -4400,14 +4400,14 @@ export function SettingsView({
       {/* 18. MINIBAR AMENITIES & IN-ROOM CATALOG */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'minibar') && (
-        <section id="settings-minibar" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-minibar" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🍾</span>
-                <h2 className="text-lg font-bold text-slate-900">Minibar Amenities Catalog</h2>
+                <h2 className="text-lg font-bold text-foreground">Minibar Amenities Catalog</h2>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Configure in-room minibar beverages, premium snacks, and confectionery with standardized prices for one-click billing to guest folios.
               </p>
             </div>
@@ -4415,8 +4415,8 @@ export function SettingsView({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Add Minibar Item Form */}
-            <form action={createMinibarItemSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Minibar Item</h3>
+            <form action={createMinibarItemSetting} className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Add Minibar Item</h3>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">Item Name *</label>
@@ -4461,7 +4461,7 @@ export function SettingsView({
 
             {/* Configured Minibar Items */}
             <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
-              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-foreground/80">
                 Active Minibar Catalog ({minibarCatalog.length} items)
               </div>
               <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
@@ -4471,14 +4471,14 @@ export function SettingsView({
                   minibarCatalog.map((item) => (
                     <div key={item.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
                       <div>
-                        <div className="font-semibold text-slate-900">{item.itemName}</div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">
+                        <div className="font-semibold text-foreground">{item.itemName}</div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground bg-slate-100 px-2 py-0.5 rounded-full">
                           {item.category}
                         </span>
                       </div>
 
                       <div className="flex items-center gap-4">
-                        <span className="font-mono font-bold text-slate-900">{money(item.unitPrice, currency)}</span>
+                        <span className="font-mono font-bold text-foreground">{money(item.unitPrice, currency)}</span>
                         <form action={deleteMinibarItemSetting}>
                           <input type="hidden" name="id" value={item.id} />
                           <button
@@ -4503,14 +4503,14 @@ export function SettingsView({
       {/* 19. DYNAMIC PRICING & REVENUE MANAGEMENT (RMS) */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'pricing') && (
-        <section id="settings-pricing" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-pricing" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">📈</span>
-                <h2 className="text-lg font-bold text-slate-900">Dynamic Pricing &amp; Revenue Management (RMS)</h2>
+                <h2 className="text-lg font-bold text-foreground">Dynamic Pricing &amp; Revenue Management (RMS)</h2>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Configure automated rule triggers for occupancy surge pricing, weekend premiums, and last-minute vacancy discounts.
               </p>
             </div>
@@ -4518,8 +4518,8 @@ export function SettingsView({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Create Rule Form */}
-            <form action={createDynamicPricingRuleSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Add Dynamic Pricing Rule</h3>
+            <form action={createDynamicPricingRuleSetting} className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Add Dynamic Pricing Rule</h3>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">Rule Name *</label>
@@ -4587,7 +4587,7 @@ export function SettingsView({
 
             {/* Active Pricing Rules List */}
             <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
-              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-foreground/80">
                 Configured Dynamic Tariff Rules ({dynamicPricingRules.length} rules)
               </div>
               <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
@@ -4597,8 +4597,8 @@ export function SettingsView({
                   dynamicPricingRules.map((r) => (
                     <div key={r.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
                       <div className="space-y-0.5">
-                        <div className="font-semibold text-slate-900">{r.ruleName}</div>
-                        <div className="text-[11px] text-slate-500">
+                        <div className="font-semibold text-foreground">{r.ruleName}</div>
+                        <div className="text-[11px] text-muted-foreground">
                           {r.ruleType.replace('_', ' ')} ·
                           {r.conditionMinOccupancy && ` Trigger when occupancy ≥ ${r.conditionMinOccupancy}%`}
                           {r.conditionMaxOccupancy && ` Trigger when occupancy ≤ ${r.conditionMaxOccupancy}%`}
@@ -4635,14 +4635,14 @@ export function SettingsView({
       {/* 20. HOUSEKEEPING TURNAROUND & INSPECTION */}
       {/* ========================================================================= */}
       {(tab === 'all' || tab === 'housekeeping') && (
-        <section id="settings-housekeeping" className="space-y-6 rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-8 shadow-xs">
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/70 pb-5">
+        <section id="settings-housekeeping" className="space-y-6 rounded-3xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xl">🧹</span>
-                <h2 className="text-lg font-bold text-slate-900">Housekeeping Turnaround &amp; Inspection Console</h2>
+                <h2 className="text-lg font-bold text-foreground">Housekeeping Turnaround &amp; Inspection Console</h2>
               </div>
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-muted-foreground">
                 Log room turnaround inspections, maintenance work orders, and cleaning status transitions directly.
               </p>
             </div>
@@ -4657,8 +4657,8 @@ export function SettingsView({
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Quick Turnaround Log Form */}
-            <form action={logHousekeepingTurnaroundSetting} className="rounded-2xl border border-slate-200/80 bg-slate-50/50 p-5 space-y-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-700">+ Log Room Turnaround</h3>
+            <form action={logHousekeepingTurnaroundSetting} className="rounded-2xl border border-border bg-muted/20 p-5 space-y-4">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-foreground/80">+ Log Room Turnaround</h3>
 
               <div>
                 <label className="block text-[11px] font-bold text-slate-600 mb-1">Select Room *</label>
@@ -4720,7 +4720,7 @@ export function SettingsView({
 
             {/* Recent Turnaround Logs Table */}
             <div className="lg:col-span-2 rounded-2xl border border-slate-200/80 overflow-hidden">
-              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-slate-700">
+              <div className="bg-slate-100/70 px-4 py-3 border-b border-slate-200 text-xs font-bold text-foreground/80">
                 Recent Room Inspections &amp; Turnaround History ({housekeepingLogs.length} events)
               </div>
               <div className="max-h-96 overflow-y-auto divide-y divide-slate-100">
@@ -4731,7 +4731,7 @@ export function SettingsView({
                     <div key={log.id} className="p-3.5 flex items-center justify-between hover:bg-slate-50 text-xs">
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
-                          <span className="font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">Room {log.roomNumber}</span>
+                          <span className="font-bold text-foreground bg-slate-100 px-2 py-0.5 rounded">Room {log.roomNumber}</span>
                           <span className="text-slate-400">→</span>
                           <span className="font-semibold text-emerald-700 capitalize">{log.toStatus}</span>
                           <span className="text-[10px] text-slate-400">by {log.attendantName}</span>

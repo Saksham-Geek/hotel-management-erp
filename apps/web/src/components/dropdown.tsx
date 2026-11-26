@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect, useId, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from 'react';
 
@@ -300,7 +300,7 @@ export function CustomDropdown({
         aria-invalid={ariaInvalid}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        className={`group relative flex w-full items-center justify-between rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-2xs transition-all duration-150 hover:border-slate-300 dark:hover:border-white/20 focus-visible:border-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 dark:focus-visible:ring-white dark:focus-visible:ring-offset-[#080d1a] disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
+        className={`group relative flex w-full items-center justify-between rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#141417] shadow-2xs transition-all duration-150 hover:border-slate-300 dark:hover:border-white/20 focus-visible:border-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 dark:focus-visible:ring-white dark:focus-visible:ring-offset-[#080d1a] disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
           isSmall ? 'min-h-[36px] px-3 py-1.5 text-xs' : 'min-h-[44px] px-3.5 py-2.5 text-sm'
         } ${isOpen ? 'border-slate-900 ring-2 ring-slate-900/10 dark:border-white/40' : ''}`}
       >
@@ -359,7 +359,7 @@ export function CustomDropdown({
             align === 'right' ? 'right-0' : 'left-0'
           } ${
             opensUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-          } z-[100] max-h-64 w-full min-w-[180px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#0c1222]/95 p-1.5 shadow-xl shadow-slate-950/15 backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150`}
+          } z-[100] max-h-64 w-full min-w-[180px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#141417]/95 p-1.5 shadow-xl shadow-slate-950/15 backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150`}
         >
           <div className="flex flex-col gap-0.5" role="presentation">
             {options.map((opt, idx) => {

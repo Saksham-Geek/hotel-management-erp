@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useState } from 'react';
 import { Banner, btnCls, CustomDatePicker, EmptyState, inputCls, PageHeader } from '@/components/ui';
@@ -127,7 +127,7 @@ export function ReservationsView({
             id="new-reservation"
             ref={formRef}
             action={createReservation}
-            className="scroll-mt-20 overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-[0_1px_3px_rgba(0,0,0,0.03)] animate-in fade-in-50 slide-in-from-top-3 duration-200"
+            className="scroll-mt-20 overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#141417] shadow-[0_1px_3px_rgba(0,0,0,0.03)] animate-in fade-in-50 slide-in-from-top-3 duration-200"
           >
             {/* Card Header */}
             <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200/80 dark:border-white/10 px-6 py-5 bg-slate-50/60 dark:bg-white/[0.02]">

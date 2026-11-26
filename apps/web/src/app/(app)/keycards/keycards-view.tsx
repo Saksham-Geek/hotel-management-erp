@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -294,7 +294,7 @@ export function KeycardsView({
     <div className="space-y-6">
       
       {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1222] p-5 shadow-sm">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#141417] p-5 shadow-sm">
         <div className="flex items-center gap-3.5">
           <span className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20">
             <KeyIcon />
@@ -538,7 +538,7 @@ export function KeycardsView({
                       </div>
 
                       {/* Room Plate with Category Styling */}
-                      <div className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#0c1222]/90 backdrop-blur-xs p-2.5 text-center shadow-2xs space-y-1">
+                      <div className="rounded-xl border border-slate-200/80 dark:border-white/10 bg-white/90 dark:bg-[#141417]/90 backdrop-blur-xs p-2.5 text-center shadow-2xs space-y-1">
                         <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                           ROOM
                         </p>
@@ -700,7 +700,7 @@ export function KeycardsView({
       {activeTab === 'rfid_encoder' && (
         <div className="space-y-4">
           {/* Encoder Hardware Status Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#0c1222] p-4 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#141417] p-4 shadow-sm">
             <div className="flex items-center gap-3">
               <span
                 className={`grid h-10 w-10 place-items-center rounded-xl text-lg ${
@@ -980,7 +980,7 @@ export function KeycardsView({
               role="dialog"
               aria-modal="true"
               aria-labelledby="encode-rfid-modal-title"
-              className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10"
+              className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#141417] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10"
             >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
                 <div className="flex items-center gap-2">
@@ -1151,7 +1151,7 @@ export function KeycardsView({
               role="dialog"
               aria-modal="true"
               aria-labelledby="hand-key-modal-title"
-              className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10"
+              className="relative flex w-full max-w-md flex-col rounded-3xl bg-white dark:bg-[#141417] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10"
             >
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
                 <div className="flex items-center gap-2.5">
@@ -1357,7 +1357,7 @@ export function KeycardsView({
             role="dialog"
             aria-modal="true"
             aria-labelledby="mobile-pass-modal-title"
-            className="relative flex w-full max-w-sm flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 text-center"
+            className="relative flex w-full max-w-sm flex-col rounded-3xl bg-white dark:bg-[#141417] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 text-center"
           >
             <h3 id="mobile-pass-modal-title" className="font-display text-base font-bold">
               Room {mobilePassKey.roomNumber} Digital Mobile Key
@@ -1425,7 +1425,7 @@ export function KeycardsView({
               role="dialog"
               aria-modal="true"
               aria-labelledby="custody-log-modal-title"
-              className="relative flex w-full max-w-lg flex-col rounded-3xl bg-white dark:bg-[#0c1222] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 max-h-[90vh] overflow-hidden"
+              className="relative flex w-full max-w-lg flex-col rounded-3xl bg-white dark:bg-[#141417] shadow-2xl p-6 text-slate-900 dark:text-white border border-slate-200 dark:border-white/10 max-h-[90vh] overflow-hidden"
             >
               {/* Modal Header */}
               <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-4">
@@ -1517,7 +1517,7 @@ export function KeycardsView({
                       <div key={log.id} className="relative text-xs space-y-1">
                         {/* Dot */}
                         <div
-                          className={`absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-[#0c1222] shadow-xs ${
+                          className={`absolute -left-6 top-1 h-3.5 w-3.5 rounded-full border-2 border-white dark:border-[#141417] shadow-xs ${
                             idx === 0
                               ? log.action === 'lost'
                                 ? 'bg-rose-500 ring-4 ring-rose-500/20'

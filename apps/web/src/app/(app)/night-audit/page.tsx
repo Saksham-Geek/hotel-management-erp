@@ -78,14 +78,14 @@ export default async function NightAuditPage({
       <Banner error={error} ok={ok} />
 
       {/* Operational Business Date Banner */}
-      <section className="mb-6 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-200/80 bg-slate-50/80 px-6 py-5">
+      <section className="mb-6 overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border bg-card/90 px-6 py-5">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Hotel Working Date</p>
-            <h2 className="text-xl font-bold font-display text-slate-950 mt-1">
-              Current Working Date: <span className="text-slate-900 font-mono font-bold">{status.currentBusinessDate}</span>
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Hotel Working Date</p>
+            <h2 className="text-xl font-bold font-display text-foreground mt-1">
+              Current Working Date: <span className="text-foreground font-mono font-bold">{status.currentBusinessDate}</span>
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               {status.lastAuditedAt
                 ? `Last closed: ${formatDateTime(status.lastAuditedAt)}`
                 : 'Day-end closing has not been run today'}
@@ -105,23 +105,23 @@ export default async function NightAuditPage({
         </div>
 
         {/* Room Lifecycle Guard & No-Show Auto-Release Banner */}
-        <div className="mx-6 mt-4 flex items-center justify-between rounded-xl border border-indigo-200/80 bg-indigo-50/60 p-4">
+        <div className="mx-6 mt-4 flex items-center justify-between rounded-xl border border-primary/20 bg-primary/5 p-4">
           <div className="flex items-center gap-3">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-600 text-white font-black text-sm shadow-xs">
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-foreground font-black text-sm shadow-xs">
               🛡️
             </span>
             <div>
-              <p className="text-xs font-bold text-indigo-950 uppercase tracking-wider">
+              <p className="text-xs font-bold text-foreground uppercase tracking-wider">
                 Automated Room Lifecycle Guard: Active
               </p>
-              <p className="text-xs text-indigo-900/80">
+              <p className="text-xs text-muted-foreground">
                 {status.pendingArrivals > 0
                   ? `${status.pendingArrivals} overdue unarrived reservation(s) will be automatically released as No-Show and returned to inventory.`
                   : 'All rooms reconciled. Zero inventory locks detected for the next business day.'}
               </p>
             </div>
           </div>
-          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-white border border-indigo-200 px-3 py-1 text-xs font-bold text-indigo-900 shadow-2xs">
+          <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-card border border-border px-3 py-1 text-xs font-bold text-foreground shadow-2xs">
             <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
             <span>Auto-Release Guard Active</span>
           </span>
@@ -153,15 +153,15 @@ export default async function NightAuditPage({
       </section>
 
       {/* Audit History & Manager Flash Reports */}
-      <section aria-labelledby="night-audit-history-title" className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
-        <div className="border-b border-line px-6 sm:px-7 py-5 bg-slate-50 flex items-center justify-between">
+      <section aria-labelledby="night-audit-history-title" className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+        <div className="border-b border-border px-6 sm:px-7 py-5 bg-card/60 flex items-center justify-between">
           <div>
-            <h3 id="night-audit-history-title" className="font-display text-lg font-black text-slate-950">
+            <h3 id="night-audit-history-title" className="font-display text-lg font-black text-foreground">
               Manager Flash Reports &amp; Daily Hospitality KPIs
             </h3>
-            <p className="mt-0.5 text-sm text-slate-600 font-medium">Historical ADR (Average Daily Rate) and RevPAR (Revenue Per Available Room)</p>
+            <p className="mt-0.5 text-sm text-muted-foreground font-medium">Historical ADR (Average Daily Rate) and RevPAR (Revenue Per Available Room)</p>
           </div>
-          <span className="rounded-full bg-white border border-slate-300 px-4 py-1.5 text-xs sm:text-sm font-bold text-slate-900 shadow-xs">
+          <span className="rounded-full bg-muted border border-border px-4 py-1.5 text-xs sm:text-sm font-bold text-foreground shadow-xs">
             {history.length} records
           </span>
         </div>
@@ -176,7 +176,7 @@ export default async function NightAuditPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left">
-              <thead className="border-b border-line bg-slate-100/90 font-black uppercase tracking-wider text-slate-800 text-xs">
+              <thead className="border-b border-border bg-muted/40 font-black uppercase tracking-wider text-muted-foreground text-xs">
                 <tr>
                   <th className="px-5 py-4">Business Date</th>
                   <th className="px-5 py-4">Rooms Occupied</th>
@@ -188,17 +188,17 @@ export default async function NightAuditPage({
                   <th className="px-5 py-4">Auditor</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line text-sm sm:text-[15px]">
+              <tbody className="divide-y divide-border text-sm sm:text-[15px]">
                 {history.map((h) => (
-                  <tr key={h.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="px-5 py-4 font-bold text-slate-950 whitespace-nowrap">{formatDate(h.businessDate)}</td>
-                    <td className="px-5 py-4 font-mono font-semibold text-slate-900">{h.roomsOccupied} / {h.roomsTotal}</td>
-                    <td className="px-5 py-4 font-bold text-slate-950">{h.occupancyRate}%</td>
-                    <td className="px-5 py-4 font-black text-slate-950">{money(h.totalRoomRevenue, currency)}</td>
-                    <td className="px-5 py-4 text-slate-700 font-medium">{money(h.totalTaxCollected, currency)}</td>
-                    <td className="px-5 py-4 font-mono font-black text-teal-900">{money(h.adr, currency)}</td>
-                    <td className="px-5 py-4 font-mono font-black text-slate-950">{money(h.revpar, currency)}</td>
-                    <td className="px-5 py-4 text-slate-600 font-medium">{h.auditorName ?? 'System Cron'}</td>
+                  <tr key={h.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-5 py-4 font-bold text-foreground whitespace-nowrap">{formatDate(h.businessDate)}</td>
+                    <td className="px-5 py-4 font-mono font-semibold text-foreground">{h.roomsOccupied} / {h.roomsTotal}</td>
+                    <td className="px-5 py-4 font-bold text-foreground">{h.occupancyRate}%</td>
+                    <td className="px-5 py-4 font-black text-foreground">{money(h.totalRoomRevenue, currency)}</td>
+                    <td className="px-5 py-4 text-muted-foreground font-medium">{money(h.totalTaxCollected, currency)}</td>
+                    <td className="px-5 py-4 font-mono font-black text-primary">{money(h.adr, currency)}</td>
+                    <td className="px-5 py-4 font-mono font-black text-foreground">{money(h.revpar, currency)}</td>
+                    <td className="px-5 py-4 text-muted-foreground font-medium">{h.auditorName ?? 'System Cron'}</td>
                   </tr>
                 ))}
               </tbody>

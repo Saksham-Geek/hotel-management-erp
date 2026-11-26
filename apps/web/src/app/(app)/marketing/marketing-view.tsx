@@ -284,7 +284,7 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
 
             <div className="mt-5 overflow-x-auto">
               <table className="w-full text-left">
-                <thead className="border-b border-slate-200 bg-slate-50/80 font-bold uppercase tracking-wider text-xs text-slate-500">
+                <thead className="border-b border-border bg-muted/40 font-bold uppercase tracking-wider text-xs text-muted-foreground">
                   <tr>
                     <th className="px-5 py-4">Guest &amp; Room</th>
                     <th className="px-5 py-4">Stay Dates</th>
@@ -293,46 +293,46 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
                     <th className="px-5 py-4 text-right">Quick Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 text-sm sm:text-[15px]">
+                <tbody className="divide-y divide-border text-sm sm:text-[15px]">
                   {data.pendingFollowUps.map((p) => {
                     const hasFollowedUp = !!p.lastFollowUpId;
                     return (
-                      <tr key={p.reservationId} className="hover:bg-slate-50/50 transition-colors">
+                      <tr key={p.reservationId} className="hover:bg-muted/30 transition-colors">
                         <td className="px-5 py-4">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900">{p.guestName}</span>
+                            <span className="font-bold text-foreground">{p.guestName}</span>
                             {p.vip && (
-                              <span className="rounded-md bg-amber-50 border border-amber-200 px-2 py-0.5 text-xs font-bold text-amber-900">
+                              <span className="rounded-md bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
                                 VIP
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-slate-500 font-normal mt-0.5">
+                          <div className="text-xs text-muted-foreground font-normal mt-0.5">
                             Room {p.roomNumber} ({p.roomTypeName}) · {p.guestPhone || 'No phone'}
                           </div>
                         </td>
                         <td className="px-5 py-4">
-                          <div className="font-semibold text-slate-900 whitespace-nowrap">
+                          <div className="font-semibold text-foreground whitespace-nowrap">
                             {formatStayDates(p.checkIn, p.checkOut)}
                           </div>
-                          <div className="text-xs text-slate-400 font-normal mt-0.5">Settled Folio</div>
+                          <div className="text-xs text-muted-foreground font-normal mt-0.5">Settled Folio</div>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="inline-flex rounded-md bg-slate-100 border border-slate-200/80 px-2.5 py-0.5 text-xs font-semibold uppercase text-slate-700">
+                          <span className="inline-flex rounded-md bg-muted border border-border px-2.5 py-0.5 text-xs font-semibold uppercase text-foreground">
                             {p.bookingSource.replace('_', '.')}
                           </span>
-                          <div className="text-xs sm:text-sm font-bold text-slate-900 mt-1">
+                          <div className="text-xs sm:text-sm font-bold text-foreground mt-1">
                             {formatMoney(p.totalAmount)}
                           </div>
                         </td>
                         <td className="px-5 py-4">
                           {hasFollowedUp ? (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 px-3 py-1 text-xs font-semibold text-emerald-800">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                               Follow-Up Dispatched
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200/80 px-3 py-1 text-xs font-semibold text-amber-800">
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1 text-xs font-semibold text-amber-600 dark:text-amber-400">
                               <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                               Pending Review Request
                             </span>

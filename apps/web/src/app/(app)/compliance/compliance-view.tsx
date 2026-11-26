@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -183,7 +183,7 @@ export function ComplianceView({
             onClick={() => setTab('police')}
             className={`px-5 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               tab === 'police'
-                ? 'bg-white dark:bg-[#0c1222] text-slate-950 dark:text-white shadow-xs'
+                ? 'bg-white dark:bg-[#141417] text-slate-950 dark:text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'
             }`}
           >
@@ -194,7 +194,7 @@ export function ComplianceView({
             onClick={() => setTab('formC')}
             className={`px-5 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
               tab === 'formC'
-                ? 'bg-white dark:bg-[#0c1222] text-slate-950 dark:text-white shadow-xs'
+                ? 'bg-white dark:bg-[#141417] text-slate-950 dark:text-white shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white'
             }`}
           >
@@ -206,7 +206,7 @@ export function ComplianceView({
         <button
           type="button"
           onClick={() => setShowLegalGuide(!showLegalGuide)}
-          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
+          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
         >
           <span>⚖️</span>
           <span>{showLegalGuide ? 'Hide Statutory Standards' : 'How Taj, ITC & Radisson Handle This (Legal SOP)'}</span>
@@ -283,7 +283,7 @@ export function ComplianceView({
       {tab === 'police' && (
         <section aria-labelledby="police-report-title" className="space-y-6">
           {/* Main Card Header with Interactive Date Picker & Jump Controls */}
-          <div className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0c1222] p-6 sm:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.03)] space-y-5">
+          <div className="rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141417] p-6 sm:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.03)] space-y-5">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2">
@@ -305,7 +305,7 @@ export function ComplianceView({
                 <button
                   type="button"
                   onClick={exportBeatSheetCSV}
-                  className="min-h-[42px] px-4 rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-[#0c1222] text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer flex items-center gap-1.5"
+                  className="min-h-[42px] px-4 rounded-xl border border-slate-200 dark:border-white/15 bg-white dark:bg-[#141417] text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-white/5 transition-all cursor-pointer flex items-center gap-1.5"
                   title="Export official CSV file for police portal upload"
                 >
                   <span>📥</span>
@@ -448,7 +448,7 @@ export function ComplianceView({
           </div>
 
           {/* Roster Category Switcher & Search Bar */}
-          <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141417] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200/80 dark:border-white/10 px-6 py-4 bg-slate-50/60 dark:bg-white/[0.02]">
               <div className="flex flex-wrap items-center gap-2">
                 <button
@@ -602,7 +602,7 @@ export function ComplianceView({
       {/* Foreigners Form C Tab */}
       {tab === 'formC' && (
         <section aria-labelledby="formc-title" className="space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0c1222] p-6 sm:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <div className="flex flex-wrap items-center justify-between gap-4 rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141417] p-6 sm:p-7 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Bureau of Immigration (BoI) Compliance</p>
               <h2 id="formc-title" className="mt-1 font-display text-xl sm:text-2xl font-black text-slate-950 dark:text-white">
@@ -617,7 +617,7 @@ export function ComplianceView({
             </span>
           </div>
 
-          <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+          <div className="overflow-hidden rounded-3xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-[#141417] shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[850px] text-left">
                 <thead className="border-b border-slate-200 dark:border-white/10 bg-slate-50/80 dark:bg-white/[0.03] font-bold uppercase tracking-wider text-slate-500 text-xs">

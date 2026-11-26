@@ -1415,16 +1415,16 @@ export function RestaurantPosView({
           onClick={() => setActiveTab('tables')}
           className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'tables'
-              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
-              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted'
           }`}
         >
           <span>🪑 Dining Tables</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
               activeTab === 'tables'
-                ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950'
-                : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300'
+                ? 'bg-white/20 text-white'
+                : 'bg-muted text-foreground'
             }`}
           >
             {filteredTables.length}
@@ -1436,8 +1436,8 @@ export function RestaurantPosView({
           onClick={() => setActiveTab('pos')}
           className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'pos'
-              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
-              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted'
           }`}
         >
           <span>🖥️ Take Order (POS)</span>
@@ -1453,8 +1453,8 @@ export function RestaurantPosView({
           onClick={() => setActiveTab('aggregators')}
           className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'aggregators'
-              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
-              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted'
           }`}
         >
           <span>🛵 Online Orders</span>
@@ -1466,8 +1466,8 @@ export function RestaurantPosView({
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                 activeTab === 'aggregators'
-                  ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950'
-                  : 'bg-slate-100 text-slate-700 dark:bg-white/10 dark:text-slate-300'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-muted text-foreground'
               }`}
             >
               {aggregatorOrders.length}
@@ -1480,15 +1480,15 @@ export function RestaurantPosView({
           onClick={() => setActiveTab('kds')}
           className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'kds'
-              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
-              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted'
           }`}
         >
           <span>👨‍🍳 Kitchen Orders Screen</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
               activeTab === 'kds'
-                ? 'bg-white/20 text-white dark:bg-slate-950/20 dark:text-slate-950'
+                ? 'bg-white/20 text-white'
                 : 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
             }`}
           >
@@ -1501,8 +1501,8 @@ export function RestaurantPosView({
           onClick={() => setActiveTab('shifts')}
           className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
             activeTab === 'shifts'
-              ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/10 dark:bg-white dark:text-slate-950 dark:ring-white/20'
-              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted'
           }`}
         >
           <span>💵 Cashier Shift &amp; Day Summary</span>
@@ -1512,7 +1512,7 @@ export function RestaurantPosView({
                 ? activeTab === 'shifts'
                   ? 'bg-emerald-400 text-slate-950'
                   : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
-                : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400'
+                : 'bg-muted text-muted-foreground'
             }`}
           >
             {currentShift ? 'Open' : 'Closed'}
@@ -1646,14 +1646,14 @@ export function RestaurantPosView({
 
           {/* Empty State vs Tables Grid */}
           {filteredTables.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-amber-50 text-2xl mb-4">
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card p-12 text-center shadow-xs">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-primary/10 text-2xl mb-4">
                 🪑
               </div>
-              <h3 className="font-display text-lg font-black text-slate-950">
+              <h3 className="font-display text-lg font-black text-foreground">
                 No Tables Found for {activeOutlet?.name || 'this Outlet'}
               </h3>
-              <p className="mt-1 max-w-md text-xs text-slate-500 font-medium">
+              <p className="mt-1 max-w-md text-xs text-muted-foreground font-medium">
                 Set up your dining tables (e.g. T-01, T-02, Terrace-1) with covers and floor zones to seat guests, punch KOTs, and manage live restaurant orders.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -1663,14 +1663,14 @@ export function RestaurantPosView({
                     setNewTableOutletId(selectedOutletId);
                     setIsAddTableModalOpen(true);
                   }}
-                  className="rounded-xl bg-slate-950 px-4 py-2.5 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer"
+                  className="rounded-xl bg-primary px-4 py-2.5 text-xs font-bold text-primary-foreground shadow-xs hover:opacity-90 active:scale-95 transition-all cursor-pointer"
                 >
                   + Add First Dining Table
                 </button>
                 <button
                   type="button"
                   onClick={() => setIsSopGuideModalOpen(true)}
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                  className="rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-bold text-foreground hover:bg-muted transition-colors cursor-pointer"
                 >
                   📖 View Aura Dine Operations SOP
                 </button>

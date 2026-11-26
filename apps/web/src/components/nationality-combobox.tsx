@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect, useId } from 'react';
 import {
@@ -115,7 +115,7 @@ export function NationalityCombobox({
           onChange={(e) => handleCustomInputChange(e.target.value)}
           placeholder={placeholder}
           autoComplete="off"
-          className={`min-h-[44px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] py-2.5 text-sm font-medium text-slate-900 dark:text-white shadow-2xs placeholder:text-slate-400 transition duration-150 focus-visible:border-slate-900 dark:focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
+          className={`min-h-[44px] w-full rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] py-2.5 text-sm font-medium text-slate-900 dark:text-white shadow-2xs placeholder:text-slate-400 transition duration-150 focus-visible:border-slate-900 dark:focus-visible:border-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
             activeCountry && !isOpen ? 'pl-9 pr-9' : 'px-4 pr-9'
           }`}
         />
@@ -143,7 +143,7 @@ export function NationalityCombobox({
 
       {/* Searchable Options Popover */}
       {isOpen && (
-        <div className="absolute left-0 top-full z-50 mt-1.5 w-full min-w-[260px] max-w-[min(100vw-32px,420px)] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#0c1222] shadow-xl animate-in fade-in-50 zoom-in-95 duration-150 overflow-hidden">
+        <div className="absolute left-0 top-full z-50 mt-1.5 w-full min-w-[260px] max-w-[min(100vw-32px,420px)] rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] shadow-xl animate-in fade-in-50 zoom-in-95 duration-150 overflow-hidden">
           <div className="px-3 py-1.5 bg-slate-50/70 dark:bg-white/[0.03] border-b border-slate-100 dark:border-white/10 text-[10px] font-semibold text-slate-500 uppercase tracking-wider flex items-center justify-between">
             <span>Search Country, Code, or Dial Code</span>
             <span>{filteredCountries.length} matches</span>

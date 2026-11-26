@@ -204,7 +204,7 @@ export function BanquetClient({
           <button
             type="button"
             onClick={() => setIsBookModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 cursor-pointer transition-all active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 cursor-pointer transition-all active:scale-[0.98]"
           >
             <span>+ Book Event / Banquet</span>
           </button>
@@ -669,7 +669,7 @@ export function BanquetClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 disabled:opacity-50"
+                  className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground shadow-md hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? 'Booking…' : 'Confirm Event & Issue BEO'}
                 </button>

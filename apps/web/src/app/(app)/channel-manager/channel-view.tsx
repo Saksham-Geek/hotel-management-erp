@@ -315,7 +315,7 @@ export function ChannelView({
                 <form action={syncChannel} className="flex-1">
                   <input type="hidden" name="channelKey" value={channel.key} />
                   <FormSubmit
-                    className={`${btnCls} w-full text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white`}
+                    className={`${btnCls} w-full text-xs font-extrabold bg-primary hover:opacity-90 text-primary-foreground`}
                     pendingLabel="Pushing ARI…"
                   >
                     🔄 Sync Now
@@ -451,27 +451,27 @@ export function ChannelView({
       )}
 
       {/* Sync Activity Stream */}
-      <section aria-labelledby="sync-logs-title" className="overflow-hidden rounded-3xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-        <div className="flex items-center justify-between border-b border-slate-200/80 px-6 sm:px-7 py-5 bg-slate-50/60">
+      <section aria-labelledby="sync-logs-title" className="overflow-hidden rounded-3xl border border-border bg-card text-card-foreground shadow-xs">
+        <div className="flex items-center justify-between border-b border-border px-6 sm:px-7 py-5 bg-muted/30">
           <div>
-            <h3 id="sync-logs-title" className="font-display text-lg font-bold text-slate-950">
+            <h3 id="sync-logs-title" className="font-display text-lg font-bold text-foreground">
               Channel Manager Sync Activity Stream
             </h3>
-            <p className="mt-0.5 text-xs text-slate-500 font-normal">Recent inbound reservations, rate updates, and inventory allocations</p>
+            <p className="mt-0.5 text-xs text-muted-foreground font-normal">Recent inbound reservations, rate updates, and inventory allocations</p>
           </div>
-          <span className="rounded-full bg-white border border-slate-200 px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs">
+          <span className="rounded-full bg-card border border-border px-3.5 py-1 text-xs font-semibold text-muted-foreground shadow-2xs">
             {logs.length} Recent Events
           </span>
         </div>
 
         {logs.length === 0 ? (
-          <div className="p-10 text-center text-sm text-slate-500 font-medium">
+          <div className="p-10 text-center text-sm text-muted-foreground font-medium">
             No sync activity recorded yet. Click <strong>Sync Now</strong> or use the <strong>Simulator</strong> above to generate real-time events.
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left">
-              <thead className="border-b border-slate-200 bg-slate-50/80 uppercase tracking-wider text-xs font-bold text-slate-500">
+              <thead className="border-b border-border bg-muted/40 uppercase tracking-wider text-xs font-bold text-muted-foreground">
                 <tr>
                   <th className="px-6 py-4">Timestamp</th>
                   <th className="px-6 py-4">Channel</th>
@@ -481,36 +481,36 @@ export function ChannelView({
                   <th className="px-6 py-4">Activity Summary</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-sm sm:text-[15px]">
+              <tbody className="divide-y divide-border text-sm sm:text-[15px]">
                 {logs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-6 py-4.5 font-mono text-xs text-slate-500 whitespace-nowrap font-medium">
+                  <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-6 py-4.5 font-mono text-xs text-muted-foreground whitespace-nowrap font-medium">
                       {formatDeterministicDateTime(log.createdAt, true)}
                     </td>
-                    <td className="px-6 py-4.5 font-semibold uppercase tracking-wider text-slate-900">
+                    <td className="px-6 py-4.5 font-semibold uppercase tracking-wider text-foreground">
                       {log.channelKey.replace('_', '.')}
                     </td>
                     <td className="px-6 py-4.5">
                       <span
                         className={`inline-flex rounded-md px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wider border ${
                           log.direction === 'inbound'
-                            ? 'bg-blue-50 text-blue-700 border-blue-200/80'
-                            : 'bg-emerald-50 text-emerald-700 border-emerald-200/80'
+                            ? 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20'
+                            : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
                         }`}
                       >
                         {log.direction}
                       </span>
                     </td>
-                    <td className="px-6 py-4.5 font-mono text-xs font-semibold text-slate-700">
+                    <td className="px-6 py-4.5 font-mono text-xs font-semibold text-muted-foreground">
                       {log.eventType}
                     </td>
                     <td className="px-6 py-4.5">
-                      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-800 text-xs">
+                      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400 text-xs">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                         {log.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4.5 font-normal text-slate-800 leading-relaxed">
+                    <td className="px-6 py-4.5 font-normal text-foreground leading-relaxed">
                       {log.summary}
                     </td>
                   </tr>

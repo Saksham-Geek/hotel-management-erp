@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
@@ -67,7 +67,7 @@ export function IncomeDashboardView({
   return (
     <div className="space-y-6 pb-12 print:space-y-4 print:pb-0">
       {/* 1. Executive Top Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200/80 pb-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 border border-purple-300 px-3 py-0.5 text-xs font-black text-purple-950 uppercase tracking-wider shadow-2xs">
@@ -80,10 +80,10 @@ export function IncomeDashboardView({
             </span>
           </div>
 
-          <h1 className="mt-2 text-xl sm:text-2xl lg:text-3xl font-extrabold text-slate-950 tracking-tight font-display break-words">
+          <h1 className="mt-2 text-xl sm:text-2xl lg:text-3xl font-extrabold text-foreground tracking-tight font-display break-words">
             Executive Income &amp; Revenue Analytics
           </h1>
-          <p className="mt-1 text-xs sm:text-sm text-slate-600 font-medium">
+          <p className="mt-1 text-xs sm:text-sm text-muted-foreground font-medium">
             Proprietary P&amp;L and revenue intelligence for <strong>{propertyName}</strong>. Track daily, weekly, monthly, quarterly, and annual hotel turnover.
           </p>
         </div>
@@ -93,10 +93,10 @@ export function IncomeDashboardView({
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-3.5 sm:px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-slate-50 hover:border-slate-400 transition-all active:scale-95"
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card text-foreground px-3.5 sm:px-4 py-2 text-xs font-bold text-slate-800 shadow-2xs hover:bg-muted/30 hover:border-slate-400 transition-all active:scale-95"
             title="Generate print-ready Executive Board Pack & P&L Statement"
           >
-            <svg className="h-4 w-4 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
             <span>Print Board Pack</span>
@@ -116,14 +116,14 @@ export function IncomeDashboardView({
       </div>
 
       {/* Primary Navigation: USALI Operational Analytics vs Double-Entry General Ledger */}
-      <div className="flex items-center gap-3 border-b border-slate-200 print:hidden">
+      <div className="flex items-center gap-3 border-b border-border print:hidden">
         <button
           type="button"
           onClick={() => setActiveTab('analytics')}
           className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${
             activeTab === 'analytics'
               ? 'border-purple-600 text-purple-900 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              : 'border-transparent text-muted-foreground hover:text-slate-800'
           }`}
         >
           <span>📈 USALI Yield &amp; Operational Revenue</span>
@@ -135,7 +135,7 @@ export function IncomeDashboardView({
           className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${
             activeTab === 'general_ledger'
               ? 'border-purple-600 text-purple-900 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              : 'border-transparent text-muted-foreground hover:text-slate-800'
           }`}
         >
           <span>⚖️ Double-Entry General Ledger, P&amp;L &amp; Balance Sheet</span>
@@ -179,7 +179,7 @@ export function IncomeDashboardView({
                   className={`rounded-xl px-3 sm:px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs ${
                     active
                       ? 'bg-slate-950 text-white shadow-xs'
-                      : 'bg-slate-100/80 text-slate-700 hover:bg-slate-200/80'
+                      : 'bg-slate-100/80 text-foreground/90 hover:bg-slate-200/80'
                   }`}
                 >
                   {p.label}
@@ -189,14 +189,14 @@ export function IncomeDashboardView({
           </div>
 
           {/* Active Period Date Badge */}
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-50 border border-slate-200/80 rounded-xl px-3 py-1.5 self-start xl:self-auto shrink-0 whitespace-nowrap">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground bg-muted/30 border border-slate-200/80 rounded-xl px-3 py-1.5 self-start xl:self-auto shrink-0 whitespace-nowrap">
             <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
             <span>Auditing:</span>
-            <strong className="text-slate-900 font-mono">
+            <strong className="text-foreground font-mono">
               {initialData.startDate}
             </strong>
             <span>→</span>
-            <strong className="text-slate-900 font-mono">
+            <strong className="text-foreground font-mono">
               {initialData.endDate}
             </strong>
           </div>
@@ -205,7 +205,7 @@ export function IncomeDashboardView({
         {/* Sub-Controls: Daily Date Picker */}
         {activePeriod === 'daily' && (
           <div className="mt-3.5 pt-3.5 border-t border-slate-100 flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+            <div className="flex items-center gap-2 text-xs font-bold text-foreground/90">
               <span>Select Date:</span>
               <CustomDatePicker
                 value={dailyDate}
@@ -225,7 +225,7 @@ export function IncomeDashboardView({
                 setDailyDate(today);
                 applyPeriod('daily', { date: today });
               }}
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-border bg-card text-foreground px-2.5 py-1 text-xs font-medium text-foreground/90 hover:bg-muted/30"
             >
               Today
             </button>
@@ -237,7 +237,7 @@ export function IncomeDashboardView({
                 setDailyDate(yest);
                 applyPeriod('daily', { date: yest });
               }}
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50"
+              className="rounded-lg border border-border bg-card text-foreground px-2.5 py-1 text-xs font-medium text-foreground/90 hover:bg-muted/30"
             >
               Yesterday
             </button>
@@ -248,7 +248,7 @@ export function IncomeDashboardView({
         {activePeriod === 'custom' && (
           <div className="mt-3.5 pt-3.5 border-t border-slate-100 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-700">From:</span>
+              <span className="text-xs font-bold text-foreground/90">From:</span>
               <CustomDatePicker
                 value={customStart}
                 onChange={(val) => setCustomStart(val)}
@@ -258,7 +258,7 @@ export function IncomeDashboardView({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-slate-700">To:</span>
+              <span className="text-xs font-bold text-foreground/90">To:</span>
               <CustomDatePicker
                 value={customEnd}
                 onChange={(val) => setCustomEnd(val)}
@@ -366,46 +366,46 @@ export function IncomeDashboardView({
       {/* Secondary Benchmark Yield Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
         {/* RevPAR */}
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs min-w-0">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
+        <div className="rounded-2xl border border-slate-200/80 bg-muted/30/70 p-4 shadow-2xs min-w-0">
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
             RevPAR (Room Yield)
           </div>
           <div
-            className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-slate-950 tracking-tight tabular-nums truncate"
+            className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-foreground tracking-tight tabular-nums truncate"
             title={formatMoney(summary.revpar, currency)}
           >
             {formatMoney(summary.revpar, currency)}
           </div>
-          <p className="mt-1 text-[11px] text-slate-500 truncate">
+          <p className="mt-1 text-[11px] text-muted-foreground truncate">
             Revenue per available room night
           </p>
         </div>
 
         {/* ADR */}
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs min-w-0">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
+        <div className="rounded-2xl border border-slate-200/80 bg-muted/30/70 p-4 shadow-2xs min-w-0">
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
             ADR / ARR (Avg Rate)
           </div>
           <div
-            className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-slate-950 tracking-tight tabular-nums truncate"
+            className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-foreground tracking-tight tabular-nums truncate"
             title={formatMoney(summary.adr, currency)}
           >
             {formatMoney(summary.adr, currency)}
           </div>
-          <p className="mt-1 text-[11px] text-slate-500 truncate">
+          <p className="mt-1 text-[11px] text-muted-foreground truncate">
             Average realization per sold room
           </p>
         </div>
 
         {/* Occupancy % */}
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/70 p-4 shadow-2xs min-w-0">
-          <div className="text-xs font-bold text-slate-500 uppercase tracking-wider truncate">
+        <div className="rounded-2xl border border-slate-200/80 bg-muted/30/70 p-4 shadow-2xs min-w-0">
+          <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider truncate">
             Average Occupancy
           </div>
-          <div className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-slate-950 tracking-tight tabular-nums truncate">
+          <div className="mt-1 font-mono text-lg sm:text-xl 2xl:text-2xl font-black text-foreground tracking-tight tabular-nums truncate">
             {summary.occupancyRate}%
           </div>
-          <p className="mt-1 text-[11px] text-slate-500 truncate">
+          <p className="mt-1 text-[11px] text-muted-foreground truncate">
             {summary.roomsSold} nights of {summary.totalAvailableRooms * 24} keys
           </p>
         </div>
@@ -441,8 +441,8 @@ export function IncomeDashboardView({
               onClick={() => setChartMode('gross_net')}
               className={`rounded-lg px-3 py-1 transition-all ${
                 chartMode === 'gross_net'
-                  ? 'bg-white text-slate-950 shadow-xs'
-                  : 'hover:text-slate-900'
+                  ? 'bg-white text-foreground shadow-xs'
+                  : 'hover:text-foreground'
               }`}
             >
               Gross vs Net
@@ -452,8 +452,8 @@ export function IncomeDashboardView({
               onClick={() => setChartMode('yield')}
               className={`rounded-lg px-3 py-1 transition-all ${
                 chartMode === 'yield'
-                  ? 'bg-white text-slate-950 shadow-xs'
-                  : 'hover:text-slate-900'
+                  ? 'bg-white text-foreground shadow-xs'
+                  : 'hover:text-foreground'
               }`}
             >
               ADR &amp; RevPAR
@@ -734,7 +734,7 @@ export function IncomeDashboardView({
                 })()}
 
                 {/* Legend */}
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-5 text-xs font-semibold text-slate-600">
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-5 text-xs font-semibold text-muted-foreground">
                   {chartMode === 'yield' ? (
                     <>
                       <span className="inline-flex items-center gap-1.5">
@@ -793,14 +793,14 @@ export function IncomeDashboardView({
           <div className="mt-3 font-mono text-2xl font-black text-indigo-950">
             {formatMoney(departments.rooms.gross, currency)}
           </div>
-          <div className="mt-3 space-y-1.5 text-xs text-slate-600 font-medium">
+          <div className="mt-3 space-y-1.5 text-xs text-muted-foreground font-medium">
             <div className="flex justify-between">
               <span>Net Operating Yield:</span>
-              <strong className="text-slate-900 font-mono">{formatMoney(departments.rooms.net, currency)}</strong>
+              <strong className="text-foreground font-mono">{formatMoney(departments.rooms.net, currency)}</strong>
             </div>
             <div className="flex justify-between">
               <span>Statutory GST (12%/18%):</span>
-              <strong className="text-slate-900 font-mono">{formatMoney(departments.rooms.gst, currency)}</strong>
+              <strong className="text-foreground font-mono">{formatMoney(departments.rooms.gst, currency)}</strong>
             </div>
           </div>
           <div className="mt-4 w-full bg-indigo-100 h-2 rounded-full overflow-hidden">
@@ -819,14 +819,14 @@ export function IncomeDashboardView({
           <div className="mt-3 font-mono text-2xl font-black text-emerald-950">
             {formatMoney(departments.fnb.gross, currency)}
           </div>
-          <div className="mt-3 space-y-1.5 text-xs text-slate-600 font-medium">
+          <div className="mt-3 space-y-1.5 text-xs text-muted-foreground font-medium">
             <div className="flex justify-between">
               <span>Restaurant &amp; In-Room Dining:</span>
-              <strong className="text-slate-900 font-mono">{formatMoney(departments.fnb.net, currency)}</strong>
+              <strong className="text-foreground font-mono">{formatMoney(departments.fnb.net, currency)}</strong>
             </div>
             <div className="flex justify-between">
               <span>F&amp;B Statutory GST (5%):</span>
-              <strong className="text-slate-900 font-mono">{formatMoney(departments.fnb.gst, currency)}</strong>
+              <strong className="text-foreground font-mono">{formatMoney(departments.fnb.gst, currency)}</strong>
             </div>
           </div>
           <div className="mt-4 w-full bg-emerald-100 h-2 rounded-full overflow-hidden">
@@ -845,14 +845,14 @@ export function IncomeDashboardView({
           <div className="mt-3 font-mono text-2xl font-black text-amber-950">
             {formatMoney(departments.other.gross, currency)}
           </div>
-          <div className="mt-3 space-y-1.5 text-xs text-slate-600 font-medium">
+          <div className="mt-3 space-y-1.5 text-xs text-muted-foreground font-medium">
             <div className="flex justify-between">
               <span>Jiva/Kaya Spa &amp; Laundry:</span>
-              <strong className="text-slate-900 font-mono">{formatMoney(departments.other.net, currency)}</strong>
+              <strong className="text-foreground font-mono">{formatMoney(departments.other.net, currency)}</strong>
             </div>
             <div className="flex justify-between">
               <span>Services GST (18%):</span>
-              <strong className="text-slate-900 font-mono">{formatMoney(departments.other.gst, currency)}</strong>
+              <strong className="text-foreground font-mono">{formatMoney(departments.other.gst, currency)}</strong>
             </div>
           </div>
           <div className="mt-4 w-full bg-amber-100 h-2 rounded-full overflow-hidden">
@@ -864,17 +864,17 @@ export function IncomeDashboardView({
       {/* 6. Distribution Channel Share & Tender Realization Grid */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Distribution Channels */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <div className="flex items-center justify-between border-b border-border pb-3">
             <div>
-              <h3 className="font-bold text-slate-950 font-display">
+              <h3 className="font-bold text-foreground font-display">
                 Distribution Channel Contribution
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Direct hotel bookings vs Corporate accounts vs OTA channels.
               </p>
             </div>
-            <span className="text-xs font-bold text-slate-500">
+            <span className="text-xs font-bold text-muted-foreground">
               {channels.length} Channels
             </span>
           </div>
@@ -884,7 +884,7 @@ export function IncomeDashboardView({
               <div key={ch.channel} className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-semibold">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-900">{ch.label}</span>
+                    <span className="text-foreground">{ch.label}</span>
                     {ch.channel === 'direct' && (
                       <span className="rounded bg-emerald-100 px-1.5 py-0.2 text-[9px] font-black text-emerald-950">
                         0% OTA Fee
@@ -892,10 +892,10 @@ export function IncomeDashboardView({
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-slate-950">
+                    <span className="font-mono font-bold text-foreground">
                       {formatMoney(ch.amount, currency)}
                     </span>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-foreground/90">
                       {ch.sharePct}%
                     </span>
                   </div>
@@ -918,17 +918,17 @@ export function IncomeDashboardView({
         </div>
 
         {/* Payment Tender Realization */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <div className="flex items-center justify-between border-b border-border pb-3">
             <div>
-              <h3 className="font-bold text-slate-950 font-display">
+              <h3 className="font-bold text-foreground font-display">
                 Settled Payment Realization (Tenders)
               </h3>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted-foreground">
                 Cashier collections by tender with Section 269ST &amp; Rule 114B guard.
               </p>
             </div>
-            <span className="text-xs font-bold text-slate-500">
+            <span className="text-xs font-bold text-muted-foreground">
               {tenders.length} Tenders
             </span>
           </div>
@@ -938,7 +938,7 @@ export function IncomeDashboardView({
               <div key={td.method} className="space-y-1">
                 <div className="flex items-center justify-between text-xs font-semibold">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-900">{td.label}</span>
+                    <span className="text-foreground">{td.label}</span>
                     {td.method === 'cash' && (
                       <span className="rounded bg-rose-50 border border-rose-200 px-1.5 py-0.2 text-[9px] font-bold text-rose-800">
                         &lt; ₹2L Guarded
@@ -946,10 +946,10 @@ export function IncomeDashboardView({
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-slate-950">
+                    <span className="font-mono font-bold text-foreground">
                       {formatMoney(td.amount, currency)}
                     </span>
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-700">
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-foreground/90">
                       {td.sharePct}%
                     </span>
                   </div>
@@ -975,35 +975,35 @@ export function IncomeDashboardView({
       </div>
 
       {/* 7. Room Category Yield Contribution */}
-      <div className="rounded-2xl border border-slate-200/90 bg-white p-5 shadow-xs">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <div>
-            <h3 className="font-bold text-slate-950 font-display">
+            <h3 className="font-bold text-foreground font-display">
               Room Category Yield Contribution
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Revenue and ADR yield breakdown by suite and room class.
             </p>
           </div>
-          <span className="text-xs font-bold text-slate-500">
+          <span className="text-xs font-bold text-muted-foreground">
             {roomTypes.length} Room Types
           </span>
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
           {roomTypes.map((rt) => (
-            <div key={rt.roomType} className="rounded-xl border border-slate-200/80 bg-slate-50/50 p-4 min-w-0">
-              <div className="flex items-center justify-between text-xs font-bold text-slate-900 gap-2">
+            <div key={rt.roomType} className="rounded-xl border border-border bg-muted/20 p-4 min-w-0">
+              <div className="flex items-center justify-between text-xs font-bold text-foreground gap-2">
                 <span className="truncate">{rt.roomType}</span>
                 <span className="rounded-full bg-white px-2 py-0.5 text-[10px] border shadow-2xs font-mono shrink-0">
                   {rt.sharePct}%
                 </span>
               </div>
-              <div className="mt-2 font-mono text-base sm:text-lg 2xl:text-xl font-black text-slate-950 tracking-tight tabular-nums truncate" title={formatMoney(rt.amount, currency)}>
+              <div className="mt-2 font-mono text-base sm:text-lg 2xl:text-xl font-black text-foreground tracking-tight tabular-nums truncate" title={formatMoney(rt.amount, currency)}>
                 {formatMoney(rt.amount, currency)}
               </div>
-              <div className="mt-1 flex items-center justify-between text-xs text-slate-500 font-medium gap-2">
-                <span className="truncate">ADR: <strong className="text-slate-900 font-mono">{formatMoney(rt.adr, currency)}</strong></span>
+              <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground font-medium gap-2">
+                <span className="truncate">ADR: <strong className="text-foreground font-mono">{formatMoney(rt.adr, currency)}</strong></span>
                 <span className="shrink-0">{rt.nightsSold} nights</span>
               </div>
             </div>
@@ -1012,24 +1012,24 @@ export function IncomeDashboardView({
       </div>
 
       {/* 8. Day-by-Day Financial Ledger Table */}
-      <div className="rounded-3xl border border-slate-200/90 bg-white overflow-hidden shadow-sm">
-        <div className="p-5 border-b border-slate-200/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="rounded-3xl border border-border bg-card overflow-hidden shadow-xs text-card-foreground">
+        <div className="p-5 border-b border-border/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h3 className="text-base font-bold text-slate-950 font-display">
+            <h3 className="text-base font-bold text-foreground font-display">
               Day-by-Day Financial Audit Ledger
             </h3>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Complete audited daily breakdown of rooms sold, occupancy, room revenue, F&amp;B dining, and statutory GST.
             </p>
           </div>
-          <div className="text-xs font-semibold text-slate-600 bg-slate-100 rounded-xl px-3 py-1">
+          <div className="text-xs font-semibold text-muted-foreground bg-slate-100 rounded-xl px-3 py-1">
             {ledgerRows.length} Audit Entries
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">
-            <thead className="bg-slate-50/90 text-[11px] font-bold text-slate-600 uppercase tracking-wider border-b border-slate-200/80">
+            <thead className="bg-muted/30/90 text-[11px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border/80">
               <tr>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-3 py-3">Keys Sold</th>
@@ -1043,14 +1043,14 @@ export function IncomeDashboardView({
                 <th className="px-3 py-3">RevPAR (₹)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 font-medium text-slate-700">
+            <tbody className="divide-y divide-border font-medium text-foreground/90">
               {ledgerRows.slice(0, 30).map((row) => (
-                <tr key={row.date} className="hover:bg-slate-50/60 transition-colors">
-                  <td className="px-4 py-3 font-semibold text-slate-950">
+                <tr key={row.date} className="hover:bg-muted/30/60 transition-colors">
+                  <td className="px-4 py-3 font-semibold text-foreground">
                     <div>{row.date}</div>
                     <div className="text-[10px] text-slate-400 font-normal">{row.dayName}</div>
                   </td>
-                  <td className="px-3 py-3 font-mono text-slate-900">{row.roomsSold}</td>
+                  <td className="px-3 py-3 font-mono text-foreground">{row.roomsSold}</td>
                   <td className="px-3 py-3">
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
                       row.occupancyRate >= 75
@@ -1065,10 +1065,10 @@ export function IncomeDashboardView({
                   <td className="px-3 py-3 font-mono">{formatMoney(row.roomRevenue, currency)}</td>
                   <td className="px-3 py-3 font-mono">{formatMoney(row.fnbRevenue, currency)}</td>
                   <td className="px-3 py-3 font-mono text-amber-800">{formatMoney(row.taxCollected, currency)}</td>
-                  <td className="px-4 py-3 font-mono font-bold text-slate-950">{formatMoney(row.grossRevenue, currency)}</td>
+                  <td className="px-4 py-3 font-mono font-bold text-foreground">{formatMoney(row.grossRevenue, currency)}</td>
                   <td className="px-4 py-3 font-mono font-bold text-purple-900">{formatMoney(row.netRevenue, currency)}</td>
-                  <td className="px-3 py-3 font-mono text-slate-600">{formatMoney(row.adr, currency)}</td>
-                  <td className="px-3 py-3 font-mono text-slate-600">{formatMoney(row.revpar, currency)}</td>
+                  <td className="px-3 py-3 font-mono text-muted-foreground">{formatMoney(row.adr, currency)}</td>
+                  <td className="px-3 py-3 font-mono text-muted-foreground">{formatMoney(row.revpar, currency)}</td>
                 </tr>
               ))}
             </tbody>
@@ -1087,10 +1087,10 @@ export function IncomeDashboardView({
       <span className="mt-4 inline-block rounded-full bg-indigo-100 dark:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 px-3.5 py-1 text-xs font-bold uppercase tracking-wider">
         Enterprise Chain Feature
       </span>
-      <h2 className="mt-3 text-2xl font-black text-slate-900 dark:text-white font-display">
+      <h2 className="mt-3 text-2xl font-black text-foreground dark:text-white font-display">
         Native Double-Entry General Ledger &amp; Certified Financial Statements
       </h2>
-      <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 max-w-xl mx-auto leading-relaxed">
+      <p className="mt-2 text-sm text-muted-foreground dark:text-slate-300 max-w-xl mx-auto leading-relaxed">
         Eliminate reliance on external accounting exports. Unlock automatic journal vouchers, customizable Chart of Accounts, real-time Trial Balance, Profit &amp; Loss, and Balance Sheet reporting.
       </p>
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -1128,7 +1128,7 @@ export function IncomeDashboardView({
           <button
             type="button"
             onClick={() => window.print()}
-            className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-4 py-2 text-xs font-bold shadow-md transition-all"
+            className="rounded-xl bg-emerald-500 hover:bg-emerald-400 text-foreground px-4 py-2 text-xs font-bold shadow-md transition-all"
           >
             🖨️ Print Auditor P&amp;L Board Pack
           </button>
@@ -1138,18 +1138,18 @@ export function IncomeDashboardView({
       {financialStatements ? (
         <div className="space-y-8">
           {/* 1. PROFIT & LOSS STATEMENT (P&L) */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="rounded-3xl border border-border bg-card text-foreground p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Profit &amp; Loss Statement (Income Statement)</h3>
-                <p className="text-xs text-slate-500">Operating revenues minus direct kitchen costs and operating expenses</p>
+                <h3 className="text-lg font-bold text-foreground">Profit &amp; Loss Statement (Income Statement)</h3>
+                <p className="text-xs text-muted-foreground">Operating revenues minus direct kitchen costs and operating expenses</p>
               </div>
               <div className="text-right">
                 <span className="text-xs text-slate-400">Net Operating Profit</span>
                 <p className={`text-xl font-mono font-black ${financialStatements.profitAndLoss.netProfitOrLoss >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                   {formatMoney(financialStatements.profitAndLoss.netProfitOrLoss, currency)}
                 </p>
-                <span className="text-[11px] font-bold text-slate-500">
+                <span className="text-[11px] font-bold text-muted-foreground">
                   {financialStatements.profitAndLoss.profitMarginPercent.toFixed(1)}% Operating Margin
                 </span>
               </div>
@@ -1158,13 +1158,13 @@ export function IncomeDashboardView({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Revenue Column */}
               <div className="space-y-3">
-                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 font-bold text-xs text-slate-900">
+                <div className="flex justify-between items-center bg-muted/30 p-3 rounded-xl border border-slate-100 font-bold text-xs text-foreground">
                   <span>Operating Revenues</span>
                   <span className="font-mono text-emerald-700">{formatMoney(financialStatements.profitAndLoss.totalRevenue, currency)}</span>
                 </div>
-                <div className="divide-y divide-slate-100 text-xs">
+                <div className="divide-y divide-border text-xs">
                   {financialStatements.profitAndLoss.revenueItems.map((r: any) => (
-                    <div key={r.id} className="py-2.5 flex justify-between items-center text-slate-700">
+                    <div key={r.id} className="py-2.5 flex justify-between items-center text-foreground/90">
                       <div>
                         <span className="font-mono text-[11px] text-slate-400 mr-2">{r.accountCode}</span>
                         <span>{r.accountName}</span>
@@ -1177,13 +1177,13 @@ export function IncomeDashboardView({
 
               {/* Expense Column */}
               <div className="space-y-3">
-                <div className="flex justify-between items-center bg-slate-50 p-3 rounded-xl border border-slate-100 font-bold text-xs text-slate-900">
+                <div className="flex justify-between items-center bg-muted/30 p-3 rounded-xl border border-slate-100 font-bold text-xs text-foreground">
                   <span>Operating Expenses</span>
                   <span className="font-mono text-rose-700">{formatMoney(financialStatements.profitAndLoss.totalExpenses, currency)}</span>
                 </div>
-                <div className="divide-y divide-slate-100 text-xs">
+                <div className="divide-y divide-border text-xs">
                   {financialStatements.profitAndLoss.expenseItems.map((e: any) => (
-                    <div key={e.id} className="py-2.5 flex justify-between items-center text-slate-700">
+                    <div key={e.id} className="py-2.5 flex justify-between items-center text-foreground/90">
                       <div>
                         <span className="font-mono text-[11px] text-slate-400 mr-2">{e.accountCode}</span>
                         <span>{e.accountName}</span>
@@ -1197,11 +1197,11 @@ export function IncomeDashboardView({
           </div>
 
           {/* 2. CERTIFIED BALANCE SHEET */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="rounded-3xl border border-border bg-card text-foreground p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               <div>
-                <h3 className="text-lg font-bold text-slate-900">Certified Balance Sheet</h3>
-                <p className="text-xs text-slate-500">Financial position: Total Assets = Total Liabilities + Equity</p>
+                <h3 className="text-lg font-bold text-foreground">Certified Balance Sheet</h3>
+                <p className="text-xs text-muted-foreground">Financial position: Total Assets = Total Liabilities + Equity</p>
               </div>
               <div className="flex items-center gap-2">
                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${
@@ -1221,9 +1221,9 @@ export function IncomeDashboardView({
                   <span>Total Current &amp; Fixed Assets</span>
                   <span className="font-mono">{formatMoney(financialStatements.balanceSheet.totalAssets, currency)}</span>
                 </div>
-                <div className="divide-y divide-slate-100 text-xs">
+                <div className="divide-y divide-border text-xs">
                   {financialStatements.balanceSheet.assetItems.map((a: any) => (
-                    <div key={a.id} className="py-2.5 flex justify-between items-center text-slate-700">
+                    <div key={a.id} className="py-2.5 flex justify-between items-center text-foreground/90">
                       <div>
                         <span className="font-mono text-[11px] text-slate-400 mr-2">{a.accountCode}</span>
                         <span>{a.accountName}</span>
@@ -1242,9 +1242,9 @@ export function IncomeDashboardView({
                     <span>Liabilities (Duties, Taxes &amp; Payables)</span>
                     <span className="font-mono">{formatMoney(financialStatements.balanceSheet.totalLiabilities, currency)}</span>
                   </div>
-                  <div className="divide-y divide-slate-100 text-xs">
+                  <div className="divide-y divide-border text-xs">
                     {financialStatements.balanceSheet.liabilityItems.map((l: any) => (
-                      <div key={l.id} className="py-2 flex justify-between items-center text-slate-700">
+                      <div key={l.id} className="py-2 flex justify-between items-center text-foreground/90">
                         <div>
                           <span className="font-mono text-[11px] text-slate-400 mr-2">{l.accountCode}</span>
                           <span>{l.accountName}</span>
@@ -1260,9 +1260,9 @@ export function IncomeDashboardView({
                     <span>Equity &amp; Retained Earnings</span>
                     <span className="font-mono">{formatMoney(financialStatements.balanceSheet.totalEquity, currency)}</span>
                   </div>
-                  <div className="divide-y divide-slate-100 text-xs">
+                  <div className="divide-y divide-border text-xs">
                     {financialStatements.balanceSheet.equityItems.map((eq: any) => (
-                      <div key={eq.id} className="py-2 flex justify-between items-center text-slate-700">
+                      <div key={eq.id} className="py-2 flex justify-between items-center text-foreground/90">
                         <div>
                           <span className="font-mono text-[11px] text-slate-400 mr-2">{eq.accountCode}</span>
                           <span>{eq.accountName}</span>
@@ -1281,13 +1281,13 @@ export function IncomeDashboardView({
           </div>
 
           {/* 3. TRIAL BALANCE */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+          <div className="rounded-3xl border border-border bg-card text-foreground p-6 sm:p-8 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <h3 className="text-base font-bold text-slate-900">Trial Balance Verification Ledger</h3>
-                <p className="text-xs text-slate-500">Every debit and credit line mathematically verified</p>
+                <h3 className="text-base font-bold text-foreground">Trial Balance Verification Ledger</h3>
+                <p className="text-xs text-muted-foreground">Every debit and credit line mathematically verified</p>
               </div>
-              <div className="font-mono text-xs font-bold text-slate-700 flex items-center gap-4">
+              <div className="font-mono text-xs font-bold text-foreground/90 flex items-center gap-4">
                 <span>Total Debit: <strong>{formatMoney(financialStatements.trialBalance.totalDebit, currency)}</strong></span>
                 <span>Total Credit: <strong>{formatMoney(financialStatements.trialBalance.totalCredit, currency)}</strong></span>
               </div>
@@ -1295,7 +1295,7 @@ export function IncomeDashboardView({
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-100 bg-slate-50 text-[11px] font-bold uppercase text-slate-500">
+                <thead className="border-b border-border bg-muted/30 text-[11px] font-bold uppercase text-muted-foreground">
                   <tr>
                     <th className="px-3 py-2">Code</th>
                     <th className="px-3 py-2">Account Name</th>
@@ -1304,14 +1304,14 @@ export function IncomeDashboardView({
                     <th className="px-3 py-2 text-right">Credit Balance</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-border">
                   {financialStatements.trialBalance.items.map((tb: any) => (
-                    <tr key={tb.accountCode} className="hover:bg-slate-50">
+                    <tr key={tb.accountCode} className="hover:bg-muted/30">
                       <td className="px-3 py-2 font-mono font-bold text-slate-800">{tb.accountCode}</td>
-                      <td className="px-3 py-2 font-medium text-slate-900">{tb.accountName}</td>
-                      <td className="px-3 py-2 text-slate-500">{tb.accountType}</td>
-                      <td className="px-3 py-2 text-right font-mono text-slate-700">{tb.debit > 0 ? formatMoney(tb.debit, currency) : '—'}</td>
-                      <td className="px-3 py-2 text-right font-mono text-slate-700">{tb.credit > 0 ? formatMoney(tb.credit, currency) : '—'}</td>
+                      <td className="px-3 py-2 font-medium text-foreground">{tb.accountName}</td>
+                      <td className="px-3 py-2 text-muted-foreground">{tb.accountType}</td>
+                      <td className="px-3 py-2 text-right font-mono text-foreground/90">{tb.debit > 0 ? formatMoney(tb.debit, currency) : '—'}</td>
+                      <td className="px-3 py-2 text-right font-mono text-foreground/90">{tb.credit > 0 ? formatMoney(tb.credit, currency) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1320,7 +1320,7 @@ export function IncomeDashboardView({
           </div>
         </div>
       ) : (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-xs text-slate-500">
+        <div className="rounded-2xl border border-border bg-card p-8 text-center text-xs text-muted-foreground">
           Double-entry ledger not initialized. Go to Settings &gt; Chart of Accounts to verify configuration.
         </div>
       )}

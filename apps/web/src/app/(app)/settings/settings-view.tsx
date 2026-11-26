@@ -339,7 +339,7 @@ export function SettingsView({
   const [zoneToDeleteDropdown, setZoneToDeleteDropdown] = useState<string>('');
   const [submitting, setSubmitting] = useState<boolean>(false);
 
-  // Local Menu & Tables state for instantaneous UI updates & Petpooja controls
+  // Local Menu & Tables state for instantaneous UI updates & dining controls
   const [localMenu, setLocalMenu] = useState<MenuCategoryDto[]>(menu);
   const [localTables, setLocalTables] = useState<TableDto[]>(tables);
   const [menuSearchQuery, setMenuSearchQuery] = useState('');
@@ -737,7 +737,7 @@ export function SettingsView({
       )}
 
       {/* Tabs Navigation Bar - Wraps cleanly with zero horizontal scroll */}
-      <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-200/90 dark:border-white/10" role="tablist" aria-label="Settings tabs">
+      <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-border" role="tablist" aria-label="Settings tabs">
         {tabsList.map((t) => {
           const active = tab === t.id;
           return (
@@ -751,8 +751,8 @@ export function SettingsView({
               onClick={() => switchTab(t.id)}
               className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all cursor-pointer ${
                 active
-                  ? 'bg-slate-950 text-white shadow-md ring-2 ring-slate-950/15 dark:bg-white dark:text-foreground dark:ring-white/20'
-                  : 'bg-white text-foreground/80 border border-slate-200/90 hover:bg-slate-50 hover:text-foreground dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+                  ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/25'
+                  : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
               }`}
             >
               <span aria-hidden="true" className="text-sm">{t.icon}</span>
@@ -761,8 +761,8 @@ export function SettingsView({
                 <span
                   className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
                     active
-                      ? 'bg-white/25 text-white dark:bg-slate-950/20 dark:text-foreground'
-                      : 'bg-slate-100 text-foreground/80 dark:bg-white/10 dark:text-slate-300'
+                      ? 'bg-primary-foreground/20 text-primary-foreground'
+                      : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   {t.count}
@@ -1592,7 +1592,7 @@ export function SettingsView({
           </div>
 
           {/* ========================================================================= */}
-          {/* SUB-SECTION 3: PETPOOJA-INSPIRED MASTER MENU DISHES CATALOG & DELETION */}
+          {/* SUB-SECTION 3: MASTER RESTAURANT MENU DISHES CATALOG & DELETION */}
           {/* ========================================================================= */}
           <div className="space-y-4 pt-6 border-t border-slate-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -1664,7 +1664,7 @@ export function SettingsView({
               </form>
             )}
 
-            {/* Petpooja-Style Filter Controls Bar */}
+            {/* Live Filter Controls Bar */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 bg-slate-50/90 p-4 rounded-2xl border border-slate-200/90 shadow-2xs">
               {/* Left: Dietary Filters */}
               <div className="flex flex-wrap items-center gap-1.5">

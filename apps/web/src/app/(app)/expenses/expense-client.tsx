@@ -344,7 +344,7 @@ export function ExpenseClient({
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 cursor-pointer transition-all active:scale-[0.98]"
+            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 cursor-pointer transition-all active:scale-[0.98]"
           >
             <span>+ Log Expense Voucher</span>
           </button>
@@ -379,17 +379,17 @@ export function ExpenseClient({
           <p className="mt-1 text-[11px] text-slate-500">{summary.today.voucherCount} expense vouchers paid from drawer</p>
         </div>
 
-        <div className="rounded-2xl border-2 border-slate-900 bg-slate-950 p-4 text-white shadow-md dark:border-teal-500/40 dark:bg-slate-900">
+        <div className="rounded-2xl border border-primary/25 bg-card p-4 shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-300">Expected Physical Drawer Cash</span>
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-white/10 text-xs text-white font-bold">
+            <span className="text-xs font-semibold text-foreground">Expected Physical Drawer Cash</span>
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-primary/10 text-xs text-primary font-bold">
               💵
             </span>
           </div>
-          <p className="mt-2 text-2xl font-black tracking-tight text-teal-300">
+          <p className="mt-2 text-2xl font-black tracking-tight text-primary">
             ₹{summary.today.netDrawerCash.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </p>
-          <p className="mt-1 text-[11px] text-slate-400">Cash In minus Cash Payouts</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Cash In minus Cash Payouts</p>
         </div>
 
         <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
@@ -723,7 +723,7 @@ export function ExpenseClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 disabled:opacity-50"
+                  className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground shadow-md hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? 'Logging…' : 'Save & Deduct Cash'}
                 </button>

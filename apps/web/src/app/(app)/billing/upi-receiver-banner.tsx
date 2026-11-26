@@ -61,7 +61,7 @@ export function UpiReceiverBanner({
               <button
                 type="button"
                 onClick={() => setModalOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-3.5 py-2 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-3.5 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 transition-opacity cursor-pointer"
               >
                 <span>⚙️ Quick Edit UPI ID</span>
                 <span className="rounded-full bg-amber-400 text-slate-950 text-[9px] font-extrabold px-1.5 py-0.2">

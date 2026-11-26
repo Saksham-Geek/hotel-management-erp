@@ -1409,22 +1409,22 @@ export function RestaurantPosView({
       {/* ============================================================== */}
       {/* NAVIGATION TABS (Tables, POS Counter, Aggregators, KDS, Shift) */}
       {/* ============================================================== */}
-      <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-200/90 dark:border-white/10 text-xs font-bold" role="tablist" aria-label="Restaurant navigation">
+      <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-border text-xs sm:text-sm font-bold" role="tablist" aria-label="Restaurant navigation">
         <button
           type="button"
           onClick={() => setActiveTab('tables')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'tables'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted'
+              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
           }`}
         >
           <span>🪑 Dining Tables</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
               activeTab === 'tables'
-                ? 'bg-white/20 text-white'
-                : 'bg-muted text-foreground'
+                ? 'bg-primary-foreground/20 text-primary-foreground'
+                : 'bg-muted text-muted-foreground'
             }`}
           >
             {filteredTables.length}
@@ -1434,10 +1434,10 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('pos')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'pos'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted'
+              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
           }`}
         >
           <span>🖥️ Take Order (POS)</span>
@@ -1451,10 +1451,10 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('aggregators')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'aggregators'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted'
+              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
           }`}
         >
           <span>🛵 Online Orders</span>
@@ -1466,8 +1466,8 @@ export function RestaurantPosView({
             <span
               className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                 activeTab === 'aggregators'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-muted text-foreground'
+                  ? 'bg-primary-foreground/20 text-primary-foreground'
+                  : 'bg-muted text-muted-foreground'
               }`}
             >
               {aggregatorOrders.length}
@@ -1478,18 +1478,18 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('kds')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'kds'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted'
+              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
           }`}
         >
           <span>👨‍🍳 Kitchen Orders Screen</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
               activeTab === 'kds'
-                ? 'bg-white/20 text-white'
-                : 'bg-rose-100 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300'
+                ? 'bg-primary-foreground/20 text-primary-foreground'
+                : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
             }`}
           >
             {kots.length}
@@ -1499,10 +1499,10 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('shifts')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'shifts'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted'
+              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
           }`}
         >
           <span>💵 Cashier Shift &amp; Day Summary</span>
@@ -1511,7 +1511,7 @@ export function RestaurantPosView({
               currentShift
                 ? activeTab === 'shifts'
                   ? 'bg-emerald-400 text-slate-950'
-                  : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300'
+                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
                 : 'bg-muted text-muted-foreground'
             }`}
           >
@@ -1522,18 +1522,18 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('inventory')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'inventory'
-              ? 'bg-emerald-700 text-white shadow-md ring-2 ring-emerald-700/20'
-              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
           }`}
         >
           <span>📦 Kitchen Ingredients &amp; Stock</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
               activeTab === 'inventory'
-                ? 'bg-white/20 text-white'
-                : 'bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:border-emerald-800'
+                ? 'bg-primary-foreground/20 text-primary-foreground'
+                : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
             }`}
           >
             Stock
@@ -1543,18 +1543,18 @@ export function RestaurantPosView({
         <button
           type="button"
           onClick={() => setActiveTab('settings')}
-          className={`flex items-center gap-2 rounded-xl px-3.5 py-2 transition-all cursor-pointer ${
+          className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'settings'
-              ? 'bg-indigo-700 text-white shadow-md ring-2 ring-indigo-700/20'
-              : 'bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50 hover:text-slate-950 dark:bg-slate-800/80 dark:text-slate-300 dark:border-white/10 dark:hover:bg-slate-700'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
           }`}
         >
           <span>⚙️ Restaurant Settings</span>
           <span
             className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
               activeTab === 'settings'
-                ? 'bg-white/20 text-white'
-                : 'bg-indigo-50 text-indigo-700 border border-indigo-200 dark:bg-indigo-950/40 dark:text-indigo-300 dark:border-indigo-800'
+                ? 'bg-primary-foreground/20 text-primary-foreground'
+                : 'bg-primary/10 text-primary border border-primary/20'
             }`}
           >
             Setup
@@ -1563,7 +1563,7 @@ export function RestaurantPosView({
 
         <Link
           href="/restaurant/captain"
-          className="flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 px-3.5 py-2 text-xs font-bold transition-all shadow-2xs dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-200"
+          className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 text-amber-700 dark:text-amber-300 px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-2xs"
         >
           <span>📱</span>
           <span>Captain Handheld Mode</span>
@@ -1579,14 +1579,14 @@ export function RestaurantPosView({
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             {/* Section Filter Pills */}
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold text-slate-500 mr-1">Floor Zones:</span>
+              <span className="text-xs sm:text-sm font-bold text-muted-foreground mr-1">Floor Zones:</span>
               <button
                 type="button"
                 onClick={() => setSelectedSection('all')}
-                className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                   selectedSection === 'all'
-                    ? 'bg-slate-950 text-white shadow-xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
                 }`}
               >
                 All Sections
@@ -1596,10 +1596,10 @@ export function RestaurantPosView({
                   key={sec}
                   type="button"
                   onClick={() => setSelectedSection(sec)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                  className={`rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                     selectedSection === sec
-                      ? 'bg-slate-950 text-white shadow-xs'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
                   }`}
                 >
                   {sec}
@@ -1608,7 +1608,7 @@ export function RestaurantPosView({
               <button
                 type="button"
                 onClick={() => setIsManageZonesModalOpen(true)}
-                className="rounded-xl px-2.5 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition-all flex items-center gap-1 cursor-pointer shadow-2xs"
+                className="rounded-xl px-3 py-2 text-xs sm:text-sm font-bold text-primary bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
                 title="Add or remove custom floor zones"
               >
                 <span>⚙️</span>
@@ -1618,10 +1618,10 @@ export function RestaurantPosView({
 
             {/* Clean Floor Status & Settings shortcut */}
             <div className="flex items-center gap-2.5">
-              <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+              <div className="hidden sm:flex items-center gap-2 text-xs font-bold text-muted-foreground bg-muted/40 px-3.5 py-2 rounded-xl border border-border">
                 <span className="inline-block h-2 w-2 rounded-full bg-emerald-500"></span>
                 <span>{filteredTables.filter((t) => t.status === 'vacant').length} Vacant</span>
-                <span className="text-slate-300">•</span>
+                <span className="text-muted-foreground/40">•</span>
                 <span className="inline-block h-2 w-2 rounded-full bg-amber-500"></span>
                 <span>{filteredTables.filter((t) => t.status === 'occupied').length} Occupied</span>
               </div>
@@ -1631,13 +1631,13 @@ export function RestaurantPosView({
                   setSettingsSubTab('tables');
                   setActiveTab('settings');
                 }}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs sm:text-sm font-bold text-foreground hover:bg-muted/40 transition-colors shadow-xs cursor-pointer"
               >
                 <span>⚙️ Manage Floor Plan</span>
               </button>
               <Link
                 href="/settings?tab=restaurant"
-                className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-1.5 text-xs font-bold text-emerald-900 hover:bg-emerald-100 transition-colors shadow-xs cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-primary/25 bg-primary/10 px-3.5 py-2 text-xs sm:text-sm font-bold text-primary hover:bg-primary/20 transition-colors shadow-xs cursor-pointer"
               >
                 <span>⚙️ Manage in Settings Hub &rarr;</span>
               </Link>
@@ -2757,7 +2757,7 @@ export function RestaurantPosView({
               </p>
             </div>
 
-            {/* Petpooja KDS Station & Dietary Filter Controls */}
+            {/* Master KDS Station & Dietary Filter Controls */}
             <div className="flex flex-wrap items-center gap-3">
               {/* Dietary Filter */}
               <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
@@ -3574,7 +3574,7 @@ export function RestaurantPosView({
                 </div>
               </div>
 
-              {/* Petpooja-Style Filter Controls: Dietary & Search */}
+              {/* Express Filter Controls: Dietary & Search */}
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-slate-50 p-3 rounded-2xl border border-slate-200">
                 <div className="flex flex-wrap gap-1.5 items-center">
                   <button

@@ -178,7 +178,7 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
             setCampaignActionState(null);
             setIsCampaignModalOpen(true);
           }}
-          className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white shadow-xs hover:bg-slate-800 transition-colors shrink-0"
+          className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground shadow-xs hover:opacity-90 transition-opacity shrink-0"
         >
           <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
@@ -231,14 +231,14 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
       </div>
 
       {/* Modern Segmented Pill Tabs */}
-      <div className="inline-flex p-1 bg-muted/80 rounded-xl border border-border gap-1">
+      <div className="inline-flex p-1 bg-muted/40 rounded-xl border border-border gap-1">
         <button
           type="button"
           onClick={() => setActiveTab('followups')}
           className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'followups'
-              ? 'bg-card text-foreground shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
           }`}
         >
           Automated Post-Checkout Follow-Ups ({data.pendingFollowUps.length})
@@ -248,8 +248,8 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
           onClick={() => setActiveTab('crm')}
           className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'crm'
-              ? 'bg-card text-foreground shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
           }`}
         >
           Guest CRM &amp; Loyalty Directory ({data.guests.length})
@@ -259,8 +259,8 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
           onClick={() => setActiveTab('campaigns')}
           className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'campaigns'
-              ? 'bg-card text-foreground shadow-xs'
-              : 'text-muted-foreground hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
           }`}
         >
           Follow-Up Campaigns &amp; Broadcasts ({data.campaigns.length})
@@ -318,7 +318,7 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
                           <div className="text-xs text-muted-foreground font-normal mt-0.5">Settled Folio</div>
                         </td>
                         <td className="px-5 py-4">
-                          <span className="inline-flex rounded-md bg-muted border border-border px-2.5 py-0.5 text-xs font-semibold uppercase text-foreground">
+                          <span className="inline-flex rounded-md bg-primary/10 border border-primary/25 px-2.5 py-0.5 text-xs font-bold uppercase text-primary">
                             {p.bookingSource.replace('_', '.')}
                           </span>
                           <div className="text-xs sm:text-sm font-bold text-foreground mt-1">

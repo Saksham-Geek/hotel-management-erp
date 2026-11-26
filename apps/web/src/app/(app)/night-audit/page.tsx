@@ -161,7 +161,7 @@ export default async function NightAuditPage({
             </h3>
             <p className="mt-0.5 text-sm text-muted-foreground font-medium">Historical ADR (Average Daily Rate) and RevPAR (Revenue Per Available Room)</p>
           </div>
-          <span className="rounded-full bg-muted border border-border px-4 py-1.5 text-xs sm:text-sm font-bold text-foreground shadow-xs">
+          <span className="rounded-full bg-card border border-border px-4 py-1.5 text-xs sm:text-sm font-bold text-foreground shadow-xs">
             {history.length} records
           </span>
         </div>

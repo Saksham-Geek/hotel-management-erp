@@ -333,14 +333,14 @@ export function GuideView({
       </div>
 
       {/* Modern Segmented Navigation Tabs */}
-      <div className="flex flex-wrap p-1.5 bg-muted/40 rounded-2xl border border-border gap-2">
+      <div className="flex flex-wrap items-center gap-2 pb-2">
         <button
           type="button"
           onClick={() => setActiveTab('pages')}
-          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'pages'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
           }`}
         >
           📖 Which Page is For What ({allPages.length} Modules)
@@ -349,10 +349,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('matrix')}
-          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'matrix'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
           }`}
         >
           🔐 Role Permissions Matrix
@@ -362,10 +362,10 @@ export function GuideView({
           <button
             type="button"
             onClick={() => setActiveTab('founder')}
-            className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'founder'
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
+                ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+                : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
             }`}
           >
             ⚡ SaaS Platform Founder SOP
@@ -375,10 +375,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('owner')}
-          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'owner'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
           }`}
         >
           👑 Hotel Owner &amp; Director SOP
@@ -387,10 +387,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('manager')}
-          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'manager'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
           }`}
         >
           👔 General Manager (GM) SOP
@@ -399,10 +399,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('frontdesk')}
-          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'frontdesk'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
           }`}
         >
           🛎️ Front Desk &amp; Cashiering SOP
@@ -411,10 +411,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('housekeeping')}
-          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'housekeeping'
-              ? 'bg-primary text-primary-foreground shadow-sm'
-              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
+              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
+              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
           }`}
         >
           🧹 Housekeeping &amp; Turndown SOP
@@ -480,7 +480,7 @@ export function GuideView({
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-3xl">{p.icon}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="rounded-lg bg-muted px-2.5 py-1 text-[11px] font-black uppercase tracking-wider text-foreground/90">
+                        <span className="rounded-lg bg-slate-900 dark:bg-slate-800 !text-white px-2.5 py-1 text-[11px] font-black uppercase tracking-wider shadow-2xs">
                           {p.badge}
                         </span>
                         {isAllowedForMe ? (

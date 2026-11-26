@@ -52,7 +52,7 @@ export function SaasInvoiceModal({ invoice, hotelName, onClose }: SaasInvoiceMod
             <button
               onClick={handlePrint}
               type="button"
-              className={`${btnCls} bg-emerald-600 hover:bg-emerald-700 text-white text-xs py-1.5 px-3`}
+              className={`${btnCls} py-1.5 px-3 text-xs`}
             >
               🖨️ Print Invoice
             </button>

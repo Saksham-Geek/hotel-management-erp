@@ -221,8 +221,8 @@ export function PlanCards({
         )}
 
         {/* Demo Mandate Simulation Toolbar */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/30 p-3 text-xs border border-border">
-          <span className="font-bold text-muted-foreground flex items-center gap-1.5">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/50 p-3 text-xs border border-border">
+          <span className="font-bold text-foreground flex items-center gap-1.5">
             <span>🧪</span>
             <span>SaaS Billing Testing Toolbar:</span>
           </span>
@@ -231,7 +231,7 @@ export function PlanCards({
               type="button"
               disabled={isSimulating}
               onClick={() => handleSimulate('charge_success')}
-              className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20"
+              className="rounded-lg border border-emerald-500/40 bg-emerald-500/15 px-2.5 py-1 text-[11px] font-bold text-emerald-800 dark:text-emerald-200 hover:bg-emerald-500/25"
               title="Simulates bank recurring payment webhook, advances period by 30 days and generates tax invoice"
             >
               ⚡ Simulate Auto-Debit (+30d)
@@ -240,7 +240,7 @@ export function PlanCards({
               type="button"
               disabled={isSimulating}
               onClick={() => handleSimulate('payment_failed')}
-              className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
+              className="rounded-lg border border-amber-500/40 bg-amber-500/15 px-2.5 py-1 text-[11px] font-bold text-amber-800 dark:text-amber-200 hover:bg-amber-500/25"
               title="Simulates payment failure putting the property in past-due read-only grace period"
             >
               ⚠️ Simulate Payment Failure
@@ -249,7 +249,7 @@ export function PlanCards({
               type="button"
               disabled={isSimulating}
               onClick={() => handleSimulate('reactivate')}
-              className="rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-muted/40 shadow-2xs"
+              className="rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-bold text-foreground hover:bg-muted shadow-2xs"
             >
               🔄 Restore Active
             </button>
@@ -293,7 +293,7 @@ export function PlanCards({
                   )}
                 </div>
 
-                <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <p className="mt-1 text-xs font-semibold text-foreground/80 dark:text-foreground/80">
                   {tier.targetSegment}
                 </p>
 
@@ -301,7 +301,7 @@ export function PlanCards({
                   <span className="font-display text-3xl font-extrabold tracking-tight text-foreground">
                     ₹{tier.monthlyPriceInr.toLocaleString('en-IN')}
                   </span>
-                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">/ month</span>
+                  <span className="text-xs font-semibold text-muted-foreground">/ month</span>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2 text-xs">
@@ -313,15 +313,15 @@ export function PlanCards({
                   </span>
                 </div>
 
-                <p className="mt-4 text-xs leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
+                <p className="mt-4 text-xs leading-relaxed text-foreground/85 dark:text-foreground/85 font-medium">
                   {tier.tagline}
                 </p>
 
                 <div className="mt-6 border-t border-border pt-5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-foreground">
                     Key Capabilities Included
                   </p>
-                  <ul className="mt-3 space-y-2 text-xs text-slate-800 dark:text-slate-200 font-medium">
+                  <ul className="mt-3 space-y-2 text-xs text-foreground/90 dark:text-foreground/90 font-medium">
                     {tier.highlights.map((h, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-600 dark:text-teal-400" viewBox="0 0 20 20" fill="currentColor">

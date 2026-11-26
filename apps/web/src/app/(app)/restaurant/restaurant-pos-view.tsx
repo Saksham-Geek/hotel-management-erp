@@ -1416,7 +1416,7 @@ export function RestaurantPosView({
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'tables'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
+              : 'bg-card text-foreground border border-border hover:bg-muted/40'
           }`}
         >
           <span>🪑 Dining Tables</span>
@@ -1424,7 +1424,7 @@ export function RestaurantPosView({
             className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
               activeTab === 'tables'
                 ? 'bg-primary-foreground/20 text-primary-foreground'
-                : 'bg-muted text-muted-foreground'
+                : 'bg-muted/80 border border-border text-foreground'
             }`}
           >
             {filteredTables.length}
@@ -1437,7 +1437,7 @@ export function RestaurantPosView({
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'pos'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
+              : 'bg-card text-foreground border border-border hover:bg-muted/40'
           }`}
         >
           <span>🖥️ Take Order (POS)</span>
@@ -1454,7 +1454,7 @@ export function RestaurantPosView({
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'aggregators'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
+              : 'bg-card text-foreground border border-border hover:bg-muted/40'
           }`}
         >
           <span>🛵 Online Orders</span>
@@ -1467,7 +1467,7 @@ export function RestaurantPosView({
               className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
                 activeTab === 'aggregators'
                   ? 'bg-primary-foreground/20 text-primary-foreground'
-                  : 'bg-muted text-muted-foreground'
+                  : 'bg-muted/80 border border-border text-foreground'
               }`}
             >
               {aggregatorOrders.length}
@@ -1481,7 +1481,7 @@ export function RestaurantPosView({
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'kds'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
+              : 'bg-card text-foreground border border-border hover:bg-muted/40'
           }`}
         >
           <span>👨‍🍳 Kitchen Orders Screen</span>
@@ -1502,17 +1502,19 @@ export function RestaurantPosView({
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'shifts'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
+              : 'bg-card text-foreground border border-border hover:bg-muted/40'
           }`}
         >
           <span>💵 Cashier Shift &amp; Day Summary</span>
           <span
-            className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${
+            className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase ${
               currentShift
                 ? activeTab === 'shifts'
                   ? 'bg-emerald-400 text-slate-950'
                   : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                : 'bg-muted text-muted-foreground'
+                : activeTab === 'shifts'
+                ? 'bg-primary-foreground/20 text-primary-foreground'
+                : 'bg-muted/80 border border-border text-foreground font-black'
             }`}
           >
             {currentShift ? 'Open' : 'Closed'}
@@ -1525,7 +1527,7 @@ export function RestaurantPosView({
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'inventory'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
+              : 'bg-card text-foreground border border-border hover:bg-muted/40'
           }`}
         >
           <span>📦 Kitchen Ingredients &amp; Stock</span>
@@ -1546,7 +1548,7 @@ export function RestaurantPosView({
           className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeTab === 'settings'
               ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
+              : 'bg-card text-foreground border border-border hover:bg-muted/40'
           }`}
         >
           <span>⚙️ Restaurant Settings</span>

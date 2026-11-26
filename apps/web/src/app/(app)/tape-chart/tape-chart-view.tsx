@@ -610,17 +610,17 @@ export function TapeChartView({
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
             Distribution Channels
           </p>
-          <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-            <span className="rounded-full bg-muted border border-border px-2.5 py-0.5 text-[11px] font-bold text-foreground shadow-2xs">
+          <div className="mt-2.5 flex items-center gap-2 flex-wrap">
+            <span className="rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-xs font-extrabold text-red-600 dark:text-red-400 shadow-2xs">
               MMT
             </span>
-            <span className="rounded-full bg-muted border border-border px-2.5 py-0.5 text-[11px] font-bold text-foreground shadow-2xs">
+            <span className="rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-extrabold text-blue-600 dark:text-blue-400 shadow-2xs">
               Booking.com
             </span>
-            <span className="rounded-full bg-muted border border-border px-2.5 py-0.5 text-[11px] font-bold text-foreground shadow-2xs">
+            <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-extrabold text-emerald-600 dark:text-emerald-400 shadow-2xs">
               Agoda
             </span>
-            <span className="rounded-full bg-muted border border-border px-2.5 py-0.5 text-[11px] font-bold text-foreground shadow-2xs">
+            <span className="rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-extrabold text-purple-600 dark:text-purple-400 shadow-2xs">
               Corporate
             </span>
           </div>

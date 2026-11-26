@@ -333,14 +333,14 @@ export function GuideView({
       </div>
 
       {/* Modern Segmented Navigation Tabs */}
-      <div className="flex flex-wrap p-1.5 bg-muted/40 rounded-2xl border border-border gap-1.5">
+      <div className="flex flex-wrap p-1.5 bg-muted/40 rounded-2xl border border-border gap-2">
         <button
           type="button"
           onClick={() => setActiveTab('pages')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'pages'
-              ? 'bg-card text-foreground shadow-xs border border-border'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
           }`}
         >
           📖 Which Page is For What ({allPages.length} Modules)
@@ -349,10 +349,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('matrix')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'matrix'
-              ? 'bg-card text-foreground shadow-xs border border-border'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
           }`}
         >
           🔐 Role Permissions Matrix
@@ -362,10 +362,10 @@ export function GuideView({
           <button
             type="button"
             onClick={() => setActiveTab('founder')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'founder'
-                ? 'bg-primary text-primary-foreground shadow-xs'
-                : 'text-foreground/90 hover:text-foreground font-black hover:bg-muted/30'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
             }`}
           >
             ⚡ SaaS Platform Founder SOP
@@ -375,10 +375,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('owner')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'owner'
-              ? 'bg-amber-500/15 text-amber-800 dark:text-amber-300 shadow-xs border border-amber-500/30'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
           }`}
         >
           👑 Hotel Owner &amp; Director SOP
@@ -387,10 +387,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('manager')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'manager'
-              ? 'bg-blue-500/15 text-blue-800 dark:text-blue-300 shadow-xs border border-blue-500/30'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
           }`}
         >
           👔 General Manager (GM) SOP
@@ -399,10 +399,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('frontdesk')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'frontdesk'
-              ? 'bg-emerald-500/15 text-emerald-800 dark:text-emerald-300 shadow-xs border border-emerald-500/30'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
           }`}
         >
           🛎️ Front Desk &amp; Cashiering SOP
@@ -411,10 +411,10 @@ export function GuideView({
         <button
           type="button"
           onClick={() => setActiveTab('housekeeping')}
-          className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+          className={`px-4.5 py-2.5 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'housekeeping'
-              ? 'bg-teal-500/15 text-teal-800 dark:text-teal-300 shadow-xs border border-teal-500/30'
-              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+              ? 'bg-primary text-primary-foreground shadow-sm'
+              : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
           }`}
         >
           🧹 Housekeeping &amp; Turndown SOP
@@ -445,10 +445,10 @@ export function GuideView({
                   key={rf.key}
                   type="button"
                   onClick={() => setPageRoleFilter(rf.key)}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+                  className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
                     pageRoleFilter === rf.key
                       ? 'bg-primary text-primary-foreground shadow-xs'
-                      : 'bg-card border border-border text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                      : 'bg-card border border-border text-foreground/80 hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
                   {rf.label}

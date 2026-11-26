@@ -105,10 +105,10 @@ export function IncomeDashboardView({
           <button
             type="button"
             onClick={() => applyPeriod(activePeriod)}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-3.5 sm:px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-all active:scale-95"
+            className="inline-flex min-h-[42px] items-center gap-2 rounded-xl bg-primary px-4 sm:px-5 py-2 text-xs sm:text-sm font-bold text-primary-foreground shadow-xs hover:opacity-90 transition-all active:scale-95 cursor-pointer"
           >
-            <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
             <span>Live Refresh</span>
           </button>
@@ -176,10 +176,10 @@ export function IncomeDashboardView({
                       applyPeriod(p.id);
                     }
                   }}
-                  className={`rounded-xl px-3 sm:px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs ${
+                  className={`rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-all shadow-2xs cursor-pointer ${
                     active
-                      ? 'bg-slate-950 text-white shadow-xs'
-                      : 'bg-slate-100/80 text-foreground/90 hover:bg-slate-200/80'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'bg-card text-foreground/80 border border-border hover:bg-muted/50 hover:text-foreground'
                   }`}
                 >
                   {p.label}
@@ -189,7 +189,7 @@ export function IncomeDashboardView({
           </div>
 
           {/* Active Period Date Badge */}
-          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground bg-muted/30 border border-slate-200/80 rounded-xl px-3 py-1.5 self-start xl:self-auto shrink-0 whitespace-nowrap">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-muted-foreground bg-card border border-border rounded-xl px-3.5 py-2 self-start xl:self-auto shrink-0 whitespace-nowrap shadow-2xs">
             <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
             <span>Auditing:</span>
             <strong className="text-foreground font-mono">
@@ -424,13 +424,13 @@ export function IncomeDashboardView({
           </div>
 
           {/* Graph View Toggles */}
-          <div className="flex items-center gap-1.5 rounded-xl bg-muted p-1 text-xs font-bold text-muted-foreground print:hidden">
+          <div className="flex items-center gap-1.5 rounded-xl bg-muted/60 p-1 text-xs sm:text-sm font-bold text-muted-foreground print:hidden border border-border/80">
             <button
               type="button"
               onClick={() => setChartMode('stacked')}
-              className={`rounded-lg px-3 py-1 transition-all ${
+              className={`rounded-lg px-3.5 py-1.5 transition-all ${
                 chartMode === 'stacked'
-                  ? 'bg-card text-foreground shadow-xs'
+                  ? 'bg-card text-foreground shadow-xs border border-border/80 font-bold'
                   : 'hover:text-foreground'
               }`}
             >
@@ -439,9 +439,9 @@ export function IncomeDashboardView({
             <button
               type="button"
               onClick={() => setChartMode('gross_net')}
-              className={`rounded-lg px-3 py-1 transition-all ${
+              className={`rounded-lg px-3.5 py-1.5 transition-all ${
                 chartMode === 'gross_net'
-                  ? 'bg-white text-foreground shadow-xs'
+                  ? 'bg-card text-foreground shadow-xs border border-border/80 font-bold'
                   : 'hover:text-foreground'
               }`}
             >
@@ -450,9 +450,9 @@ export function IncomeDashboardView({
             <button
               type="button"
               onClick={() => setChartMode('yield')}
-              className={`rounded-lg px-3 py-1 transition-all ${
+              className={`rounded-lg px-3.5 py-1.5 transition-all ${
                 chartMode === 'yield'
-                  ? 'bg-white text-foreground shadow-xs'
+                  ? 'bg-card text-foreground shadow-xs border border-border/80 font-bold'
                   : 'hover:text-foreground'
               }`}
             >
@@ -1022,42 +1022,42 @@ export function IncomeDashboardView({
               Complete audited daily breakdown of rooms sold, occupancy, room revenue, F&amp;B dining, and statutory GST.
             </p>
           </div>
-          <div className="text-xs font-semibold text-muted-foreground bg-slate-100 rounded-xl px-3 py-1">
+          <div className="text-xs sm:text-sm font-bold text-foreground bg-card border border-border rounded-xl px-4 py-1.5 shadow-2xs">
             {ledgerRows.length} Audit Entries
           </div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-muted/30/90 text-[11px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border/80">
+          <table className="w-full text-left text-xs sm:text-[13px]">
+            <thead className="bg-muted/40 text-[11px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border">
               <tr>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-3 py-3">Keys Sold</th>
-                <th className="px-3 py-3">Occupancy</th>
-                <th className="px-3 py-3">Room Rev (₹)</th>
-                <th className="px-3 py-3">F&amp;B Rev (₹)</th>
-                <th className="px-3 py-3">GST Tax (₹)</th>
-                <th className="px-4 py-3">Gross Income (₹)</th>
-                <th className="px-4 py-3">Net Operating (₹)</th>
-                <th className="px-3 py-3">ADR (₹)</th>
-                <th className="px-3 py-3">RevPAR (₹)</th>
+                <th className="px-4 py-3.5">Date</th>
+                <th className="px-3 py-3.5">Keys Sold</th>
+                <th className="px-3 py-3.5">Occupancy</th>
+                <th className="px-3 py-3.5">Room Rev (₹)</th>
+                <th className="px-3 py-3.5">F&amp;B Rev (₹)</th>
+                <th className="px-3 py-3.5">GST Tax (₹)</th>
+                <th className="px-4 py-3.5">Gross Income (₹)</th>
+                <th className="px-4 py-3.5">Net Operating (₹)</th>
+                <th className="px-3 py-3.5">ADR (₹)</th>
+                <th className="px-3 py-3.5">RevPAR (₹)</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-border font-medium text-foreground/90">
+            <tbody className="divide-y divide-border font-medium text-foreground">
               {ledgerRows.slice(0, 30).map((row) => (
-                <tr key={row.date} className="hover:bg-muted/30/60 transition-colors">
-                  <td className="px-4 py-3 font-semibold text-foreground">
+                <tr key={row.date} className="hover:bg-muted/30 transition-colors">
+                  <td className="px-4 py-3.5 font-bold text-foreground">
                     <div>{row.date}</div>
-                    <div className="text-[10px] text-slate-400 font-normal">{row.dayName}</div>
+                    <div className="text-[10px] text-muted-foreground font-normal">{row.dayName}</div>
                   </td>
-                  <td className="px-3 py-3 font-mono text-foreground">{row.roomsSold}</td>
-                  <td className="px-3 py-3">
-                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                  <td className="px-3 py-3.5 font-mono text-foreground">{row.roomsSold}</td>
+                  <td className="px-3 py-3.5">
+                    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-bold ${
                       row.occupancyRate >= 75
-                        ? 'bg-emerald-100 text-emerald-900'
+                        ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
                         : row.occupancyRate >= 50
-                        ? 'bg-blue-100 text-blue-900'
-                        : 'bg-amber-100 text-amber-900'
+                        ? 'border-blue-500/30 bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                        : 'border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400'
                     }`}>
                       {row.occupancyRate}%
                     </span>

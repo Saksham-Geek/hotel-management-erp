@@ -749,20 +749,20 @@ export function SettingsView({
               aria-controls={`panel-${t.id}`}
               type="button"
               onClick={() => switchTab(t.id)}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2.5 rounded-xl px-4 sm:px-4.5 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-2xs ${
                 active
-                  ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/25'
-                  : 'bg-card text-muted-foreground border border-border hover:bg-muted/40 hover:text-foreground'
+                  ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25'
+                  : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground'
               }`}
             >
-              <span aria-hidden="true" className="text-sm">{t.icon}</span>
+              <span aria-hidden="true" className="text-base">{t.icon}</span>
               <span>{t.label}</span>
               {t.count && (
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${
+                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-black border ${
                     active
-                      ? 'bg-primary-foreground/20 text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
+                      ? 'border-white/30 bg-primary-foreground/20 text-primary-foreground'
+                      : 'border-border bg-muted/80 text-foreground'
                   }`}
                 >
                   {t.count}

@@ -323,21 +323,21 @@ export function ExpenseClient({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/settings?tab=expenses"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground shadow-xs hover:bg-muted/40 cursor-pointer"
           >
             <span>⚙️ Manage Categories &amp; Vendors</span>
           </Link>
           <button
             type="button"
             onClick={() => setIsShiftHandoverOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground shadow-xs hover:bg-muted/40 cursor-pointer"
           >
             <span>🖨️ Shift Handover</span>
           </button>
           <button
             type="button"
             onClick={exportCSV}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 shadow-xs hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground shadow-xs hover:bg-muted/40 cursor-pointer"
           >
             <span>📥 CSV</span>
           </button>
@@ -353,30 +353,30 @@ export function ExpenseClient({
 
       {/* Cash Drawer Reconciliation Summary Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs text-card-foreground">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Cash Collected Today</span>
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-100 text-xs text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-400 font-bold">
+            <span className="text-xs font-semibold text-muted-foreground">Cash Collected Today</span>
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-emerald-500/10 text-xs text-emerald-600 dark:text-emerald-400 font-bold">
               📥
             </span>
           </div>
           <p className="mt-2 text-2xl font-black text-emerald-600 dark:text-emerald-400">
             ₹{summary.today.totalCashIn.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">From guest folios &amp; walk-in cash payments</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">From guest folios &amp; walk-in cash payments</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs text-card-foreground">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Cash Payouts Today</span>
-            <span className="grid h-7 w-7 place-items-center rounded-lg bg-rose-100 text-xs text-rose-800 dark:bg-rose-950/60 dark:text-rose-400 font-bold">
+            <span className="text-xs font-semibold text-muted-foreground">Cash Payouts Today</span>
+            <span className="grid h-7 w-7 place-items-center rounded-lg bg-rose-500/10 text-xs text-rose-600 dark:text-rose-400 font-bold">
               📤
             </span>
           </div>
           <p className="mt-2 text-2xl font-black text-rose-600 dark:text-rose-400">
             ₹{summary.today.totalCashOut.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">{summary.today.voucherCount} expense vouchers paid from drawer</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">{summary.today.voucherCount} expense vouchers paid from drawer</p>
         </div>
 
         <div className="rounded-2xl border border-primary/25 bg-card p-4 shadow-xs">
@@ -392,16 +392,16 @@ export function ExpenseClient({
           <p className="mt-1 text-[11px] text-muted-foreground">Cash In minus Cash Payouts</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Approved Vendors &amp; Categories</span>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">Approved Vendors &amp; Categories</span>
           <div className="mt-2 flex items-center justify-between">
             <div>
-              <p className="text-lg font-bold text-slate-900 dark:text-white">{vendors.length} Vendors</p>
-              <p className="text-[11px] text-slate-500">{categories.length} Categories configured</p>
+              <p className="text-lg font-bold text-foreground">{vendors.length} Vendors</p>
+              <p className="text-[11px] text-muted-foreground">{categories.length} Categories configured</p>
             </div>
             <Link
               href="/settings?tab=expenses"
-              className="text-xs font-bold text-teal-600 hover:text-teal-700 dark:text-teal-400 underline"
+              className="text-xs font-bold text-primary hover:underline"
             >
               Configure ›
             </Link>
@@ -410,19 +410,19 @@ export function ExpenseClient({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-3.5 shadow-xs text-card-foreground">
         <div className="relative flex-1">
           <input
             type="text"
             placeholder="Search by voucher #, payee vendor, invoice ref or notes…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+            className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
           />
         </div>
 
         <div className="flex items-center gap-2 min-w-[220px]">
-          <span className="text-xs font-semibold text-slate-500 shrink-0">Category:</span>
+          <span className="text-xs font-semibold text-muted-foreground shrink-0">Category:</span>
           <div className="flex-1">
             <CustomDropdown
               size="sm"
@@ -435,11 +435,11 @@ export function ExpenseClient({
       </div>
 
       {/* Expenses Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs text-card-foreground">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">
+              <tr className="border-b border-border bg-muted/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <th className="px-4 py-3">Voucher #</th>
                 <th className="px-4 py-3">Date</th>
                 <th className="px-4 py-3">Category</th>
@@ -450,7 +450,7 @@ export function ExpenseClient({
                 <th className="px-4 py-3">Logged By</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/60 text-xs dark:divide-slate-800">
+            <tbody className="divide-y divide-border text-xs">
               {filteredExpenses.map((e) => {
                 const meta = getCategoryMeta(e.category);
                 return (
@@ -507,9 +507,9 @@ export function ExpenseClient({
       {/* Log Expense Voucher Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl border border-border text-card-foreground max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                 <span>🧾</span> Log Front Desk Expense Voucher
               </h2>
               <button
@@ -736,16 +736,16 @@ export function ExpenseClient({
       {/* Printable Shift Handover Cash Sheet Modal */}
       {isShiftHandoverOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-3">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white">
+          <div className="w-full max-w-2xl rounded-2xl bg-card p-6 shadow-2xl border border-border text-card-foreground max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-base font-bold text-foreground">
                 🖨️ Daily Shift Cash Drawer Handover Sheet
               </h2>
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="rounded-xl bg-slate-900 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950"
+                  className="rounded-xl bg-primary px-3.5 py-1.5 text-xs font-bold text-primary-foreground hover:opacity-90 cursor-pointer"
                 >
                   Print Sheet
                 </button>

@@ -391,21 +391,21 @@ export function InventoryClient({
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href="/settings?tab=inventory"
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-xs sm:text-sm font-bold text-foreground hover:bg-muted/40 transition-colors shadow-2xs"
           >
             <span>⚙️ Manage in Settings</span>
           </Link>
           <button
             type="button"
             onClick={exportCSV}
-            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200"
+            className="inline-flex min-h-[44px] items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2.5 text-xs sm:text-sm font-bold text-foreground hover:bg-muted/40 transition-colors shadow-2xs"
           >
             <span>📥 Export Stock CSV</span>
           </button>
           <button
             type="button"
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 shadow-sm"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs sm:text-sm font-bold text-primary-foreground hover:opacity-90 transition-opacity shadow-sm"
           >
             <span>+ Add Material / SKU</span>
           </button>
@@ -414,34 +414,34 @@ export function InventoryClient({
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Active SKUs / Stock Items</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">{materials.length} Items</p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Groceries, perishables &amp; amenities</p>
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Active SKUs / Stock Items</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground">{materials.length} Items</p>
+          <p className="text-xs text-muted-foreground mt-0.5 font-normal">Groceries, perishables &amp; amenities</p>
         </div>
 
-        <div className={`rounded-2xl border p-5 shadow-2xs ${lowStockCount > 0 ? 'border-rose-200 bg-rose-50/40 dark:border-rose-900/60 dark:bg-rose-950/20' : 'border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900'}`}>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Low Stock Reorder Alerts</p>
-          <p className={`mt-2 text-2xl font-bold ${lowStockCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
+        <div className={`rounded-2xl border p-5 shadow-xs text-card-foreground ${lowStockCount > 0 ? 'border-rose-500/30 bg-rose-500/10' : 'border-border bg-card'}`}>
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Low Stock Reorder Alerts</p>
+          <p className={`mt-2 text-2xl sm:text-3xl font-black ${lowStockCount > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-foreground'}`}>
             {lowStockCount} Items
           </p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Below minimum threshold</p>
+          <p className="text-xs text-muted-foreground mt-0.5 font-normal">Below minimum threshold</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Total Stock Valuation</p>
-          <p className="mt-2 text-2xl font-mono font-bold text-emerald-600 dark:text-emerald-400">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Stock Valuation</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-mono font-black text-emerald-600 dark:text-emerald-400">
             ₹{totalValuation.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
           </p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Current store asset value</p>
+          <p className="text-xs text-muted-foreground mt-0.5 font-normal">Current store asset value</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Inventory Health</p>
-          <p className="mt-2 text-2xl font-bold text-teal-600 dark:text-teal-400">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Inventory Health</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-primary">
             {materials.length > 0 ? Math.round(((materials.length - lowStockCount) / materials.length) * 100) : 100}% Optimal
           </p>
-          <p className="text-[11px] text-slate-400 mt-0.5">Stock availability ratio</p>
+          <p className="text-xs text-muted-foreground mt-0.5 font-normal">Stock availability ratio</p>
         </div>
       </div>
 
@@ -507,67 +507,67 @@ export function InventoryClient({
           </div>
 
           {/* Table */}
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">
-                    <th className="px-4 py-3">Item Name</th>
-                    <th className="px-4 py-3">Category</th>
-                    <th className="px-4 py-3">Storage Location</th>
-                    <th className="px-4 py-3 text-right">Current Stock</th>
-                    <th className="px-4 py-3 text-right">Unit Cost (₹)</th>
-                    <th className="px-4 py-3 text-right">Total Value (₹)</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
+                  <tr className="border-b border-border bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                    <th className="px-4 py-3.5">Item Name</th>
+                    <th className="px-4 py-3.5">Category</th>
+                    <th className="px-4 py-3.5">Storage Location</th>
+                    <th className="px-4 py-3.5 text-right">Current Stock</th>
+                    <th className="px-4 py-3.5 text-right">Unit Cost (₹)</th>
+                    <th className="px-4 py-3.5 text-right">Total Value (₹)</th>
+                    <th className="px-4 py-3.5">Status</th>
+                    <th className="px-4 py-3.5 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200/60 text-xs dark:divide-slate-800">
+                <tbody className="divide-y divide-border text-xs sm:text-sm font-medium">
                   {filtered.map((mat) => {
                     const isLow = mat.currentStock <= mat.minimumAlertStock;
                     const val = mat.currentStock * mat.costPerUnit;
                     return (
-                      <tr key={mat.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="px-4 py-3 font-semibold text-slate-900 dark:text-white">
+                      <tr key={mat.id} className="hover:bg-muted/40 transition-colors">
+                        <td className="px-4 py-3.5 font-bold text-foreground">
                           <div className="flex items-center gap-2">
                             <span>{mat.name}</span>
                             {mat.defaultVendorName && (
-                              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                              <span className="text-xs text-muted-foreground font-normal">
                                 · {mat.defaultVendorName}
                               </span>
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">
+                        <td className="px-4 py-3.5 text-muted-foreground">
                           {mat.category}
                         </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                          <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        <td className="px-4 py-3.5 text-foreground">
+                          <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">
                             📍 {mat.storageLocation || 'Main Store'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">
+                        <td className="px-4 py-3.5 text-right font-mono font-bold text-foreground">
                           {mat.currentStock} {mat.unit}
                         </td>
-                        <td className="px-4 py-3 text-right font-mono text-slate-600 dark:text-slate-400">
+                        <td className="px-4 py-3.5 text-right font-mono text-muted-foreground">
                           ₹{mat.costPerUnit.toFixed(2)}
                         </td>
-                        <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-white">
+                        <td className="px-4 py-3.5 text-right font-mono font-black text-foreground">
                           ₹{val.toFixed(2)}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-4 py-3.5">
                           {isLow ? (
-                            <span className="rounded-md bg-rose-100 px-2 py-0.5 text-[10px] font-bold text-rose-800 dark:bg-rose-950/60 dark:text-rose-300">
+                            <span className="rounded-md bg-rose-500/10 border border-rose-500/20 px-2.5 py-1 text-xs font-bold text-rose-600 dark:text-rose-400">
                               ⚠️ LOW (≤{mat.minimumAlertStock})
                             </span>
                           ) : (
-                            <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">
+                            <span className="rounded-md bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                               ✓ OPTIMAL
                             </span>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                        <td className="px-4 py-3.5 text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <button
                               type="button"
                               onClick={() => {
@@ -575,7 +575,7 @@ export function InventoryClient({
                                 setRestockUnitCost(String(mat.costPerUnit));
                                 setRestockVendor(mat.defaultVendorName || '');
                               }}
-                              className="rounded-lg bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-emerald-700"
+                              className="rounded-xl border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary/20 transition-all shadow-2xs"
                               title="Record Goods Receipt Note (GRN)"
                             >
                               + Stock In
@@ -583,7 +583,7 @@ export function InventoryClient({
                             <button
                               type="button"
                               onClick={() => setAdjustItem(mat)}
-                              className="rounded-lg bg-slate-800 px-2 py-1 text-[11px] font-bold text-white shadow-2xs hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600"
+                              className="rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground hover:bg-muted/40 transition-all shadow-2xs"
                               title="Department Issue, Spoilage or Physical Audit"
                             >
                               - Issue / Spoilage
@@ -591,7 +591,7 @@ export function InventoryClient({
                             <button
                               type="button"
                               onClick={() => openEditModal(mat)}
-                              className="rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                              className="rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs font-bold text-foreground hover:bg-muted/40 transition-colors shadow-2xs"
                               title="Edit item properties"
                             >
                               ✏️
@@ -1394,7 +1394,7 @@ export function InventoryClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 disabled:opacity-50"
+                  className="rounded-xl bg-primary px-5 py-2.5 text-xs sm:text-sm font-bold text-primary-foreground shadow-md hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? 'Saving…' : 'Save Changes'}
                 </button>

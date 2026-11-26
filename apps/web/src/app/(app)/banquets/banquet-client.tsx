@@ -213,32 +213,32 @@ export function BanquetClient({
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Configured Venues</span>
-          <p className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{venues.length} Spaces</p>
-          <p className="mt-1 text-[11px] text-slate-500">Ballrooms, Lawns &amp; Boardrooms</p>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">Configured Venues</span>
+          <p className="mt-2 text-2xl font-black text-foreground">{venues.length} Spaces</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Ballrooms, Lawns &amp; Boardrooms</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Bookings</span>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">Total Bookings</span>
           <p className="mt-2 text-2xl font-black text-indigo-600 dark:text-indigo-400">{bookings.length} Events</p>
-          <p className="mt-1 text-[11px] text-slate-500">Active &amp; confirmed schedules</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Active &amp; confirmed schedules</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Advances Collected</span>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">Advances Collected</span>
           <p className="mt-2 text-2xl font-black text-emerald-600 dark:text-emerald-400">
             ₹{totalAdvanceCollected.toLocaleString('en-IN')}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">Deposited into hotel accounts</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">Deposited into hotel accounts</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Pending Event Balance</span>
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">Pending Event Balance</span>
           <p className="mt-2 text-2xl font-black text-amber-600 dark:text-amber-400">
             ₹{totalBanquetReceivables.toLocaleString('en-IN')}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">To be collected on event day</p>
+          <p className="mt-1 text-[11px] text-muted-foreground">To be collected on event day</p>
         </div>
       </div>
 
@@ -253,34 +253,34 @@ export function BanquetClient({
             return (
               <div
                 key={v.id}
-                className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900 flex flex-col justify-between"
+                className="rounded-2xl border border-border bg-card p-4 shadow-xs text-card-foreground flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                    <span className="rounded-full bg-muted/80 px-2.5 py-0.5 text-[10px] font-bold text-foreground">
                       {meta.icon} {meta.label}
                     </span>
                     <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                       Active
                     </span>
                   </div>
-                  <h3 className="mt-2 text-base font-bold text-slate-900 dark:text-white">
+                  <h3 className="mt-2 text-base font-bold text-foreground">
                     {v.name}
                   </h3>
-                  <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
-                    <span>👥 Max: <strong>{v.maxPax} Pax</strong></span>
-                    <span>💰 Base: <strong>₹{v.baseRentalRate.toLocaleString('en-IN')}</strong></span>
+                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                    <span>👥 Max: <strong className="text-foreground">{v.maxPax} Pax</strong></span>
+                    <span>💰 Base: <strong className="text-foreground">₹{v.baseRentalRate.toLocaleString('en-IN')}</strong></span>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-1">
                     {v.amenities.map((a, idx) => (
-                      <span key={idx} className="rounded-md bg-slate-50 dark:bg-slate-950 px-2 py-0.5 text-[10px] text-slate-600 dark:text-slate-400 border border-slate-200/60 dark:border-slate-800">
+                      <span key={idx} className="rounded-md bg-muted/60 px-2 py-0.5 text-[10px] text-muted-foreground border border-border">
                         {a}
                       </span>
                     ))}
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <div className="mt-4 pt-3 border-t border-border">
                   <button
                     type="button"
                     onClick={() => {
@@ -288,7 +288,7 @@ export function BanquetClient({
                       setHallRental(String(v.baseRentalRate));
                       setIsBookModalOpen(true);
                     }}
-                    className="w-full rounded-xl bg-slate-100 dark:bg-slate-800 py-1.5 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                    className="w-full rounded-xl border border-border bg-card py-2 text-xs font-bold text-foreground hover:bg-muted/50 transition cursor-pointer"
                   >
                     Book This Space
                   </button>
@@ -301,16 +301,16 @@ export function BanquetClient({
 
       {/* Bookings Schedule Table */}
       <div className="space-y-3">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-3.5 shadow-xs text-card-foreground">
           <input
             type="text"
             placeholder="Search event bookings by client, event name, or booking #…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+            className="flex-1 rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
           />
           <div className="flex items-center gap-2 min-w-[170px]">
-            <span className="text-xs font-semibold text-slate-500 shrink-0">Status:</span>
+            <span className="text-xs font-semibold text-muted-foreground shrink-0">Status:</span>
             <div className="flex-1">
               <CustomDropdown
                 size="sm"
@@ -328,11 +328,11 @@ export function BanquetClient({
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs text-card-foreground">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">
+                <tr className="border-b border-border bg-muted/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   <th className="px-4 py-3">Booking #</th>
                   <th className="px-4 py-3">Event &amp; Venue</th>
                   <th className="px-4 py-3">Client Contact</th>
@@ -345,9 +345,9 @@ export function BanquetClient({
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200/60 text-xs dark:divide-slate-800">
+              <tbody className="divide-y divide-border text-xs">
                 {filteredBookings.map((b) => (
-                  <tr key={b.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                  <tr key={b.id} className="hover:bg-muted/40 transition-colors">
                     <td className="px-4 py-3 font-mono font-bold text-slate-900 dark:text-white">
                       {b.bookingNumber}
                     </td>
@@ -421,15 +421,15 @@ export function BanquetClient({
       {/* Book Event Modal */}
       {isBookModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800 max-h-[92vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
-              <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="w-full max-w-2xl rounded-2xl bg-card p-6 shadow-2xl border border-border text-card-foreground max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
                 <span>🎉</span> Book Banquet, Lawn or Conference Event
               </h2>
               <button
                 type="button"
                 onClick={() => setIsBookModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-lg font-bold"
+                className="text-muted-foreground hover:text-foreground text-lg font-bold"
               >
                 ✕
               </button>
@@ -651,18 +651,18 @@ export function BanquetClient({
               </div>
 
               {/* Live Contract Calculation Banner */}
-              <div className="rounded-xl bg-slate-900 p-3 text-white flex items-center justify-between font-mono text-xs">
+              <div className="rounded-xl border border-primary/25 bg-primary/10 p-3 text-foreground flex items-center justify-between font-mono text-xs">
                 <span>Calculated Total Contract:</span>
-                <span className="text-base font-bold text-teal-300">
+                <span className="text-base font-bold text-primary">
                   ₹{totalContract.toLocaleString('en-IN')}
                 </span>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setIsBookModalOpen(false)}
-                  className="rounded-xl px-4 py-2 text-xs font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+                  className="rounded-xl px-4 py-2 text-xs font-bold text-muted-foreground hover:bg-muted/50"
                 >
                   Cancel
                 </button>

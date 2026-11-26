@@ -107,7 +107,7 @@ export function CorporateClient({ initialAccounts }: { initialAccounts: Corporat
           <button
             type="button"
             onClick={() => setIsModalOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 cursor-pointer transition-all active:scale-[0.98]"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-xl bg-primary px-5 py-2.5 text-xs sm:text-sm font-bold text-primary-foreground shadow-sm hover:opacity-90 cursor-pointer transition-all active:scale-[0.98]"
           >
             <span>+ Add Corporate / Travel Agency</span>
           </button>
@@ -116,65 +116,65 @@ export function CorporateClient({ initialAccounts }: { initialAccounts: Corporat
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Corporate Clients</span>
-          <p className="mt-2 text-2xl font-black text-slate-900 dark:text-white">{accounts.length} Companies</p>
-          <p className="mt-1 text-[11px] text-slate-500">Corporate &amp; OTA travel agencies</p>
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">Corporate Clients</span>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground">{accounts.length} Companies</p>
+          <p className="mt-1 text-xs text-muted-foreground font-normal">Corporate &amp; OTA travel agencies</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Credit Extended</span>
-          <p className="mt-2 text-2xl font-black text-indigo-600 dark:text-indigo-400">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">Total Credit Extended</span>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">
             ₹{totalCreditExtended.toLocaleString('en-IN')}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">Total sanctioned credit ceiling</p>
+          <p className="mt-1 text-xs text-muted-foreground font-normal">Total sanctioned credit ceiling</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">City Ledger Outstanding</span>
-          <p className="mt-2 text-2xl font-black text-amber-600 dark:text-amber-400">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">City Ledger Outstanding</span>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">
             ₹{totalOutstandingBalance.toLocaleString('en-IN')}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">Accounts receivable pending collection</p>
+          <p className="mt-1 text-xs text-muted-foreground font-normal">Accounts receivable pending collection</p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-xs dark:border-slate-800 dark:bg-slate-900">
-          <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Available Headroom</span>
-          <p className="mt-2 text-2xl font-black text-emerald-600 dark:text-emerald-400">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
+          <span className="text-xs font-semibold text-muted-foreground">Available Headroom</span>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">
             ₹{(totalCreditExtended - totalOutstandingBalance).toLocaleString('en-IN')}
           </p>
-          <p className="mt-1 text-[11px] text-slate-500">Remaining credit across all clients</p>
+          <p className="mt-1 text-xs text-muted-foreground font-normal">Remaining credit across all clients</p>
         </div>
       </div>
 
       {/* Search Bar */}
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="rounded-2xl border border-border bg-card p-3.5 shadow-xs">
         <input
           type="text"
           placeholder="Search by company name, GSTIN, or contact person…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+          className="w-full rounded-xl border border-border bg-muted/40 px-4 py-2.5 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
         />
       </div>
 
       {/* Accounts Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs dark:border-slate-800 dark:bg-slate-900">
+      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">
-                <th className="px-4 py-3">Company / Travel Agency</th>
-                <th className="px-4 py-3">GSTIN / PAN</th>
-                <th className="px-4 py-3">Contact Person</th>
-                <th className="px-4 py-3 text-right">Credit Limit (₹)</th>
-                <th className="px-4 py-3 text-right">City Ledger Balance (₹)</th>
-                <th className="px-4 py-3 text-right">Available Credit (₹)</th>
-                <th className="px-4 py-3 text-center">Credit Days</th>
-                <th className="px-4 py-3 text-center">Status</th>
+              <tr className="border-b border-border bg-muted/40 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                <th className="px-4 py-3.5">Company / Travel Agency</th>
+                <th className="px-4 py-3.5">GSTIN / PAN</th>
+                <th className="px-4 py-3.5">Contact Person</th>
+                <th className="px-4 py-3.5 text-right">Credit Limit (₹)</th>
+                <th className="px-4 py-3.5 text-right">City Ledger Balance (₹)</th>
+                <th className="px-4 py-3.5 text-right">Available Credit (₹)</th>
+                <th className="px-4 py-3.5 text-center">Credit Days</th>
+                <th className="px-4 py-3.5 text-center">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200/60 text-xs dark:divide-slate-800">
+            <tbody className="divide-y divide-border text-xs sm:text-sm font-medium">
               {filtered.map((a) => {
                 const available = a.creditLimit - a.currentBalance;
                 return (
@@ -389,7 +389,7 @@ export function CorporateClient({ initialAccounts }: { initialAccounts: Corporat
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 disabled:opacity-50"
+                  className="rounded-xl bg-primary px-5 py-2.5 text-xs sm:text-sm font-bold text-primary-foreground shadow-md hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? 'Saving…' : 'Create Corporate Account'}
                 </button>

@@ -94,31 +94,19 @@ export function Nav({
                   title={collapsed ? item.label : undefined}
                   className={`group relative flex min-h-[42px] items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-[13.5px] transition-all duration-150 ${
                     active
-                      ? 'bg-primary text-primary-foreground font-bold shadow-xs'
+                      ? 'bg-primary text-primary-foreground font-bold shadow-sm'
                       : isPending
                       ? 'bg-primary/80 text-primary-foreground font-bold shadow-xs'
                       : 'text-sidebar-foreground/80 font-medium hover:bg-sidebar-accent hover:text-sidebar-foreground'
                   }`}
                 >
-                  {active && (
-                    <span
-                      aria-hidden
-                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-primary-foreground shadow-xs"
-                    />
-                  )}
-                  {isPending && (
-                    <span
-                      aria-hidden
-                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-white animate-pulse shadow-xs"
-                    />
-                  )}
                   <NavIcon name={item.icon} active={active || isPending} />
                   <span className={`truncate leading-snug ${collapsed ? 'md:sr-only' : ''}`}>
                     {item.label}
                   </span>
                   {isPending && (
                     <svg
-                      className="ml-auto h-3.5 w-3.5 animate-spin text-white shrink-0"
+                      className="ml-auto h-3.5 w-3.5 animate-spin text-primary-foreground shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                     >

@@ -100,8 +100,8 @@ export function ThemeSettingsSection() {
         </div>
       </div>
 
-      {/* 5 Luxury Palette Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      {/* 6 Luxury Palette Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         {COLOR_THEMES.map((theme) => {
           const isSelected = theme.id === activeTheme;
           return (
@@ -110,7 +110,7 @@ export function ThemeSettingsSection() {
               onClick={() => handleSelectTheme(theme.id)}
               className={`group relative flex flex-col justify-between rounded-2xl p-5 border-2 transition-all cursor-pointer select-none ${
                 isSelected
-                  ? 'border-slate-900 dark:border-white bg-slate-50/80 dark:bg-white/[0.08] shadow-md scale-[1.02]'
+                  ? 'border-primary bg-primary/5 shadow-md scale-[1.02]'
                   : 'border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-sm'
               }`}
             >
@@ -119,7 +119,7 @@ export function ThemeSettingsSection() {
                   <span className="text-2xl">{theme.icon}</span>
                   <div className="flex items-center gap-1.5">
                     {isSelected ? (
-                      <span className="rounded-full bg-slate-900 dark:bg-white px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-white dark:text-slate-950 shadow-xs">
+                      <span className="rounded-full bg-primary px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-primary-foreground shadow-xs">
                         ✓ Active
                       </span>
                     ) : (

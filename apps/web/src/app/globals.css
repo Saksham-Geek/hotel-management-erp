@@ -22,14 +22,14 @@ html[data-theme="obsidian"] {
   --muted-foreground: 240 4% 46%; /* #71717a */
   --border: 240 6% 90%; /* #e4e4e7 */
   --input: 240 6% 90%;
-  --ring: 240 10% 4%;
-  --primary: 240 10% 4%;
+  --ring: 348 83% 47%;
+  --primary: 348 83% 47%; /* Luxury Crimson Red #dc2626 */
   --primary-foreground: 0 0% 100%;
   --sidebar: 240 5% 96%; /* Clean executive titanium stone in light mode */
   --sidebar-foreground: 240 10% 4%;
   --sidebar-accent: 240 5% 91%;
-  --accent: 240 10% 4%;
-  --accent-strong: 0 0% 0%;
+  --accent: 348 83% 47%;
+  --accent-strong: 348 90% 38%;
   --accent-soft: 240 5% 96%;
   --destructive: 0 84% 60%;
   --success: 153 60% 36%;
@@ -53,14 +53,14 @@ html.dark[data-theme="obsidian"] {
   --muted-foreground: 240 5% 65%; /* #a1a1aa readable silver text */
   --border: 240 4% 18%; /* #27272a crisp neutral border */
   --input: 240 4% 18%;
-  --ring: 240 5% 65%;
-  --primary: 0 0% 98%;
-  --primary-foreground: 240 10% 4%;
+  --ring: 348 86% 56%;
+  --primary: 348 86% 56%; /* Radiant Luminous Crimson Rose #f43f5e */
+  --primary-foreground: 0 0% 100%;
   --sidebar: 240 10% 4%; /* #09090b matte obsidian sidebar in dark mode */
   --sidebar-foreground: 0 0% 98%;
   --sidebar-accent: 240 4% 16%;
-  --accent: 0 0% 98%;
-  --accent-strong: 0 0% 100%;
+  --accent: 348 86% 56%;
+  --accent-strong: 348 90% 65%;
   --accent-soft: 240 4% 16%;
   --destructive: 0 84% 60%;
   --success: 153 60% 45%;
@@ -267,6 +267,65 @@ html.dark[data-theme="slate"] {
   --sidebar: 222 47% 7%;
   --sidebar-foreground: 210 40% 98%;
   --sidebar-accent: 217 91% 60%;
+}
+
+/* 6. Imperial Ruby & Velvet Crimson (Royal Red Luxury) */
+html[data-theme="ruby"] {
+  color-scheme: light;
+  --background: 350 30% 98%;
+  --card: 0 0% 100%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 350 45% 10%;
+  --foreground: 350 45% 10%;
+  --secondary: 350 20% 95%;
+  --secondary-foreground: 350 45% 10%;
+  --muted: 350 20% 95%;
+  --muted-foreground: 350 15% 45%;
+  --border: 350 20% 90%;
+  --input: 350 20% 90%;
+  --ring: 348 83% 47%;
+  --primary: 348 83% 47%;
+  --primary-foreground: 0 0% 100%;
+  --sidebar: 350 25% 97%;
+  --sidebar-foreground: 350 45% 10%;
+  --sidebar-accent: 350 25% 92%;
+  --accent: 348 83% 47%;
+  --accent-strong: 348 90% 38%;
+  --accent-soft: 350 25% 95%;
+  --destructive: 0 84% 60%;
+  --success: 153 60% 36%;
+  --warning: 38 92% 50%;
+  --info: 217 91% 60%;
+  --status-muted: 350 15% 45%;
+}
+
+html.dark[data-theme="ruby"] {
+  color-scheme: dark;
+  --background: 350 35% 6%;
+  --card: 350 30% 10%;
+  --popover: 350 30% 10%;
+  --popover-foreground: 350 20% 98%;
+  --foreground: 350 20% 98%;
+  --secondary: 350 25% 15%;
+  --secondary-foreground: 350 20% 98%;
+  --muted: 350 25% 15%;
+  --muted-foreground: 350 20% 68%;
+  --border: 350 25% 18%;
+  --input: 350 25% 18%;
+  --ring: 348 86% 56%;
+  --primary: 348 86% 56%;
+  --primary-foreground: 0 0% 100%;
+  --sidebar: 350 35% 6%;
+  --sidebar-foreground: 350 20% 98%;
+  --sidebar-accent: 350 25% 15%;
+  --accent: 348 86% 56%;
+  --accent-strong: 348 90% 65%;
+  --accent-soft: 350 25% 15%;
+  --destructive: 0 84% 60%;
+  --success: 153 60% 45%;
+  --warning: 38 92% 55%;
+  --info: 217 91% 65%;
+  --status-muted: 350 20% 68%;
 }
 
 /* Modern sleek scrollbars - completely hidden for horizontal tabs/chips while keeping smooth scrolling */

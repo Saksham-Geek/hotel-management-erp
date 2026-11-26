@@ -1,6 +1,6 @@
 'use client';
 
-export type ColorThemeId = 'obsidian' | 'amethyst' | 'emerald' | 'bronze' | 'slate';
+export type ColorThemeId = 'obsidian' | 'ruby' | 'amethyst' | 'emerald' | 'bronze' | 'slate';
 
 export interface ColorThemeOption {
   id: ColorThemeId;
@@ -20,16 +20,30 @@ export interface ColorThemeOption {
 export const COLOR_THEMES: ColorThemeOption[] = [
   {
     id: 'obsidian',
-    name: 'Modern Obsidian & Charcoal',
-    tagline: 'Pure neutral luxury darks with titanium stone light mode. Zero blue tint.',
+    name: 'Modern Obsidian & Crimson',
+    tagline: 'Deep neutral obsidian darks with radiant crimson buttons & accents. Zero blue tint.',
     icon: '⬛',
     badge: 'Recommended',
     colors: {
-      primary: '#18181b',
+      primary: '#dc2626',
       darkCanvas: '#09090b',
       darkCard: '#18181b',
       lightCanvas: '#fafafa',
-      accent: '#e4e4e7',
+      accent: '#f43f5e',
+    },
+  },
+  {
+    id: 'ruby',
+    name: 'Imperial Ruby & Velvet Crimson',
+    tagline: 'Deep velvet crimson darks with radiant royal ruby buttons & accents.',
+    icon: '💎',
+    badge: 'Imperial Red',
+    colors: {
+      primary: '#dc2626',
+      darkCanvas: '#14080a',
+      darkCard: '#1f0d11',
+      lightCanvas: '#fdf6f7',
+      accent: '#f43f5e',
     },
   },
   {

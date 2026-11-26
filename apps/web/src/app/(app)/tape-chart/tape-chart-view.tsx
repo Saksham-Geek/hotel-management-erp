@@ -891,7 +891,7 @@ export function TapeChartView({
                         <span
                           className={`font-display font-black leading-none ${
                             isToday
-                              ? 'grid h-9 w-9 place-items-center rounded-full bg-primary text-white font-black text-base shadow-sm'
+                              ? 'grid h-9 w-9 place-items-center rounded-full bg-primary text-primary-foreground font-black text-base shadow-sm ring-2 ring-primary/30'
                               : 'text-xl sm:text-2xl text-foreground'
                           }`}
                         >

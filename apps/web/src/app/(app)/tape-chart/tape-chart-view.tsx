@@ -628,20 +628,20 @@ export function TapeChartView({
       </div>
 
       {/* 2. Room Type Category Filter Bar & Toolbar */}
-      <div className="space-y-3 rounded-2xl border border-border bg-card p-4 shadow-xs">
+      <div className="space-y-4 rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-xs">
         {/* Top: Room Type Filter Chips */}
-        <div className="flex items-center justify-between gap-3 flex-wrap border-b border-border pb-3">
-          <div className="flex flex-wrap items-center gap-2 pb-1">
-            <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider shrink-0 mr-1">
+        <div className="flex items-center justify-between gap-3 flex-wrap border-b border-border pb-4">
+          <div className="flex flex-wrap items-center gap-2.5 pb-1">
+            <span className="text-xs sm:text-sm font-extrabold text-foreground uppercase tracking-wider shrink-0 mr-1">
               Category:
             </span>
             <button
               type="button"
               onClick={() => setFilterType('all')}
-              className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all shadow-2xs ${
+              className={`rounded-xl px-4 py-2 text-xs sm:text-sm font-extrabold transition-all shadow-xs ${
                 filterType === 'all'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted border border-border text-foreground hover:bg-muted/80'
+                  ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20 scale-[1.02]'
+                  : 'bg-card border border-border text-foreground hover:bg-muted font-bold'
               }`}
             >
               All Types ({rooms.length})
@@ -655,22 +655,22 @@ export function TapeChartView({
                   key={type}
                   type="button"
                   onClick={() => setFilterType(type)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 border ${
+                  className={`rounded-xl px-4 py-2 text-xs sm:text-sm font-bold transition-all shadow-xs flex items-center gap-2 border ${
                     isSelected
-                      ? `${theme.badge} ring-2 ring-primary/20 scale-[1.02]`
-                      : 'bg-muted border-border text-foreground hover:bg-muted/80'
+                      ? 'bg-primary text-primary-foreground border-primary shadow-sm ring-2 ring-primary/20 scale-[1.02]'
+                      : 'bg-card border-border text-foreground hover:bg-muted'
                   }`}
                 >
-                  <span>{theme.icon}</span>
+                  <span className="text-base">{theme.icon}</span>
                   <span>{type}</span>
-                  <span className="opacity-70 font-mono text-[11px]">({count})</span>
+                  <span className="opacity-75 font-mono text-xs">({count})</span>
                 </button>
               );
             })}
           </div>
 
           {selection ? (
-            <div className="flex items-center gap-2 rounded-full bg-slate-900 text-white px-3.5 py-1 text-xs font-semibold shadow-xs animate-in fade-in">
+            <div className="flex items-center gap-2.5 rounded-full bg-slate-900 text-white px-4 py-1.5 text-xs sm:text-sm font-semibold shadow-xs animate-in fade-in">
               <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
               <span>
                 Room {selection.roomNumber}: {selection.startDate} → {selection.endDate} ({selection.nights}n)
@@ -682,27 +682,27 @@ export function TapeChartView({
                   setDragAnchor(null);
                   setIsDragging(false);
                 }}
-                className="rounded-full bg-white/10 hover:bg-rose-500 px-2 py-0.5 text-[10px] font-bold text-slate-200 hover:text-white transition-colors"
+                className="rounded-full bg-white/20 hover:bg-rose-500 px-2.5 py-0.5 text-xs font-bold text-white transition-colors"
                 title="Deselect stay range (or press Esc)"
               >
                 ✕ Deselect
               </button>
             </div>
           ) : (
-            <p className="text-xs font-medium text-slate-500 hidden sm:block">
-              💡 Drag across empty days to select · Click selected date or press <kbd className="rounded bg-slate-100 border border-slate-300 px-1 py-0.5 font-mono text-[10px] text-slate-700">Esc</kbd> to deselect
+            <p className="text-xs sm:text-sm font-medium text-muted-foreground hidden sm:block">
+              💡 Drag across empty days to select · Click selected date or press <kbd className="rounded bg-muted border border-border px-1.5 py-0.5 font-mono text-xs text-foreground font-bold">Esc</kbd> to deselect
             </p>
           )}
         </div>
 
         {/* Bottom: Date Navigation, Quick Jumps & Search */}
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex items-center rounded-xl border border-slate-200 bg-slate-50/60 p-1">
+          <div className="flex flex-wrap items-center gap-2.5">
+            <div className="inline-flex items-center rounded-2xl border border-border bg-muted/50 p-1">
               <button
                 type="button"
                 onClick={() => shiftDays(-daysCount)}
-                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white transition-all"
+                className="rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-card transition-all"
                 title={`Previous ${daysCount} Days`}
               >
                 ← Prev {daysCount}d
@@ -710,14 +710,14 @@ export function TapeChartView({
               <button
                 type="button"
                 onClick={() => navigateDate(new Date().toISOString().slice(0, 10), daysCount)}
-                className="rounded-lg bg-white px-3.5 py-1.5 text-xs font-bold text-slate-900 shadow-xs border border-slate-200/60 transition-all hover:bg-slate-50"
+                className="rounded-xl bg-card px-4 py-2 text-xs sm:text-sm font-black text-foreground shadow-xs border border-border transition-all hover:bg-muted"
               >
                 Today
               </button>
               <button
                 type="button"
                 onClick={() => shiftDays(daysCount)}
-                className="rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-white transition-all"
+                className="rounded-xl px-3.5 py-2 text-xs sm:text-sm font-bold text-muted-foreground hover:text-foreground hover:bg-card transition-all"
                 title={`Next ${daysCount} Days`}
               >
                 Next {daysCount}d →
@@ -725,8 +725,8 @@ export function TapeChartView({
             </div>
 
             {/* Quick Historical Jump Presets */}
-            <div className="hidden sm:inline-flex items-center gap-1 rounded-xl border border-slate-200/80 bg-white px-2 py-1 shadow-2xs">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider px-1">
+            <div className="hidden sm:inline-flex items-center gap-1 rounded-2xl border border-border bg-card px-3 py-1.5 shadow-2xs">
+              <span className="text-xs font-black text-muted-foreground uppercase tracking-wider px-1">
                 Jump:
               </span>
               <button
@@ -736,7 +736,7 @@ export function TapeChartView({
                   d.setDate(d.getDate() - 7);
                   navigateDate(d.toISOString().slice(0, 10), daysCount);
                 }}
-                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                className="rounded-lg px-2.5 py-1 text-xs font-bold text-foreground hover:bg-muted transition-colors"
                 title="Jump to 1 week ago"
               >
                 -1W
@@ -748,7 +748,7 @@ export function TapeChartView({
                   d.setMonth(d.getMonth() - 1);
                   navigateDate(d.toISOString().slice(0, 10), daysCount);
                 }}
-                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                className="rounded-lg px-2.5 py-1 text-xs font-bold text-foreground hover:bg-muted transition-colors"
                 title="Jump to 1 month ago"
               >
                 -1M
@@ -760,7 +760,7 @@ export function TapeChartView({
                   d.setMonth(d.getMonth() - 3);
                   navigateDate(d.toISOString().slice(0, 10), daysCount);
                 }}
-                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                className="rounded-lg px-2.5 py-1 text-xs font-bold text-foreground hover:bg-muted transition-colors"
                 title="Jump to 3 months ago (Quarterly History)"
               >
                 -3M
@@ -772,7 +772,7 @@ export function TapeChartView({
                   d.setMonth(d.getMonth() - 6);
                   navigateDate(d.toISOString().slice(0, 10), daysCount);
                 }}
-                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                className="rounded-lg px-2.5 py-1 text-xs font-bold text-foreground hover:bg-muted transition-colors"
                 title="Jump to 6 months ago"
               >
                 -6M
@@ -784,7 +784,7 @@ export function TapeChartView({
                   d.setFullYear(d.getFullYear() - 1);
                   navigateDate(d.toISOString().slice(0, 10), daysCount);
                 }}
-                className="rounded-lg px-2 py-1 text-[11px] font-bold text-slate-600 hover:text-slate-950 hover:bg-slate-100 transition-colors"
+                className="rounded-lg px-2.5 py-1 text-xs font-bold text-foreground hover:bg-muted transition-colors"
                 title="Jump to 1 year ago (Past Year History)"
               >
                 -1Y
@@ -793,7 +793,7 @@ export function TapeChartView({
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-foreground">
               <span>Date:</span>
               <CustomDatePicker
                 value={startDateStr}
@@ -805,7 +805,7 @@ export function TapeChartView({
               />
             </div>
 
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+            <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-foreground">
               <span>View:</span>
               <div className="w-36">
                 <CustomDropdown
@@ -832,7 +832,7 @@ export function TapeChartView({
               placeholder="Search guest or room..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-48 sm:w-56 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-950/5 dark:focus:ring-white/10"
+              className="h-10 w-48 sm:w-60 rounded-xl border border-border bg-card px-3.5 text-xs sm:text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
         </div>
@@ -852,7 +852,7 @@ export function TapeChartView({
           <thead>
             <tr className="border-b border-border">
               {/* Sticky Room Column Header */}
-              <th className="sticky left-0 z-30 w-64 min-w-[260px] max-w-[260px] border-r border-border bg-card/95 backdrop-blur-sm px-5 py-4 text-xs font-bold uppercase text-muted-foreground tracking-wider shadow-[2px_0_8px_rgba(0,0,0,0.03)]">
+              <th className="sticky left-0 z-30 w-72 min-w-[280px] max-w-[280px] border-r border-border bg-card/95 backdrop-blur-sm px-6 py-4 text-xs font-black uppercase text-foreground tracking-wider shadow-[2px_0_8px_rgba(0,0,0,0.03)]">
                 Room &amp; Category
               </th>
 
@@ -867,9 +867,9 @@ export function TapeChartView({
                 return (
                   <th
                     key={dateStr}
-                    className={`w-[170px] min-w-[170px] sm:w-[190px] sm:min-w-[190px] px-3 py-3 text-center border-r border-border transition-colors ${
+                    className={`w-[170px] min-w-[170px] sm:w-[190px] sm:min-w-[190px] px-3 py-3.5 text-center border-r border-border transition-colors ${
                       isToday
-                        ? 'bg-muted/80 border-b-2 border-b-primary'
+                        ? 'bg-primary/10 border-b-2 border-b-primary'
                         : isWeekend
                         ? 'bg-muted/30'
                         : 'bg-card'
@@ -877,11 +877,11 @@ export function TapeChartView({
                   >
                     <div className="flex flex-col items-center justify-center">
                       <span
-                        className={`text-[11px] uppercase tracking-wider font-bold ${
+                        className={`text-xs sm:text-sm uppercase tracking-wider font-extrabold ${
                           isToday
                             ? 'text-primary'
                             : isWeekend
-                            ? 'text-muted-foreground/60'
+                            ? 'text-muted-foreground/80'
                             : 'text-muted-foreground'
                         }`}
                       >
@@ -889,10 +889,10 @@ export function TapeChartView({
                       </span>
                       <div className="mt-1 flex items-center justify-center">
                         <span
-                          className={`font-display text-lg font-extrabold leading-none ${
+                          className={`font-display font-black leading-none ${
                             isToday
-                              ? 'grid h-7 w-7 place-items-center rounded-full bg-primary text-primary-foreground shadow-xs text-sm'
-                              : 'text-foreground'
+                              ? 'grid h-9 w-9 place-items-center rounded-full bg-primary text-white font-black text-base shadow-sm'
+                              : 'text-xl sm:text-2xl text-foreground'
                           }`}
                         >
                           {dayNum}
@@ -913,21 +913,20 @@ export function TapeChartView({
               return (
                 <Fragment key={`floor-group-${floor}`}>
                   {/* Floor Divider Bar */}
-                  <tr className="bg-muted/80 border-y border-border">
+                  <tr className="bg-card border-y border-border">
                     <td
                       colSpan={dates.length + 1}
-                      className="sticky left-0 z-10 px-5 py-2 text-xs font-semibold text-muted-foreground bg-muted/95 backdrop-blur-sm"
+                      className="sticky left-0 z-10 px-6 py-2.5 bg-card/95 backdrop-blur-sm"
                     >
-                      <div className="flex items-center gap-2.5">
-                        <span className="font-bold text-foreground uppercase tracking-wider text-[11px]">
+                      <div className="flex items-center gap-3 text-xs sm:text-sm">
+                        <span className="font-black text-primary uppercase tracking-wider text-xs px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20">
                           Floor {floor}
                         </span>
+                        <span className="font-bold text-foreground">{floorRooms.length} Rooms Total</span>
                         <span className="text-muted-foreground/40">·</span>
-                        <span>{floorRooms.length} Rooms Total</span>
-                        <span className="text-slate-300 dark:text-slate-600">·</span>
-                        <span className="text-emerald-700 dark:text-emerald-400 font-medium">{floorReady} Ready</span>
-                        <span className="text-slate-300 dark:text-slate-600">·</span>
-                        <span className="text-blue-700 dark:text-blue-400 font-medium">{floorOccupied} Occupied</span>
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold">{floorReady} Ready</span>
+                        <span className="text-muted-foreground/40">·</span>
+                        <span className="text-sky-600 dark:text-sky-400 font-bold">{floorOccupied} Occupied</span>
                       </div>
                     </td>
                   </tr>
@@ -941,24 +940,24 @@ export function TapeChartView({
                     return (
                       <tr
                         key={room.id}
-                        className="hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-colors h-20"
+                        className="hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-colors h-20 sm:h-24"
                       >
                         {/* Sticky Left Room Identification Cell with Signature Accent Dash & Colors */}
-                        <td className="sticky left-0 z-20 w-64 min-w-[260px] max-w-[260px] border-r border-border bg-card px-5 py-3 shadow-[2px_0_8px_rgba(0,0,0,0.03)]">
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex items-center gap-3">
+                        <td className="sticky left-0 z-20 w-72 min-w-[280px] max-w-[280px] border-r border-border bg-card px-6 py-3.5 shadow-[2px_0_8px_rgba(0,0,0,0.03)]">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3.5">
                               <div className="relative">
-                                <span className={`grid h-8 w-11 place-items-center rounded-lg border font-mono text-xs font-black text-foreground ${roomTheme.lightBg} border-border shadow-2xs`}>
+                                <span className={`grid h-10 w-14 place-items-center rounded-xl border-2 font-mono text-sm font-black text-foreground ${roomTheme.lightBg} border-border shadow-2xs`}>
                                   {room.number}
                                 </span>
-                                <span className={`absolute -bottom-1 left-2 h-1 w-7 rounded-full ${roomTheme.dash}`} />
+                                <span className={`absolute -bottom-1 left-2 h-1.5 w-10 rounded-full ${roomTheme.dash}`} />
                               </div>
                               <div className="min-w-0">
-                                <h3 className="font-display text-sm font-bold text-foreground leading-snug">
+                                <h3 className="font-display text-base font-extrabold text-foreground leading-snug">
                                   Room {room.number}
                                 </h3>
                                 <div className="mt-1">
-                                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border ${roomTheme.badge}`}>
+                                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold border ${roomTheme.badge}`}>
                                     <span>{roomTheme.icon}</span>
                                     <span className="truncate">{room.roomType}</span>
                                   </span>
@@ -967,7 +966,7 @@ export function TapeChartView({
                             </div>
 
                             <span
-                              className={`h-2.5 w-2.5 shrink-0 rounded-full ${
+                              className={`h-3 w-3 shrink-0 rounded-full ${
                                 room.status === 'available'
                                   ? 'bg-emerald-500 ring-4 ring-emerald-500/20'
                                   : room.status === 'occupied'
@@ -1015,7 +1014,7 @@ export function TapeChartView({
                                   <div
                                     data-selected-cell="true"
                                     onClick={(e) => handleSelectedDateClick(e, segment.dateStr)}
-                                    className={`relative flex flex-col items-center justify-center w-full h-14 bg-slate-900 border-y-2 border-slate-950 text-white shadow-sm px-1.5 py-1 cursor-pointer transition-all hover:bg-slate-800 select-none group/selected ${
+                                    className={`relative flex flex-col items-center justify-center w-full h-16 sm:h-20 bg-slate-900 dark:bg-slate-950 border-y-2 border-primary text-white shadow-sm px-2 py-1.5 cursor-pointer transition-all hover:bg-slate-800 select-none group/selected ${
                                       isSingle
                                         ? 'rounded-xl border-2'
                                         : isStart
@@ -1036,49 +1035,49 @@ export function TapeChartView({
                                   >
                                     {isSingle ? (
                                       <>
-                                        <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider">
+                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">
                                           1 Night Stay
                                         </span>
-                                        <span className="text-xs font-black text-white leading-tight">
+                                        <span className="text-sm font-black text-white leading-tight">
                                           {formatCellDate(segment.dateStr)}
                                         </span>
-                                        <span className="text-[9px] font-semibold text-slate-300 group-hover/selected:text-rose-300 transition-colors">
+                                        <span className="text-[10px] font-semibold text-slate-300 group-hover/selected:text-rose-300 transition-colors">
                                           Out {formatShortDate(selection.endDate)} · ✕ Deselect
                                         </span>
                                       </>
                                     ) : isStart ? (
                                       <>
-                                        <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider">
+                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">
                                           Check-In (Night 1)
                                         </span>
-                                        <span className="text-xs font-black text-white leading-tight">
+                                        <span className="text-sm font-black text-white leading-tight">
                                           {formatCellDate(segment.dateStr)}
                                         </span>
-                                        <span className="text-[9px] font-semibold text-slate-300 group-hover/selected:text-rose-300 transition-colors">
+                                        <span className="text-[10px] font-semibold text-slate-300 group-hover/selected:text-rose-300 transition-colors">
                                           ✕ Trim Start
                                         </span>
                                       </>
                                     ) : isEnd ? (
                                       <>
-                                        <span className="text-[9px] font-black text-emerald-400 uppercase tracking-wider">
+                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-wider">
                                           Last Night ({selection.nights} of {selection.nights})
                                         </span>
-                                        <span className="text-xs font-black text-white leading-tight">
+                                        <span className="text-sm font-black text-white leading-tight">
                                           {formatCellDate(segment.dateStr)}
                                         </span>
-                                        <span className="text-[9px] font-semibold text-slate-300 group-hover/selected:text-rose-300 transition-colors">
+                                        <span className="text-[10px] font-semibold text-slate-300 group-hover/selected:text-rose-300 transition-colors">
                                           Checkout {formatShortDate(selection.endDate)} · ✕ Trim
                                         </span>
                                       </>
                                     ) : (
                                       <>
-                                        <span className="text-[9px] font-semibold text-slate-300 uppercase tracking-wider">
+                                        <span className="text-[10px] font-semibold text-slate-300 uppercase tracking-wider">
                                           Night {nightNum} of {selection.nights}
                                         </span>
-                                        <span className="text-xs font-black text-white leading-tight">
+                                        <span className="text-sm font-black text-white leading-tight">
                                           {formatCellDate(segment.dateStr)}
                                         </span>
-                                        <span className="text-[9px] font-semibold text-slate-400 group-hover/selected:text-rose-300 transition-colors">
+                                        <span className="text-[10px] font-semibold text-slate-400 group-hover/selected:text-rose-300 transition-colors">
                                           ✕ Clear All
                                         </span>
                                       </>
@@ -1117,13 +1116,13 @@ export function TapeChartView({
                                         handleCellMouseEnter(room, segment.dateStr, roomReservations)
                                       }
                                       onMouseUp={handleCellMouseUp}
-                                      className="flex flex-col items-center justify-center w-full h-14 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50/80 text-emerald-950 transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
+                                      className="flex flex-col items-center justify-center w-full h-16 sm:h-20 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-500/10 text-emerald-950 dark:text-emerald-100 transition-all cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600"
                                       title={`Click to connect stay range to ${formatCellDate(segment.dateStr)}`}
                                     >
-                                      <span className="text-[10px] font-bold text-emerald-800">
+                                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300">
                                         + To {formatShortDate(segment.dateStr)}
                                       </span>
-                                      <span className="text-[9px] font-semibold text-emerald-600">
+                                      <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                                         Click to connect range
                                       </span>
                                     </div>
@@ -1151,10 +1150,10 @@ export function TapeChartView({
                                       handleCellMouseEnter(room, segment.dateStr, roomReservations)
                                     }
                                     onMouseUp={handleCellMouseUp}
-                                    className="flex items-center justify-center w-full h-14 rounded-xl border border-dashed border-border hover:border-primary/50 hover:bg-muted/40 transition-all text-xs font-medium text-muted-foreground cursor-crosshair group/empty focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                                    className="flex items-center justify-center w-full h-16 sm:h-20 rounded-xl border border-dashed border-border hover:border-primary hover:bg-primary/5 transition-all text-xs font-bold text-muted-foreground cursor-crosshair group/empty focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
                                     title={`Click to select check-in date or drag across dates`}
                                   >
-                                    <span className="opacity-0 group-hover/empty:opacity-100 transition-opacity font-bold text-foreground flex items-center gap-1 text-[11px]">
+                                    <span className="opacity-0 group-hover/empty:opacity-100 transition-opacity font-extrabold text-primary flex items-center gap-1 text-xs sm:text-sm">
                                       + Select / Drag
                                     </span>
                                   </div>
@@ -1219,46 +1218,46 @@ export function TapeChartView({
                             >
                               <Link
                                 href={`/billing?reservationId=${res.id}`}
-                                className={`group relative flex h-14 w-full flex-col justify-between rounded-xl p-2 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md border ${theme.card}`}
+                                className={`group relative flex h-16 sm:h-20 w-full flex-col justify-between rounded-xl p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.03)] transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md border ${theme.card}`}
                                 title={`${displayName} (${res.checkIn} → ${res.checkOut}) · Total: ${currency} ${res.totalAmount.toLocaleString()} · Click to open live Folio`}
                               >
                                 {/* Top Row: Channel Badge, Guest Name, Duration, and SINGLE VIP Badge */}
                                 <div className="flex items-center justify-between gap-2 min-w-0">
-                                  <div className="flex items-center gap-1.5 min-w-0">
+                                  <div className="flex items-center gap-2 min-w-0">
                                     <span
-                                      className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider shrink-0 border ${theme.badge}`}
+                                      className={`rounded px-2 py-0.5 text-xs font-black uppercase tracking-wider shrink-0 border ${theme.badge}`}
                                     >
                                       {segment.isContinuingBefore
                                         ? `◂ ${channel.label}`
                                         : channel.label}
                                     </span>
-                                    <span className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-white truncate">
+                                    <span className="font-extrabold text-sm sm:text-base text-foreground truncate">
                                       {displayName}
                                     </span>
                                     {/* Single VIP Badge (Eliminated double VIP bug) */}
                                     {res.vip && (
-                                      <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-600 px-2 py-0.5 text-[9px] font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider shrink-0 flex items-center gap-0.5 shadow-2xs">
+                                      <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-600 px-2 py-0.5 text-[10px] font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider shrink-0 flex items-center gap-0.5 shadow-2xs">
                                         👑 VIP
                                       </span>
                                     )}
                                   </div>
 
-                                  <div className="flex items-center gap-1 shrink-0 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                                  <div className="flex items-center gap-1 shrink-0 text-xs font-bold text-muted-foreground">
                                     {segment.isContinuingAfter && <span>▸</span>}
                                     <span>{totalNights > 1 ? `${totalNights}n` : '1n'}</span>
                                   </div>
                                 </div>
 
                                 {/* Bottom Row: Status Tag & Amount */}
-                                <div className="flex items-center justify-between gap-2 text-[11px]">
+                                <div className="flex items-center justify-between gap-2 text-xs">
                                   <span
-                                    className={`inline-flex items-center gap-1.5 font-semibold ${theme.statusText}`}
+                                    className={`inline-flex items-center gap-1.5 font-bold ${theme.statusText}`}
                                   >
-                                    <span className={`h-1.5 w-1.5 rounded-full ${theme.dot}`} />
+                                    <span className={`h-2 w-2 rounded-full ${theme.dot}`} />
                                     <span>{isCheckedIn ? 'In-House' : isCheckedOut ? 'Departed (Paid)' : 'Confirmed'}</span>
                                   </span>
 
-                                  <span className="font-mono font-bold text-slate-900 dark:text-white text-xs">
+                                  <span className="font-mono font-black text-foreground text-xs sm:text-sm">
                                     {formatMoney(res.totalAmount, currency)}
                                   </span>
                                 </div>

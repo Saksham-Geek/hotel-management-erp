@@ -21,7 +21,10 @@ export default {
           foreground: 'hsl(var(--popover-foreground) / <alpha-value>)',
         },
         ink: 'hsl(var(--foreground) / <alpha-value>)',
-        muted: 'hsl(var(--muted-foreground) / <alpha-value>)',
+        muted: {
+          DEFAULT: 'hsl(var(--muted) / <alpha-value>)',
+          foreground: 'hsl(var(--muted-foreground) / <alpha-value>)',
+        },
         line: 'hsl(var(--border) / <alpha-value>)',
         secondary: {
           DEFAULT: 'hsl(var(--secondary) / <alpha-value>)',

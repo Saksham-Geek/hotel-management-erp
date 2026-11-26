@@ -109,7 +109,7 @@ export function Nav({
                   {isPending && (
                     <span
                       aria-hidden
-                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-emerald-500 animate-pulse shadow-xs"
+                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-white animate-pulse shadow-xs"
                     />
                   )}
                   <NavIcon name={item.icon} active={active || isPending} />
@@ -118,7 +118,7 @@ export function Nav({
                   </span>
                   {isPending && (
                     <svg
-                      className="ml-auto h-3.5 w-3.5 animate-spin text-teal-400 shrink-0"
+                      className="ml-auto h-3.5 w-3.5 animate-spin text-white shrink-0"
                       viewBox="0 0 24 24"
                       fill="none"
                     >

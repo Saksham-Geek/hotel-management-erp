@@ -9,6 +9,7 @@ import { CustomDropdown } from './dropdown';
 import { RolePersonaSwitcher } from './role-persona-switcher';
 import { CommandSearchModal } from './command-search-modal';
 import { ThemeToggle } from './theme-toggle';
+import { PaletteSelector } from './palette-selector';
 
 type PropertyOption = { id: string; name: string };
 type FormAction = (formData: FormData) => void | Promise<void>;
@@ -149,23 +150,23 @@ export function AppShell({
       {/* Main Sidebar Navigation - Fixed to viewport so it never scrolls away */}
       <aside
         id="app-navigation"
-        className={`fixed inset-y-0 left-0 z-40 flex w-[min(88vw,330px)] flex-col border-r border-white/[.08] bg-[#080d1a] px-4 py-5 text-white shadow-2xl transition-all duration-200 md:h-screen md:h-dvh md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-40 flex w-[min(88vw,330px)] flex-col border-r border-slate-200 dark:border-white/[.08] bg-white dark:bg-sidebar px-4 py-5 text-slate-900 dark:text-white shadow-2xl transition-all duration-200 md:h-screen md:h-dvh md:translate-x-0 ${
           collapsed ? 'md:w-[84px] md:px-3' : 'md:w-[310px] lg:w-[320px] md:px-5'
         } ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
       >
         {/* Brand / Property Header */}
         <div className={`flex min-h-12 items-center gap-3.5 px-1 ${collapsed ? 'md:justify-center md:px-0' : ''}`}>
           <div
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/10 text-white ring-1 ring-white/15 shadow-sm"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white ring-1 ring-slate-200 dark:ring-white/15 shadow-sm"
             aria-hidden
           >
             <HotelMark />
           </div>
           <div className={`${collapsed ? 'md:hidden' : ''} min-w-0 flex-1`}>
-            <p className="truncate font-display text-[15px] font-bold tracking-tight text-white leading-tight">
+            <p className="truncate font-display text-[15px] font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
               {property.name}
             </p>
-            <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+            <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">
               Hotel Operations PMS
             </p>
           </div>
@@ -173,7 +174,7 @@ export function AppShell({
             type="button"
             aria-label="Close navigation"
             onClick={() => setMobileOpen(false)}
-            className="ml-auto rounded-lg p-2 text-white/60 hover:bg-white/10 md:hidden"
+            className="ml-auto rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:text-white/60 dark:hover:bg-white/10 md:hidden"
           >
             <CloseIcon />
           </button>
@@ -184,14 +185,14 @@ export function AppShell({
           <form
             ref={propertyFormRef}
             action={selectProperty}
-            className={`mt-4 rounded-xl border border-white/10 bg-white/[.04] p-2.5 backdrop-blur-xs ${
+            className={`mt-4 rounded-xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[.04] p-2.5 backdrop-blur-xs ${
               collapsed ? 'md:hidden' : ''
             }`}
           >
             <div className="mb-1.5 flex items-center justify-between">
               <label
                 htmlFor="sidebar-property"
-                className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400"
+                className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400"
               >
                 Active Property
               </label>
@@ -222,12 +223,12 @@ export function AppShell({
 
         {/* Add Property Action for Owners */}
         {role === 'owner' && (
-          <div className={`border-t border-white/[.08] pt-3.5 ${collapsed ? 'md:hidden' : ''}`}>
+          <div className={`border-t border-slate-200 dark:border-white/[.08] pt-3.5 ${collapsed ? 'md:hidden' : ''}`}>
             <button
               type="button"
               onClick={() => setAddPropertyOpen((open) => !open)}
               aria-expanded={addPropertyOpen}
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-bold text-slate-300 hover:bg-white/[.08] hover:text-white transition-colors"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/[.08] dark:hover:text-white transition-colors"
             >
               <span>{addPropertyOpen ? '✕ Cancel' : '+ Add hotel property'}</span>
             </button>
@@ -243,9 +244,9 @@ export function AppShell({
                   minLength={2}
                   maxLength={120}
                   placeholder="e.g. Sea Breeze Resort"
-                  className="h-9 w-full rounded-xl border border-white/15 bg-white px-3 text-xs text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-teal-400"
+                  className="h-9 w-full rounded-xl border border-slate-300 dark:border-white/15 bg-white px-3 text-xs text-ink placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-white"
                 />
-                <button className="h-8 w-full rounded-xl bg-teal-500 px-3 text-xs font-bold text-slate-950 hover:bg-teal-400 transition-colors">
+                <button className="h-8 w-full rounded-xl bg-slate-900 dark:bg-white px-3 text-xs font-bold text-white dark:text-slate-950 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors">
                   Create and switch
                 </button>
               </form>
@@ -255,33 +256,33 @@ export function AppShell({
 
         {/* User Profile Bar */}
         <div
-          className={`mt-3 flex items-center gap-3 border-t border-white/[.08] px-1 pt-3.5 ${
+          className={`mt-3 flex items-center gap-3 border-t border-slate-200 dark:border-white/[.08] px-1 pt-3.5 ${
             collapsed ? 'md:justify-center md:px-0' : ''
           }`}
         >
           <Link
             href="/profile"
             title="My profile and contact details"
-            className={`group flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-1.5 outline-none transition-all hover:bg-white/[.08] focus-visible:ring-2 focus-visible:ring-white/20 ${
+            className={`group flex min-w-0 flex-1 items-center gap-3 rounded-2xl p-1.5 outline-none transition-all hover:bg-slate-100 dark:hover:bg-white/[.08] focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white/20 ${
               collapsed ? 'md:flex-none md:justify-center' : ''
             }`}
           >
             <div
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-800 text-xs font-bold text-white ring-1 ring-white/15 shadow-sm"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-200 dark:bg-slate-800 text-xs font-bold text-slate-800 dark:text-white ring-1 ring-slate-300 dark:ring-white/15 shadow-sm"
               aria-hidden
             >
               {initials}
             </div>
             <div className={`${collapsed ? 'md:hidden' : ''} min-w-0 flex-1 text-left`}>
-              <p className="truncate text-[13.5px] font-semibold text-white group-hover:text-slate-200 transition-colors">
+              <p className="truncate text-[13.5px] font-semibold text-slate-900 dark:text-white group-hover:text-slate-700 dark:group-hover:text-slate-200 transition-colors">
                 {fullName}
               </p>
               <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
-                <span className="capitalize text-[11px] font-medium text-slate-400">
+                <span className="capitalize text-[11px] font-medium text-slate-500 dark:text-slate-400">
                   {role.replaceAll('_', ' ')}
                 </span>
                 <span
-                  className="inline-flex rounded-full border border-white/20 bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider text-slate-300"
+                  className="inline-flex rounded-full border border-slate-200 bg-slate-100 text-slate-700 dark:border-white/20 dark:bg-white/10 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider dark:text-slate-300"
                 >
                   {tierBadge.label}
                 </span>
@@ -295,7 +296,7 @@ export function AppShell({
                 type="submit"
                 aria-label="Sign out"
                 title="Sign out of this session"
-                className="rounded-xl p-2.5 text-slate-400 hover:bg-white/10 hover:text-white transition-colors"
+                className="rounded-xl p-2.5 text-slate-400 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-white/10 dark:hover:text-white transition-colors"
               >
                 <SignOutIcon />
               </button>
@@ -404,6 +405,9 @@ export function AppShell({
                 {role.replaceAll('_', ' ')}
               </span>
             )}
+
+            {/* Theme Palette Switcher */}
+            <PaletteSelector />
 
             {/* Theme Toggle (Light / Dark Mode) */}
             <ThemeToggle />

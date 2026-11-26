@@ -70,7 +70,7 @@ export function Nav({
       {groups.map((group) => (
         <div key={group.name} className="flex flex-col gap-1">
           <div className={`px-3.5 pt-2 pb-1 ${collapsed ? 'md:sr-only' : ''}`}>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               {group.name}
             </p>
           </div>
@@ -94,22 +94,22 @@ export function Nav({
                   title={collapsed ? item.label : undefined}
                   className={`group relative flex min-h-[42px] items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-[13.5px] transition-all duration-150 ${
                     active
-                      ? 'bg-white/[0.12] text-white font-bold shadow-xs'
+                      ? 'bg-slate-900 text-white font-bold shadow-xs dark:bg-white/[0.12] dark:text-white'
                       : isPending
-                      ? 'bg-white/[0.18] text-white font-bold shadow-xs'
-                      : 'text-slate-300 font-medium hover:bg-white/[0.06] hover:text-white'
+                      ? 'bg-slate-800 text-white font-bold shadow-xs dark:bg-white/[0.18] dark:text-white'
+                      : 'text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-950 dark:hover:text-white'
                   }`}
                 >
                   {active && (
                     <span
                       aria-hidden
-                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-white shadow-xs"
+                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-slate-900 dark:bg-white shadow-xs"
                     />
                   )}
                   {isPending && (
                     <span
                       aria-hidden
-                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-teal-400 animate-pulse shadow-xs"
+                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-emerald-500 animate-pulse shadow-xs"
                     />
                   )}
                   <NavIcon name={item.icon} active={active || isPending} />
@@ -158,7 +158,7 @@ function NavIcon({ name, active }: { name: NavIconName; active: boolean }) {
     className: `h-5 w-5 shrink-0 transition-colors duration-150 ${
       active
         ? 'text-white'
-        : 'text-slate-400 group-hover:text-slate-200'
+        : 'text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
     }`,
     fill: 'none',
     stroke: 'currentColor',

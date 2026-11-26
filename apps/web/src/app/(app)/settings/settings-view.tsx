@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ThemeSettingsSection } from '@/components/theme-settings-section';
 import {
   btnCls,
   btnGhostCls,
@@ -637,6 +638,7 @@ export function SettingsView({
 
   const tabsList = [
     { id: 'all', label: 'All Modules Overview', icon: '⚡', count: null },
+    { id: 'theme', label: 'Branding & Theme', icon: '🎨', count: '4 Palettes' },
     { id: 'rooms', label: 'Rooms & Rates', icon: '🏨', count: `${rooms.length} Rooms` },
     { id: 'restaurant', label: 'Restaurant & F&B', icon: '🍽️', count: `${tables.length} Tables` },
     { id: 'payments', label: 'Bank UPI & Hardware', icon: '💳', count: isOwner ? 'Owner' : 'Protected' },
@@ -770,6 +772,13 @@ export function SettingsView({
           );
         })}
       </div>
+
+      {/* ========================================================================= */}
+      {/* 00. BRANDING & THEME CUSTOMIZER */}
+      {/* ========================================================================= */}
+      {(tab === 'all' || tab === 'theme') && (
+        <ThemeSettingsSection />
+      )}
 
       {/* ========================================================================= */}
       {/* 01. ROOMS & ACCOMMODATION MANAGEMENT */}

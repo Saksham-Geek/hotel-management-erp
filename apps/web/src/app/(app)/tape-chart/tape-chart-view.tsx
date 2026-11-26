@@ -560,67 +560,67 @@ export function TapeChartView({
     <div className="space-y-6">
       {/* 1. Bundled Notes Pastel KPI Bar with Signature Accent Dashes */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-[#f4fbf7] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
+        <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-[#f4fbf7] dark:bg-[#101f17] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-emerald-500 block mb-3" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-900 truncate">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-900 dark:text-emerald-300 truncate">
             Total Inventory
           </p>
           <div className="mt-1 flex items-baseline gap-2 truncate">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight tabular-nums">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight tabular-nums">
               {rooms.length} Keys
             </span>
-            <span className="text-xs font-semibold text-emerald-800 shrink-0">
+            <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-400 shrink-0">
               Across 3 Floors
             </span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-[#f4faff] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
+        <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-[#f4faff] dark:bg-[#121c24] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-sky-500 block mb-3" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-900 truncate">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-sky-900 dark:text-sky-300 truncate">
             Current Occupancy
           </p>
           <div className="mt-1 flex items-baseline gap-2 truncate">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight tabular-nums">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight tabular-nums">
               {metrics.inHouse} Active
             </span>
-            <span className="rounded-full bg-sky-100 border border-sky-300 px-2 py-0.5 text-xs font-black text-sky-950 shrink-0">
+            <span className="rounded-full bg-sky-100 dark:bg-sky-950/60 border border-sky-300 dark:border-sky-500/40 px-2 py-0.5 text-xs font-black text-sky-950 dark:text-sky-200 shrink-0">
               {metrics.occPct}%
             </span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-[#faf8ff] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
+        <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-[#faf8ff] dark:bg-[#1c1424] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-purple-500 block mb-3" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-purple-900 truncate">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-purple-900 dark:text-purple-300 truncate">
             Upcoming Bookings
           </p>
           <div className="mt-1 flex items-baseline gap-2 truncate">
-            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 tracking-tight tabular-nums">
+            <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight tabular-nums">
               {metrics.upcoming}
             </span>
-            <span className="text-xs font-semibold text-purple-800 shrink-0">
+            <span className="text-xs font-semibold text-purple-800 dark:text-purple-400 shrink-0">
               Confirmed Stays
             </span>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/80 bg-[#fffcf4] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
+        <div className="rounded-2xl border border-slate-200/80 dark:border-white/10 bg-[#fffcf4] dark:bg-[#1f1a12] p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden min-w-0">
           <span className="h-1.5 w-6 rounded-full bg-amber-500 block mb-3" />
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-900 truncate">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-amber-900 dark:text-amber-300 truncate">
             Distribution Channels
           </p>
           <div className="mt-2 flex items-center gap-1.5 flex-wrap">
-            <span className="rounded-full bg-white border border-amber-300/80 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 shadow-2xs">
+            <span className="rounded-full bg-white dark:bg-slate-800 border border-amber-300/80 dark:border-amber-600/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 dark:text-amber-200 shadow-2xs">
               MMT
             </span>
-            <span className="rounded-full bg-white border border-amber-300/80 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 shadow-2xs">
+            <span className="rounded-full bg-white dark:bg-slate-800 border border-amber-300/80 dark:border-amber-600/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 dark:text-amber-200 shadow-2xs">
               Booking.com
             </span>
-            <span className="rounded-full bg-white border border-amber-300/80 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 shadow-2xs">
+            <span className="rounded-full bg-white dark:bg-slate-800 border border-amber-300/80 dark:border-amber-600/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 dark:text-amber-200 shadow-2xs">
               Agoda
             </span>
-            <span className="rounded-full bg-white border border-amber-300/80 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 shadow-2xs">
+            <span className="rounded-full bg-white dark:bg-slate-800 border border-amber-300/80 dark:border-amber-600/40 px-2.5 py-0.5 text-[11px] font-bold text-amber-950 dark:text-amber-200 shadow-2xs">
               Corporate
             </span>
           </div>
@@ -628,11 +628,11 @@ export function TapeChartView({
       </div>
 
       {/* 2. Bundled Notes Material 3 Category Filter Bar & Toolbar */}
-      <div className="space-y-3 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+      <div className="space-y-3 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900/90 p-4 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
         {/* Top: Material 3 Room Type Filter Chips */}
-        <div className="flex items-center justify-between gap-3 flex-wrap border-b border-slate-100 pb-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap border-b border-slate-100 dark:border-white/10 pb-3">
           <div className="flex flex-wrap items-center gap-2 pb-1">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 mr-1">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider shrink-0 mr-1">
               Category:
             </span>
             <button
@@ -640,8 +640,8 @@ export function TapeChartView({
               onClick={() => setFilterType('all')}
               className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all shadow-2xs ${
                 filterType === 'all'
-                  ? 'bg-slate-900 text-white'
-                  : 'bg-white border border-slate-200/90 text-slate-700 hover:bg-slate-50'
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+                  : 'bg-white dark:bg-slate-800 border border-slate-200/90 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
               }`}
             >
               All Types ({rooms.length})
@@ -658,7 +658,7 @@ export function TapeChartView({
                   className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-all shadow-2xs flex items-center gap-1.5 border ${
                     isSelected
                       ? `${theme.badge} ring-2 ring-slate-900/10 scale-[1.02]`
-                      : 'bg-white border-slate-200/90 text-slate-700 hover:bg-slate-50'
+                      : 'bg-white dark:bg-slate-800 border-slate-200/90 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700'
                   }`}
                 >
                   <span>{theme.icon}</span>
@@ -832,16 +832,16 @@ export function TapeChartView({
               placeholder="Search guest or room..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-9 w-48 sm:w-56 rounded-xl border border-slate-200 bg-white px-3 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-950/5"
+              className="h-9 w-48 sm:w-56 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-800 px-3 text-xs font-medium text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-950/5 dark:focus:ring-white/10"
             />
           </div>
         </div>
       </div>
 
       {/* 3. Multi-Day Spanning Gantt Grid (Light Luxury Design with Drag-to-Select) */}
-      <div className="overflow-x-auto rounded-3xl border border-slate-200/90 bg-white shadow-sm custom-scrollbar relative">
+      <div className="overflow-x-auto rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900 shadow-sm custom-scrollbar relative">
         {isPending && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] z-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-white/60 dark:bg-slate-950/60 backdrop-blur-[1px] z-40 flex items-center justify-center">
             <div className="flex items-center gap-2.5 rounded-2xl bg-slate-900 text-white px-4 py-2.5 text-xs font-bold shadow-lg animate-in fade-in">
               <span className="h-3.5 w-3.5 rounded-full border-2 border-white/20 border-t-emerald-400 animate-spin" />
               <span>Loading room allocation &amp; reservations...</span>
@@ -850,9 +850,9 @@ export function TapeChartView({
         )}
         <table className="min-w-full border-collapse text-left select-none">
           <thead>
-            <tr className="border-b border-slate-200">
+            <tr className="border-b border-slate-200 dark:border-white/10">
               {/* Sticky Room Column Header */}
-              <th className="sticky left-0 z-30 w-64 min-w-[260px] max-w-[260px] border-r border-slate-200 bg-slate-50/95 backdrop-blur-sm px-5 py-4 text-xs font-bold uppercase text-slate-600 tracking-wider shadow-[2px_0_8px_rgba(0,0,0,0.03)]">
+              <th className="sticky left-0 z-30 w-64 min-w-[260px] max-w-[260px] border-r border-slate-200 dark:border-white/10 bg-slate-50/95 dark:bg-slate-900/95 backdrop-blur-sm px-5 py-4 text-xs font-bold uppercase text-slate-600 dark:text-slate-400 tracking-wider shadow-[2px_0_8px_rgba(0,0,0,0.03)]">
                 Room &amp; Category
               </th>
 
@@ -867,22 +867,22 @@ export function TapeChartView({
                 return (
                   <th
                     key={dateStr}
-                    className={`w-[170px] min-w-[170px] sm:w-[190px] sm:min-w-[190px] px-3 py-3 text-center border-r border-slate-200/80 transition-colors ${
+                    className={`w-[170px] min-w-[170px] sm:w-[190px] sm:min-w-[190px] px-3 py-3 text-center border-r border-slate-200/80 dark:border-white/10 transition-colors ${
                       isToday
-                        ? 'bg-slate-50/80 border-b-2 border-b-slate-900'
+                        ? 'bg-slate-50/80 dark:bg-slate-800/80 border-b-2 border-b-slate-900 dark:border-b-white'
                         : isWeekend
-                        ? 'bg-slate-50/50'
-                        : 'bg-white'
+                        ? 'bg-slate-50/50 dark:bg-slate-800/40'
+                        : 'bg-white dark:bg-slate-900'
                     }`}
                   >
                     <div className="flex flex-col items-center justify-center">
                       <span
                         className={`text-[11px] uppercase tracking-wider font-bold ${
                           isToday
-                            ? 'text-slate-900'
+                            ? 'text-slate-900 dark:text-white'
                             : isWeekend
-                            ? 'text-slate-400'
-                            : 'text-slate-500'
+                            ? 'text-slate-400 dark:text-slate-500'
+                            : 'text-slate-500 dark:text-slate-400'
                         }`}
                       >
                         {dayName}
@@ -891,8 +891,8 @@ export function TapeChartView({
                         <span
                           className={`font-display text-lg font-extrabold leading-none ${
                             isToday
-                              ? 'grid h-7 w-7 place-items-center rounded-full bg-slate-900 text-white shadow-xs text-sm'
-                              : 'text-slate-900'
+                              ? 'grid h-7 w-7 place-items-center rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-950 shadow-xs text-sm'
+                              : 'text-slate-900 dark:text-white'
                           }`}
                         >
                           {dayNum}
@@ -905,7 +905,7 @@ export function TapeChartView({
             </tr>
           </thead>
 
-          <tbody className="divide-y divide-slate-100">
+          <tbody className="divide-y divide-slate-100 dark:divide-white/5">
             {floors.map(([floor, floorRooms]) => {
               const floorReady = floorRooms.filter((r) => r.status === 'available').length;
               const floorOccupied = floorRooms.filter((r) => r.status === 'occupied').length;
@@ -913,21 +913,21 @@ export function TapeChartView({
               return (
                 <Fragment key={`floor-group-${floor}`}>
                   {/* Floor Divider Bar */}
-                  <tr className="bg-slate-50/80 border-y border-slate-200/70">
+                  <tr className="bg-slate-50/80 dark:bg-slate-950/80 border-y border-slate-200/70 dark:border-white/10">
                     <td
                       colSpan={dates.length + 1}
-                      className="sticky left-0 z-10 px-5 py-2 text-xs font-semibold text-slate-600 bg-slate-50/95 backdrop-blur-sm"
+                      className="sticky left-0 z-10 px-5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-400 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-sm"
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="font-bold text-slate-900 uppercase tracking-wider text-[11px]">
+                        <span className="font-bold text-slate-900 dark:text-white uppercase tracking-wider text-[11px]">
                           Floor {floor}
                         </span>
-                        <span className="text-slate-300">·</span>
+                        <span className="text-slate-300 dark:text-slate-600">·</span>
                         <span>{floorRooms.length} Rooms Total</span>
-                        <span className="text-slate-300">·</span>
-                        <span className="text-emerald-700 font-medium">{floorReady} Ready</span>
-                        <span className="text-slate-300">·</span>
-                        <span className="text-blue-700 font-medium">{floorOccupied} Occupied</span>
+                        <span className="text-slate-300 dark:text-slate-600">·</span>
+                        <span className="text-emerald-700 dark:text-emerald-400 font-medium">{floorReady} Ready</span>
+                        <span className="text-slate-300 dark:text-slate-600">·</span>
+                        <span className="text-blue-700 dark:text-blue-400 font-medium">{floorOccupied} Occupied</span>
                       </div>
                     </td>
                   </tr>
@@ -941,20 +941,20 @@ export function TapeChartView({
                     return (
                       <tr
                         key={room.id}
-                        className="hover:bg-slate-50/40 transition-colors h-20"
+                        className="hover:bg-slate-50/40 dark:hover:bg-white/[0.02] transition-colors h-20"
                       >
                         {/* Sticky Left Room Identification Cell with Bundled Notes Accent Dash & Colors */}
-                        <td className="sticky left-0 z-20 w-64 min-w-[260px] max-w-[260px] border-r border-slate-200 bg-white px-5 py-3 shadow-[2px_0_8px_rgba(0,0,0,0.03)]">
+                        <td className="sticky left-0 z-20 w-64 min-w-[260px] max-w-[260px] border-r border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 px-5 py-3 shadow-[2px_0_8px_rgba(0,0,0,0.03)]">
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-3">
                               <div className="relative">
-                                <span className={`grid h-8 w-11 place-items-center rounded-lg border font-mono text-xs font-black text-slate-950 ${roomTheme.lightBg} border-slate-200/90 shadow-2xs`}>
+                                <span className={`grid h-8 w-11 place-items-center rounded-lg border font-mono text-xs font-black text-slate-950 dark:text-white ${roomTheme.lightBg} border-slate-200/90 dark:border-white/10 shadow-2xs`}>
                                   {room.number}
                                 </span>
                                 <span className={`absolute -bottom-1 left-2 h-1 w-7 rounded-full ${roomTheme.dash}`} />
                               </div>
                               <div className="min-w-0">
-                                <h3 className="font-display text-sm font-bold text-slate-950 leading-snug">
+                                <h3 className="font-display text-sm font-bold text-slate-950 dark:text-white leading-snug">
                                   Room {room.number}
                                 </h3>
                                 <div className="mt-1">
@@ -997,12 +997,12 @@ export function TapeChartView({
                               <td
                                 key={`${room.id}-empty-${segment.dateStr}-${segIdx}`}
                                 colSpan={segment.span}
-                                className={`border-r border-slate-100 p-1 text-center transition-colors select-none ${
+                                className={`border-r border-slate-100 dark:border-white/10 p-1 text-center transition-colors select-none ${
                                   isSelected
-                                    ? 'bg-slate-900/5'
+                                    ? 'bg-slate-900/5 dark:bg-white/5'
                                     : isWeekend
-                                    ? 'bg-slate-50/30'
-                                    : 'bg-white'
+                                    ? 'bg-slate-50/30 dark:bg-slate-800/20'
+                                    : 'bg-white dark:bg-slate-900'
                                 }`}
                               >
                               {isSelected ? (() => {
@@ -1176,37 +1176,37 @@ export function TapeChartView({
                           // Distinct Modern Luminous Themes for Capsules
                           const theme = isHourly
                             ? {
-                                card: 'bg-[#faf8ff] hover:bg-purple-100/90 border-purple-200/90 border-l-[4px] border-l-purple-600',
-                                badge: 'bg-purple-100 text-purple-900 border-purple-200',
+                                card: 'bg-[#faf8ff] dark:bg-[#1c1424] hover:bg-purple-100/90 dark:hover:bg-[#281c34] border-purple-200/90 dark:border-purple-800/60 border-l-[4px] border-l-purple-600',
+                                badge: 'bg-purple-100 dark:bg-purple-950/60 text-purple-900 dark:text-purple-200 border-purple-200 dark:border-purple-800',
                                 dot: 'bg-purple-600',
-                                statusText: 'text-purple-900',
+                                statusText: 'text-purple-900 dark:text-purple-300',
                               }
                             : isCheckedIn
                             ? {
-                                card: 'bg-[#f4faff] hover:bg-sky-100/90 border-sky-200/90 border-l-[4px] border-l-sky-600',
-                                badge: 'bg-sky-100 text-sky-900 border-sky-200',
+                                card: 'bg-[#f4faff] dark:bg-[#121c24] hover:bg-sky-100/90 dark:hover:bg-[#1a2b38] border-sky-200/90 dark:border-sky-800/60 border-l-[4px] border-l-sky-600',
+                                badge: 'bg-sky-100 dark:bg-sky-950/60 text-sky-900 dark:text-sky-200 border-sky-200 dark:border-sky-800',
                                 dot: 'bg-sky-600',
-                                statusText: 'text-sky-900',
+                                statusText: 'text-sky-900 dark:text-sky-300',
                               }
                             : isCheckedOut
                             ? {
-                                card: 'bg-slate-50/90 hover:bg-slate-100/90 border-slate-200/90 border-l-[4px] border-l-slate-400',
-                                badge: 'bg-slate-100 text-slate-700 border-slate-200',
+                                card: 'bg-slate-50/90 dark:bg-slate-800/50 hover:bg-slate-100/90 dark:hover:bg-slate-800 border-slate-200/90 dark:border-slate-700 border-l-[4px] border-l-slate-400',
+                                badge: 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600',
                                 dot: 'bg-slate-400',
-                                statusText: 'text-slate-600',
+                                statusText: 'text-slate-600 dark:text-slate-400',
                               }
                             : res.vip
                             ? {
-                                card: 'bg-[#fffcf4] hover:bg-amber-100/90 border-amber-200/90 border-l-[4px] border-l-amber-600',
-                                badge: 'bg-amber-100 text-amber-950 border-amber-300',
+                                card: 'bg-[#fffcf4] dark:bg-[#1f1a12] hover:bg-amber-100/90 dark:hover:bg-[#2e2619] border-amber-200/90 dark:border-amber-800/60 border-l-[4px] border-l-amber-600',
+                                badge: 'bg-amber-100 dark:bg-amber-950/60 text-amber-950 dark:text-amber-200 border-amber-300 dark:border-amber-800',
                                 dot: 'bg-amber-600',
-                                statusText: 'text-amber-900',
+                                statusText: 'text-amber-900 dark:text-amber-300',
                               }
                             : {
-                                card: 'bg-[#f4fbf7] hover:bg-emerald-100/90 border-emerald-200/90 border-l-[4px] border-l-emerald-600',
-                                badge: 'bg-emerald-100 text-emerald-950 border-emerald-200',
+                                card: 'bg-[#f4fbf7] dark:bg-[#101f17] hover:bg-emerald-100/90 dark:hover:bg-[#162e21] border-emerald-200/90 dark:border-emerald-800/60 border-l-[4px] border-l-emerald-600',
+                                badge: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-950 dark:text-emerald-200 border-emerald-200 dark:border-emerald-800',
                                 dot: 'bg-emerald-600',
-                                statusText: 'text-emerald-900',
+                                statusText: 'text-emerald-900 dark:text-emerald-300',
                               };
 
                           const totalNights = segment.totalNights ?? 1;
@@ -1215,7 +1215,7 @@ export function TapeChartView({
                             <td
                               key={`${room.id}-res-${res.id}-${segIdx}`}
                               colSpan={segment.span}
-                              className="border-r border-slate-100 p-1.5"
+                              className="border-r border-slate-100 dark:border-white/10 p-1.5"
                             >
                               <Link
                                 href={`/billing?reservationId=${res.id}`}
@@ -1232,18 +1232,18 @@ export function TapeChartView({
                                         ? `◂ ${channel.label}`
                                         : channel.label}
                                     </span>
-                                    <span className="font-bold text-xs sm:text-[13px] text-slate-900 truncate">
+                                    <span className="font-bold text-xs sm:text-[13px] text-slate-900 dark:text-white truncate">
                                       {displayName}
                                     </span>
                                     {/* Single VIP Badge (Eliminated double VIP bug) */}
                                     {res.vip && (
-                                      <span className="rounded-full bg-amber-100 border border-amber-300 px-2 py-0.5 text-[9px] font-black text-amber-950 uppercase tracking-wider shrink-0 flex items-center gap-0.5 shadow-2xs">
+                                      <span className="rounded-full bg-amber-100 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-600 px-2 py-0.5 text-[9px] font-black text-amber-950 dark:text-amber-200 uppercase tracking-wider shrink-0 flex items-center gap-0.5 shadow-2xs">
                                         👑 VIP
                                       </span>
                                     )}
                                   </div>
 
-                                  <div className="flex items-center gap-1 shrink-0 text-[11px] font-medium text-slate-500">
+                                  <div className="flex items-center gap-1 shrink-0 text-[11px] font-medium text-slate-500 dark:text-slate-400">
                                     {segment.isContinuingAfter && <span>▸</span>}
                                     <span>{totalNights > 1 ? `${totalNights}n` : '1n'}</span>
                                   </div>
@@ -1258,7 +1258,7 @@ export function TapeChartView({
                                     <span>{isCheckedIn ? 'In-House' : isCheckedOut ? 'Departed (Paid)' : 'Confirmed'}</span>
                                   </span>
 
-                                  <span className="font-mono font-bold text-slate-900 text-xs">
+                                  <span className="font-mono font-bold text-slate-900 dark:text-white text-xs">
                                     {formatMoney(res.totalAmount, currency)}
                                   </span>
                                 </div>
@@ -1277,42 +1277,42 @@ export function TapeChartView({
       </div>
 
       {/* 4. Minimalist Modern Legend */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/80 bg-white px-5 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900/90 px-5 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] text-xs">
         <div className="flex flex-wrap items-center gap-4">
-          <span className="font-bold text-slate-900 text-xs">Rack Legend:</span>
+          <span className="font-bold text-slate-900 dark:text-white text-xs">Rack Legend:</span>
 
-          <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+          <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
             Ready / Available
           </span>
 
-          <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+          <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
             <span className="h-2.5 w-2.5 rounded-full bg-blue-500" />
             Occupied (In-House)
           </span>
 
-          <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+          <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
             <span className="h-2.5 w-2.5 rounded-full bg-teal-500" />
             Confirmed (Upcoming)
           </span>
 
-          <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+          <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
             <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />
             Departed (Past Stay)
           </span>
 
-          <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+          <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
             <span className="h-2.5 w-2.5 rounded-full bg-amber-500" />
             Needs Cleaning
           </span>
 
-          <span className="inline-flex items-center gap-1.5 text-slate-700 font-medium">
+          <span className="inline-flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
             <span className="h-2.5 w-2.5 rounded-full bg-slate-400" />
             Maintenance
           </span>
         </div>
 
-        <div className="text-slate-500 text-xs font-medium">
+        <div className="text-slate-500 dark:text-slate-400 text-xs font-medium">
           Click any reservation to view folio · Drag across empty cells to select dates
         </div>
       </div>

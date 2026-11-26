@@ -94,21 +94,21 @@ export default async function Dashboard({
 
       {/* KPI Overview Cards */}
       <section aria-label="Today's hotel metrics" className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-white/10 bg-white dark:bg-slate-900/90 p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Live Occupancy
             </p>
-            <span className="rounded-full border border-blue-200/80 bg-blue-50/80 px-2.5 py-0.5 text-xs font-semibold text-blue-800 shadow-2xs">
+            <span className="rounded-full border border-blue-200/80 bg-blue-50/80 dark:border-blue-500/30 dark:bg-blue-950/40 px-2.5 py-0.5 text-xs font-semibold text-blue-800 dark:text-blue-300 shadow-2xs">
               {occupancy}% Full
             </span>
           </div>
-          <p className="mt-2 font-display text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
-            {occupied} <span className="text-sm font-medium text-slate-500">/ {safeDash.totalRooms} Rooms</span>
+          <p className="mt-2 font-display text-2xl font-black tracking-tight text-slate-950 dark:text-white sm:text-3xl">
+            {occupied} <span className="text-sm font-medium text-slate-500 dark:text-slate-400">/ {safeDash.totalRooms} Rooms</span>
           </p>
-          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100">
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
             <div
-              className="h-full rounded-full bg-slate-900 transition-all duration-500"
+              className="h-full rounded-full bg-slate-900 dark:bg-white transition-all duration-500"
               style={{ width: `${Math.min(100, Math.max(4, occupancy))}%` }}
             />
           </div>
@@ -185,27 +185,27 @@ export default async function Dashboard({
 
             return (
               <div key={floor} className="space-y-4 pt-4">
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 border border-slate-200/80 px-4 py-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-white/10 px-4 py-2.5">
                   <div className="flex items-center gap-3">
-                    <span className="rounded-lg border border-slate-300 bg-white px-3 py-1 text-xs font-black uppercase tracking-wider text-slate-950 shadow-xs">
+                    <span className="rounded-lg border border-slate-300 dark:border-white/10 bg-white dark:bg-white/10 px-3 py-1 text-xs font-black uppercase tracking-wider text-slate-950 dark:text-white shadow-xs">
                       Floor {floor}
                     </span>
-                    <span className="text-xs font-bold text-slate-600">
+                    <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
                       {floorRooms.length} {floorRooms.length === 1 ? 'Room' : 'Rooms Total'}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-2 text-xs font-semibold">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 text-emerald-900 font-bold">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-500/30 px-2.5 py-0.5 text-emerald-900 dark:text-emerald-300 font-bold">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                       {floorReady} Ready
                     </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 border border-blue-200/80 px-2.5 py-0.5 text-blue-900 font-bold">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 dark:bg-blue-950/40 border border-blue-200/80 dark:border-blue-500/30 px-2.5 py-0.5 text-blue-900 dark:text-blue-300 font-bold">
                       <span className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                       {floorOccupied} Occupied
                     </span>
                     {floorCleaning > 0 && (
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 border border-amber-200/80 px-2.5 py-0.5 text-amber-900 font-bold">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-500/30 px-2.5 py-0.5 text-amber-900 dark:text-amber-300 font-bold">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
                         {floorCleaning} Cleaning
                       </span>
@@ -244,10 +244,10 @@ function Legend({
   count?: number;
 }) {
   const styles: Record<RoomStatus, { dot: string; bg: string; text: string; border: string }> = {
-    available: { dot: 'bg-emerald-500', bg: 'bg-emerald-50/80', text: 'text-emerald-900 font-bold', border: 'border-emerald-200/80' },
-    occupied: { dot: 'bg-blue-500', bg: 'bg-blue-50/80', text: 'text-blue-900 font-bold', border: 'border-blue-200/80' },
-    cleaning: { dot: 'bg-amber-500', bg: 'bg-amber-50/80', text: 'text-amber-900 font-bold', border: 'border-amber-200/80' },
-    maintenance: { dot: 'bg-slate-400', bg: 'bg-slate-100/80', text: 'text-slate-800 font-bold', border: 'border-slate-200/80' },
+    available: { dot: 'bg-emerald-500', bg: 'bg-emerald-50/80 dark:bg-emerald-950/40', text: 'text-emerald-900 dark:text-emerald-200 font-bold', border: 'border-emerald-200/80 dark:border-emerald-500/30' },
+    occupied: { dot: 'bg-blue-500', bg: 'bg-blue-50/80 dark:bg-blue-950/40', text: 'text-blue-900 dark:text-blue-200 font-bold', border: 'border-blue-200/80 dark:border-blue-500/30' },
+    cleaning: { dot: 'bg-amber-500', bg: 'bg-amber-50/80 dark:bg-amber-950/40', text: 'text-amber-900 dark:text-amber-200 font-bold', border: 'border-amber-200/80 dark:border-amber-500/30' },
+    maintenance: { dot: 'bg-slate-400', bg: 'bg-slate-100/80 dark:bg-slate-800', text: 'text-slate-800 dark:text-slate-200 font-bold', border: 'border-slate-200/80 dark:border-slate-700' },
   };
   const s = styles[status];
 

@@ -110,7 +110,7 @@ export function ReservationTable({
           <div className="hidden overflow-hidden rounded-2xl border border-line bg-surface shadow-sm md:block">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[800px] text-left" aria-label="Reservations list">
-                <thead className="border-b border-line bg-slate-100/90 text-xs font-black uppercase tracking-wider text-slate-800">
+                <thead className="border-b border-line bg-slate-100/90 dark:bg-slate-800/80 text-xs font-black uppercase tracking-wider text-slate-800 dark:text-slate-200">
                   <tr>
                     <th scope="col" className="px-5 py-4">Guest</th>
                     <th scope="col" className="px-5 py-4">Room</th>
@@ -122,19 +122,19 @@ export function ReservationTable({
                 </thead>
                 <tbody className="divide-y divide-line text-sm sm:text-[15px]">
                   {visible.map((reservation) => (
-                    <tr key={reservation.id} className="transition-colors hover:bg-slate-50/70">
+                    <tr key={reservation.id} className="transition-colors hover:bg-slate-50/70 dark:hover:bg-white/[0.02]">
                       <th scope="row" className="px-5 py-4 font-normal text-left">
-                        <p className="font-bold text-slate-950">{reservation.guestName}</p>
-                        {reservation.guestPhone && <p className="mt-0.5 text-xs text-slate-600 font-medium">{reservation.guestPhone}</p>}
+                        <p className="font-bold text-slate-950 dark:text-white">{reservation.guestName}</p>
+                        {reservation.guestPhone && <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 font-medium">{reservation.guestPhone}</p>}
                         {(reservation.guests?.length ?? 0) > 1 && (
-                          <p className="mt-1 text-xs text-slate-500 font-semibold">
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-semibold">
                             + {(reservation.guests?.length ?? 1) - 1} companion{reservation.guests?.length === 2 ? '' : 's'}
                           </p>
                         )}
                       </th>
-                      <td className="px-5 py-4 font-black font-mono text-slate-950">Room {reservation.roomNumber}</td>
-                      <td className="whitespace-nowrap px-5 py-4 font-semibold text-slate-800">{formatStayDates(reservation.checkIn, reservation.checkOut)}</td>
-                      <td className="whitespace-nowrap px-5 py-4 font-black text-slate-950">{money(reservation.totalAmount, currency)}</td>
+                      <td className="px-5 py-4 font-black font-mono text-slate-950 dark:text-white">Room {reservation.roomNumber}</td>
+                      <td className="whitespace-nowrap px-5 py-4 font-semibold text-slate-800 dark:text-slate-200">{formatStayDates(reservation.checkIn, reservation.checkOut)}</td>
+                      <td className="whitespace-nowrap px-5 py-4 font-black text-slate-950 dark:text-white">{money(reservation.totalAmount, currency)}</td>
                       <td className="px-5 py-4"><StatusBadge status={reservation.status} /></td>
                       <td className="px-5 py-4">
                         <Actions
@@ -155,14 +155,14 @@ export function ReservationTable({
               <article key={reservation.id} className="rounded-2xl border border-line bg-surface p-5 shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-base font-bold text-slate-950">{reservation.guestName}</p>
-                    <p className="mt-0.5 text-xs font-semibold text-slate-600">Room {reservation.roomNumber}{reservation.guestPhone ? ` · ${reservation.guestPhone}` : ''}</p>
+                    <p className="truncate text-base font-bold text-slate-950 dark:text-white">{reservation.guestName}</p>
+                    <p className="mt-0.5 text-xs font-semibold text-slate-600 dark:text-slate-400">Room {reservation.roomNumber}{reservation.guestPhone ? ` · ${reservation.guestPhone}` : ''}</p>
                   </div>
                   <StatusBadge status={reservation.status} />
                 </div>
                 <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
-                  <p className="text-xs sm:text-sm font-semibold text-slate-700">{formatStayDates(reservation.checkIn, reservation.checkOut)}</p>
-                  <p className="text-sm sm:text-base font-black text-slate-950">{money(reservation.totalAmount, currency)}</p>
+                  <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300">{formatStayDates(reservation.checkIn, reservation.checkOut)}</p>
+                  <p className="text-sm sm:text-base font-black text-slate-950 dark:text-white">{money(reservation.totalAmount, currency)}</p>
                 </div>
                 {!readOnly && (
                   <div className="mt-3">

@@ -1289,22 +1289,22 @@ export function RestaurantPosView({
       {/* ============================================================== */}
       {/* AURA DINE DUAL MODE HEADER                                    */}
       {/* ============================================================== */}
-      <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-500/10 text-amber-700 font-bold text-lg">
+            <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold text-lg">
               🍽️
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-xl sm:text-2xl font-black text-slate-950">
+                <h1 className="font-display text-xl sm:text-2xl font-black text-slate-950 dark:text-white">
                   Restaurant &amp; Dining
                 </h1>
-                <span className="rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider">
+                <span className="rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider border border-emerald-200 dark:border-emerald-800">
                   Food &amp; Dining
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium">
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 {operatingMode === 'hotel'
                   ? 'Connected to Hotel · Charge food orders directly to guest room bill, 5% F&B GST'
                   : 'Standalone Restaurant Mode · Dine-in orders, Swiggy/Zomato, and cash/card billing'}
@@ -1316,14 +1316,14 @@ export function RestaurantPosView({
         {/* Operating Mode Switcher & Outlet Pill */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Hotel vs Standalone Toggle */}
-          <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+          <div className="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700">
             <button
               type="button"
               onClick={() => setOperatingMode('hotel')}
               className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
                 operatingMode === 'hotel'
-                  ? 'bg-white text-slate-950 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-950'
+                  ? 'bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
               }`}
             >
               🏨 Hotel Integrated
@@ -1334,7 +1334,7 @@ export function RestaurantPosView({
               className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
                 operatingMode === 'standalone'
                   ? 'bg-amber-500 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-950'
+                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
               }`}
             >
               🍽️ Standalone POS

@@ -110,10 +110,10 @@ export function RoomInventory({
                   <div className="min-w-0">
                     {/* Bundled Notes Signature Accent Dash */}
                     <span className={`h-1.5 w-6 rounded-full ${roomTheme.dash} block mb-2 shadow-2xs`} />
-                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Floor {room.floor}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Floor {room.floor}</p>
                     <h3
-                      className="mt-1 font-display text-2xl font-black font-mono leading-7 text-slate-950 select-all"
-                      style={{ color: '#020617' }}
+                      className="mt-1 font-display text-2xl font-black font-mono leading-7 text-slate-950 dark:text-white select-all"
+                      title={`Room ${room.number}`}
                     >
                       Room {room.number}
                     </h3>
@@ -126,9 +126,9 @@ export function RoomInventory({
                   </div>
                   <StatusBadge status={room.status} />
                 </div>
-                <div className="grid grid-cols-2 gap-2 border-y border-slate-200/80 bg-white/70 px-5 py-3 text-xs sm:text-[13px]">
-                  <div><p className="font-medium text-slate-500">Nightly Rate</p><p className="mt-0.5 text-sm font-bold text-slate-900">{money(room.baseRate, currency)}</p></div>
-                  <div><p className="font-medium text-slate-500">Hourly Rate</p><p className="mt-0.5 text-sm font-bold text-slate-900">{room.hourlyRate == null ? 'Default ÷ 24' : money(room.hourlyRate, currency)}</p></div>
+                <div className="grid grid-cols-2 gap-2 border-y border-slate-200/80 dark:border-white/10 bg-white/70 dark:bg-slate-900/60 px-5 py-3 text-xs sm:text-[13px]">
+                  <div><p className="font-medium text-slate-500 dark:text-slate-400">Nightly Rate</p><p className="mt-0.5 text-sm font-bold text-slate-900 dark:text-white">{money(room.baseRate, currency)}</p></div>
+                  <div><p className="font-medium text-slate-500 dark:text-slate-400">Hourly Rate</p><p className="mt-0.5 text-sm font-bold text-slate-900 dark:text-white">{room.hourlyRate == null ? 'Default ÷ 24' : money(room.hourlyRate, currency)}</p></div>
                 </div>
                 <div className="space-y-3 p-4">
                   {canManage && !readOnly && (

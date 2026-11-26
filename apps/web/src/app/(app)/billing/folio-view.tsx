@@ -206,21 +206,21 @@ export function FolioView({
 
       {/* Folio Items Table */}
       <section aria-labelledby="folio-items-title" className="overflow-hidden rounded-3xl border border-line bg-surface shadow-sm">
-        <div className="flex items-center justify-between border-b border-line px-6 py-5 bg-slate-50">
+        <div className="flex items-center justify-between border-b border-line px-6 py-5 bg-slate-50 dark:bg-slate-900/80">
           <div>
-            <h3 id="folio-items-title" className="font-display text-lg font-black text-slate-950">
+            <h3 id="folio-items-title" className="font-display text-lg font-black text-slate-950 dark:text-white">
               Itemized Charges &amp; Indian GST Breakdown
             </h3>
-            <p className="mt-0.5 text-sm text-slate-600 font-medium">Includes statutory SAC codes (996311 accommodation, 996331 F&amp;B)</p>
+            <p className="mt-0.5 text-sm text-slate-600 dark:text-slate-400 font-medium">Includes statutory SAC codes (996311 accommodation, 996331 F&amp;B)</p>
           </div>
-          <span className="rounded-full bg-white border border-slate-300 px-3.5 py-1 text-xs sm:text-sm font-bold text-slate-900">
+          <span className="rounded-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-white/10 px-3.5 py-1 text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
             {folio.items.length} items
           </span>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full min-w-[760px] text-left">
-            <thead className="border-b border-line bg-slate-100/90 font-black uppercase tracking-wider text-slate-800 text-xs">
+            <thead className="border-b border-line bg-slate-100/90 dark:bg-slate-800/80 font-black uppercase tracking-wider text-slate-800 dark:text-slate-200 text-xs">
               <tr>
                 <th className="px-5 py-4">Description</th>
                 <th className="px-5 py-4">SAC / Category</th>
@@ -234,17 +234,17 @@ export function FolioView({
             </thead>
             <tbody className="divide-y divide-line text-sm sm:text-[15px]">
               {folio.items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
-                  <td className="px-5 py-4 font-bold text-slate-950">{item.description}</td>
-                  <td className="px-5 py-4 text-slate-700">
-                    <span className="font-mono font-bold text-slate-950">{item.hsnSac}</span> · {item.taxCategoryCode}
+                <tr key={item.id} className="hover:bg-slate-50/70 dark:hover:bg-white/[0.02] transition-colors">
+                  <td className="px-5 py-4 font-bold text-slate-950 dark:text-white">{item.description}</td>
+                  <td className="px-5 py-4 text-slate-700 dark:text-slate-300">
+                    <span className="font-mono font-bold text-slate-950 dark:text-white">{item.hsnSac}</span> · {item.taxCategoryCode}
                   </td>
-                  <td className="px-5 py-4 font-semibold text-slate-900">{item.quantity}</td>
-                  <td className="px-5 py-4 font-semibold text-slate-900">{money(item.unitPrice, currency)}</td>
-                  <td className="px-5 py-4 text-slate-700 font-medium">{item.cgstAmount > 0 ? money(item.cgstAmount, currency) : '—'}</td>
-                  <td className="px-5 py-4 text-slate-700 font-medium">{item.sgstAmount > 0 ? money(item.sgstAmount, currency) : '—'}</td>
-                  <td className="px-5 py-4 text-slate-700 font-medium">{item.igstAmount > 0 ? money(item.igstAmount, currency) : '—'}</td>
-                  <td className="px-5 py-4 text-right font-black text-slate-950">{money(item.lineTotal, currency)}</td>
+                  <td className="px-5 py-4 font-semibold text-slate-900 dark:text-white">{item.quantity}</td>
+                  <td className="px-5 py-4 font-semibold text-slate-900 dark:text-white">{money(item.unitPrice, currency)}</td>
+                  <td className="px-5 py-4 text-slate-700 dark:text-slate-300 font-medium">{item.cgstAmount > 0 ? money(item.cgstAmount, currency) : '—'}</td>
+                  <td className="px-5 py-4 text-slate-700 dark:text-slate-300 font-medium">{item.sgstAmount > 0 ? money(item.sgstAmount, currency) : '—'}</td>
+                  <td className="px-5 py-4 text-slate-700 dark:text-slate-300 font-medium">{item.igstAmount > 0 ? money(item.igstAmount, currency) : '—'}</td>
+                  <td className="px-5 py-4 text-right font-black text-slate-950 dark:text-white">{money(item.lineTotal, currency)}</td>
                 </tr>
               ))}
             </tbody>
@@ -544,15 +544,15 @@ export function FolioView({
                         <span className="font-semibold uppercase text-ink">{p.method.replace('_', ' ')}</span>
                       )}
                       {p.cardBrand && (
-                        <span className="font-bold text-[10px] text-slate-800">
+                        <span className="font-bold text-[10px] text-slate-800 dark:text-slate-200">
                           {p.cardBrand} {p.cardLastFour ? `(**** ${p.cardLastFour})` : ''}
                         </span>
                       )}
                     </div>
                     <p className="text-[10px] text-muted">{formatDateTime(p.createdAt)}</p>
                     {p.bankRrn && (
-                      <p className="font-mono text-[10px] text-slate-600">
-                        Bank RRN: <span className="font-bold text-slate-900">{p.bankRrn}</span>
+                      <p className="font-mono text-[10px] text-slate-600 dark:text-slate-400">
+                        Bank RRN: <span className="font-bold text-slate-900 dark:text-white">{p.bankRrn}</span>
                         {p.authCode ? ` · Auth: ${p.authCode}` : ''}
                       </p>
                     )}

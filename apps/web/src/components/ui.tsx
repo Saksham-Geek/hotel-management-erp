@@ -15,7 +15,7 @@ export const btnGhostCls =
   'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-4 py-2.5 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-white/10 hover:border-slate-300 dark:hover:border-white/20 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50';
 
 export const btnDangerCls =
-  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm font-semibold text-rose-700 shadow-2xs hover:bg-rose-100 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
+  'inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 px-4 py-2.5 text-sm font-semibold text-rose-700 dark:text-rose-300 shadow-2xs hover:bg-rose-100 dark:hover:bg-rose-950/50 active:scale-[0.99] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500';
 
 export { Banner, type BannerProps } from './banner';
 
@@ -31,19 +31,19 @@ export function PageHeader({
   children?: ReactNode;
 }) {
   return (
-    <div className="mb-8 flex flex-wrap items-end justify-between gap-5 border-b border-slate-200/80 pb-6">
+    <div className="mb-8 flex flex-wrap items-end justify-between gap-5 border-b border-slate-200/80 dark:border-white/10 pb-6">
       <div className="min-w-0">
         {eyebrow && (
-          <p className="mb-2.5 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 shadow-2xs">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-900" />
+          <p className="mb-2.5 inline-flex items-center gap-2 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 shadow-2xs">
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-900 dark:bg-white" />
             {eyebrow}
           </p>
         )}
-        <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950">
+        <h1 className="font-display text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-950 dark:text-white">
           {title}
         </h1>
         {description && (
-          <p className="mt-1.5 max-w-3xl text-sm sm:text-base leading-relaxed text-slate-500 font-normal">
+          <p className="mt-1.5 max-w-3xl text-sm sm:text-base leading-relaxed text-slate-500 dark:text-slate-400 font-normal">
             {description}
           </p>
         )}
@@ -86,14 +86,14 @@ const STATUS_LABELS: Record<RoomStatus | 'reserved' | 'checked_in' | 'checked_ou
 
 // Refined, accessible, modern luxury status colors
 const STATUS_COLORS: Record<RoomStatus | 'reserved' | 'checked_in' | 'checked_out' | 'cancelled', string> = {
-  available: 'border-emerald-200/80 bg-emerald-50/80 text-emerald-900',
-  occupied: 'border-blue-200/80 bg-blue-50/80 text-blue-900',
-  cleaning: 'border-amber-200/80 bg-amber-50/80 text-amber-900',
-  maintenance: 'border-slate-200/80 bg-slate-100/80 text-slate-800',
-  reserved: 'border-indigo-200/80 bg-indigo-50/80 text-indigo-900',
-  checked_in: 'border-blue-200/80 bg-blue-50/80 text-blue-900',
-  checked_out: 'border-slate-200/80 bg-slate-100/80 text-slate-700',
-  cancelled: 'border-rose-200/80 bg-rose-50/80 text-rose-900',
+  available: 'border-emerald-200/80 bg-emerald-50/80 text-emerald-900 dark:border-emerald-500/30 dark:bg-emerald-950/40 dark:text-emerald-200',
+  occupied: 'border-blue-200/80 bg-blue-50/80 text-blue-900 dark:border-blue-500/30 dark:bg-blue-950/40 dark:text-blue-200',
+  cleaning: 'border-amber-200/80 bg-amber-50/80 text-amber-900 dark:border-amber-500/30 dark:bg-amber-950/40 dark:text-amber-200',
+  maintenance: 'border-slate-200/80 bg-slate-100/80 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
+  reserved: 'border-indigo-200/80 bg-indigo-50/80 text-indigo-900 dark:border-indigo-500/30 dark:bg-indigo-950/40 dark:text-indigo-200',
+  checked_in: 'border-blue-200/80 bg-blue-50/80 text-blue-900 dark:border-blue-500/30 dark:bg-blue-950/40 dark:text-blue-200',
+  checked_out: 'border-slate-200/80 bg-slate-100/80 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300',
+  cancelled: 'border-rose-200/80 bg-rose-50/80 text-rose-900 dark:border-rose-500/30 dark:bg-rose-950/40 dark:text-rose-200',
 };
 
 const STATUS_PULSE: Record<RoomStatus | 'reserved' | 'checked_in' | 'checked_out' | 'cancelled', string> = {
@@ -152,8 +152,7 @@ export function RoomTile({
           {/* Header: Room Name & Status Badge */}
           <div className="flex items-center justify-between gap-2">
             <h3
-              className="font-display text-xl sm:text-2xl font-black font-mono tracking-tight text-slate-950 truncate select-all"
-              style={{ color: '#020617' }}
+              className="font-display text-xl sm:text-2xl font-black font-mono tracking-tight text-slate-950 dark:text-white truncate select-all"
               title={`Room ${number}`}
             >
               Room {number}
@@ -168,23 +167,23 @@ export function RoomTile({
               <span className="truncate">{type}</span>
             </span>
             {floor !== undefined && (
-              <span className="text-xs font-semibold text-slate-500">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 · Floor {floor}
               </span>
             )}
           </div>
 
           {/* Bottom Context Pill */}
-          <div className="mt-4 flex items-center justify-between border-t border-slate-200/60 pt-3 text-xs font-bold">
+          <div className="mt-4 flex items-center justify-between border-t border-slate-200/60 dark:border-white/10 pt-3 text-xs font-bold">
             <span
               className={`inline-flex items-center gap-1.5 ${
                 isReady
-                  ? 'text-emerald-700'
+                  ? 'text-emerald-700 dark:text-emerald-400'
                   : isOccupied
-                  ? 'text-blue-700'
+                  ? 'text-blue-700 dark:text-blue-400'
                   : isCleaning
-                  ? 'text-amber-700'
-                  : 'text-slate-600'
+                  ? 'text-amber-700 dark:text-amber-400'
+                  : 'text-slate-600 dark:text-slate-400'
               }`}
             >
               <span
@@ -227,21 +226,21 @@ export function StatCard({
   icon?: ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-sm transition-all duration-200 hover:border-slate-300 hover:shadow-md min-w-0">
+    <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 p-5 sm:p-6 shadow-sm transition-all duration-200 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-md min-w-0">
       <div className="flex items-center justify-between gap-3 min-w-0">
-        <p className="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-600 truncate">
+        <p className="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 truncate">
           {label}
         </p>
         {icon && (
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 text-slate-800">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-200">
             {icon}
           </span>
         )}
       </div>
-      <div className="mt-3 font-display text-2xl sm:text-3xl lg:text-3xl 2xl:text-4xl font-black tracking-tight text-slate-950 tabular-nums break-words min-w-0 truncate">
+      <div className="mt-3 font-display text-2xl sm:text-3xl lg:text-3xl 2xl:text-4xl font-black tracking-tight text-slate-950 dark:text-white tabular-nums break-words min-w-0 truncate">
         {value}
       </div>
-      {detail && <p className="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600 truncate">{detail}</p>}
+      {detail && <p className="mt-1.5 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 truncate">{detail}</p>}
     </div>
   );
 }

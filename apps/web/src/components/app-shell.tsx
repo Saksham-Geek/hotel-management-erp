@@ -8,6 +8,7 @@ import { Nav, type NavItem } from './nav';
 import { CustomDropdown } from './dropdown';
 import { RolePersonaSwitcher } from './role-persona-switcher';
 import { CommandSearchModal } from './command-search-modal';
+import { ThemeToggle } from './theme-toggle';
 
 type PropertyOption = { id: string; name: string };
 type FormAction = (formData: FormData) => void | Promise<void>;
@@ -310,7 +311,7 @@ export function AppShell({
         }`}
       >
         {/* Sticky Top Header */}
-        <header className="sticky top-0 z-30 flex min-h-[60px] items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-md sm:px-6 lg:px-8 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+        <header className="sticky top-0 z-30 flex min-h-[60px] items-center justify-between gap-4 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-md sm:px-6 lg:px-8 shadow-[0_1px_2px_rgba(0,0,0,0.02)] dark:border-slate-800 dark:bg-slate-900/90">
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
@@ -318,7 +319,7 @@ export function AppShell({
               aria-expanded={mobileOpen}
               aria-controls="app-navigation"
               onClick={() => setMobileOpen(true)}
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-800 shadow-2xs hover:bg-slate-50 md:hidden transition-colors"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-800 shadow-2xs hover:bg-slate-50 md:hidden transition-colors dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
             >
               <MenuIcon />
             </button>
@@ -327,7 +328,7 @@ export function AppShell({
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               onClick={toggleCollapsed}
-              className="hidden h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-2xs hover:bg-slate-50 md:grid transition-colors"
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-slate-500 shadow-2xs hover:bg-slate-50 md:grid transition-colors dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               <CollapseIcon collapsed={collapsed} />
             </button>
@@ -335,9 +336,9 @@ export function AppShell({
             {/* Breadcrumb Navigation */}
             <nav aria-label="Breadcrumb" className="min-w-0">
               <ol className="flex items-center gap-1.5 sm:gap-2 text-xs font-medium list-none p-0 m-0">
-                <li className="text-slate-500 truncate max-w-[100px] sm:max-w-[180px] lg:max-w-none">{property.name}</li>
-                <li className="text-slate-300 shrink-0" aria-hidden="true">/</li>
-                <li className="font-semibold text-slate-900 truncate max-w-[130px] sm:max-w-[220px] lg:max-w-none" aria-current="page">
+                <li className="text-slate-500 dark:text-slate-400 truncate max-w-[100px] sm:max-w-[180px] lg:max-w-none">{property.name}</li>
+                <li className="text-slate-300 dark:text-slate-600 shrink-0" aria-hidden="true">/</li>
+                <li className="font-semibold text-slate-900 dark:text-white truncate max-w-[130px] sm:max-w-[220px] lg:max-w-none" aria-current="page">
                   {pageNames[pathname] ?? 'Hotel Operations'}
                 </li>
               </ol>
@@ -350,12 +351,12 @@ export function AppShell({
             <button
               type="button"
               onClick={() => setSearchOpen(true)}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:border-slate-600"
               title="Click or press Ctrl+K to search any page, room, or action"
             >
               <span>🔍</span>
               <span className="hidden sm:inline">Search</span>
-              <kbd className="hidden md:inline-block rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-mono text-slate-500 border border-slate-300">
+              <kbd className="hidden md:inline-block rounded bg-slate-100 px-1.5 py-0.2 text-[10px] font-mono text-slate-500 border border-slate-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600">
                 Ctrl K
               </kbd>
             </button>
@@ -363,7 +364,7 @@ export function AppShell({
             {/* Quick ERP Guide & Journeys Pill */}
             <Link
               href="/guide"
-              className="hidden xs:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
+              className="hidden xs:inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-700 shadow-2xs hover:bg-slate-50 hover:border-slate-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:hover:border-slate-600"
               title="Click to view SOP, Page Directory & Step-by-Step Journeys"
             >
               <span>📖 <span className="hidden sm:inline">SOP &amp; </span>Journeys</span>
@@ -372,7 +373,7 @@ export function AppShell({
             {/* Live Indian Time & Date Capsule */}
             <span
               suppressHydrationWarning
-              className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-medium text-slate-700 shadow-2xs xl:inline-flex"
+              className="hidden items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1 text-xs font-medium text-slate-700 shadow-2xs xl:inline-flex dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200"
             >
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 shrink-0" aria-hidden="true" />
               {new Intl.DateTimeFormat('en-IN', {
@@ -386,7 +387,7 @@ export function AppShell({
             {/* Tier / Edition Link Capsule */}
             <Link
               href="/upgrade"
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 sm:px-3.5 py-1 text-xs font-semibold text-slate-800 shadow-2xs hover:bg-slate-50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               <span>{plan === 'enterprise' ? '👑 Enterprise' : plan === 'growth' || plan === 'plus' ? '⚡ Growth' : '🌱 Starter'}<span className="hidden md:inline"> Edition</span></span>
             </Link>
@@ -399,10 +400,13 @@ export function AppShell({
                 switchAction={switchRolePreview}
               />
             ) : (
-              <span className="hidden rounded-full border border-slate-200 bg-white px-2.5 sm:px-3 py-1 text-xs font-medium capitalize text-slate-700 shadow-2xs sm:inline-flex">
+              <span className="hidden rounded-full border border-slate-200 bg-white px-2.5 sm:px-3 py-1 text-xs font-medium capitalize text-slate-700 shadow-2xs sm:inline-flex dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
                 {role.replaceAll('_', ' ')}
               </span>
             )}
+
+            {/* Theme Toggle (Light / Dark Mode) */}
+            <ThemeToggle />
           </div>
         </header>
 

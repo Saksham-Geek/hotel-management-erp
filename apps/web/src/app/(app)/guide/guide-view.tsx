@@ -333,14 +333,14 @@ export function GuideView({
       </div>
 
       {/* Modern Segmented Navigation Tabs */}
-      <div className="flex flex-wrap items-center gap-2 pb-2">
+      <div className="rounded-2xl border border-border bg-card p-1.5 shadow-2xs inline-flex flex-wrap items-center gap-1.5 max-w-full">
         <button
           type="button"
           onClick={() => setActiveTab('pages')}
           className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'pages'
-              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 font-semibold'
           }`}
         >
           📖 Which Page is For What ({allPages.length} Modules)
@@ -351,8 +351,8 @@ export function GuideView({
           onClick={() => setActiveTab('matrix')}
           className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'matrix'
-              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 font-semibold'
           }`}
         >
           🔐 Role Permissions Matrix
@@ -364,8 +364,8 @@ export function GuideView({
             onClick={() => setActiveTab('founder')}
             className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               activeTab === 'founder'
-                ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-                : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
+                ? 'bg-primary text-primary-foreground shadow-xs'
+                : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 font-semibold'
             }`}
           >
             ⚡ SaaS Platform Founder SOP
@@ -377,8 +377,8 @@ export function GuideView({
           onClick={() => setActiveTab('owner')}
           className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'owner'
-              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 font-semibold'
           }`}
         >
           👑 Hotel Owner &amp; Director SOP
@@ -389,8 +389,8 @@ export function GuideView({
           onClick={() => setActiveTab('manager')}
           className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'manager'
-              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 font-semibold'
           }`}
         >
           👔 General Manager (GM) SOP
@@ -401,8 +401,8 @@ export function GuideView({
           onClick={() => setActiveTab('frontdesk')}
           className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'frontdesk'
-              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 font-semibold'
           }`}
         >
           🛎️ Front Desk &amp; Cashiering SOP
@@ -413,8 +413,8 @@ export function GuideView({
           onClick={() => setActiveTab('housekeeping')}
           className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
             activeTab === 'housekeeping'
-              ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/20'
-              : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground shadow-2xs'
+              ? 'bg-primary text-primary-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground hover:bg-muted/40 font-semibold'
           }`}
         >
           🧹 Housekeeping &amp; Turndown SOP
@@ -480,7 +480,7 @@ export function GuideView({
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-3xl">{p.icon}</span>
                       <div className="flex items-center gap-1.5">
-                        <span className="rounded-lg bg-slate-900 dark:bg-slate-800 !text-white px-2.5 py-1 text-[11px] font-black uppercase tracking-wider shadow-2xs">
+                        <span className="rounded-lg bg-muted border border-border text-foreground px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider shadow-2xs">
                           {p.badge}
                         </span>
                         {isAllowedForMe ? (
@@ -495,17 +495,17 @@ export function GuideView({
                       </div>
                     </div>
 
-                    <h3 className="mt-4 font-display text-lg font-black text-foreground group-hover:text-indigo-900 transition-colors">
+                    <h3 className="mt-4 font-display text-lg font-black text-foreground group-hover:text-primary transition-colors">
                       {p.name}
                     </h3>
-                    <p className="mt-0.5 text-xs font-mono text-indigo-700 font-bold">
+                    <p className="mt-0.5 text-xs font-mono text-primary font-bold">
                       {p.route.includes('[slug]') ? `/book/${tenantSlug || 'grand-azure'}` : p.route}
                     </p>
                     <p className="mt-3 text-xs sm:text-sm text-muted-foreground leading-relaxed">{p.desc}</p>
                   </div>
 
                   <div className="mt-5 pt-4 border-t border-border space-y-2">
-                    <p className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+                    <p className="text-[11px] font-black uppercase tracking-wider text-muted-foreground">
                       Key Capabilities:
                     </p>
                     <ul className="text-xs text-foreground space-y-1">

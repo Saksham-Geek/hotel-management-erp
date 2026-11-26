@@ -485,13 +485,13 @@ export function InventoryClient({
       {activeTab === 'ledger' && (
         <div className="space-y-4">
           {/* Search & Category Filter */}
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-slate-200/80 bg-white p-3 shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border border-border bg-card p-3 shadow-2xs text-card-foreground">
             <input
               type="text"
               placeholder="Search materials by name, location, or supplier…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-hidden dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+              className="flex-1 rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
             />
 
             <div className="w-full sm:w-64">
@@ -627,11 +627,11 @@ export function InventoryClient({
       {/* TAB 2: GOODS RECEIPTS & STOCK MOVEMENTS AUDIT TRAIL */}
       {activeTab === 'movements' && (
         <div className="space-y-4">
-          <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-2xs dark:border-slate-800 dark:bg-slate-900">
+          <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-2xs text-card-foreground">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="border-b border-slate-200/80 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950/50 dark:text-slate-400">
+                  <tr className="border-b border-border bg-muted/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                     <th className="px-4 py-3">Timestamp</th>
                     <th className="px-4 py-3">Type</th>
                     <th className="px-4 py-3">Item / SKU</th>
@@ -756,10 +756,10 @@ export function InventoryClient({
             </button>
           </div>
 
-          <div className="rounded-2xl border border-slate-200/80 bg-white shadow-2xs overflow-hidden dark:border-slate-800 dark:bg-slate-900">
+          <div className="rounded-2xl border border-border bg-card shadow-2xs overflow-hidden text-card-foreground">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400">
+                <thead className="border-b border-border bg-muted/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                   <tr>
                     <th className="px-4 py-3">Menu Dish Item</th>
                     <th className="px-4 py-3">Category</th>
@@ -829,7 +829,7 @@ export function InventoryClient({
       {/* Add Item Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl text-card-foreground border border-border">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>📦</span> Add New Store / Raw Material SKU
@@ -860,7 +860,7 @@ export function InventoryClient({
                   placeholder="e.g. Basmati Rice, Fresh Paneer, Amul Butter, Dental Kit"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-slate-900 focus:outline-hidden dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-hidden"
                 />
               </div>
 
@@ -895,7 +895,7 @@ export function InventoryClient({
                     required
                     value={currentStock}
                     onChange={(e) => setCurrentStock(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
 
@@ -909,7 +909,7 @@ export function InventoryClient({
                     required
                     value={minimumAlertStock}
                     onChange={(e) => setMinimumAlertStock(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
 
@@ -923,7 +923,7 @@ export function InventoryClient({
                     required
                     value={costPerUnit}
                     onChange={(e) => setCostPerUnit(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -938,7 +938,7 @@ export function InventoryClient({
                     placeholder="e.g. Dry Store Rack A, Walk-In Chiller"
                     value={storageLocation}
                     onChange={(e) => setStorageLocation(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
 
@@ -951,7 +951,7 @@ export function InventoryClient({
                     placeholder="e.g. Metro Cash & Carry, Amrit Dairy"
                     value={defaultVendorName}
                     onChange={(e) => setDefaultVendorName(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -980,7 +980,7 @@ export function InventoryClient({
       {/* Recipe Link Modal */}
       {isRecipeModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl text-card-foreground border border-border">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>🥗</span> Link Recipe Ingredient BOM
@@ -1037,7 +1037,7 @@ export function InventoryClient({
                   required
                   value={recipeQty}
                   onChange={(e) => setRecipeQty(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   placeholder="e.g. 0.25 (250g) or 0.1 (100ml)"
                 />
               </div>
@@ -1066,7 +1066,7 @@ export function InventoryClient({
       {/* Stock In / Goods Receipt Note (GRN) Modal */}
       {restockItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-2xl text-card-foreground border border-border">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>📥</span> Stock In / Goods Receipt (GRN)
@@ -1080,7 +1080,7 @@ export function InventoryClient({
               </button>
             </div>
 
-            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200/60 dark:border-slate-800">
+            <div className="mt-3 p-3 bg-muted/40 rounded-xl border border-border">
               <p className="font-bold text-xs text-slate-900 dark:text-white">{restockItem.name}</p>
               <p className="text-[11px] text-slate-500 mt-0.5">
                 Current Stock: <span className="font-bold">{restockItem.currentStock} {restockItem.unit}</span> | Current Cost: ₹{restockItem.costPerUnit}/{restockItem.unit}
@@ -1100,7 +1100,7 @@ export function InventoryClient({
                     placeholder="e.g. 25"
                     value={restockQty}
                     onChange={(e) => setRestockQty(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
 
@@ -1114,7 +1114,7 @@ export function InventoryClient({
                     placeholder={String(restockItem.costPerUnit)}
                     value={restockUnitCost}
                     onChange={(e) => setRestockUnitCost(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -1128,7 +1128,7 @@ export function InventoryClient({
                   placeholder="e.g. Metro Cash & Carry Invoice #88124"
                   value={restockInvoiceRef}
                   onChange={(e) => setRestockInvoiceRef(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                 />
               </div>
 
@@ -1141,7 +1141,7 @@ export function InventoryClient({
                   placeholder="e.g. Fresh morning delivery, temperature verified"
                   value={restockNotes}
                   onChange={(e) => setRestockNotes(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                 />
               </div>
 
@@ -1169,7 +1169,7 @@ export function InventoryClient({
       {/* Stock Out / Issue Modal */}
       {adjustItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-2xl text-card-foreground border border-border">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>📤</span> Stock Out / Department Issue
@@ -1183,7 +1183,7 @@ export function InventoryClient({
               </button>
             </div>
 
-            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200/60 dark:border-slate-800">
+            <div className="mt-3 p-3 bg-muted/40 rounded-xl border border-border">
               <p className="font-bold text-xs text-slate-900 dark:text-white">{adjustItem.name}</p>
               <p className="text-[11px] text-slate-500 mt-0.5">
                 Available to Issue: <span className="font-bold text-slate-900 dark:text-white">{adjustItem.currentStock} {adjustItem.unit}</span>
@@ -1219,7 +1219,7 @@ export function InventoryClient({
                     placeholder={`Max ${adjustItem.currentStock}`}
                     value={adjustQty}
                     onChange={(e) => setAdjustQty(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
 
@@ -1252,7 +1252,7 @@ export function InventoryClient({
                   placeholder="e.g. Daily dinner buffet preparation requisition"
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3.5 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                  className="w-full rounded-xl border border-border bg-muted/40 px-3.5 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                 />
               </div>
 
@@ -1280,7 +1280,7 @@ export function InventoryClient({
       {/* Edit Item Modal */}
       {editItem && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4 animate-in fade-in">
-          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+          <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl text-card-foreground border border-border">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 dark:border-slate-800">
               <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>✏️</span> Edit Store Item / SKU Details
@@ -1339,7 +1339,7 @@ export function InventoryClient({
                     required
                     value={editMinAlert}
                     onChange={(e) => setEditMinAlert(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
 
@@ -1353,7 +1353,7 @@ export function InventoryClient({
                     required
                     value={editCostPerUnit}
                     onChange={(e) => setEditCostPerUnit(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
               </div>
@@ -1367,7 +1367,7 @@ export function InventoryClient({
                     type="text"
                     value={editStorageLoc}
                     onChange={(e) => setEditStorageLoc(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
 
@@ -1379,7 +1379,7 @@ export function InventoryClient({
                     type="text"
                     value={editVendor}
                     onChange={(e) => setEditVendor(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-3 py-2 text-xs text-slate-900 dark:border-slate-800 dark:bg-slate-950 dark:text-white"
+                    className="w-full rounded-xl border border-border bg-muted/40 px-3 py-2 text-xs text-foreground focus:border-primary focus:outline-hidden"
                   />
                 </div>
               </div>

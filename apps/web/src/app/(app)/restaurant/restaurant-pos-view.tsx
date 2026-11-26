@@ -1863,18 +1863,18 @@ export function RestaurantPosView({
                     placeholder="Search dish (e.g. Paneer Tikka, Naan, Biryani)..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-xs font-medium text-slate-900 shadow-xs placeholder:text-slate-400 focus:border-slate-950 focus:outline-none"
+                    className="w-full rounded-2xl border border-border bg-card px-4 py-2.5 text-xs font-medium text-foreground shadow-xs placeholder:text-muted-foreground focus:border-primary focus:outline-none"
                   />
                 </div>
 
-                <div className="flex rounded-2xl bg-slate-100 p-1 border border-slate-200 shrink-0">
+                <div className="flex rounded-2xl bg-muted/40 p-1 border border-border shrink-0">
                   <button
                     type="button"
                     onClick={() => setDietaryFilter('all')}
                     className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all ${
                       dietaryFilter === 'all'
-                        ? 'bg-white text-slate-950 shadow-xs'
-                        : 'text-slate-600 hover:text-slate-950'
+                        ? 'bg-primary text-primary-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     All
@@ -1885,7 +1885,7 @@ export function RestaurantPosView({
                     className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
                       dietaryFilter === 'veg'
                         ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'text-emerald-700 hover:text-emerald-950'
+                        : 'text-emerald-700 dark:text-emerald-400 hover:text-foreground'
                     }`}
                   >
                     <span>🟢</span> Veg
@@ -1896,7 +1896,7 @@ export function RestaurantPosView({
                     className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
                       dietaryFilter === 'non_veg'
                         ? 'bg-rose-600 text-white shadow-xs'
-                        : 'text-rose-700 hover:text-rose-950'
+                        : 'text-rose-700 dark:text-rose-400 hover:text-foreground'
                     }`}
                   >
                     <span>🔴</span> Non-Veg
@@ -1907,7 +1907,7 @@ export function RestaurantPosView({
                     className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer transition-all flex items-center gap-1 ${
                       dietaryFilter === 'egg'
                         ? 'bg-amber-600 text-white shadow-xs'
-                        : 'text-amber-800 hover:text-amber-950'
+                        : 'text-amber-800 dark:text-amber-400 hover:text-foreground'
                     }`}
                   >
                     <span>🥚</span> Egg
@@ -1923,7 +1923,7 @@ export function RestaurantPosView({
                     setSettingsSubTab('menu');
                     setActiveTab('settings');
                   }}
-                  className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
+                  className="rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground hover:bg-muted/40 transition-colors shadow-xs cursor-pointer flex items-center gap-1"
                 >
                   <span>⚙️ Menu Catalog</span>
                 </button>
@@ -1937,8 +1937,8 @@ export function RestaurantPosView({
                 onClick={() => setSelectedCategory('all')}
                 className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                   selectedCategory === 'all'
-                    ? 'bg-slate-950 text-white shadow-xs'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'bg-card text-foreground border border-border hover:bg-muted/40 shadow-2xs'
                 }`}
               >
                 All Categories ({allItems.length})
@@ -1950,8 +1950,8 @@ export function RestaurantPosView({
                   onClick={() => setSelectedCategory(c.id)}
                   className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                     selectedCategory === c.id
-                      ? 'bg-slate-950 text-white shadow-xs'
-                      : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
+                      : 'bg-card text-foreground border border-border hover:bg-muted/40 shadow-2xs'
                   }`}
                 >
                   {c.name} ({c.items.length})

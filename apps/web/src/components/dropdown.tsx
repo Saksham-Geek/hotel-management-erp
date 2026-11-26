@@ -296,13 +296,14 @@ export function CustomDropdown({
         aria-controls={isOpen ? listboxId : undefined}
         aria-activedescendant={isOpen && activeOption ? `${listboxId}-opt-${activeOption.value}` : undefined}
         aria-label={ariaLabel || (selectedOption ? `${selectedOption.label}` : placeholder)}
+        title={selectedOption ? selectedOption.label : placeholder}
         aria-describedby={ariaDescribedby}
         aria-invalid={ariaInvalid}
         onClick={() => !disabled && setIsOpen(!isOpen)}
         onKeyDown={handleKeyDown}
-        className={`group relative flex w-full items-center justify-between rounded-xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#141417] shadow-2xs transition-all duration-150 hover:border-slate-300 dark:hover:border-white/20 focus-visible:border-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950 focus-visible:ring-offset-2 dark:focus-visible:ring-white dark:focus-visible:ring-offset-[#080d1a] disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-400 ${
+        className={`group relative flex w-full items-center justify-between rounded-xl border border-border bg-card text-card-foreground shadow-2xs transition-all duration-150 hover:border-primary/50 focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:bg-muted/40 disabled:text-muted-foreground ${
           isSmall ? 'min-h-[36px] px-3 py-1.5 text-xs' : 'min-h-[44px] px-3.5 py-2.5 text-sm'
-        } ${isOpen ? 'border-slate-900 ring-2 ring-slate-900/10 dark:border-white/40' : ''}`}
+        } ${isOpen ? 'border-primary ring-2 ring-primary/20' : ''}`}
       >
         <div className="flex min-w-0 items-center gap-2 truncate">
           {selectedOption?.icon && (
@@ -310,15 +311,16 @@ export function CustomDropdown({
           )}
           <span
             className={`truncate font-semibold ${
-              selectedOption ? 'text-slate-900 dark:text-white' : 'text-slate-400 font-normal'
+              selectedOption ? 'text-foreground' : 'text-muted-foreground font-normal'
             }`}
+            title={selectedOption ? selectedOption.label : placeholder}
           >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           {selectedOption?.badge && (
             <span
               className={`ml-1 shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                selectedOption.badgeColor || 'bg-slate-100 text-slate-700 border border-slate-200 dark:bg-white/10 dark:text-slate-200 dark:border-white/10'
+                selectedOption.badgeColor || 'bg-muted text-foreground border border-border'
               }`}
             >
               {selectedOption.badge}
@@ -329,8 +331,8 @@ export function CustomDropdown({
         {/* Custom Chevron Arrow with smooth 180deg flip */}
         <span
           aria-hidden="true"
-          className={`shrink-0 text-slate-400 dark:text-slate-500 transition-transform duration-200 group-hover:text-slate-600 dark:group-hover:text-slate-300 ${
-            isOpen ? 'rotate-180 text-slate-900 dark:text-white' : ''
+          className={`shrink-0 text-muted-foreground transition-transform duration-200 group-hover:text-foreground ${
+            isOpen ? 'rotate-180 text-foreground' : ''
           }`}
         >
           <svg
@@ -359,7 +361,7 @@ export function CustomDropdown({
             align === 'right' ? 'right-0' : 'left-0'
           } ${
             opensUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-          } z-[100] max-h-64 w-full min-w-[180px] max-w-[calc(100vw-2rem)] overflow-y-auto rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white/95 dark:bg-[#141417]/95 p-1.5 shadow-xl shadow-slate-950/15 backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150`}
+          } z-[100] max-h-64 min-w-full w-max max-w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-xl text-card-foreground backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150`}
         >
           <div className="flex flex-col gap-0.5" role="presentation">
             {options.map((opt, idx) => {
@@ -377,27 +379,28 @@ export function CustomDropdown({
                   aria-selected={isSelected}
                   aria-disabled={opt.disabled}
                   disabled={opt.disabled}
+                  title={opt.label}
                   onMouseEnter={() => !opt.disabled && setActiveIndex(idx)}
                   onClick={() => handleSelect(opt.value)}
-                  className={`group relative flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-all duration-150 ${
+                  className={`group relative flex w-full items-center justify-between rounded-xl px-3 py-2 text-left text-xs font-semibold transition-all duration-150 cursor-pointer ${
                     opt.disabled
-                      ? 'cursor-not-allowed opacity-40 text-slate-400'
+                      ? 'cursor-not-allowed opacity-40 text-muted-foreground'
                       : isSelected
-                      ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs'
+                      ? 'bg-primary text-primary-foreground shadow-xs'
                       : isHighlighted
-                      ? 'bg-slate-100 dark:bg-white/15 text-slate-950 dark:text-white ring-1 ring-slate-900/20'
-                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100/90 dark:hover:bg-white/10 hover:text-slate-950 dark:hover:text-white'
+                      ? 'bg-muted text-foreground ring-1 ring-border'
+                      : 'text-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
                   <div className="flex min-w-0 items-center gap-2 truncate">
                     {opt.icon && <span className="shrink-0">{opt.icon}</span>}
-                    <span className="truncate">{opt.label}</span>
+                    <span className="truncate whitespace-nowrap" title={opt.label}>{opt.label}</span>
                     {opt.badge && (
                       <span
                         className={`ml-1 shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
                           isSelected
-                            ? 'bg-white/20 text-white dark:bg-slate-900/20 dark:text-slate-950'
-                            : opt.badgeColor || 'bg-slate-200/70 text-slate-700 dark:bg-white/10 dark:text-slate-200'
+                            ? 'bg-primary-foreground/20 text-primary-foreground'
+                            : opt.badgeColor || 'bg-muted text-foreground'
                         }`}
                       >
                         {opt.badge}
@@ -406,7 +409,7 @@ export function CustomDropdown({
                   </div>
 
                   {isSelected && (
-                    <span className="shrink-0 text-white dark:text-slate-950 ml-2" aria-hidden="true">
+                    <span className="shrink-0 text-primary-foreground ml-3" aria-hidden="true">
                       <svg
                         className="h-3.5 w-3.5"
                         viewBox="0 0 24 24"

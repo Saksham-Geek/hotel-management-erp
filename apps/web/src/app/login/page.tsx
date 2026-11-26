@@ -9,8 +9,8 @@ export default async function LoginPage({
   const { error, ok } = await searchParams;
 
   return (
-    <main className="grid min-h-dvh place-items-center bg-[#f8fafc] dark:bg-[#060913] px-4 py-8 sm:px-6 lg:py-12">
-      <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-[#141417] shadow-[0_30px_90px_rgba(2,6,23,0.08)] dark:shadow-[0_30px_90px_rgba(0,0,0,0.5)] lg:min-h-[640px] lg:grid-cols-[1.05fr_1.1fr]">
+    <main className="grid min-h-dvh place-items-center bg-background px-4 py-8 sm:px-6 lg:py-12">
+      <div className="grid w-full max-w-5xl overflow-hidden rounded-3xl border border-border bg-card text-card-foreground shadow-2xl lg:min-h-[640px] lg:grid-cols-[1.05fr_1.1fr]">
         
         {/* Left Timeless Luxury Brand & Architecture Panel */}
         <section className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-[#080d1a] via-[#0d162b] to-[#050811] p-10 text-white lg:flex xl:p-12">
@@ -114,13 +114,13 @@ export default async function LoginPage({
 
             {/* Header Text */}
             <div className="mb-6">
-              <p className="text-xs font-bold uppercase tracking-[.18em] text-slate-500 dark:text-slate-400">
+              <p className="text-xs font-bold uppercase tracking-[.18em] text-muted-foreground">
                 Staff &amp; Management Portal
               </p>
-              <h2 className="mt-1.5 font-display text-3xl font-extrabold tracking-tight text-ink">
+              <h2 className="mt-1.5 font-display text-3xl font-extrabold tracking-tight text-foreground">
                 Sign in to your property
               </h2>
-              <p className="mt-1.5 text-xs text-muted leading-relaxed">
+              <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
                 Enter your property organization code and registered staff credentials to access your PMS workspace.
               </p>
             </div>
@@ -134,8 +134,8 @@ export default async function LoginPage({
             <LoginForm />
 
             {/* Timeless Security Footnote */}
-            <div className="mt-8 border-t border-slate-100 dark:border-white/10 pt-4 text-center">
-              <p className="text-[11px] text-muted">
+            <div className="mt-8 border-t border-border pt-4 text-center">
+              <p className="text-[11px] text-muted-foreground">
                 Protected by PostgreSQL Row-Level Security (RLS) &amp; AES-256-GCM Vault.
               </p>
             </div>

@@ -230,22 +230,22 @@ export function ChannelView({
           {channels.map((channel) => (
             <article
               key={channel.key}
-              className={`relative overflow-hidden rounded-3xl border bg-surface p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
+              className={`relative overflow-hidden rounded-3xl border bg-card p-6 shadow-xs text-card-foreground transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                 channel.isActive
-                  ? 'border-teal-500/30 ring-1 ring-teal-500/20'
-                  : 'border-line/90'
+                  ? 'border-emerald-500/30 ring-1 ring-emerald-500/20'
+                  : 'border-border'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-ground text-2xl shadow-xs border border-line/60">
+                  <span className="grid h-12 w-12 place-items-center rounded-2xl bg-muted/40 text-2xl shadow-xs border border-border">
                     {channel.logo}
                   </span>
                   <div>
-                    <h3 className="font-display text-base font-extrabold text-ink">
+                    <h3 className="font-display text-base font-extrabold text-foreground">
                       {channel.name}
                     </h3>
-                    <p className="text-[11px] font-semibold text-muted">
+                    <p className="text-[11px] font-semibold text-muted-foreground">
                       {channel.apiType}
                     </p>
                   </div>
@@ -254,42 +254,42 @@ export function ChannelView({
                 <span
                   className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider ${
                     channel.isActive
-                      ? 'border border-emerald-300 bg-emerald-100 text-emerald-950'
-                      : 'border border-slate-300 bg-slate-100 text-slate-800'
+                      ? 'border border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                      : 'border border-border bg-muted/40 text-muted-foreground'
                   }`}
                 >
                   <span
                     className={`h-2 w-2 rounded-full ${
-                      channel.isActive ? 'bg-emerald-600 animate-pulse' : 'bg-slate-500'
+                      channel.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground'
                     }`}
                   />
                   {channel.isActive ? 'Connected' : 'Not Connected'}
                 </span>
               </div>
 
-              <div className="mt-5 space-y-2 border-t border-line/70 pt-4 text-xs">
+              <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted font-medium">Channel Property ID:</span>
-                  <span className="font-mono font-bold text-ink">
-                    {channel.hotelCode || <span className="text-muted italic">Unconfigured</span>}
+                  <span className="text-muted-foreground font-medium">Channel Property ID:</span>
+                  <span className="font-mono font-bold text-foreground">
+                    {channel.hotelCode || <span className="text-muted-foreground/70 italic">Unconfigured</span>}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted font-medium">Standard Commission:</span>
-                  <span className="font-mono font-black text-slate-950">
+                  <span className="text-muted-foreground font-medium">Standard Commission:</span>
+                  <span className="font-mono font-black text-foreground">
                     {channel.commissionRate}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted font-medium">Sync Mode:</span>
-                  <span className="font-bold capitalize text-teal-900">
+                  <span className="text-muted-foreground font-medium">Sync Mode:</span>
+                  <span className="font-bold capitalize text-foreground">
                     {channel.syncMode.replace('_', ' ')}
                   </span>
                 </div>
                 {channel.lastSyncAt && (
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-muted">Last Synchronized:</span>
-                    <span className="font-semibold text-slate-700">
+                    <span className="text-muted-foreground font-medium">Last Synchronized:</span>
+                    <span className="font-semibold text-foreground">
                       {formatDeterministicTime(channel.lastSyncAt)}
                     </span>
                   </div>
@@ -297,17 +297,17 @@ export function ChannelView({
               </div>
 
               {channel.lastSyncMessage && (
-                <div className="mt-3 rounded-xl bg-ground/80 p-2.5 text-[11px] font-medium text-muted">
+                <div className="mt-3 rounded-xl bg-muted/40 p-2.5 text-[11px] font-medium text-foreground">
                   <p className="line-clamp-2">💬 {channel.lastSyncMessage}</p>
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="mt-5 flex items-center gap-2 pt-2 border-t border-line/50">
+              <div className="mt-5 flex items-center gap-2 pt-2 border-t border-border">
                 <button
                   type="button"
                   onClick={() => setSelectedChannel(channel)}
-                  className={`${btnGhostCls} flex-1 text-xs font-extrabold`}
+                  className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-bold text-foreground hover:bg-muted/40 transition-colors shadow-2xs cursor-pointer"
                 >
                   ⚙️ Configure API
                 </button>
@@ -315,7 +315,7 @@ export function ChannelView({
                 <form action={syncChannel} className="flex-1">
                   <input type="hidden" name="channelKey" value={channel.key} />
                   <FormSubmit
-                    className={`${btnCls} w-full text-xs font-extrabold bg-primary hover:opacity-90 text-primary-foreground`}
+                    className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-4 py-2.5 text-xs font-bold hover:opacity-90 transition-opacity shadow-xs cursor-pointer"
                     pendingLabel="Pushing ARI…"
                   >
                     🔄 Sync Now
@@ -330,15 +330,15 @@ export function ChannelView({
       {/* Configuration Modal */}
       {selectedChannel && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950/70 p-4 backdrop-blur-xs animate-in fade-in-50">
-          <div className="w-full max-w-lg rounded-3xl border border-line bg-surface p-7 shadow-2xl">
-            <div className="flex items-start justify-between border-b border-line pb-4">
+          <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-7 shadow-2xl text-card-foreground">
+            <div className="flex items-start justify-between border-b border-border pb-4">
               <div className="flex items-center gap-3">
                 <span className="text-2xl">{selectedChannel.logo}</span>
                 <div>
-                  <h3 className="font-display text-lg font-black text-ink">
+                  <h3 className="font-display text-lg font-black text-foreground">
                     Configure {selectedChannel.name} Integration
                   </h3>
-                  <p className="text-xs text-muted">
+                  <p className="text-xs text-muted-foreground">
                     Enter your property credentials from the {selectedChannel.name} Extranet.
                   </p>
                 </div>
@@ -346,7 +346,7 @@ export function ChannelView({
               <button
                 type="button"
                 onClick={() => setSelectedChannel(null)}
-                className="rounded-xl p-1.5 text-muted hover:bg-ground hover:text-ink text-base"
+                className="rounded-xl p-1.5 text-muted-foreground hover:bg-muted/40 hover:text-foreground text-base cursor-pointer"
               >
                 ✕
               </button>
@@ -356,7 +356,7 @@ export function ChannelView({
               <input type="hidden" name="channelKey" value={selectedChannel.key} />
               <input type="hidden" name="channelName" value={selectedChannel.name} />
 
-              <label className="block text-xs font-bold text-ink">
+              <label className="block text-xs font-bold text-foreground">
                 Hotel / Property ID on {selectedChannel.name}
                 <input
                   name="hotelCode"
@@ -367,7 +367,7 @@ export function ChannelView({
                 />
               </label>
 
-              <label className="block text-xs font-bold text-ink">
+              <label className="block text-xs font-bold text-foreground">
                 Channel API Key / Client ID
                 <input
                   name="apiKey"
@@ -375,7 +375,7 @@ export function ChannelView({
                   placeholder="Enter API Key from Extranet"
                   className={`${inputCls} mt-1 font-mono`}
                 />
-                <span className="text-[10px] text-muted">Encrypted with AES-256-GCM before database storage.</span>
+                <span className="text-[10px] text-muted-foreground">Encrypted with AES-256-GCM before database storage.</span>
               </label>
 
               <label className="block text-xs font-bold text-ink">

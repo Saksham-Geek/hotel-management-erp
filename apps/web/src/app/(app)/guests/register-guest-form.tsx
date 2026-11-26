@@ -29,11 +29,11 @@ export function RegisterGuestForm() {
   };
 
   return (
-    <form action={saveGuest} className="overflow-hidden rounded-xl border border-line bg-surface shadow-sm">
-      <div className="border-b border-line px-4 py-4 sm:px-5 flex items-center justify-between">
+    <form action={saveGuest} className="overflow-hidden rounded-xl border border-border bg-card shadow-sm text-card-foreground">
+      <div className="border-b border-border px-4 py-4 sm:px-5 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-ink">Register a guest</h2>
-          <p className="mt-1 text-xs text-muted">Save a profile once and reuse it on future reservations.</p>
+          <h2 className="text-sm font-semibold text-foreground">Register a guest</h2>
+          <p className="mt-1 text-xs text-muted-foreground">Save a profile once and reuse it on future reservations.</p>
         </div>
         <span className="hidden sm:inline-flex items-center gap-1.5 rounded-full bg-lagoon/10 px-2.5 py-1 text-xs font-semibold text-lagoon-dark">
           🌐 Global PMS KYC Ready
@@ -197,7 +197,7 @@ export function RegisterGuestForm() {
           </div>
 
           <div className="space-y-1.5 pt-1">
-            <label className="flex items-start gap-2 text-xs leading-5 text-ink cursor-pointer">
+            <label className="flex items-start gap-2 text-xs leading-5 text-foreground cursor-pointer">
               <input
                 name="consentGiven"
                 type="checkbox"
@@ -210,7 +210,7 @@ export function RegisterGuestForm() {
               </span>
             </label>
 
-            <label className="flex items-start gap-2 text-xs leading-5 text-ink cursor-pointer">
+            <label className="flex items-start gap-2 text-xs leading-5 text-foreground cursor-pointer">
               <input
                 name="aadhaarMasked"
                 type="checkbox"
@@ -223,11 +223,11 @@ export function RegisterGuestForm() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-line bg-ground/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
-        <p className="text-xs text-muted">
+      <div className="flex flex-col gap-3 border-t border-border bg-muted/30 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <p className="text-xs text-muted-foreground">
           Identity numbers and documents are encrypted with AES-256-GCM and zero-desktop protected.
         </p>
-        <FormSubmit className={`${btnCls} w-full sm:w-auto`} pendingLabel="Saving profile…">
+        <FormSubmit className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold shadow-xs hover:opacity-90 active:scale-[0.99] transition-all w-full sm:w-auto" pendingLabel="Saving profile…">
           Save guest profile
         </FormSubmit>
       </div>

@@ -173,8 +173,8 @@ export function PlanCards({
                   ● {currentStatus === 'past_due' ? 'Past Due (Grace Period)' : currentStatus.toUpperCase()}
                 </span>
               </div>
-              <p className="text-xs text-muted mt-0.5">
-                Current Plan: <strong className="text-ink capitalize">{subDetails?.subscription?.planKey || normalizedCurrent || 'Growth'}</strong>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Current Plan: <strong className="text-foreground capitalize">{subDetails?.subscription?.planKey || normalizedCurrent || 'Growth'}</strong>
                 {subDetails?.subscription?.currentPeriodEnd && (
                   <> · Next auto-debit renewal: <strong>{new Date(subDetails.subscription.currentPeriodEnd).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</strong></>
                 )}
@@ -184,15 +184,15 @@ export function PlanCards({
 
           {/* Usage Meters */}
           <div className="flex flex-wrap items-center gap-4 text-xs">
-            <div className="rounded-xl border border-line bg-ground px-3.5 py-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Room Inventory</p>
-              <p className="font-display text-sm font-bold text-ink mt-0.5">
+            <div className="rounded-xl border border-border bg-muted/30 px-3.5 py-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Room Inventory</p>
+              <p className="font-display text-sm font-bold text-foreground mt-0.5">
                 {subDetails?.usage?.roomsCount ?? 12} / {subDetails?.usage?.maxRooms ? `${subDetails.usage.maxRooms} keys` : '∞ unlimited'}
               </p>
             </div>
-            <div className="rounded-xl border border-line bg-ground px-3.5 py-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted">Staff Logins</p>
-              <p className="font-display text-sm font-bold text-ink mt-0.5">
+            <div className="rounded-xl border border-border bg-muted/30 px-3.5 py-2">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Staff Logins</p>
+              <p className="font-display text-sm font-bold text-foreground mt-0.5">
                 {subDetails?.usage?.staffCount ?? 3} / {subDetails?.usage?.maxStaff ? `${subDetails.usage.maxStaff} seats` : '∞ unlimited'}
               </p>
             </div>
@@ -221,8 +221,8 @@ export function PlanCards({
         )}
 
         {/* Demo Mandate Simulation Toolbar */}
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-ground/80 p-3 text-xs">
-          <span className="font-bold text-muted flex items-center gap-1.5">
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/30 p-3 text-xs border border-border">
+          <span className="font-bold text-muted-foreground flex items-center gap-1.5">
             <span>🧪</span>
             <span>SaaS Billing Testing Toolbar:</span>
           </span>
@@ -231,7 +231,7 @@ export function PlanCards({
               type="button"
               disabled={isSimulating}
               onClick={() => handleSimulate('charge_success')}
-              className="rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-300"
+              className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/20"
               title="Simulates bank recurring payment webhook, advances period by 30 days and generates tax invoice"
             >
               ⚡ Simulate Auto-Debit (+30d)
@@ -240,7 +240,7 @@ export function PlanCards({
               type="button"
               disabled={isSimulating}
               onClick={() => handleSimulate('payment_failed')}
-              className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 hover:bg-amber-100 dark:border-amber-900/40 dark:bg-amber-950/40 dark:text-amber-300"
+              className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-[11px] font-semibold text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
               title="Simulates payment failure putting the property in past-due read-only grace period"
             >
               ⚠️ Simulate Payment Failure
@@ -249,7 +249,7 @@ export function PlanCards({
               type="button"
               disabled={isSimulating}
               onClick={() => handleSimulate('reactivate')}
-              className="rounded-lg border border-line bg-surface px-2.5 py-1 text-[11px] font-semibold text-ink hover:bg-ground"
+              className="rounded-lg border border-border bg-card px-2.5 py-1 text-[11px] font-semibold text-foreground hover:bg-muted/40 shadow-2xs"
             >
               🔄 Restore Active
             </button>
@@ -269,15 +269,15 @@ export function PlanCards({
               key={tier.key}
               className={`relative flex flex-col justify-between rounded-2xl border p-6 transition-all duration-200 shadow-sm sm:p-8 ${
                 isEnterprise
-                  ? 'border-amber-400/60 bg-gradient-to-b from-amber-500/[.07] via-surface to-surface ring-1 ring-amber-400/40'
+                  ? 'border-amber-400/60 bg-gradient-to-b from-amber-500/[.07] via-card to-card ring-1 ring-amber-400/40 text-card-foreground'
                   : isGrowth
-                  ? 'border-teal-500/50 bg-gradient-to-b from-teal-500/[.05] via-surface to-surface ring-1 ring-teal-500/30'
-                  : 'border-line bg-surface'
+                  ? 'border-teal-500/50 bg-gradient-to-b from-teal-500/[.05] via-card to-card ring-1 ring-teal-500/30 text-card-foreground'
+                  : 'border-border bg-card text-card-foreground'
               }`}
             >
               <div>
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-display text-xl font-bold tracking-tight text-ink">
+                  <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
                     {tier.name.split('(')[0].trim()}
                   </h3>
                   {tier.badge && (
@@ -293,35 +293,35 @@ export function PlanCards({
                   )}
                 </div>
 
-                <p className="mt-1 text-xs font-medium text-muted">
+                <p className="mt-1 text-xs font-semibold text-slate-700 dark:text-slate-300">
                   {tier.targetSegment}
                 </p>
 
                 <div className="mt-5 flex items-baseline gap-1">
-                  <span className="font-display text-3xl font-extrabold tracking-tight text-ink">
+                  <span className="font-display text-3xl font-extrabold tracking-tight text-foreground">
                     ₹{tier.monthlyPriceInr.toLocaleString('en-IN')}
                   </span>
-                  <span className="text-xs font-semibold text-muted">/ month</span>
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">/ month</span>
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2 text-xs">
-                  <span className="rounded-md border border-line bg-ground px-2.5 py-1 font-semibold text-ink">
+                  <span className="rounded-md border border-border bg-muted/40 px-2.5 py-1 font-semibold text-foreground">
                     🛏️ {tier.maxRooms ? `Up to ${tier.maxRooms} Rooms` : 'Unlimited Rooms'}
                   </span>
-                  <span className="rounded-md border border-line bg-ground px-2.5 py-1 font-semibold text-ink">
+                  <span className="rounded-md border border-border bg-muted/40 px-2.5 py-1 font-semibold text-foreground">
                     👥 {tier.maxStaff ? `Up to ${tier.maxStaff} Staff` : 'Unlimited Staff'}
                   </span>
                 </div>
 
-                <p className="mt-4 text-xs leading-relaxed text-muted">
+                <p className="mt-4 text-xs leading-relaxed text-slate-700 dark:text-slate-300 font-medium">
                   {tier.tagline}
                 </p>
 
-                <div className="mt-6 border-t border-line/60 pt-5">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-muted">
+                <div className="mt-6 border-t border-border pt-5">
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
                     Key Capabilities Included
                   </p>
-                  <ul className="mt-3 space-y-2 text-xs text-ink/90">
+                  <ul className="mt-3 space-y-2 text-xs text-slate-800 dark:text-slate-200 font-medium">
                     {tier.highlights.map((h, i) => (
                       <li key={i} className="flex items-start gap-2">
                         <svg className="mt-0.5 h-3.5 w-3.5 shrink-0 text-teal-600 dark:text-teal-400" viewBox="0 0 20 20" fill="currentColor">
@@ -338,7 +338,7 @@ export function PlanCards({
                 {isCurrent ? (
                   <button
                     disabled
-                    className="w-full rounded-xl border border-line bg-ground/80 py-2.5 text-center text-xs font-bold text-muted cursor-default"
+                    className="w-full rounded-xl border border-border bg-muted/50 py-2.5 text-center text-xs font-bold text-muted-foreground cursor-default"
                   >
                     ✓ Current Active Plan
                   </button>
@@ -347,12 +347,12 @@ export function PlanCards({
                     type="button"
                     disabled={isPending}
                     onClick={() => setCheckoutTier(tier as PlanTierConfig)}
-                    className={`w-full rounded-xl py-2.5 text-center text-xs font-bold shadow-sm transition-all duration-150 disabled:opacity-50 ${
+                    className={`w-full rounded-xl py-2.5 text-center text-xs font-bold shadow-sm transition-all duration-150 disabled:opacity-50 cursor-pointer ${
                       isEnterprise
                         ? 'bg-amber-600 text-white hover:bg-amber-500 focus-visible:ring-2 focus-visible:ring-amber-500'
                         : isGrowth
-                        ? 'bg-teal-600 text-white hover:bg-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500'
-                        : 'border border-line bg-surface text-ink hover:bg-ground'
+                        ? 'bg-primary text-primary-foreground hover:opacity-90 focus-visible:ring-2 focus-visible:ring-primary'
+                        : 'border border-border bg-card text-foreground hover:bg-muted'
                     }`}
                   >
                     {isPending ? 'Updating Subscription…' : `Subscribe to ${tier.name.split('(')[0].trim()} →`}
@@ -360,7 +360,7 @@ export function PlanCards({
                 ) : (
                   <button
                     disabled
-                    className="w-full rounded-xl border border-line bg-ground/60 py-2.5 text-center text-xs font-medium text-muted"
+                    className="w-full rounded-xl border border-border bg-muted/50 py-2.5 text-center text-xs font-medium text-muted-foreground"
                   >
                     Owner Role Required to Switch
                   </button>
@@ -372,12 +372,12 @@ export function PlanCards({
       </div>
 
       {/* Feature Comparison Matrix Table */}
-      <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm sm:p-8">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 text-card-foreground">
         <div>
-          <h3 className="font-display text-xl font-bold tracking-tight text-ink">
+          <h3 className="font-display text-xl font-bold tracking-tight text-foreground">
             Detailed Hospitality Comparison: Small Hotels vs. Luxury Hotel Chains
           </h3>
-          <p className="mt-1 text-xs text-muted">
+          <p className="mt-1 text-xs text-muted-foreground">
             See how features and regulatory controls differ between homestays/budget properties and luxury enterprise chains like Taj, Oberoi, and ITC.
           </p>
         </div>
@@ -385,7 +385,7 @@ export function PlanCards({
         <div className="mt-6 overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-xs">
             <thead>
-              <tr className="border-b border-line text-muted">
+              <tr className="border-b border-border text-muted-foreground">
                 <th className="py-3 pr-4 font-semibold">Features & Statutory Controls</th>
                 <th className="px-4 py-3 font-semibold text-center w-36">Starter (Small Hotel)</th>
                 <th className="px-4 py-3 font-semibold text-center w-36">Growth (Resort)</th>
@@ -395,8 +395,8 @@ export function PlanCards({
             <tbody>
               {matrixCategories.map((cat, catIdx) => (
                 <div key={catIdx} className="contents">
-                  <tr className="border-b border-line/60 bg-ground/50">
-                    <td colSpan={4} className="py-2.5 px-2 font-bold uppercase tracking-wider text-[11px] text-muted">
+                  <tr className="border-b border-border bg-muted/30">
+                    <td colSpan={4} className="py-2.5 px-2 font-bold uppercase tracking-wider text-[11px] text-muted-foreground">
                       {cat.category}
                     </td>
                   </tr>
@@ -405,13 +405,13 @@ export function PlanCards({
                     return (
                       <tr
                         key={rowIdx}
-                        className={`border-b border-line/40 transition-colors ${
-                          isHighlighted ? 'bg-amber-500/10 font-medium' : 'hover:bg-ground/40'
+                        className={`border-b border-border transition-colors ${
+                          isHighlighted ? 'bg-amber-500/10 font-medium' : 'hover:bg-muted/30'
                         }`}
                       >
                         <td className="py-3 pr-4">
-                          <div className="font-semibold text-ink">{row.label}</div>
-                          <div className="text-[11px] text-muted">{row.description}</div>
+                          <div className="font-semibold text-foreground">{row.label}</div>
+                          <div className="text-[11px] text-muted-foreground">{row.description}</div>
                         </td>
                         <td className="px-4 py-3 text-center">
                           {renderCell(row.starter)}
@@ -433,13 +433,13 @@ export function PlanCards({
       </div>
 
       {/* SaaS Subscription Tax Invoices (GST ITC Ledger) */}
-      <div className="rounded-2xl border border-line bg-surface p-6 shadow-sm sm:p-8">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8 text-card-foreground">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
           <div>
-            <h3 className="font-display text-lg font-bold text-ink">
+            <h3 className="font-display text-lg font-bold text-foreground">
               SaaS Subscription Tax Invoices (GST ITC Ledger)
             </h3>
-            <p className="mt-0.5 text-xs text-muted">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Official computer-generated GST tax receipts (SAC 998314) for accounting and Input Tax Credit claims.
             </p>
           </div>
@@ -451,7 +451,7 @@ export function PlanCards({
         {subDetails?.invoices && subDetails.invoices.length > 0 ? (
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-ground text-[11px] font-bold uppercase tracking-wider text-muted">
+              <thead className="bg-muted/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                 <tr>
                   <th className="p-3">Invoice Number</th>
                   <th className="p-3">Plan Edition</th>
@@ -462,15 +462,15 @@ export function PlanCards({
                   <th className="p-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-line/60">
+              <tbody className="divide-y divide-border">
                 {subDetails.invoices.map((inv) => (
-                  <tr key={inv.id} className="hover:bg-ground/50">
-                    <td className="p-3 font-bold text-ink">{inv.invoiceNumber}</td>
-                    <td className="p-3 capitalize text-ink">{inv.planKey}</td>
-                    <td className="p-3 text-muted">
+                  <tr key={inv.id} className="hover:bg-muted/30">
+                    <td className="p-3 font-bold text-foreground">{inv.invoiceNumber}</td>
+                    <td className="p-3 capitalize text-foreground">{inv.planKey}</td>
+                    <td className="p-3 text-muted-foreground">
                       {new Date(inv.billingPeriodStart).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} — {new Date(inv.billingPeriodEnd).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className="p-3 text-muted text-[11px]">
+                    <td className="p-3 text-muted-foreground text-[11px]">
                       {inv.paymentMethod?.replace(/_/g, ' ') || 'Razorpay Mandate'}
                     </td>
                     <td className="p-3 text-right font-semibold text-emerald-600 dark:text-emerald-400">
@@ -485,7 +485,7 @@ export function PlanCards({
                       <button
                         type="button"
                         onClick={() => setViewInvoice(inv)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-2.5 py-1 text-xs font-semibold text-ink shadow-2xs hover:bg-ground"
+                        className="inline-flex items-center gap-1 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-semibold text-foreground shadow-2xs hover:bg-muted/40 cursor-pointer"
                       >
                         <span>🖨️</span>
                         <span>View Receipt</span>
@@ -497,7 +497,7 @@ export function PlanCards({
             </table>
           </div>
         ) : (
-          <div className="py-8 text-center text-xs text-muted">
+          <div className="py-8 text-center text-xs text-muted-foreground">
             <p>No past subscription invoices generated yet for this property.</p>
             <p className="mt-1">When auto-debit payments are processed, statutory GST invoices will automatically appear here.</p>
           </div>

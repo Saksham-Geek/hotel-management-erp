@@ -114,69 +114,69 @@ export function HousekeepingClient({
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <button
           onClick={() => { setStatusFilter('needs_attention'); setActiveTab('turnaround'); }}
-          className={`p-4 rounded-2xl border text-left transition-all ${
+          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
             statusFilter === 'needs_attention' && activeTab === 'turnaround'
-              ? 'bg-amber-500/10 border-amber-500/40 ring-2 ring-amber-500/20'
-              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-amber-500/30'
+              ? 'bg-amber-500/10 border-amber-500/40 ring-2 ring-amber-500/20 text-card-foreground'
+              : 'bg-card border-border shadow-2xs hover:border-amber-500/30 text-card-foreground'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Needs Clean</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Needs Clean</span>
             <span className="text-lg">🧹</span>
           </div>
           <div className="mt-2 text-2xl sm:text-3xl font-black text-amber-500">{needsAttentionCount}</div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Dirty / In-Turnaround</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Dirty / In-Turnaround</div>
         </button>
 
         <button
           onClick={() => { setStatusFilter('available'); setActiveTab('turnaround'); }}
-          className={`p-4 rounded-2xl border text-left transition-all ${
+          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
             statusFilter === 'available' && activeTab === 'turnaround'
-              ? 'bg-emerald-500/10 border-emerald-500/40 ring-2 ring-emerald-500/20'
-              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-emerald-500/30'
+              ? 'bg-emerald-500/10 border-emerald-500/40 ring-2 ring-emerald-500/20 text-card-foreground'
+              : 'bg-card border-border shadow-2xs hover:border-emerald-500/30 text-card-foreground'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Clean & Ready</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Clean & Ready</span>
             <span className="text-lg">✨</span>
           </div>
           <div className="mt-2 text-2xl sm:text-3xl font-black text-emerald-500">{availableCount}</div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Inspected For Check-In</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Inspected For Check-In</div>
         </button>
 
         <button
           onClick={() => { setStatusFilter('occupied'); setActiveTab('turnaround'); }}
-          className={`p-4 rounded-2xl border text-left transition-all ${
+          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
             statusFilter === 'occupied' && activeTab === 'turnaround'
-              ? 'bg-blue-500/10 border-blue-500/40 ring-2 ring-blue-500/20'
-              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-blue-500/30'
+              ? 'bg-primary/10 border-primary/40 ring-2 ring-primary/20 text-card-foreground'
+              : 'bg-card border-border shadow-2xs hover:border-primary/30 text-card-foreground'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Occupied</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Occupied</span>
             <span className="text-lg">🛎️</span>
           </div>
-          <div className="mt-2 text-2xl sm:text-3xl font-black text-blue-500">
+          <div className="mt-2 text-2xl sm:text-3xl font-black text-primary">
             {occupiedCount}
             {dndCount > 0 && <span className="ml-2 text-xs font-bold text-rose-500">({dndCount} DND)</span>}
           </div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Stay-Over In-House</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Stay-Over In-House</div>
         </button>
 
         <button
           onClick={() => { setStatusFilter('maintenance'); setActiveTab('turnaround'); }}
-          className={`p-4 rounded-2xl border text-left transition-all ${
+          className={`p-4 rounded-2xl border text-left transition-all cursor-pointer ${
             statusFilter === 'maintenance' && activeTab === 'turnaround'
-              ? 'bg-rose-500/10 border-rose-500/40 ring-2 ring-rose-500/20'
-              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-2xs hover:border-rose-500/30'
+              ? 'bg-rose-500/10 border-rose-500/40 ring-2 ring-rose-500/20 text-card-foreground'
+              : 'bg-card border-border shadow-2xs hover:border-rose-500/30 text-card-foreground'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Maintenance</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Maintenance</span>
             <span className="text-lg">⚠️</span>
           </div>
           <div className="mt-2 text-2xl sm:text-3xl font-black text-rose-500">{maintenanceCount}</div>
-          <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Out of Order / Repair</div>
+          <div className="text-[11px] text-muted-foreground mt-0.5">Out of Order / Repair</div>
         </button>
       </div>
 
@@ -242,13 +242,13 @@ export function HousekeepingClient({
         <div className="space-y-4">
           {/* Floor & Filter Chips */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">Floor:</span>
+            <span className="text-xs font-bold text-muted-foreground mr-1">Floor:</span>
             <button
               onClick={() => setSelectedFloor('all')}
               className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
                 selectedFloor === 'all'
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'bg-card border border-border text-foreground hover:bg-muted/40 shadow-2xs'
               }`}
             >
               All Floors
@@ -259,23 +259,23 @@ export function HousekeepingClient({
                 onClick={() => setSelectedFloor(fl)}
                 className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
                   selectedFloor === fl
-                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs'
-                    : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                    ? 'bg-primary text-primary-foreground shadow-xs'
+                    : 'bg-card border border-border text-foreground hover:bg-muted/40 shadow-2xs'
                 }`}
               >
                 Floor {fl}
               </button>
             ))}
 
-            <div className="hidden sm:block h-4 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
+            <div className="hidden sm:block h-4 w-px bg-border mx-2" />
 
-            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 mr-1">Status:</span>
+            <span className="text-xs font-bold text-muted-foreground mr-1">Status:</span>
             <button
               onClick={() => setStatusFilter('all')}
               className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
                 statusFilter === 'all'
-                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950 shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'bg-card border border-border text-foreground hover:bg-muted/40 shadow-2xs'
               }`}
             >
               All ({rooms.length})
@@ -285,7 +285,7 @@ export function HousekeepingClient({
               className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
                 statusFilter === 'needs_attention'
                   ? 'bg-amber-600 text-white shadow-xs'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+                  : 'bg-card border border-border text-foreground hover:bg-muted/40 shadow-2xs'
               }`}
             >
               Dirty / Cleaning ({needsAttentionCount})
@@ -294,10 +294,10 @@ export function HousekeepingClient({
 
           {/* Rooms Grid */}
           {filteredRooms.length === 0 ? (
-            <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+            <div className="p-12 text-center bg-card rounded-2xl border border-dashed border-border text-card-foreground shadow-xs">
               <span className="text-4xl">🎉</span>
-              <h3 className="mt-2 text-base font-bold text-slate-900 dark:text-white">No Rooms In This View</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">All selected rooms are up-to-date or match other filters.</p>
+              <h3 className="mt-2 text-base font-bold text-foreground">No Rooms In This View</h3>
+              <p className="text-xs text-muted-foreground mt-1">All selected rooms are up-to-date or match other filters.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -316,8 +316,8 @@ export function HousekeepingClient({
                         : isMaint
                         ? 'bg-rose-500/5 border-rose-500/30'
                         : isOccupied
-                        ? 'bg-blue-500/5 border-blue-500/30'
-                        : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-2xs'
+                        ? 'bg-primary/5 border-primary/25'
+                        : 'bg-card border-border shadow-2xs text-card-foreground'
                     }`}
                   >
                     <div>
@@ -325,8 +325,8 @@ export function HousekeepingClient({
                       <div className="flex items-start justify-between gap-2">
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">{room.number}</span>
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                            <span className="text-2xl font-black tracking-tight text-foreground">{room.number}</span>
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-md bg-muted text-muted-foreground border border-border">
                               Fl. {room.floor}
                             </span>
                             {room.dndStatus && (
@@ -335,7 +335,7 @@ export function HousekeepingClient({
                               </span>
                             )}
                           </div>
-                          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-0.5">{room.roomType}</p>
+                          <p className="text-xs font-medium text-muted-foreground mt-0.5">{room.roomType}</p>
                         </div>
 
                         {/* Status Badge */}
@@ -384,7 +384,7 @@ export function HousekeepingClient({
                           <input type="hidden" name="attendantName" value="Floor Attendant" />
                           <button
                             type="submit"
-                            className="w-full py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 active:scale-[0.98] text-slate-800 dark:text-slate-200 text-xs font-semibold transition-all border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5"
+                            className="w-full py-2 px-3 rounded-xl bg-card hover:bg-muted/50 active:scale-[0.98] text-foreground text-xs font-semibold transition-all border border-border flex items-center justify-center gap-1.5 shadow-2xs"
                           >
                             <span>🧹</span> Request Turnaround
                           </button>
@@ -439,7 +439,7 @@ export function HousekeepingClient({
                               className={`w-full py-1.5 px-1.5 rounded-xl text-[10px] font-bold transition-all border flex items-center justify-center gap-1 ${
                                 room.dndStatus
                                   ? 'bg-rose-500 text-white border-rose-600'
-                                  : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700'
+                                  : 'bg-card hover:bg-muted/50 text-foreground border-border shadow-2xs'
                               }`}
                               title="Toggle Do Not Disturb (DND)"
                             >
@@ -463,7 +463,7 @@ export function HousekeepingClient({
               <h3 className="text-sm font-bold text-foreground">Lost &amp; Found Item Register</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Central custody log of items left behind in guest rooms and public spaces.</p>
             </div>
-            <span className="text-xs font-bold px-3 py-1 rounded-lg border border-border bg-muted/80 text-foreground">
+            <span className="text-xs font-bold px-3 py-1 rounded-lg border border-border bg-muted text-foreground">
               {lostAndFound.length} Items Logged
             </span>
           </div>
@@ -476,7 +476,7 @@ export function HousekeepingClient({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/50 font-bold text-slate-500 dark:text-slate-400 uppercase text-[11px] tracking-wider">
+                  <tr className="border-b border-border bg-muted/40 font-bold text-muted-foreground uppercase text-[11px] tracking-wider">
                     <th className="py-2.5 px-3">Date Found</th>
                     <th className="py-2.5 px-3">Room / Loc</th>
                     <th className="py-2.5 px-3">Item Name</th>
@@ -487,20 +487,20 @@ export function HousekeepingClient({
                     <th className="py-2.5 px-3">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tbody className="divide-y divide-border">
                   {lostAndFound.map((item) => (
-                    <tr key={item.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                      <td className="py-2.5 px-3 font-mono text-slate-500 dark:text-slate-400">
+                    <tr key={item.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-2.5 px-3 font-mono text-muted-foreground">
                         {new Date(item.foundAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}
                       </td>
-                      <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">Room {item.roomNumber}</td>
-                      <td className="py-2.5 px-3 font-medium text-slate-900 dark:text-white">
+                      <td className="py-2.5 px-3 font-bold text-foreground">Room {item.roomNumber}</td>
+                      <td className="py-2.5 px-3 font-medium text-foreground">
                         <div>{item.itemName}</div>
-                        {item.description && <div className="text-[11px] text-slate-500 dark:text-slate-400">{item.description}</div>}
+                        {item.description && <div className="text-[11px] text-muted-foreground">{item.description}</div>}
                       </td>
-                      <td className="py-2.5 px-3 capitalize text-slate-600 dark:text-slate-400">{item.category}</td>
-                      <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400">{item.storageLocation}</td>
-                      <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400">{item.finderName}</td>
+                      <td className="py-2.5 px-3 capitalize text-muted-foreground font-medium">{item.category}</td>
+                      <td className="py-2.5 px-3 text-muted-foreground font-medium">{item.storageLocation}</td>
+                      <td className="py-2.5 px-3 text-muted-foreground font-medium">{item.finderName}</td>
                       <td className="py-2.5 px-3">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
@@ -512,7 +512,7 @@ export function HousekeepingClient({
                           {item.status}
                         </span>
                         {item.guestName && (
-                          <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Claimed by: {item.guestName}</div>
+                          <div className="text-[10px] text-muted-foreground mt-0.5">Claimed by: {item.guestName}</div>
                         )}
                       </td>
                       <td className="py-2.5 px-3">
@@ -541,7 +541,7 @@ export function HousekeepingClient({
               <h3 className="text-sm font-bold text-foreground">Live Housekeeping Turnaround &amp; Inspection Log</h3>
               <p className="text-xs text-muted-foreground mt-0.5">Immutable audit trail of room status changes and maintenance logs.</p>
             </div>
-            <span className="text-xs font-bold px-3 py-1 rounded-lg border border-border bg-muted/80 text-foreground">
+            <span className="text-xs font-bold px-3 py-1 rounded-lg border border-border bg-muted text-foreground">
               {logs.length} Entries Logged
             </span>
           </div>
@@ -554,7 +554,7 @@ export function HousekeepingClient({
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/50 font-bold text-slate-500 dark:text-slate-400 uppercase text-[11px] tracking-wider">
+                  <tr className="border-b border-border bg-muted/40 font-bold text-muted-foreground uppercase text-[11px] tracking-wider">
                     <th className="py-2.5 px-3">Time</th>
                     <th className="py-2.5 px-3">Room</th>
                     <th className="py-2.5 px-3">Attendant</th>
@@ -562,14 +562,14 @@ export function HousekeepingClient({
                     <th className="py-2.5 px-3">Notes / Issue</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60">
+                <tbody className="divide-y divide-border">
                   {logs.map((log) => (
-                    <tr key={log.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40">
-                      <td className="py-2.5 px-3 font-mono text-slate-500 dark:text-slate-400">
+                    <tr key={log.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="py-2.5 px-3 font-mono text-muted-foreground">
                         {new Date(log.loggedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                       </td>
-                      <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">Room {log.roomNumber}</td>
-                      <td className="py-2.5 px-3 font-medium text-slate-900 dark:text-white">{log.attendantName || 'System'}</td>
+                      <td className="py-2.5 px-3 font-bold text-foreground">Room {log.roomNumber}</td>
+                      <td className="py-2.5 px-3 font-medium text-foreground">{log.attendantName || 'System'}</td>
                       <td className="py-2.5 px-3">
                         <span className="inline-flex items-center gap-1 font-semibold">
                           <span className="text-slate-500 capitalize">{log.fromStatus}</span>
@@ -629,25 +629,25 @@ export function HousekeepingClient({
               <input type="hidden" name="toStatus" value="maintenance" />
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Attendant Name *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Attendant Name *</label>
                 <input
                   type="text"
                   name="attendantName"
                   required
                   defaultValue="Floor Attendant"
                   placeholder="e.g. Ramesh K."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Maintenance Issue / Defect *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Maintenance Issue / Defect *</label>
                 <textarea
                   name="maintenanceIssue"
                   required
                   rows={3}
                   placeholder="e.g. AC leaking water on floor, Geyser not heating, Bathroom faucet broken..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -655,7 +655,7 @@ export function HousekeepingClient({
                 <button
                   type="button"
                   onClick={() => setMaintenanceRoom(null)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted/40 border border-border transition-all"
                 >
                   Cancel
                 </button>
@@ -674,17 +674,17 @@ export function HousekeepingClient({
       {/* Minibar Charge Modal */}
       {minibarRoom && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-md bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="w-full max-w-md bg-card border border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95 text-card-foreground">
+            <div className="flex items-center justify-between pb-4 border-b border-border">
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <span>🍾</span> Post Minibar In-Room Charge
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Post consumed items directly to Room {minibarRoom.number}&apos;s Folio.</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Post consumed items directly to Room {minibarRoom.number}&apos;s Folio.</p>
               </div>
               <button
                 onClick={() => setMinibarRoom(null)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold p-1"
+                className="text-muted-foreground hover:text-foreground text-sm font-bold p-1"
               >
                 ✕
               </button>
@@ -694,7 +694,7 @@ export function HousekeepingClient({
               <input type="hidden" name="roomId" value={minibarRoom.id} />
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Select Consumed Minibar Item *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Select Consumed Minibar Item *</label>
                 <CustomDropdown
                   options={minibarCatalog.map((item) => ({
                     value: item.id,
@@ -709,12 +709,12 @@ export function HousekeepingClient({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Quantity Consumed *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Quantity Consumed *</label>
                 <div className="flex items-center gap-3">
                   <button
                     type="button"
                     onClick={() => setMinibarQty(Math.max(1, minibarQty - 1))}
-                    className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-base hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center border border-slate-200 dark:border-slate-700"
+                    className="h-10 w-10 rounded-xl bg-card text-foreground font-bold text-base hover:bg-muted/40 flex items-center justify-center border border-border"
                   >
                     -
                   </button>
@@ -725,12 +725,12 @@ export function HousekeepingClient({
                     max="50"
                     value={minibarQty}
                     onChange={(e) => setMinibarQty(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-20 text-center py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-sm font-bold text-slate-900 dark:text-white outline-none"
+                    className="w-20 text-center py-2 rounded-xl border border-border bg-muted/40 text-sm font-bold text-foreground outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => setMinibarQty(minibarQty + 1)}
-                    className="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-base hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center border border-slate-200 dark:border-slate-700"
+                    className="h-10 w-10 rounded-xl bg-card text-foreground font-bold text-base hover:bg-muted/40 flex items-center justify-center border border-border"
                   >
                     +
                   </button>
@@ -878,24 +878,24 @@ export function HousekeepingClient({
               <input type="hidden" name="id" value={claimItem.id} />
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Claimant Guest Name *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Claimant Guest Name *</label>
                 <input
                   type="text"
                   name="guestName"
                   required
                   placeholder="e.g. Vikram Sharma"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Guest Contact Phone *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Guest Contact Phone *</label>
                 <input
                   type="text"
                   name="guestContact"
                   required
                   placeholder="e.g. +91 98210 11223"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
 
@@ -903,7 +903,7 @@ export function HousekeepingClient({
                 <button
                   type="button"
                   onClick={() => setClaimItem(null)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted/40 border border-border transition-all"
                 >
                   Cancel
                 </button>

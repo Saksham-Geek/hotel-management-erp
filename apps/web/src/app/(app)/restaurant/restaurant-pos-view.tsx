@@ -1289,7 +1289,7 @@ export function RestaurantPosView({
       {/* ============================================================== */}
       {/* AURA DINE DUAL MODE HEADER                                    */}
       {/* ============================================================== */}
-      <div className="flex flex-col gap-4 rounded-3xl border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900 p-6 shadow-xs sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 rounded-3xl border border-border bg-card p-6 shadow-xs text-card-foreground sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2.5">
             <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-500/10 text-amber-700 dark:text-amber-400 font-bold text-lg">
@@ -1297,14 +1297,14 @@ export function RestaurantPosView({
             </span>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="font-display text-xl sm:text-2xl font-black text-slate-950 dark:text-white">
+                <h1 className="font-display text-xl sm:text-2xl font-black text-foreground">
                   Restaurant &amp; Dining
                 </h1>
                 <span className="rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-wider border border-emerald-200 dark:border-emerald-800">
                   Food &amp; Dining
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <p className="text-xs text-muted-foreground font-medium">
                 {operatingMode === 'hotel'
                   ? 'Connected to Hotel · Charge food orders directly to guest room bill, 5% F&B GST'
                   : 'Standalone Restaurant Mode · Dine-in orders, Swiggy/Zomato, and cash/card billing'}
@@ -1316,14 +1316,14 @@ export function RestaurantPosView({
         {/* Operating Mode Switcher & Outlet Pill */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Hotel vs Standalone Toggle */}
-          <div className="flex rounded-xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700">
+          <div className="flex rounded-xl bg-muted/40 p-1 border border-border">
             <button
               type="button"
               onClick={() => setOperatingMode('hotel')}
               className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
                 operatingMode === 'hotel'
-                  ? 'bg-white dark:bg-slate-900 text-slate-950 dark:text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               🏨 Hotel Integrated
@@ -1333,8 +1333,8 @@ export function RestaurantPosView({
               onClick={() => setOperatingMode('standalone')}
               className={`rounded-lg px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
                 operatingMode === 'standalone'
-                  ? 'bg-amber-500 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:text-slate-950 dark:hover:text-white'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               🍽️ Standalone POS
@@ -1367,7 +1367,7 @@ export function RestaurantPosView({
               type="button"
               onClick={() => setIsAddOutletModalOpen(true)}
               title="Add New Restaurant or Dining Outlet"
-              className="flex items-center gap-1 rounded-xl border border-amber-300 bg-amber-50 px-2.5 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1 rounded-xl border border-amber-500/30 bg-amber-500/10 px-2.5 py-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
             >
               <span>+ Add</span>
             </button>
@@ -1378,7 +1378,7 @@ export function RestaurantPosView({
                 setSettingsSubTab('outlets');
               }}
               title="Manage Restaurant Outlets & Tables"
-              className="flex items-center gap-1 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
+              className="flex items-center gap-1 rounded-xl border border-border bg-card px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted/40 transition-colors shadow-2xs cursor-pointer whitespace-nowrap"
             >
               <span>🏢 Outlets</span>
             </button>
@@ -1961,14 +1961,14 @@ export function RestaurantPosView({
 
             {/* Dishes Grid or Empty State */}
             {filteredItems.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs">
-                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-amber-50 text-2xl mb-3">
+              <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card p-12 text-center shadow-xs text-card-foreground">
+                <div className="grid h-12 w-12 place-items-center rounded-2xl bg-primary/10 text-2xl mb-3">
                   🍲
                 </div>
-                <h3 className="font-display text-base font-black text-slate-950">
+                <h3 className="font-display text-base font-black text-foreground">
                   No Menu Dishes Found
                 </h3>
-                <p className="mt-1 text-xs text-slate-500 max-w-sm">
+                <p className="mt-1 text-xs text-muted-foreground max-w-sm">
                   {searchQuery ? `No dish matched "${searchQuery}".` : 'Add your first starter, main course, bread, or dessert dish to start punching orders.'}
                 </p>
                 <div className="mt-4 flex items-center gap-2">
@@ -1978,7 +1978,7 @@ export function RestaurantPosView({
                       setNewDishCategoryId(categories[0]?.id || '');
                       setIsAddDishModalOpen(true);
                     }}
-                    className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white shadow-xs hover:bg-slate-800 transition-colors cursor-pointer"
+                    className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-xs hover:opacity-90 transition-colors cursor-pointer"
                   >
                     + Add New Dish
                   </button>
@@ -1986,7 +1986,7 @@ export function RestaurantPosView({
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors cursor-pointer"
+                      className="rounded-xl border border-border bg-card px-3 py-2 text-xs font-bold text-foreground hover:bg-muted/40 transition-colors cursor-pointer"
                     >
                       Clear Search
                     </button>
@@ -2001,7 +2001,7 @@ export function RestaurantPosView({
                   className={`flex flex-col justify-between rounded-2xl border p-3.5 text-left transition-all ${
                     item.isOutOfStock
                       ? 'border-rose-200 bg-rose-50/30 opacity-70'
-                      : 'border-slate-200 bg-white hover:border-amber-400 hover:shadow-xs'
+                      : 'border-border bg-card hover:border-primary/40 hover:shadow-xs text-card-foreground'
                   }`}
                 >
                   <div
@@ -2019,10 +2019,10 @@ export function RestaurantPosView({
                         >
                           {item.foodType === 'veg' ? '🟢' : '🔴'}
                         </span>
-                        <span className="text-[10px] font-mono text-slate-400">{item.itemCode}</span>
+                        <span className="text-[10px] font-mono text-muted-foreground">{item.itemCode}</span>
                       </div>
                       {item.kitchenStation && (
-                        <span className="rounded bg-slate-100 text-slate-600 px-1.5 py-0.2 text-[9px] font-bold">
+                        <span className="rounded bg-muted/80 text-foreground px-1.5 py-0.2 text-[9px] font-bold">
                           {item.kitchenStation === 'tandoor' && '🔥 Tandoor'}
                           {item.kitchenStation === 'main_kitchen' && '🍳 Curry'}
                           {item.kitchenStation === 'bar' && '🍸 Bar'}
@@ -2031,16 +2031,16 @@ export function RestaurantPosView({
                         </span>
                       )}
                     </div>
-                    <p className="mt-1 font-bold text-xs sm:text-sm text-slate-950 line-clamp-1">
+                    <p className="mt-1 font-bold text-xs sm:text-sm text-foreground line-clamp-1">
                       {item.name}
                     </p>
                     {item.description && (
-                      <p className="mt-0.5 text-[10.5px] text-slate-500 line-clamp-2">
+                      <p className="mt-0.5 text-[10.5px] text-muted-foreground line-clamp-2">
                         {item.description}
                       </p>
                     )}
                   </div>
-                  <div className="mt-3 flex items-center justify-between border-t border-slate-100 pt-2 font-display text-sm font-black text-slate-950">
+                  <div className="mt-3 flex items-center justify-between border-t border-border pt-2 font-display text-sm font-black text-foreground">
                     <span>₹{Number(item.price).toFixed(0)}</span>
                     <div className="flex items-center gap-1.5">
                       <button
@@ -2078,16 +2078,16 @@ export function RestaurantPosView({
           </div>
 
           {/* Cart & Order Dispatch Drawer (4-5 cols) */}
-          <div className="lg:col-span-5 xl:col-span-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm space-y-4 sticky top-6">
+          <div className="lg:col-span-5 xl:col-span-4 rounded-3xl border border-border bg-card p-5 shadow-xs space-y-4 sticky top-6 text-card-foreground">
             
             {/* Order Destination Selector */}
             <div className="space-y-2">
-              <div className="flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-bold">
+              <div className="flex rounded-xl bg-muted/40 p-1 border border-border text-xs font-bold text-foreground">
                 <button
                   type="button"
                   onClick={() => setOrderType('dine_in')}
-                  className={`flex-1 rounded-lg py-1.5 text-center cursor-pointer ${
-                    orderType === 'dine_in' ? 'bg-white text-slate-950 shadow-xs' : 'text-slate-600'
+                  className={`flex-1 rounded-lg py-1.5 text-center cursor-pointer transition-all ${
+                    orderType === 'dine_in' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Dine-In
@@ -2096,8 +2096,8 @@ export function RestaurantPosView({
                   <button
                     type="button"
                     onClick={() => setOrderType('room_service')}
-                    className={`flex-1 rounded-lg py-1.5 text-center cursor-pointer ${
-                      orderType === 'room_service' ? 'bg-white text-slate-950 shadow-xs' : 'text-slate-600'
+                    className={`flex-1 rounded-lg py-1.5 text-center cursor-pointer transition-all ${
+                      orderType === 'room_service' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground'
                     }`}
                   >
                     Room Service
@@ -2106,8 +2106,8 @@ export function RestaurantPosView({
                 <button
                   type="button"
                   onClick={() => setOrderType('takeaway')}
-                  className={`flex-1 rounded-lg py-1.5 text-center cursor-pointer ${
-                    orderType === 'takeaway' ? 'bg-white text-slate-950 shadow-xs' : 'text-slate-600'
+                  className={`flex-1 rounded-lg py-1.5 text-center cursor-pointer transition-all ${
+                    orderType === 'takeaway' ? 'bg-primary text-primary-foreground shadow-xs font-bold' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   Takeaway
@@ -2152,56 +2152,56 @@ export function RestaurantPosView({
             </div>
 
             {/* Standalone CRM Phone Lookup */}
-            <div className="space-y-1.5 border-t border-slate-100 pt-3">
-              <label className="text-[11px] font-bold text-slate-500">Customer Phone &amp; CRM:</label>
+            <div className="space-y-1.5 border-t border-border pt-3">
+              <label className="text-[11px] font-bold text-muted-foreground">Customer Phone &amp; CRM:</label>
               <div className="flex gap-2">
                 <input
                   type="tel"
                   placeholder="Mobile (e.g. 9820011223)"
                   value={customerPhone}
                   onChange={(e) => handlePhoneLookup(e.target.value)}
-                  className="w-1/2 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-mono font-medium focus:outline-none"
+                  className="w-1/2 rounded-xl border border-border bg-muted/40 px-3 py-1.5 text-xs font-mono font-medium text-foreground focus:border-primary focus:outline-none"
                 />
                 <input
                   type="text"
                   placeholder="Guest / Diner Name"
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
-                  className="w-1/2 rounded-xl border border-slate-200 px-3 py-1.5 text-xs font-medium focus:outline-none"
+                  className="w-1/2 rounded-xl border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground focus:border-primary focus:outline-none"
                 />
               </div>
 
               {customerCrmProfile && (
-                <div className="rounded-xl bg-amber-50 border border-amber-200 p-2 text-[11px] text-amber-900 space-y-0.5">
+                <div className="rounded-xl bg-amber-500/10 border border-amber-500/30 p-2 text-[11px] text-amber-700 dark:text-amber-400 space-y-0.5">
                   <div className="flex justify-between font-bold">
                     <span>Returning Diner: {customerCrmProfile.visitCount} visits</span>
                     <span className="uppercase">{customerCrmProfile.dietaryPreference}</span>
                   </div>
-                  {customerCrmProfile.notes && <p className="text-[10px] text-slate-600">{customerCrmProfile.notes}</p>}
+                  {customerCrmProfile.notes && <p className="text-[10px] text-muted-foreground">{customerCrmProfile.notes}</p>}
                 </div>
               )}
             </div>
 
             {/* Cart Items List */}
-            <div className="border-t border-slate-100 pt-3 space-y-2.5 max-h-64 overflow-y-auto">
-              <div className="flex justify-between text-xs font-black text-slate-900">
+            <div className="border-t border-border pt-3 space-y-2.5 max-h-64 overflow-y-auto">
+              <div className="flex justify-between text-xs font-black text-foreground">
                 <span>Ordered Items</span>
                 <span>{cart.length} items</span>
               </div>
 
               {cart.length === 0 ? (
-                <p className="py-6 text-center text-xs text-slate-400 font-medium">
+                <p className="py-6 text-center text-xs text-muted-foreground font-medium">
                   Tap dishes to add to this KOT
                 </p>
               ) : (
                 cart.map((item) => (
-                  <div key={item.menuItemId} className="rounded-xl border border-slate-100 bg-slate-50 p-2.5 space-y-1.5">
+                  <div key={item.menuItemId} className="rounded-xl border border-border bg-muted/30 p-2.5 space-y-1.5 text-foreground">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1.5 truncate">
                         <span className="text-xs">{item.foodType === 'veg' ? '🟢' : '🔴'}</span>
-                        <span className="text-xs font-bold text-slate-900 truncate">{item.itemName}</span>
+                        <span className="text-xs font-bold text-foreground truncate">{item.itemName}</span>
                       </div>
-                      <span className="font-mono text-xs font-black text-slate-950">
+                      <span className="font-mono text-xs font-black text-foreground">
                         ₹{item.quantity * item.unitPrice}
                       </span>
                     </div>
@@ -2211,7 +2211,7 @@ export function RestaurantPosView({
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.menuItemId, -1)}
-                          className="h-6 w-6 rounded-lg bg-white border border-slate-200 font-bold hover:bg-slate-100 cursor-pointer text-center"
+                          className="h-6 w-6 rounded-lg bg-card border border-border text-foreground font-bold hover:bg-muted/40 cursor-pointer text-center"
                         >
                           -
                         </button>
@@ -2219,7 +2219,7 @@ export function RestaurantPosView({
                         <button
                           type="button"
                           onClick={() => updateQuantity(item.menuItemId, 1)}
-                          className="h-6 w-6 rounded-lg bg-white border border-slate-200 font-bold hover:bg-slate-100 cursor-pointer text-center"
+                          className="h-6 w-6 rounded-lg bg-card border border-border text-foreground font-bold hover:bg-muted/40 cursor-pointer text-center"
                         >
                           +
                         </button>
@@ -2230,21 +2230,21 @@ export function RestaurantPosView({
                         <button
                           type="button"
                           onClick={() => appendQuickNote(item.menuItemId, 'Less Spicy')}
-                          className="rounded bg-white px-1.5 py-0.5 border border-slate-200 hover:bg-slate-100 cursor-pointer"
+                          className="rounded bg-card px-1.5 py-0.5 border border-border text-foreground hover:bg-muted/40 cursor-pointer"
                         >
                           Mild
                         </button>
                         <button
                           type="button"
                           onClick={() => appendQuickNote(item.menuItemId, 'Spicy')}
-                          className="rounded bg-white px-1.5 py-0.5 border border-slate-200 hover:bg-slate-100 cursor-pointer"
+                          className="rounded bg-card px-1.5 py-0.5 border border-border text-foreground hover:bg-muted/40 cursor-pointer"
                         >
                           Spicy
                         </button>
                         <button
                           type="button"
                           onClick={() => appendQuickNote(item.menuItemId, 'No Onion Garlic')}
-                          className="rounded bg-white px-1.5 py-0.5 border border-slate-200 hover:bg-slate-100 cursor-pointer"
+                          className="rounded bg-card px-1.5 py-0.5 border border-border text-foreground hover:bg-muted/40 cursor-pointer"
                         >
                           Jain
                         </button>
@@ -2252,7 +2252,7 @@ export function RestaurantPosView({
                     </div>
 
                     {item.specialNotes && (
-                      <p className="text-[10px] text-amber-800 font-medium italic">
+                      <p className="text-[10px] text-amber-600 dark:text-amber-400 font-medium italic">
                         Note: {item.specialNotes}
                       </p>
                     )}
@@ -2262,18 +2262,18 @@ export function RestaurantPosView({
             </div>
 
             {/* Bill Summary */}
-            <div className="border-t border-slate-200 pt-3 space-y-1.5 text-xs">
-              <div className="flex justify-between text-slate-600">
+            <div className="border-t border-border pt-3 space-y-1.5 text-xs text-foreground">
+              <div className="flex justify-between text-muted-foreground">
                 <span>Subtotal:</span>
-                <span>₹{subtotal.toFixed(2)}</span>
+                <span className="text-foreground">₹{subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-slate-600 text-[11px]">
+              <div className="flex justify-between text-muted-foreground text-[11px]">
                 <span>F&amp;B GST (5% SAC 996331):</span>
-                <span>₹{totalTax.toFixed(2)}</span>
+                <span className="text-foreground">₹{totalTax.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between text-sm font-black text-slate-950 border-t border-slate-100 pt-1.5">
+              <div className="flex justify-between text-sm font-black text-foreground border-t border-border pt-1.5">
                 <span>Grand Total:</span>
-                <span>₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                <span className="text-primary font-bold">₹{grandTotal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
               </div>
             </div>
 
@@ -2292,7 +2292,7 @@ export function RestaurantPosView({
                 type="button"
                 disabled={cart.length === 0 || submitting}
                 onClick={handleDispatchKot}
-                className="w-full rounded-2xl bg-emerald-700 py-3 text-xs font-bold text-white shadow-xs hover:bg-emerald-800 disabled:opacity-50 cursor-pointer transition-all"
+                className="w-full rounded-2xl bg-primary py-3 text-xs font-bold text-primary-foreground shadow-xs hover:opacity-90 disabled:opacity-50 cursor-pointer transition-all"
               >
                 {submitting ? 'Dispatching KOT...' : '🔥 Fire KOT to Kitchen & Print'}
               </button>
@@ -2307,21 +2307,21 @@ export function RestaurantPosView({
       {activeTab === 'aggregators' && (
         <div className="space-y-6">
           {/* Header Row: Live Counters & Demo Simulation Buttons */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl border border-border bg-card p-5 shadow-xs text-card-foreground">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-orange-500/10 text-orange-600 font-bold text-xl">
                 🛵
               </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="font-display text-base sm:text-lg font-black text-slate-950">
+                  <h2 className="font-display text-base sm:text-lg font-black text-foreground">
                     Online Delivery Hub
                   </h2>
-                  <span className="rounded-full bg-emerald-100 text-emerald-800 px-2.5 py-0.5 text-[10px] font-black uppercase">
+                  <span className="rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-0.5 text-[10px] font-black uppercase">
                     Swiggy &amp; Zomato Connected
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-muted-foreground font-medium">
                   Centralized order ingestion, prep timers, rider OTP tracking, and multi-channel item 86&apos;ing
                 </p>
               </div>
@@ -2335,12 +2335,12 @@ export function RestaurantPosView({
                   setSettingsSubTab('aggregators');
                   setActiveTab('settings');
                 }}
-                className="flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground hover:bg-muted/40 shadow-xs transition-colors cursor-pointer"
               >
                 <span>⚙️ Aggregator API &amp; Webhooks</span>
               </button>
-              <div className="h-6 w-px bg-slate-200 hidden sm:block"></div>
-              <span className="text-[11px] font-bold text-slate-400 mr-1">Demo Sandbox:</span>
+              <div className="h-6 w-px bg-border hidden sm:block"></div>
+              <span className="text-[11px] font-bold text-muted-foreground mr-1">Demo Sandbox:</span>
               <button
                 type="button"
                 disabled={submitting}
@@ -2401,14 +2401,14 @@ export function RestaurantPosView({
           )}
 
           {/* Delivery Queue Filter Tabs */}
-          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-3">
+          <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
             <button
               type="button"
               onClick={() => setDeliveryFilter('all')}
               className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
                 deliveryFilter === 'all'
-                  ? 'bg-slate-950 text-white shadow-xs'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  ? 'bg-primary text-primary-foreground shadow-xs'
+                  : 'bg-card text-foreground border border-border hover:bg-muted/40'
               }`}
             >
               All Deliveries ({aggregatorOrders.length})
@@ -2419,7 +2419,7 @@ export function RestaurantPosView({
               className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 deliveryFilter === 'incoming'
                   ? 'bg-orange-600 text-white shadow-xs'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  : 'bg-card text-foreground border border-border hover:bg-muted/40'
               }`}
             >
               <span>🔔 Awaiting Decision</span>
@@ -2435,7 +2435,7 @@ export function RestaurantPosView({
               className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 deliveryFilter === 'preparing'
                   ? 'bg-amber-600 text-white shadow-xs'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  : 'bg-card text-foreground border border-border hover:bg-muted/40'
               }`}
             >
               <span>🔥 In Kitchen / Cooking</span>
@@ -2449,7 +2449,7 @@ export function RestaurantPosView({
               className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 deliveryFilter === 'ready'
                   ? 'bg-purple-700 text-white shadow-xs'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  : 'bg-card text-foreground border border-border hover:bg-muted/40'
               }`}
             >
               <span>📦 Food Ready &amp; Packed</span>
@@ -2463,7 +2463,7 @@ export function RestaurantPosView({
               className={`rounded-xl px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 deliveryFilter === 'dispatched'
                   ? 'bg-emerald-700 text-white shadow-xs'
-                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                  : 'bg-card text-foreground border border-border hover:bg-muted/40'
               }`}
             >
               <span>🛵 Dispatched / On the Way</span>
@@ -2475,14 +2475,14 @@ export function RestaurantPosView({
 
           {/* Delivery Orders List */}
           {aggregatorOrders.length === 0 ? (
-            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-slate-300 bg-white p-12 text-center shadow-xs">
-              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-orange-50 text-2xl mb-4">
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-dashed border-border bg-card p-12 text-center shadow-xs text-card-foreground">
+              <div className="grid h-14 w-14 place-items-center rounded-2xl bg-orange-500/10 text-2xl mb-4">
                 🛵
               </div>
-              <h3 className="font-display text-base font-black text-slate-950">
+              <h3 className="font-display text-base font-black text-foreground">
                 No Active Delivery Orders
               </h3>
-              <p className="mt-1 max-w-sm text-xs text-slate-500">
+              <p className="mt-1 max-w-sm text-xs text-muted-foreground">
                 Incoming orders from Swiggy, Zomato, or direct web will appear here with live rider statuses and prep timers.
               </p>
               <div className="mt-4 flex flex-wrap gap-2 justify-center">
@@ -2492,7 +2492,7 @@ export function RestaurantPosView({
                     setSettingsSubTab('aggregators');
                     setActiveTab('settings');
                   }}
-                  className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer flex items-center gap-1.5"
+                  className="rounded-xl border border-border bg-card px-4 py-2 text-xs font-bold text-foreground hover:bg-muted/40 shadow-xs cursor-pointer flex items-center gap-1.5"
                 >
                   <span>⚙️ Connect Live Swiggy &amp; Zomato</span>
                 </button>
@@ -2849,28 +2849,28 @@ export function RestaurantPosView({
                 return (
                   <div
                     key={kot.id}
-                    className={`rounded-2xl border bg-white p-5 shadow-xs space-y-3 transition-all ${
+                    className={`rounded-2xl border bg-card p-5 shadow-xs space-y-3 transition-all text-card-foreground ${
                       isOverdue
-                        ? 'border-rose-400 ring-2 ring-rose-400/30 bg-rose-50/10'
+                        ? 'border-rose-400 ring-2 ring-rose-400/30 bg-rose-500/10'
                         : isDelayed
                         ? 'border-amber-300 ring-1 ring-amber-300/30'
-                        : 'border-slate-200'
+                        : 'border-border'
                     }`}
                   >
-                    <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                    <div className="flex items-center justify-between border-b border-border pb-2.5">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-mono text-base font-black text-slate-950">
+                          <span className="font-mono text-base font-black text-foreground">
                             {kot.kotNumber}
                           </span>
                           {/* Elapsed Timer Urgency Indicator */}
                           <span
                             className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider flex items-center gap-0.5 ${
                               isOverdue
-                                ? 'bg-rose-100 text-rose-900 border border-rose-300 animate-pulse'
+                                ? 'bg-rose-100 text-rose-900 border border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 animate-pulse'
                                 : isDelayed
-                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                : 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/60 dark:text-amber-200'
+                                : 'bg-emerald-100 text-emerald-900 border border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200'
                             }`}
                           >
                             <span>⏱️</span>
@@ -2886,7 +2886,7 @@ export function RestaurantPosView({
                             </span>
                           )}
                         </div>
-                        <p className="text-[11px] text-slate-500 font-bold">
+                        <p className="text-[11px] text-muted-foreground font-bold">
                           {kot.orderType === 'dine_in'
                             ? `Table ${kot.tableNumber || ''} (${kot.tableSection || 'Hall'})`
                             : kot.orderType === 'delivery'
@@ -2897,10 +2897,10 @@ export function RestaurantPosView({
                       <span
                         className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
                           kot.status === 'ready'
-                            ? 'bg-emerald-100 text-emerald-900'
+                            ? 'bg-emerald-100 text-emerald-900 dark:bg-emerald-950/60 dark:text-emerald-300'
                             : kot.status === 'preparing'
-                            ? 'bg-blue-100 text-blue-900'
-                            : 'bg-amber-100 text-amber-900'
+                            ? 'bg-blue-100 text-blue-900 dark:bg-blue-950/60 dark:text-blue-300'
+                            : 'bg-amber-100 text-amber-900 dark:bg-amber-950/60 dark:text-amber-300'
                         }`}
                       >
                         {kot.status}
@@ -2930,7 +2930,7 @@ export function RestaurantPosView({
                                 }))
                               }
                               className={`flex items-center justify-between font-medium p-1 rounded-lg cursor-pointer transition-all ${
-                                isPlated ? 'bg-emerald-50/70 text-slate-400 line-through' : 'hover:bg-slate-50 text-slate-900'
+                                isPlated ? 'bg-emerald-500/10 text-muted-foreground line-through' : 'hover:bg-muted/40 text-foreground'
                               }`}
                               title="Click to check off plated item"
                             >
@@ -2994,25 +2994,25 @@ export function RestaurantPosView({
       {/* ============================================================== */}
       {activeTab === 'shifts' && (
         <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="rounded-3xl border border-border bg-card p-6 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-card-foreground">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-emerald-500/10 text-emerald-700 font-bold text-xl">
                 📊
               </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="font-display text-lg font-black text-slate-950">
+                  <h2 className="font-display text-lg font-black text-foreground">
                     Cashier Shift &amp; Day-End Z-Report
                   </h2>
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider ${
-                      currentShift ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
+                      currentShift ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-muted/80 border border-border text-foreground'
                     }`}
                   >
                     {currentShift ? 'Active Shift' : 'Drawer Closed'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-muted-foreground font-medium">
                   Shift opening float, multi-tender sales reconciliation, cash variance audit, and official Z-Report
                 </p>
               </div>
@@ -3022,7 +3022,7 @@ export function RestaurantPosView({
               <button
                 type="button"
                 onClick={() => setIsCloseShiftModalOpen(true)}
-                className="rounded-xl bg-slate-950 px-5 py-2.5 text-xs font-bold text-white hover:bg-slate-800 shadow-xs cursor-pointer"
+                className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground hover:opacity-90 shadow-xs cursor-pointer"
               >
                 Close Shift &amp; Print Z-Report ➔
               </button>
@@ -3030,7 +3030,7 @@ export function RestaurantPosView({
               <button
                 type="button"
                 onClick={() => setIsOpenShiftModalOpen(true)}
-                className="rounded-xl bg-emerald-700 px-5 py-2.5 text-xs font-bold text-white hover:bg-emerald-800 shadow-xs cursor-pointer"
+                className="rounded-xl bg-primary px-5 py-2.5 text-xs font-bold text-primary-foreground hover:opacity-90 shadow-xs cursor-pointer"
               >
                 + Open New Cashier Shift
               </button>
@@ -3039,42 +3039,42 @@ export function RestaurantPosView({
 
           {currentShift ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs min-w-0">
-                <span className="text-[11px] font-bold text-slate-500 truncate block">Active Shift:</span>
-                <p className="font-display text-base font-black text-slate-950 truncate">{currentShift.shiftName}</p>
-                <p className="text-[10px] text-slate-400 truncate">Opened by: {currentShift.openedBy}</p>
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-1 shadow-xs min-w-0 text-card-foreground">
+                <span className="text-[11px] font-bold text-muted-foreground truncate block">Active Shift:</span>
+                <p className="font-display text-base font-black text-foreground truncate">{currentShift.shiftName}</p>
+                <p className="text-[10px] text-muted-foreground truncate">Opened by: {currentShift.openedBy}</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs min-w-0">
-                <span className="text-[11px] font-bold text-slate-500 truncate block">Opening Cash Float:</span>
-                <p className="font-display text-base font-black text-emerald-700 font-mono tabular-nums truncate">
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-1 shadow-xs min-w-0 text-card-foreground">
+                <span className="text-[11px] font-bold text-muted-foreground truncate block">Opening Cash Float:</span>
+                <p className="font-display text-base font-black text-emerald-600 dark:text-emerald-400 font-mono tabular-nums truncate">
                   ₹{Number(currentShift.openingCash).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </p>
-                <p className="text-[10px] text-slate-400 truncate">Drawer starting cash balance</p>
+                <p className="text-[10px] text-muted-foreground truncate">Drawer starting cash balance</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs min-w-0">
-                <span className="text-[11px] font-bold text-slate-500 truncate block">Shift Started At:</span>
-                <p className="font-mono text-xs font-bold text-slate-800 tabular-nums truncate">
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-1 shadow-xs min-w-0 text-card-foreground">
+                <span className="text-[11px] font-bold text-muted-foreground truncate block">Shift Started At:</span>
+                <p className="font-mono text-xs font-bold text-foreground tabular-nums truncate">
                   {formatDeterministicTime(currentShift.openedAt)}
                 </p>
-                <p className="text-[10px] text-slate-400 truncate">{formatDeterministicDate(currentShift.openedAt)}</p>
+                <p className="text-[10px] text-muted-foreground truncate">{formatDeterministicDate(currentShift.openedAt)}</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-1 shadow-xs min-w-0">
-                <span className="text-[11px] font-bold text-slate-500">Cashier Actions:</span>
+              <div className="rounded-2xl border border-border bg-card p-4 space-y-1 shadow-xs min-w-0 text-card-foreground">
+                <span className="text-[11px] font-bold text-muted-foreground">Cashier Actions:</span>
                 <button
                   type="button"
                   onClick={() => setIsCloseShiftModalOpen(true)}
-                  className="w-full rounded-lg bg-slate-100 hover:bg-slate-200 py-1.5 text-xs font-bold text-slate-800 cursor-pointer text-center"
+                  className="w-full rounded-lg border border-border bg-card hover:bg-muted/40 py-1.5 text-xs font-bold text-foreground cursor-pointer text-center"
                 >
                   End Shift Reconciliation
                 </button>
               </div>
             </div>
           ) : (
-            <div className="rounded-3xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center text-xs text-slate-500 font-medium">
-              Click <strong className="text-slate-900 font-bold">&quot;+ Open New Cashier Shift&quot;</strong> to declare starting drawer cash float and begin shift session tracking.
+            <div className="rounded-3xl border border-dashed border-border bg-card p-8 text-center text-xs text-muted-foreground font-medium text-card-foreground">
+              Click <strong className="text-foreground font-bold">&quot;+ Open New Cashier Shift&quot;</strong> to declare starting drawer cash float and begin shift session tracking.
             </div>
           )}
         </div>
@@ -3093,21 +3093,21 @@ export function RestaurantPosView({
       {activeTab === 'settings' && (
         <div className="space-y-6">
           {/* Header Banner */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl border border-slate-200 bg-white p-6 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-3xl border border-border bg-card p-6 shadow-xs text-card-foreground">
             <div className="flex items-center gap-4">
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-50 text-indigo-700 font-bold text-2xl border border-indigo-100">
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-bold text-2xl border border-indigo-500/20">
                 ⚙️
               </span>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="font-display text-lg font-black text-slate-950">
+                  <h2 className="font-display text-lg font-black text-foreground">
                     Aura Dine Control &amp; Configuration Center
                   </h2>
-                  <span className="rounded-full bg-indigo-100 text-indigo-800 px-2.5 py-0.5 text-[10px] font-black uppercase">
+                  <span className="rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 px-2.5 py-0.5 text-[10px] font-black uppercase">
                     Admin Hub
                   </span>
                 </div>
-                <p className="text-xs text-slate-500 font-medium">
+                <p className="text-xs text-muted-foreground font-medium">
                   Centralized setup for floor plans, menu catalog, Swiggy &amp; Zomato API keys, thermal printers, and SOPs
                 </p>
               </div>
@@ -3117,7 +3117,7 @@ export function RestaurantPosView({
               <button
                 type="button"
                 onClick={() => setActiveTab('tables')}
-                className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 shadow-xs cursor-pointer"
+                className="rounded-xl border border-border bg-card px-3.5 py-2 text-xs font-bold text-foreground hover:bg-muted/40 shadow-xs cursor-pointer"
               >
                 ← Return to Tables
               </button>
@@ -3426,12 +3426,12 @@ export function RestaurantPosView({
           {/* SUB-PANEL 1: FLOOR & TABLES MASTER */}
           {settingsSubTab === 'tables' && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-xs text-card-foreground">
                 <div>
-                  <h3 className="font-display text-base font-black text-slate-950">
+                  <h3 className="font-display text-base font-black text-foreground">
                     Dining Room Tables Inventory
                   </h3>
-                  <p className="text-xs text-slate-500 font-medium">
+                  <p className="text-xs text-muted-foreground font-medium">
                     Manage table numbers, guest capacities, and floor zones for {activeOutlet?.name || 'this Outlet'}
                   </p>
                 </div>
@@ -3441,28 +3441,28 @@ export function RestaurantPosView({
                     setNewTableOutletId(selectedOutletId);
                     setIsAddTableModalOpen(true);
                   }}
-                  className="rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 transition-colors shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
+                  className="rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 transition-colors shadow-xs cursor-pointer flex items-center gap-1.5 shrink-0"
                 >
                   <span>+ Add Dining Table</span>
                 </button>
               </div>
 
               {filteredTables.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-10 text-center">
-                  <p className="text-sm font-bold text-slate-700">No tables configured for this outlet yet.</p>
+                <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center text-card-foreground">
+                  <p className="text-sm font-bold text-muted-foreground">No tables configured for this outlet yet.</p>
                   <button
                     type="button"
                     onClick={() => {
                       setNewTableOutletId(selectedOutletId);
                       setIsAddTableModalOpen(true);
                     }}
-                    className="mt-3 rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer"
+                    className="mt-3 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90 cursor-pointer"
                   >
                     + Create First Table
                   </button>
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-xs">
+                <div className="overflow-x-auto rounded-2xl border border-border bg-card shadow-xs text-card-foreground">
                   <table className="w-full text-left text-xs">
                     <thead className="border-b border-slate-100 bg-slate-50 font-bold uppercase tracking-wider text-slate-500">
                       <tr>

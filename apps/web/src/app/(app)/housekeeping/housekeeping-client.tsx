@@ -181,28 +181,34 @@ export function HousekeepingClient({
       </div>
 
       {/* Main Tab Controls & Mobile Bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-3 rounded-2xl shadow-2xs">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl overflow-x-auto">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-card border border-border p-3.5 rounded-2xl shadow-2xs text-card-foreground">
+        <div className="flex items-center gap-2 p-1 bg-muted/40 rounded-xl overflow-x-auto">
           <button
             onClick={() => setActiveTab('turnaround')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
-              activeTab === 'turnaround' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer ${
+              activeTab === 'turnaround'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-foreground hover:bg-muted/50'
             }`}
           >
             📱 Room Turnaround Hub
           </button>
           <button
             onClick={() => setActiveTab('lost_found')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
-              activeTab === 'lost_found' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer ${
+              activeTab === 'lost_found'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-foreground hover:bg-muted/50'
             }`}
           >
             📦 Lost &amp; Found ({lostAndFound.length})
           </button>
           <button
             onClick={() => setActiveTab('audit')}
-            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all shrink-0 ${
-              activeTab === 'audit' ? 'bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-2xs' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            className={`px-4 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all shrink-0 cursor-pointer ${
+              activeTab === 'audit'
+                ? 'bg-primary text-primary-foreground shadow-sm'
+                : 'text-foreground hover:bg-muted/50'
             }`}
           >
             📋 Turnaround Audit Logs ({logs.length})
@@ -216,7 +222,7 @@ export function HousekeepingClient({
               placeholder="Search room #..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:w-44 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-slate-900 dark:focus:border-white focus:outline-none"
+              className="w-full sm:w-48 px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
             />
           </div>
         )}
@@ -225,9 +231,9 @@ export function HousekeepingClient({
           <button
             type="button"
             onClick={() => setIsLostFoundModalOpen(true)}
-            className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 text-white text-xs font-bold shadow-xs flex items-center justify-center gap-1.5 transition-all"
+            className="min-h-[42px] px-5 py-2.5 rounded-xl bg-primary hover:opacity-90 text-primary-foreground text-xs sm:text-sm font-bold shadow-xs flex items-center justify-center gap-2 transition-all cursor-pointer shrink-0"
           >
-            <span>+</span> Log Found Item
+            <span className="text-base leading-none">+</span> Log Found Item
           </button>
         )}
       </div>
@@ -451,19 +457,19 @@ export function HousekeepingClient({
         </div>
       ) : activeTab === 'lost_found' ? (
         /* Lost & Found Register Tab */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xs">
-          <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/50 flex items-center justify-between">
+        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-2xs text-card-foreground">
+          <div className="p-4 border-b border-border bg-muted/40 flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Lost &amp; Found Item Register</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Central custody log of items left behind in guest rooms and public spaces.</p>
+              <h3 className="text-sm font-bold text-foreground">Lost &amp; Found Item Register</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Central custody log of items left behind in guest rooms and public spaces.</p>
             </div>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-950">
+            <span className="text-xs font-bold px-3 py-1 rounded-lg border border-border bg-muted/80 text-foreground">
               {lostAndFound.length} Items Logged
             </span>
           </div>
 
           {lostAndFound.length === 0 ? (
-            <div className="p-12 text-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="p-12 text-center text-xs text-muted-foreground">
               No lost items reported yet. Tap &ldquo;+ Log Found Item&rdquo; above to record an item.
             </div>
           ) : (
@@ -529,19 +535,19 @@ export function HousekeepingClient({
         </div>
       ) : (
         /* Audit & Turnaround History Tab */
-        <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl overflow-hidden shadow-2xs">
-          <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-950/50 flex items-center justify-between">
+        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-2xs text-card-foreground">
+          <div className="p-4 border-b border-border bg-muted/40 flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">Live Housekeeping Turnaround &amp; Inspection Log</h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Immutable audit trail of room status changes and maintenance logs.</p>
+              <h3 className="text-sm font-bold text-foreground">Live Housekeeping Turnaround &amp; Inspection Log</h3>
+              <p className="text-xs text-muted-foreground mt-0.5">Immutable audit trail of room status changes and maintenance logs.</p>
             </div>
-            <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-900 text-white dark:bg-white dark:text-slate-950">
+            <span className="text-xs font-bold px-3 py-1 rounded-lg border border-border bg-muted/80 text-foreground">
               {logs.length} Entries Logged
             </span>
           </div>
 
           {logs.length === 0 ? (
-            <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+            <div className="p-8 text-center text-xs text-muted-foreground">
               No housekeeping logs recorded yet. Changes will be audited here automatically.
             </div>
           ) : (
@@ -735,13 +741,13 @@ export function HousekeepingClient({
                 <button
                   type="button"
                   onClick={() => setMinibarRoom(null)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted/40 border border-border transition-all"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-950 text-white shadow-xs transition-all"
+                  className="min-h-[42px] px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-primary text-primary-foreground shadow-xs hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer"
                 >
                   Post to Guest Folio
                 </button>
@@ -754,17 +760,17 @@ export function HousekeepingClient({
       {/* Log Found Item Modal */}
       {isLostFoundModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-md bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="w-full max-w-md bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-2xl animate-in zoom-in-95">
+            <div className="flex items-center justify-between pb-4 border-b border-border">
               <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
                   <span>📦</span> Log Lost &amp; Found Item
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Register an item found in guest rooms or public areas.</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Register an item found in guest rooms or public areas.</p>
               </div>
               <button
                 onClick={() => setIsLostFoundModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-sm font-bold p-1"
+                className="text-muted-foreground hover:text-foreground text-sm font-bold p-1 cursor-pointer"
               >
                 ✕
               </button>
@@ -772,32 +778,32 @@ export function HousekeepingClient({
 
             <form action={createLostAndFoundAction} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Room # or Location *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Room # or Location *</label>
                 <input
                   type="text"
                   name="roomNumber"
                   required
                   placeholder="e.g. 204 or Lobby Sofa"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Item Name *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Item Name *</label>
                 <input
                   type="text"
                   name="itemName"
                   required
                   placeholder="e.g. Apple Watch Series 8, Gold Ring, Ray-Ban Sunglasses"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Category *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Category *</label>
                 <select
                   name="category"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white outline-none cursor-pointer"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground outline-none cursor-pointer"
                 >
                   <option value="electronics">Electronics (Phones, Chargers, Laptops)</option>
                   <option value="valuables">Valuables (Jewelry, Cash, Watches)</option>
@@ -808,24 +814,24 @@ export function HousekeepingClient({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Storage Locker / Safe Location *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Storage Locker / Safe Location *</label>
                 <input
                   type="text"
                   name="storageLocation"
                   required
                   defaultValue="Housekeeping Safe Locker A"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">Finder Name *</label>
+                <label className="block text-xs font-bold text-foreground mb-1">Finder Name *</label>
                 <input
                   type="text"
                   name="finderName"
                   required
                   defaultValue="Floor Attendant"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 text-xs font-medium text-slate-900 dark:text-white placeholder:text-slate-400 outline-none focus:border-slate-900 dark:focus:border-white focus:ring-1 focus:ring-slate-900"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-muted/40 text-xs font-medium text-foreground placeholder:text-muted-foreground outline-none focus:border-primary"
                 />
               </div>
 
@@ -833,13 +839,13 @@ export function HousekeepingClient({
                 <button
                   type="button"
                   onClick={() => setIsLostFoundModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 transition-all"
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-muted/40 border border-border transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-900 hover:bg-slate-800 text-white dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-xs transition-all"
+                  className="min-h-[42px] px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold bg-primary text-primary-foreground shadow-xs hover:opacity-90 active:scale-[0.99] transition-all cursor-pointer"
                 >
                   Save Item in Register
                 </button>

@@ -542,8 +542,9 @@ export function InventoryClient({
                           {mat.category}
                         </td>
                         <td className="px-4 py-3.5 text-foreground">
-                          <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2.5 py-1 text-xs font-semibold text-foreground">
-                            📍 {mat.storageLocation || 'Main Store'}
+                          <span className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-3.5 py-1.5 text-xs sm:text-sm font-semibold text-foreground shadow-2xs">
+                            <span className="text-sm">📍</span>
+                            <span>{mat.storageLocation || 'Main Store'}</span>
                           </span>
                         </td>
                         <td className="px-4 py-3.5 text-right font-mono font-bold text-foreground">

@@ -257,7 +257,7 @@ export function BanquetClient({
               >
                 <div>
                   <div className="flex items-center justify-between">
-                    <span className="rounded-full bg-muted/80 px-2.5 py-0.5 text-[10px] font-bold text-foreground">
+                    <span className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
                       {meta.icon} {meta.label}
                     </span>
                     <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400">
@@ -271,13 +271,9 @@ export function BanquetClient({
                     <span>👥 Max: <strong className="text-foreground">{v.maxPax} Pax</strong></span>
                     <span>💰 Base: <strong className="text-foreground">₹{v.baseRentalRate.toLocaleString('en-IN')}</strong></span>
                   </div>
-                  <div className="mt-3 flex flex-wrap gap-1">
-                    {v.amenities.map((a, idx) => (
-                      <span key={idx} className="rounded-md bg-muted/60 px-2 py-0.5 text-[10px] text-muted-foreground border border-border">
-                        {a}
-                      </span>
-                    ))}
-                  </div>
+                  <p className="mt-2.5 text-xs text-muted-foreground leading-relaxed">
+                    {v.amenities.join(' · ')}
+                  </p>
                 </div>
 
                 <div className="mt-4 pt-3 border-t border-border">

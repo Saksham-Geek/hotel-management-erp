@@ -736,7 +736,7 @@ export function SettingsView({
         </div>
       )}
 
-      {/* Tabs Navigation Bar - Wraps cleanly with zero horizontal scroll */}
+      {/* Tabs Navigation Bar - Clean, uncluttered, and readable */}
       <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-border" role="tablist" aria-label="Settings tabs">
         {tabsList.map((t) => {
           const active = tab === t.id;
@@ -749,25 +749,14 @@ export function SettingsView({
               aria-controls={`panel-${t.id}`}
               type="button"
               onClick={() => switchTab(t.id)}
-              className={`flex items-center gap-2.5 rounded-xl px-4 sm:px-4.5 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-2xs ${
+              className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-all cursor-pointer shadow-2xs ${
                 active
                   ? 'bg-primary text-primary-foreground shadow-sm ring-2 ring-primary/25'
-                  : 'bg-card text-foreground border border-border hover:bg-muted/50 hover:text-foreground'
+                  : 'bg-card text-foreground border border-border/80 hover:border-primary/40 hover:bg-muted/40 hover:text-foreground'
               }`}
             >
               <span aria-hidden="true" className="text-base">{t.icon}</span>
               <span>{t.label}</span>
-              {t.count && (
-                <span
-                  className={`rounded-full px-2.5 py-0.5 text-[11px] font-black border ${
-                    active
-                      ? 'border-white/30 bg-primary-foreground/20 text-primary-foreground'
-                      : 'border-border bg-muted/80 text-foreground'
-                  }`}
-                >
-                  {t.count}
-                </span>
-              )}
             </button>
           );
         })}

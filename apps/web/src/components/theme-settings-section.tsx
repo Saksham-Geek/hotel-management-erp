@@ -100,8 +100,8 @@ export function ThemeSettingsSection() {
         </div>
       </div>
 
-      {/* 4 Luxury Palette Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {/* 5 Luxury Palette Cards */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         {COLOR_THEMES.map((theme) => {
           const isSelected = theme.id === activeTheme;
           return (

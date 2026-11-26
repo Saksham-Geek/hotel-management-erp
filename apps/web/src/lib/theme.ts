@@ -1,6 +1,6 @@
 'use client';
 
-export type ColorThemeId = 'obsidian' | 'emerald' | 'bronze' | 'slate';
+export type ColorThemeId = 'obsidian' | 'amethyst' | 'emerald' | 'bronze' | 'slate';
 
 export interface ColorThemeOption {
   id: ColorThemeId;
@@ -21,7 +21,7 @@ export const COLOR_THEMES: ColorThemeOption[] = [
   {
     id: 'obsidian',
     name: 'Modern Obsidian & Charcoal',
-    tagline: 'Pure neutral luxury darks with titanium light mode. Zero blue tint.',
+    tagline: 'Pure neutral luxury darks with titanium stone light mode. Zero blue tint.',
     icon: '⬛',
     badge: 'Recommended',
     colors: {
@@ -30,6 +30,20 @@ export const COLOR_THEMES: ColorThemeOption[] = [
       darkCard: '#18181b',
       lightCanvas: '#fafafa',
       accent: '#e4e4e7',
+    },
+  },
+  {
+    id: 'amethyst',
+    name: 'Royal Velvet Violet & Amethyst',
+    tagline: 'Regal velvet violet darks with luminous amethyst & lavender accents.',
+    icon: '🔮',
+    badge: 'Royal Boutique',
+    colors: {
+      primary: '#9333ea',
+      darkCanvas: '#0c0714',
+      darkCard: '#160e22',
+      lightCanvas: '#faf7fd',
+      accent: '#c084fc',
     },
   },
   {

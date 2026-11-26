@@ -145,38 +145,38 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
 
       {/* KPI Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Total Hotel Staff</p>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">{data.summary.total}</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium truncate">{data.summary.active} active accounts</p>
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">Total Hotel Staff</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tight truncate">{data.summary.total}</p>
+          <p className="mt-1 text-xs text-muted-foreground font-medium truncate">{data.summary.active} active accounts</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Property Owners &amp; GMs</p>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">Property Owners &amp; GMs</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tight truncate">
             {data.hierarchy.owners.length + data.hierarchy.managers.length}
           </p>
-          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Executive leadership</p>
+          <p className="mt-1 text-xs text-muted-foreground font-medium truncate">Executive leadership</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Front Desk &amp; Cashiers</p>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">{data.hierarchy.frontdesk.length}</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Check-in, Billing &amp; BoI</p>
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">Front Desk &amp; Cashiers</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tight truncate">{data.hierarchy.frontdesk.length}</p>
+          <p className="mt-1 text-xs text-muted-foreground font-medium truncate">Check-in, Billing &amp; BoI</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">Housekeeping &amp; Floor</p>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">{data.hierarchy.housekeeping.length}</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium truncate">Turnover &amp; maintenance</p>
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">Housekeeping &amp; Floor</p>
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tight truncate">{data.hierarchy.housekeeping.length}</p>
+          <p className="mt-1 text-xs text-muted-foreground font-medium truncate">Turnover &amp; maintenance</p>
         </div>
       </div>
 
       {/* Role Delegation Governance Banner */}
-      <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-5 text-xs text-slate-700 shadow-2xs">
+      <div className="rounded-2xl border border-border bg-muted/50 p-5 text-xs text-muted-foreground shadow-2xs">
         <div className="flex items-start gap-3">
-          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-slate-900 text-xs font-bold text-white">
+          <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
             i
           </span>
           <div className="space-y-1">
-            <h4 className="font-bold text-slate-900">
+            <h4 className="font-bold text-foreground">
               Enterprise Delegation Rules Enforced ({data.callerRole === 'owner' ? 'Logged in as Property Owner' : 'Logged in as General Manager'})
             </h4>
             <p className="text-slate-600 leading-relaxed font-normal">
@@ -262,10 +262,10 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
 
       {/* Tab 1: All Staff Table */}
       {activeTab === 'all' && (
-        <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[750px] text-left">
-            <thead className="border-b border-slate-200 bg-slate-100/90 font-black uppercase tracking-wider text-xs text-slate-800">
+            <thead className="border-b border-border bg-muted/60 font-black uppercase tracking-wider text-xs text-foreground">
               <tr>
                 <th className="px-5 py-4">Staff Member</th>
                 <th className="px-5 py-4">Role &amp; Hierarchy</th>
@@ -275,7 +275,7 @@ export function StaffView({ initialData }: { initialData: StaffData }) {
                 <th className="px-5 py-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-sm sm:text-[15px]">
+            <tbody className="divide-y divide-border text-sm sm:text-[15px]">
               {filteredStaff.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="py-10 text-center text-slate-500 font-medium">

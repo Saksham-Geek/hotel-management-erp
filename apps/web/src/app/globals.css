@@ -25,9 +25,9 @@ html[data-theme="obsidian"] {
   --ring: 240 10% 4%;
   --primary: 240 10% 4%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 0 0% 100%; /* Crisp light sidebar in light mode */
+  --sidebar: 240 5% 96%; /* Clean executive titanium stone in light mode */
   --sidebar-foreground: 240 10% 4%;
-  --sidebar-accent: 240 5% 96%;
+  --sidebar-accent: 240 5% 91%;
   --accent: 240 10% 4%;
   --accent-strong: 0 0% 0%;
   --accent-soft: 240 5% 96%;
@@ -69,7 +69,66 @@ html.dark[data-theme="obsidian"] {
   --status-muted: 240 5% 65%;
 }
 
-/* 2. Royal Forest & Sage (Botanical Eco-Resort Theme) */
+/* 2. Royal Velvet Violet & Amethyst (Luxury Boutique & VIP Theme) */
+html[data-theme="amethyst"] {
+  color-scheme: light;
+  --background: 270 30% 98%; /* Soft lilac porcelain #faf7fd */
+  --card: 0 0% 100%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 270 45% 10%;
+  --foreground: 270 45% 10%; /* Deep regal plum #180b26 */
+  --secondary: 270 20% 95%; /* #f4edf9 */
+  --secondary-foreground: 270 45% 10%;
+  --muted: 270 20% 95%;
+  --muted-foreground: 270 15% 45%;
+  --border: 270 20% 90%;
+  --input: 270 20% 90%;
+  --ring: 270 70% 55%;
+  --primary: 271 76% 53%; /* Vivid Royal Purple #9333ea */
+  --primary-foreground: 0 0% 100%;
+  --sidebar: 270 25% 97%; /* Delicate lilac mist #f7f2fa */
+  --sidebar-foreground: 270 45% 10%;
+  --sidebar-accent: 270 25% 92%;
+  --accent: 271 76% 53%;
+  --accent-strong: 272 80% 40%;
+  --accent-soft: 270 25% 95%;
+  --destructive: 0 84% 60%;
+  --success: 153 60% 36%;
+  --warning: 38 92% 50%;
+  --info: 217 91% 60%;
+  --status-muted: 270 15% 45%;
+}
+
+html.dark[data-theme="amethyst"] {
+  color-scheme: dark;
+  --background: 270 40% 5%; /* #0c0714 deep velvet midnight violet */
+  --card: 270 35% 9%; /* #160e22 elevated royal amethyst surface */
+  --popover: 270 35% 9%;
+  --popover-foreground: 270 20% 98%;
+  --foreground: 270 20% 98%; /* #faf7fe crisp high-contrast violet white */
+  --secondary: 270 25% 15%; /* #26163b */
+  --secondary-foreground: 270 20% 98%;
+  --muted: 270 25% 15%;
+  --muted-foreground: 270 20% 68%; /* #bca5d8 readable lavender */
+  --border: 270 25% 18%; /* #2f1b4a rich jewel border */
+  --input: 270 25% 18%;
+  --ring: 270 70% 60%;
+  --primary: 270 85% 65%; /* Radiant Amethyst Violet #c084fc */
+  --primary-foreground: 270 40% 5%;
+  --sidebar: 270 40% 5%; /* Deep velvet violet sidebar */
+  --sidebar-foreground: 270 20% 98%;
+  --sidebar-accent: 270 25% 15%;
+  --accent: 270 85% 65%;
+  --accent-strong: 271 90% 75%;
+  --accent-soft: 270 25% 15%;
+  --destructive: 0 84% 60%;
+  --success: 153 60% 45%;
+  --warning: 38 92% 55%;
+  --info: 217 91% 65%;
+  --status-muted: 270 20% 68%;
+}
+
+/* 3. Royal Forest & Sage (Botanical Eco-Resort Theme) */
 html[data-theme="emerald"] {
   color-scheme: light;
   --background: 140 15% 98%; /* Soft organic linen #f6f9f7 */
@@ -86,9 +145,9 @@ html[data-theme="emerald"] {
   --ring: 152 60% 36%;
   --primary: 152 60% 32%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 0 0% 100%;
+  --sidebar: 140 18% 95%; /* Soft organic sage linen */
   --sidebar-foreground: 150 40% 10%;
-  --sidebar-accent: 140 20% 94%;
+  --sidebar-accent: 140 20% 90%;
   --accent: 152 60% 36%;
   --accent-strong: 152 70% 25%;
   --accent-soft: 140 15% 94%;
@@ -118,7 +177,7 @@ html.dark[data-theme="emerald"] {
   --accent-soft: 150 20% 14%;
 }
 
-/* 3. Warm Espresso & Champagne Bronze (Heritage Luxury) */
+/* 4. Warm Espresso & Champagne Bronze (Heritage Luxury) */
 html[data-theme="bronze"] {
   color-scheme: light;
   --background: 35 25% 98%; /* Warm cream linen #fcfaf7 */
@@ -135,9 +194,9 @@ html[data-theme="bronze"] {
   --ring: 38 92% 50%;
   --primary: 32 80% 40%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 0 0% 100%;
+  --sidebar: 35 22% 95%; /* Warm parchment linen */
   --sidebar-foreground: 25 30% 12%;
-  --sidebar-accent: 35 25% 95%;
+  --sidebar-accent: 35 25% 90%;
   --accent: 38 92% 50%;
   --accent-strong: 32 80% 35%;
   --accent-soft: 35 20% 94%;
@@ -167,7 +226,7 @@ html.dark[data-theme="bronze"] {
   --accent-soft: 25 15% 16%;
 }
 
-/* 4. Midnight Navy & Slate (Classic Operations Theme) */
+/* 5. Midnight Navy & Slate (Classic Operations Theme) */
 html[data-theme="slate"] {
   color-scheme: light;
   --background: 210 20% 98%;
@@ -184,9 +243,9 @@ html[data-theme="slate"] {
   --ring: 222 47% 11%;
   --primary: 222 47% 11%;
   --primary-foreground: 0 0% 100%;
-  --sidebar: 0 0% 100%;
+  --sidebar: 215 22% 95%; /* Executive ice slate */
   --sidebar-foreground: 222 47% 11%;
-  --sidebar-accent: 217 91% 60%;
+  --sidebar-accent: 215 22% 90%;
 }
 
 html.dark[data-theme="slate"] {

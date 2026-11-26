@@ -148,7 +148,7 @@ export function IncomeDashboardView({
       {activeTab === 'analytics' && (
         <div className="space-y-6">
           {/* 2. Interactive Period & Calendar Selection Bar */}
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-3.5 sm:p-4 shadow-sm print:hidden">
+          <div className="rounded-2xl border border-border bg-card p-3.5 sm:p-4 shadow-xs print:hidden">
         <div className="flex flex-col gap-3.5 xl:flex-row xl:items-center xl:justify-between">
           {/* Quick Period Selector Tabs */}
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
@@ -281,83 +281,83 @@ export function IncomeDashboardView({
       {/* 3. Executive KPI Cards (Taj / ITC Standard) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Gross Revenue */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div className="min-w-0">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
               <span className="truncate">Gross Revenue (Income)</span>
               <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 ml-2" />
             </div>
             <div
-              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-slate-950 tracking-tight tabular-nums truncate"
+              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-foreground tracking-tight tabular-nums truncate"
               title={formatMoney(summary.grossRevenue, currency)}
             >
               {formatMoney(summary.grossRevenue, currency)}
             </div>
           </div>
-          <p className="mt-2 text-xs text-slate-500 font-medium truncate">
-            TRevPAR: <strong className="text-slate-900 font-mono">{formatMoney(summary.trevpar, currency)}</strong> / room
+          <p className="mt-2 text-xs text-muted-foreground font-medium truncate">
+            TRevPAR: <strong className="text-foreground font-mono">{formatMoney(summary.trevpar, currency)}</strong> / room
           </p>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 to-teal-500" />
         </div>
 
         {/* Net Operating Income */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div className="min-w-0">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
               <span className="truncate">Net Operating Income</span>
               <span className="h-2 w-2 rounded-full bg-purple-500 shrink-0 ml-2" />
             </div>
             <div
-              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-purple-950 tracking-tight tabular-nums truncate"
+              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-foreground tracking-tight tabular-nums truncate"
               title={formatMoney(summary.netRevenue, currency)}
             >
               {formatMoney(summary.netRevenue, currency)}
             </div>
           </div>
-          <p className="mt-2 text-xs text-slate-500 font-medium truncate">
+          <p className="mt-2 text-xs text-muted-foreground font-medium truncate">
             Pre-tax hotel earnings excluding GST
           </p>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-indigo-500" />
         </div>
 
         {/* Statutory Indian GST Accrued */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div className="min-w-0">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
               <span className="truncate">Statutory GST Collected</span>
-              <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-black text-amber-900 shrink-0 ml-2">
+              <span className="rounded bg-amber-500/10 border border-amber-500/30 px-1.5 py-0.5 text-[9px] font-black text-amber-700 dark:text-amber-300 shrink-0 ml-2">
                 12% / 18% / 5%
               </span>
             </div>
             <div
-              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-amber-950 tracking-tight tabular-nums truncate"
+              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-foreground tracking-tight tabular-nums truncate"
               title={formatMoney(summary.totalGst, currency)}
             >
               {formatMoney(summary.totalGst, currency)}
             </div>
           </div>
-          <p className="mt-2 text-xs text-slate-500 font-medium truncate">
+          <p className="mt-2 text-xs text-muted-foreground font-medium truncate">
             Dual-slab room &amp; dining tax for GSTR-1
           </p>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 to-orange-500" />
         </div>
 
         {/* Realized Collections & Cashiering */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
+        <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
           <div className="min-w-0">
-            <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <div className="flex items-center justify-between text-xs font-bold text-muted-foreground uppercase tracking-wider">
               <span className="truncate">Realized Collections</span>
               <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0 ml-2" />
             </div>
             <div
-              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-blue-950 tracking-tight tabular-nums truncate"
+              className="mt-2 font-mono text-xl sm:text-2xl 2xl:text-3xl font-black text-foreground tracking-tight tabular-nums truncate"
               title={formatMoney(summary.totalPayments, currency)}
             >
               {formatMoney(summary.totalPayments, currency)}
             </div>
           </div>
-          <p className="mt-2 text-xs text-slate-500 font-medium truncate">
-            City Ledger AR: <strong className="text-slate-900 font-mono">{formatMoney(summary.outstandingBalance, currency)}</strong>
+          <p className="mt-2 text-xs text-muted-foreground font-medium truncate">
+            City Ledger AR: <strong className="text-foreground font-mono">{formatMoney(summary.outstandingBalance, currency)}</strong>
           </p>
           <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 to-sky-500" />
         </div>
@@ -411,27 +411,27 @@ export function IncomeDashboardView({
         </div>
       </div>
 
-      {/* 4. Interactive SVG Revenue Trend Graph (The Core Graph Requested by User!) */}
-      <div className="rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-sm">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-100 pb-4">
+      {/* 4. Interactive SVG Revenue Trend Graph */}
+      <div className="rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-xs">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-4">
           <div>
-            <h2 className="text-lg font-bold text-slate-950 font-display">
+            <h2 className="text-lg font-bold text-foreground font-display">
               Revenue &amp; Income Trend Timeline
             </h2>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               Visual trajectory of accommodation turnover, F&amp;B dining, and net operating income over the selected period.
             </p>
           </div>
 
           {/* Graph View Toggles */}
-          <div className="flex items-center gap-1.5 rounded-xl bg-slate-100 p-1 text-xs font-bold text-slate-600 print:hidden">
+          <div className="flex items-center gap-1.5 rounded-xl bg-muted p-1 text-xs font-bold text-muted-foreground print:hidden">
             <button
               type="button"
               onClick={() => setChartMode('stacked')}
               className={`rounded-lg px-3 py-1 transition-all ${
                 chartMode === 'stacked'
-                  ? 'bg-white text-slate-950 shadow-xs'
-                  : 'hover:text-slate-900'
+                  ? 'bg-card text-foreground shadow-xs'
+                  : 'hover:text-foreground'
               }`}
             >
               Stacked Turnover

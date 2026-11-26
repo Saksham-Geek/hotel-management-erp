@@ -94,16 +94,16 @@ export function Nav({
                   title={collapsed ? item.label : undefined}
                   className={`group relative flex min-h-[42px] items-center gap-3.5 rounded-xl px-3.5 py-2.5 text-[13.5px] transition-all duration-150 ${
                     active
-                      ? 'bg-slate-900 text-white font-bold shadow-xs dark:bg-white/[0.12] dark:text-white'
+                      ? 'bg-primary text-primary-foreground font-bold shadow-xs'
                       : isPending
-                      ? 'bg-slate-800 text-white font-bold shadow-xs dark:bg-white/[0.18] dark:text-white'
-                      : 'text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-100 dark:hover:bg-white/[0.06] hover:text-slate-950 dark:hover:text-white'
+                      ? 'bg-primary/80 text-primary-foreground font-bold shadow-xs'
+                      : 'text-sidebar-foreground/80 font-medium hover:bg-sidebar-accent hover:text-sidebar-foreground'
                   }`}
                 >
                   {active && (
                     <span
                       aria-hidden
-                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-slate-900 dark:bg-white shadow-xs"
+                      className="absolute inset-y-2.5 left-0 w-1 rounded-r-full bg-primary-foreground shadow-xs"
                     />
                   )}
                   {isPending && (
@@ -157,8 +157,8 @@ function NavIcon({ name, active }: { name: NavIconName; active: boolean }) {
     'aria-hidden': true as const,
     className: `h-5 w-5 shrink-0 transition-colors duration-150 ${
       active
-        ? 'text-white'
-        : 'text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
+        ? 'text-primary-foreground'
+        : 'text-muted-foreground group-hover:text-sidebar-foreground'
     }`,
     fill: 'none',
     stroke: 'currentColor',

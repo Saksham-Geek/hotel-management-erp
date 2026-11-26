@@ -638,7 +638,7 @@ export function SettingsView({
 
   const tabsList = [
     { id: 'all', label: 'All Modules Overview', icon: '⚡', count: null },
-    { id: 'theme', label: 'Branding & Theme', icon: '🎨', count: '4 Palettes' },
+    { id: 'theme', label: 'Branding & Theme', icon: '🎨', count: '5 Palettes' },
     { id: 'rooms', label: 'Rooms & Rates', icon: '🏨', count: `${rooms.length} Rooms` },
     { id: 'restaurant', label: 'Restaurant & F&B', icon: '🍽️', count: `${tables.length} Tables` },
     { id: 'payments', label: 'Bank UPI & Hardware', icon: '💳', count: isOwner ? 'Owner' : 'Protected' },

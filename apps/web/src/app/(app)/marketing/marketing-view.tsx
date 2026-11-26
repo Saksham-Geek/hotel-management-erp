@@ -159,12 +159,12 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-slate-700 shadow-2xs">
+            <span className="rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground shadow-2xs">
               Guest Loyalty &amp; Offers
             </span>
-            <span className="text-xs font-medium text-slate-500">Guest Retention</span>
+            <span className="text-xs font-medium text-muted-foreground">Guest Retention</span>
           </div>
-          <h1 className="mt-2 font-display text-2xl font-black tracking-tight text-slate-950 sm:text-3xl">
+          <h1 className="mt-2 font-display text-2xl font-black tracking-tight text-foreground sm:text-3xl">
             Guest Loyalty &amp; Follow-Up
           </h1>
           <p className="mt-1 text-sm text-slate-500 font-normal">
@@ -189,56 +189,56 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
 
       {/* Top Marketing KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
             Guest CRM Profiles
           </p>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">{data.metrics.totalGuests}</p>
-          <p className="mt-1 text-xs text-slate-500 font-medium truncate">
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tight truncate">{data.metrics.totalGuests}</p>
+          <p className="mt-1 text-xs text-muted-foreground font-medium truncate">
             {data.metrics.platinumGuests} VIP Platinum &amp; Kohinoor
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
             Review Outreach Sent
           </p>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tight truncate">
             {data.metrics.totalFollowUpsSent}
           </p>
-          <p className="mt-1 text-xs text-emerald-700 font-semibold truncate">
+          <p className="mt-1 text-xs text-emerald-600 dark:text-emerald-400 font-semibold truncate">
             {data.metrics.reviewConversionRate}% conversion rate
           </p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
             Guest NPS Rating
           </p>
           <div className="mt-2 flex items-baseline gap-1.5 truncate">
-            <span className="text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight">★ {data.metrics.averageNpsRating}</span>
-            <span className="text-sm font-medium text-slate-400">/ 5.0</span>
+            <span className="text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tight">★ {data.metrics.averageNpsRating}</span>
+            <span className="text-sm font-medium text-muted-foreground">/ 5.0</span>
           </div>
-          <p className="mt-1 text-xs text-slate-500 font-medium truncate">{data.metrics.reviewsReceived} verified reviews</p>
+          <p className="mt-1 text-xs text-muted-foreground font-medium truncate">{data.metrics.reviewsReceived} verified reviews</p>
         </div>
-        <div className="rounded-2xl border border-slate-200/80 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-xs min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground truncate">
             Repeat Guest Ratio
           </p>
-          <p className="mt-2 text-2xl sm:text-3xl font-black text-slate-950 tabular-nums tracking-tight truncate">
+          <p className="mt-2 text-2xl sm:text-3xl font-black text-foreground tabular-nums tracking-tight truncate">
             {data.metrics.repeatGuestRatio}
           </p>
-          <p className="mt-1 text-xs text-slate-500 font-medium truncate">High lifetime value (LTV)</p>
+          <p className="mt-1 text-xs text-muted-foreground font-medium truncate">High lifetime value (LTV)</p>
         </div>
       </div>
 
       {/* Modern Segmented Pill Tabs */}
-      <div className="inline-flex p-1 bg-slate-100/90 rounded-xl border border-slate-200/80 gap-1">
+      <div className="inline-flex p-1 bg-muted/80 rounded-xl border border-border gap-1">
         <button
           type="button"
           onClick={() => setActiveTab('followups')}
           className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'followups'
-              ? 'bg-white text-slate-950 shadow-xs'
-              : 'text-slate-600 hover:text-slate-950'
+              ? 'bg-card text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Automated Post-Checkout Follow-Ups ({data.pendingFollowUps.length})
@@ -248,8 +248,8 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
           onClick={() => setActiveTab('crm')}
           className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'crm'
-              ? 'bg-white text-slate-950 shadow-xs'
-              : 'text-slate-600 hover:text-slate-950'
+              ? 'bg-card text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Guest CRM &amp; Loyalty Directory ({data.guests.length})
@@ -259,8 +259,8 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
           onClick={() => setActiveTab('campaigns')}
           className={`px-4 py-2 text-xs font-bold rounded-lg transition-all ${
             activeTab === 'campaigns'
-              ? 'bg-white text-slate-950 shadow-xs'
-              : 'text-slate-600 hover:text-slate-950'
+              ? 'bg-card text-foreground shadow-xs'
+              : 'text-muted-foreground hover:text-foreground'
           }`}
         >
           Follow-Up Campaigns &amp; Broadcasts ({data.campaigns.length})
@@ -270,13 +270,13 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
       {/* TAB 1: Post-Checkout Follow-Ups */}
       {activeTab === 'followups' && (
         <div className="space-y-8">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 sm:p-7 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-slate-100 pb-4">
+          <div className="rounded-3xl border border-border bg-card p-6 sm:p-7 shadow-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-border pb-4">
               <div>
-                <h3 className="font-display text-lg sm:text-xl font-black text-slate-950">
+                <h3 className="font-display text-lg sm:text-xl font-black text-foreground">
                   Recent Departures & Pending Review Outreach
                 </h3>
-                <p className="mt-1 text-sm text-slate-600 font-medium">
+                <p className="mt-1 text-sm text-muted-foreground font-medium">
                   Guests checked out in the last 48 hours. Dispatch 1-click WhatsApp or Email Google review requests to boost hotel ranking.
                 </p>
               </div>
@@ -345,7 +345,7 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
                               setReviewActionState(null);
                               setReviewModalGuest(p);
                             }}
-                            className="inline-flex min-h-[38px] items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-800 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-2xs"
+                            className="inline-flex min-h-[38px] items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-xs font-semibold text-foreground hover:bg-muted transition-all shadow-2xs"
                           >
                             <span>💬 Send WhatsApp</span>
                           </button>
@@ -359,33 +359,33 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
           </div>
 
           {/* Follow-Up Logs Audit */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
-            <h3 className="font-display text-base font-bold text-slate-950 mb-3">
-              Dispatched Review Outreach History & Guest Feedback
+          <div className="rounded-2xl border border-border bg-card p-5 shadow-xs">
+            <h3 className="font-display text-base font-bold text-foreground mb-3">
+              Dispatched Review Outreach History &amp; Guest Feedback
             </h3>
             <div className="space-y-3">
               {data.recentLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="rounded-xl border border-slate-100 bg-slate-50/50 p-3 text-xs"
+                  className="rounded-xl border border-border bg-muted/40 p-3 text-xs"
                 >
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-slate-950">{log.recipientName}</span>
-                      <span className="rounded bg-teal-100 px-1.5 py-0.5 text-[10px] font-bold uppercase text-teal-800">
+                      <span className="font-bold text-foreground">{log.recipientName}</span>
+                      <span className="rounded bg-teal-500/15 text-teal-700 dark:text-teal-300 px-1.5 py-0.5 text-[10px] font-bold uppercase">
                         {log.channel}
                       </span>
-                      <span className="rounded bg-slate-200 px-1.5 py-0.5 text-[10px] font-bold uppercase text-slate-700">
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold uppercase text-muted-foreground">
                         {log.reviewPlatform}
                       </span>
                     </div>
-                    <span className="text-[10px] text-slate-500">{formatDateTime(log.sentAt)}</span>
+                    <span className="text-[10px] text-muted-foreground">{formatDateTime(log.sentAt)}</span>
                   </div>
-                  <p className="mt-1 text-slate-600 font-serif italic text-[11px]">
+                  <p className="mt-1 text-muted-foreground font-serif italic text-[11px]">
                     "{log.messageBody}"
                   </p>
                   {log.ratingReceived && (
-                    <div className="mt-2 rounded-lg bg-emerald-50 border border-emerald-200 p-2 text-emerald-950">
+                    <div className="mt-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 p-2 text-emerald-800 dark:text-emerald-300">
                       <div className="font-bold">★ {log.ratingReceived}/5 Rating Received:</div>
                       <p className="text-[11px] mt-0.5">"{log.guestFeedback}"</p>
                     </div>
@@ -400,13 +400,13 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
       {/* TAB 2: Guest CRM & Loyalty Profiles */}
       {activeTab === 'crm' && (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-card p-4 rounded-2xl border border-border shadow-xs">
             <input
               type="text"
               placeholder="Search guest by name, phone, or email..."
               value={crmSearch}
               onChange={(e) => setCrmSearch(e.target.value)}
-              className="h-9 w-full sm:w-80 rounded-xl border border-slate-300 px-3 text-xs text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:outline-none"
+              className="h-9 w-full sm:w-80 rounded-xl border border-input bg-background px-3 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none"
             />
             <div className="w-full sm:w-48">
               <CustomDropdown
@@ -431,23 +431,23 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
               return (
                 <div
                   key={g.guestId}
-                  className="rounded-2xl border border-slate-200 bg-white p-4 shadow-xs flex flex-col justify-between"
+                  className="rounded-2xl border border-border bg-card p-4 shadow-xs flex flex-col justify-between"
                 >
                   <div>
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h4 className="font-bold text-slate-950 text-sm">{g.fullName}</h4>
-                        <p className="text-[11px] text-slate-500">{g.phone || g.email || 'No contact on file'}</p>
+                        <h4 className="font-bold text-foreground text-sm">{g.fullName}</h4>
+                        <p className="text-[11px] text-muted-foreground">{g.phone || g.email || 'No contact on file'}</p>
                       </div>
                       <span className={`inline-flex rounded-md border px-2 py-0.5 text-[10px] ${badge.bg}`}>
                         {badge.label}
                       </span>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-slate-50 p-2 text-center text-xs">
+                    <div className="mt-3 grid grid-cols-3 gap-2 rounded-xl bg-muted/50 p-2 text-center text-xs">
                       <div>
-                        <p className="text-[10px] text-slate-500">Stays</p>
-                        <p className="font-bold text-slate-900">{g.totalNights} nights</p>
+                        <p className="text-[10px] text-muted-foreground">Stays</p>
+                        <p className="font-bold text-foreground">{g.totalNights} nights</p>
                       </div>
                       <div>
                         <p className="text-[10px] text-slate-500">Total Spend</p>
@@ -518,45 +518,45 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
             {data.campaigns.map((camp) => (
               <div
                 key={camp.id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs flex flex-col justify-between"
+                className="rounded-2xl border border-border bg-card p-5 shadow-xs flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <span className="rounded bg-teal-100 px-2 py-0.5 text-[10px] font-bold uppercase text-teal-800">
+                      <span className="rounded bg-teal-500/15 text-teal-700 dark:text-teal-300 px-2 py-0.5 text-[10px] font-bold uppercase">
                         {camp.channel} · {camp.campaignType.replace('_', ' ')}
                       </span>
-                      <h3 className="mt-1 font-display text-base font-bold text-slate-950">
+                      <h3 className="mt-1 font-display text-base font-bold text-foreground">
                         {camp.title}
                       </h3>
                     </div>
                     {camp.discountCode && (
-                      <span className="rounded-md border border-dashed border-teal-500 bg-teal-50 px-2 py-1 font-mono text-xs font-black text-teal-900">
+                      <span className="rounded-md border border-dashed border-teal-500 bg-teal-500/10 px-2 py-1 font-mono text-xs font-black text-teal-700 dark:text-teal-300">
                         {camp.discountCode}
                       </span>
                     )}
                   </div>
-                  <p className="mt-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100 leading-relaxed">
+                  <p className="mt-2 text-xs text-muted-foreground bg-muted/40 p-3 rounded-xl border border-border leading-relaxed">
                     "{camp.templateMessage}"
                   </p>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-slate-100 grid grid-cols-4 gap-2 text-center text-xs">
+                <div className="mt-4 pt-3 border-t border-border grid grid-cols-4 gap-2 text-center text-xs">
                   <div>
-                    <p className="text-[10px] text-slate-500">Sent</p>
-                    <p className="font-bold text-slate-900">{camp.sentCount}</p>
+                    <p className="text-[10px] text-muted-foreground">Sent</p>
+                    <p className="font-bold text-foreground">{camp.sentCount}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-500">Delivered</p>
-                    <p className="font-bold text-slate-900">{camp.deliveredCount}</p>
+                    <p className="text-[10px] text-muted-foreground">Delivered</p>
+                    <p className="font-bold text-foreground">{camp.deliveredCount}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-500">Converted</p>
-                    <p className="font-bold text-emerald-700">{camp.convertedCount}</p>
+                    <p className="text-[10px] text-muted-foreground">Converted</p>
+                    <p className="font-bold text-emerald-600 dark:text-emerald-400">{camp.convertedCount}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] text-slate-500">Revenue</p>
-                    <p className="font-bold text-teal-800">{money(camp.revenueGenerated)}</p>
+                    <p className="text-[10px] text-muted-foreground">Revenue</p>
+                    <p className="font-bold text-teal-700 dark:text-teal-300">{money(camp.revenueGenerated)}</p>
                   </div>
                 </div>
               </div>
@@ -567,21 +567,21 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
 
       {/* MODAL 1: Send WhatsApp Review Request */}
       {reviewModalGuest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in-50">
-          <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in-50">
+          <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <h3 className="font-display text-lg font-bold text-slate-950">
+                <h3 className="font-display text-lg font-bold text-foreground">
                   Dispatch Review Outreach
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Guest: {reviewModalGuest.guestName} · Room {reviewModalGuest.roomNumber}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setReviewModalGuest(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
+                className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
               >
                 ✕
               </button>
@@ -695,19 +695,19 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
 
       {/* MODAL 2: Edit Guest VIP Preferences & Loyalty */}
       {editingGuest && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in-50">
-          <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in-50">
+          <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <h3 className="font-display text-lg font-bold text-slate-950">
-                  Edit Loyalty & VIP Preferences
+                <h3 className="font-display text-lg font-bold text-foreground">
+                  Edit Loyalty &amp; VIP Preferences
                 </h3>
-                <p className="text-xs text-slate-500">Guest: {editingGuest.fullName}</p>
+                <p className="text-xs text-muted-foreground">Guest: {editingGuest.fullName}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditingGuest(null)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
+                className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
               >
                 ✕
               </button>
@@ -832,21 +832,21 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
 
       {/* MODAL 3: Launch Marketing Campaign */}
       {isCampaignModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-xs animate-in fade-in-50">
-          <div className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-sm animate-in fade-in-50">
+          <div className="w-full max-w-lg rounded-3xl border border-border bg-card p-6 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
-                <h3 className="font-display text-lg font-bold text-slate-950">
+                <h3 className="font-display text-lg font-bold text-foreground">
                   Launch Marketing Campaign
                 </h3>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted-foreground">
                   Broadcast targeted promotional offers to past and corporate guests.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsCampaignModalOpen(false)}
-                className="rounded-lg p-1 text-slate-400 hover:bg-slate-100"
+                className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
               >
                 ✕
               </button>

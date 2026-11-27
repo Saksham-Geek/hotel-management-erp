@@ -285,7 +285,7 @@ export function LoginForm() {
                   type="button"
                   disabled={isPending}
                   onClick={handleSendOtp}
-                  className={`${btnCls} w-full bg-slate-900 py-3 text-sm text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99] disabled:opacity-50`}
+                  className={`${btnCls} w-full py-3 text-sm text-primary-foreground font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99] disabled:opacity-50`}
                 >
                   {isPending ? (
                     <span className="flex items-center justify-center gap-2">
@@ -373,7 +373,7 @@ export function LoginForm() {
                 <button
                   type="submit"
                   disabled={isPending || otp.length !== 6}
-                  className={`${btnCls} w-full bg-slate-900 py-3 text-sm text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99] disabled:opacity-50`}
+                  className={`${btnCls} w-full py-3 text-sm text-primary-foreground font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99] disabled:opacity-50`}
                 >
                   {isPending ? (
                     <span className="flex items-center justify-center gap-2">
@@ -493,7 +493,7 @@ export function LoginForm() {
             <button
               type="submit"
               disabled={isSubmittingPassword}
-              className={`${btnCls} w-full bg-slate-900 py-3 text-sm text-white hover:bg-slate-800 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2`}
+              className={`${btnCls} w-full py-3 text-sm text-primary-foreground font-semibold cursor-pointer shadow-md transition-all active:scale-[0.99] disabled:opacity-50 flex items-center justify-center gap-2`}
             >
               {isSubmittingPassword ? (
                 <>

@@ -1,3 +1,30 @@
+export interface TaxRule {
+  id?: string;
+  categoryCode: string;
+  sacCode: string;
+  slabFrom: number;
+  slabTo: number | null;
+  cgstRate: number;
+  sgstRate: number;
+  igstRate: number;
+  totalRate: number;
+  itcAllowed: boolean;
+  requiresSpecifiedPremises: boolean;
+  validFrom: string; // YYYY-MM-DD
+  validTo: string | null; // YYYY-MM-DD or null for active
+  description: string;
+}
+
+export interface TaxCalculationInput {
+  categoryCode: string;
+  declaredDailyTariff: number; // Tariff per room per night (slab determinant)
+  quantity?: number;
+  isInterstate?: boolean;
+  isSpecifiedPremises?: boolean; // Hotel had room > 7,500 in preceding FY
+  effectiveDate?: string | Date; // Date of stay / billing
+  customRules?: TaxRule[];
+}
+
 export interface TaxCalculationResult {
   categoryCode: string;
   hsnSac: string;
@@ -10,54 +37,313 @@ export interface TaxCalculationResult {
   igstAmount: number;
   taxTotal: number;
   lineTotal: number;
+  itcAllowed: boolean;
+  isSpecifiedPremises: boolean;
+  appliedRuleDescription: string;
+  effectiveDate: string;
 }
 
 /**
- * Indian GST Tax Calculation according to statutory slabs:
- * - Room accommodation (SAC 996311): 12% for tariff <= Rs 7,500; 18% for tariff > Rs 7,500
- * - F&B Restaurant / Room service (SAC 996331): 5% without ITC (or 18% in luxury)
- * - Guest Laundry (SAC 9997): 18%
- * - Intra-state: CGST + SGST
- * - Inter-state: IGST
+ * Statutory Indian GST Baseline Rules
+ * Reflects 56th GST Council decisions (effective 22-Sep-2025) and historical rates.
+ * Can be overridden or extended dynamically from property-level tax_rules table.
  */
-export function calculateGstTax(
-  categoryCode: string,
-  unitPrice: number,
-  quantity = 1,
-  isInterstate = false,
-): TaxCalculationResult {
-  const safePrice = Number.isFinite(unitPrice) && unitPrice >= 0 ? unitPrice : 0;
-  const safeQty = Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
-  const taxableAmount = Math.round(safePrice * safeQty * 100) / 100;
-  let hsnSac = '996311';
-  let totalRate = 12;
+export const STATUTORY_GST_BASELINE_RULES: TaxRule[] = [
+  // 1. Post-56th GST Council Accommodation (Effective 2025-09-22 onwards)
+  // Up to Rs 7,500 per unit per day: 5% without ITC
+  {
+    categoryCode: 'ACCOMMODATION',
+    sacCode: '996311',
+    slabFrom: 0,
+    slabTo: 7500.0,
+    cgstRate: 2.5,
+    sgstRate: 2.5,
+    igstRate: 5.0,
+    totalRate: 5.0,
+    itcAllowed: false,
+    requiresSpecifiedPremises: false,
+    validFrom: '2025-09-22',
+    validTo: null,
+    description: '56th GST Council: Hotel accommodation <= Rs 7,500/unit/day (5% without ITC)',
+  },
+  // Over Rs 7,500 per unit per day: 18% with ITC
+  {
+    categoryCode: 'ACCOMMODATION',
+    sacCode: '996311',
+    slabFrom: 7500.01,
+    slabTo: null,
+    cgstRate: 9.0,
+    sgstRate: 9.0,
+    igstRate: 18.0,
+    totalRate: 18.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: false,
+    validFrom: '2025-09-22',
+    validTo: null,
+    description: '56th GST Council: Hotel accommodation > Rs 7,500/unit/day (18% with ITC)',
+  },
 
-  switch (categoryCode) {
-    case 'ACCOMMODATION':
-      hsnSac = '996311';
-      // Indian GST rule: > 7,500 per day per unit is 18%, <= 7,500 is 12%
-      totalRate = safePrice > 7500 ? 18 : 12;
-      break;
-    case 'FNB_REST':
-    case 'FNB_ROOM_SERVICE':
-      hsnSac = '996331';
-      totalRate = 5;
-      break;
-    case 'LAUNDRY':
-      hsnSac = '9997';
-      totalRate = 18;
-      break;
-    case 'SPA':
-      hsnSac = '999721';
-      totalRate = 18;
-      break;
-    default:
-      hsnSac = '999999';
-      totalRate = 18;
-      break;
+  // 2. Pre-56th GST Council Historical Accommodation (2017-07-01 to 2025-09-21)
+  {
+    categoryCode: 'ACCOMMODATION',
+    sacCode: '996311',
+    slabFrom: 0,
+    slabTo: 7500.0,
+    cgstRate: 6.0,
+    sgstRate: 6.0,
+    igstRate: 12.0,
+    totalRate: 12.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: false,
+    validFrom: '2017-07-01',
+    validTo: '2025-09-21',
+    description: 'Historical Statutory: Hotel room tariff <= Rs 7,500/day (12% with ITC)',
+  },
+  {
+    categoryCode: 'ACCOMMODATION',
+    sacCode: '996311',
+    slabFrom: 7500.01,
+    slabTo: null,
+    cgstRate: 9.0,
+    sgstRate: 9.0,
+    igstRate: 18.0,
+    totalRate: 18.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: false,
+    validFrom: '2017-07-01',
+    validTo: '2025-09-21',
+    description: 'Historical Statutory: Hotel room tariff > Rs 7,500/day (18% with ITC)',
+  },
+
+  // 3. Restaurant & In-Room Dining (SAC 996331)
+  // Non-specified premises (room tariff <= 7,500 in preceding FY): 5% without ITC
+  {
+    categoryCode: 'FNB_REST',
+    sacCode: '996331',
+    slabFrom: 0,
+    slabTo: null,
+    cgstRate: 2.5,
+    sgstRate: 2.5,
+    igstRate: 5.0,
+    totalRate: 5.0,
+    itcAllowed: false,
+    requiresSpecifiedPremises: false,
+    validFrom: '2017-11-15',
+    validTo: null,
+    description: 'F&B Restaurant Services in non-specified premises (5% without ITC)',
+  },
+  // Specified premises (hotel had any room > Rs 7,500 in preceding FY): 18% with ITC
+  {
+    categoryCode: 'FNB_REST',
+    sacCode: '996331',
+    slabFrom: 0,
+    slabTo: null,
+    cgstRate: 9.0,
+    sgstRate: 9.0,
+    igstRate: 18.0,
+    totalRate: 18.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: true,
+    validFrom: '2017-11-15',
+    validTo: null,
+    description: 'F&B Restaurant Services in specified premises with room tariff > Rs 7,500 in prev FY (18% with ITC)',
+  },
+  {
+    categoryCode: 'FNB_ROOM_SERVICE',
+    sacCode: '996331',
+    slabFrom: 0,
+    slabTo: null,
+    cgstRate: 2.5,
+    sgstRate: 2.5,
+    igstRate: 5.0,
+    totalRate: 5.0,
+    itcAllowed: false,
+    requiresSpecifiedPremises: false,
+    validFrom: '2017-11-15',
+    validTo: null,
+    description: 'In-Room Dining / Room Service in non-specified premises (5% without ITC)',
+  },
+  {
+    categoryCode: 'FNB_ROOM_SERVICE',
+    sacCode: '996331',
+    slabFrom: 0,
+    slabTo: null,
+    cgstRate: 9.0,
+    sgstRate: 9.0,
+    igstRate: 18.0,
+    totalRate: 18.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: true,
+    validFrom: '2017-11-15',
+    validTo: null,
+    description: 'In-Room Dining / Room Service in specified premises (18% with ITC)',
+  },
+
+  // 4. Ancillary Hospitality Services
+  {
+    categoryCode: 'LAUNDRY',
+    sacCode: '9997',
+    slabFrom: 0,
+    slabTo: null,
+    cgstRate: 9.0,
+    sgstRate: 9.0,
+    igstRate: 18.0,
+    totalRate: 18.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: false,
+    validFrom: '2017-07-01',
+    validTo: null,
+    description: 'Guest Laundry Services (18% with ITC)',
+  },
+  {
+    categoryCode: 'SPA',
+    sacCode: '999721',
+    slabFrom: 0,
+    slabTo: null,
+    cgstRate: 9.0,
+    sgstRate: 9.0,
+    igstRate: 18.0,
+    totalRate: 18.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: false,
+    validFrom: '2017-07-01',
+    validTo: null,
+    description: 'Spa, Wellness & Salon Services (18% with ITC)',
+  },
+  {
+    categoryCode: 'BANQUET',
+    sacCode: '998592',
+    slabFrom: 0,
+    slabTo: null,
+    cgstRate: 9.0,
+    sgstRate: 9.0,
+    igstRate: 18.0,
+    totalRate: 18.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: false,
+    validFrom: '2017-07-01',
+    validTo: null,
+    description: 'Banqueting & Mandap Keepers Services (18% with ITC)',
+  },
+  {
+    categoryCode: 'MISC_SERVICE',
+    sacCode: '999999',
+    slabFrom: 0,
+    slabTo: null,
+    cgstRate: 9.0,
+    sgstRate: 9.0,
+    igstRate: 18.0,
+    totalRate: 18.0,
+    itcAllowed: true,
+    requiresSpecifiedPremises: false,
+    validFrom: '2017-07-01',
+    validTo: null,
+    description: 'Standard Ancillary Hospitality (18% with ITC)',
+  },
+];
+
+/**
+ * Normalizes any date input to ISO 'YYYY-MM-DD'
+ */
+function normalizeDateStr(d?: string | Date): string {
+  if (!d) return new Date().toISOString().slice(0, 10);
+  if (d instanceof Date) return d.toISOString().slice(0, 10);
+  if (typeof d === 'string') {
+    const trimmed = d.trim().slice(0, 10);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+  }
+  return new Date().toISOString().slice(0, 10);
+}
+
+/**
+ * Finds the applicable statutory tax rule based on category, declared unit tariff,
+ * specified premises classification, and effective date.
+ */
+export function resolveTaxRule(
+  categoryCode: string,
+  declaredDailyTariff: number,
+  isSpecifiedPremises = false,
+  effectiveDate?: string | Date,
+  customRules?: TaxRule[],
+): TaxRule {
+  const dateStr = normalizeDateStr(effectiveDate);
+  const rules = customRules && customRules.length > 0 ? customRules : STATUTORY_GST_BASELINE_RULES;
+
+  // Filter rules matching category and date validity
+  const candidates = rules.filter((r) => {
+    if (r.categoryCode !== categoryCode) return false;
+    if (r.validFrom > dateStr) return false;
+    if (r.validTo && r.validTo < dateStr) return false;
+    return true;
+  });
+
+  if (candidates.length === 0) {
+    // Safe statutory fallback
+    return {
+      categoryCode,
+      sacCode: '999999',
+      slabFrom: 0,
+      slabTo: null,
+      cgstRate: 9.0,
+      sgstRate: 9.0,
+      igstRate: 18.0,
+      totalRate: 18.0,
+      itcAllowed: true,
+      requiresSpecifiedPremises: false,
+      validFrom: '2017-07-01',
+      validTo: null,
+      description: 'Default Fallback (18% with ITC)',
+    };
   }
 
+  // 1. Accommodation: Evaluate slab on declared tariff per unit per day
+  if (categoryCode === 'ACCOMMODATION') {
+    const matched = candidates.find((r) => {
+      if (declaredDailyTariff < r.slabFrom) return false;
+      if (r.slabTo !== null && declaredDailyTariff > r.slabTo) return false;
+      return true;
+    });
+    if (matched) return matched;
+  }
+
+  // 2. F&B: Evaluate specified premises condition
+  if (categoryCode === 'FNB_REST' || categoryCode === 'FNB_ROOM_SERVICE') {
+    const matched = candidates.find((r) => r.requiresSpecifiedPremises === isSpecifiedPremises);
+    if (matched) return matched;
+  }
+
+  // 3. Standard fallback among candidates
+  return candidates[0];
+}
+
+/**
+ * Versioned, effective-dated Indian GST Tax Calculation.
+ * Correctly evaluates:
+ * - 56th GST Council room rates: 5% without ITC under Rs 7,500; 18% with ITC above.
+ * - Slab applies to declared tariff per unit per day, NOT invoice total.
+ * - F&B specified premises: 18% with ITC vs 5% without ITC.
+ * - Intra-state (CGST + SGST) vs Inter-state (IGST).
+ * - Exact paise rounding (Math.round(val * 100) / 100).
+ */
+export function calculateVersionedGstTax(input: TaxCalculationInput): TaxCalculationResult {
+  const safeTariff = Number.isFinite(input.declaredDailyTariff) && input.declaredDailyTariff >= 0 ? input.declaredDailyTariff : 0;
+  const safeQty = Number.isFinite(input.quantity) && (input.quantity ?? 1) > 0 ? (input.quantity ?? 1) : 1;
+  const isInterstate = Boolean(input.isInterstate);
+  const isSpecified = Boolean(input.isSpecifiedPremises);
+  const dateStr = normalizeDateStr(input.effectiveDate);
+
+  const rule = resolveTaxRule(
+    input.categoryCode,
+    safeTariff,
+    isSpecified,
+    dateStr,
+    input.customRules,
+  );
+
+  const taxableAmount = Math.round(safeTariff * safeQty * 100) / 100;
+  const totalRate = rule.totalRate;
   const halfRate = totalRate / 2;
+
   const cgstRate = isInterstate ? 0 : halfRate;
   const sgstRate = isInterstate ? 0 : halfRate;
   const igstRate = isInterstate ? totalRate : 0;
@@ -65,12 +351,13 @@ export function calculateGstTax(
   const cgstAmount = isInterstate ? 0 : Math.round(((taxableAmount * cgstRate) / 100) * 100) / 100;
   const sgstAmount = isInterstate ? 0 : Math.round(((taxableAmount * sgstRate) / 100) * 100) / 100;
   const igstAmount = isInterstate ? Math.round(((taxableAmount * igstRate) / 100) * 100) / 100 : 0;
+
   const taxTotal = Math.round((cgstAmount + sgstAmount + igstAmount) * 100) / 100;
   const lineTotal = Math.round((taxableAmount + taxTotal) * 100) / 100;
 
   return {
-    categoryCode,
-    hsnSac,
+    categoryCode: input.categoryCode,
+    hsnSac: rule.sacCode,
     taxableAmount,
     cgstRate,
     sgstRate,
@@ -80,5 +367,30 @@ export function calculateGstTax(
     igstAmount,
     taxTotal,
     lineTotal,
+    itcAllowed: rule.itcAllowed,
+    isSpecifiedPremises: isSpecified,
+    appliedRuleDescription: rule.description,
+    effectiveDate: dateStr,
   };
+}
+
+/**
+ * Backward compatibility wrapper for existing code calling calculateGstTax.
+ */
+export function calculateGstTax(
+  categoryCode: string,
+  unitPrice: number,
+  quantity = 1,
+  isInterstate = false,
+  isSpecifiedPremises = false,
+  effectiveDate?: string | Date,
+): TaxCalculationResult {
+  return calculateVersionedGstTax({
+    categoryCode,
+    declaredDailyTariff: unitPrice,
+    quantity,
+    isInterstate,
+    isSpecifiedPremises,
+    effectiveDate,
+  });
 }

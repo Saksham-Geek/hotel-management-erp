@@ -381,18 +381,28 @@ test('hourly room overlap constraints return a conflict response', () => {
   });
 });
 
-test('Indian GST statutory calculation correctly applies 12% and 18% accommodation slabs and 5% F&B', () => {
-  // Slab 1: Tariff <= 7,500 INR -> 12% total (6% CGST + 6% SGST, SAC 996311)
+test('Indian GST statutory calculation correctly applies 56th GST Council (5%/18%) and historical (12%/18%) accommodation slabs', () => {
+  // 56th GST Council (Effective 22-Sep-2025 onwards):
+  // Slab 1: Tariff <= 7,500 INR -> 5% total (2.5% CGST + 2.5% SGST, SAC 996311, No ITC)
   const roomUnderThreshold = calculateGstTax('ACCOMMODATION', 5000, 1, false);
   assert.equal(roomUnderThreshold.hsnSac, '996311');
-  assert.equal(roomUnderThreshold.cgstRate, 6);
-  assert.equal(roomUnderThreshold.sgstRate, 6);
-  assert.equal(roomUnderThreshold.cgstAmount, 300);
-  assert.equal(roomUnderThreshold.sgstAmount, 300);
-  assert.equal(roomUnderThreshold.taxTotal, 600);
-  assert.equal(roomUnderThreshold.lineTotal, 5600);
+  assert.equal(roomUnderThreshold.cgstRate, 2.5);
+  assert.equal(roomUnderThreshold.sgstRate, 2.5);
+  assert.equal(roomUnderThreshold.cgstAmount, 125);
+  assert.equal(roomUnderThreshold.sgstAmount, 125);
+  assert.equal(roomUnderThreshold.taxTotal, 250);
+  assert.equal(roomUnderThreshold.lineTotal, 5250);
+  assert.equal(roomUnderThreshold.itcAllowed, false);
 
-  // Slab 2: Tariff > 7,500 INR -> 18% total (9% CGST + 9% SGST, SAC 996311)
+  // Historical Pre-56th GST Council (effectiveDate < 2025-09-22):
+  // Tariff <= 7,500 INR -> 12% total (6% CGST + 6% SGST, with ITC)
+  const roomHistorical = calculateGstTax('ACCOMMODATION', 5000, 1, false, false, '2025-08-01');
+  assert.equal(roomHistorical.cgstRate, 6);
+  assert.equal(roomHistorical.sgstRate, 6);
+  assert.equal(roomHistorical.taxTotal, 600);
+  assert.equal(roomHistorical.itcAllowed, true);
+
+  // Slab 2: Tariff > 7,500 INR -> 18% total (9% CGST + 9% SGST, SAC 996311, With ITC)
   const roomOverThreshold = calculateGstTax('ACCOMMODATION', 10000, 1, false);
   assert.equal(roomOverThreshold.cgstRate, 9);
   assert.equal(roomOverThreshold.sgstRate, 9);
@@ -400,6 +410,7 @@ test('Indian GST statutory calculation correctly applies 12% and 18% accommodati
   assert.equal(roomOverThreshold.sgstAmount, 900);
   assert.equal(roomOverThreshold.taxTotal, 1800);
   assert.equal(roomOverThreshold.lineTotal, 11800);
+  assert.equal(roomOverThreshold.itcAllowed, true);
 
   // Inter-state Accommodation -> 18% IGST (0% CGST, 0% SGST)
   const roomInterstate = calculateGstTax('ACCOMMODATION', 10000, 1, true);
@@ -599,8 +610,8 @@ test('calculateGstTax safely handles non-finite, negative, and edge-case quantit
   const resultZero = calculateGstTax('ACCOMMODATION', 0, 1);
   assert.equal(resultZero.taxableAmount, 0);
   assert.equal(resultZero.taxTotal, 0);
-  assert.equal(resultZero.cgstRate, 6);
-  assert.equal(resultZero.sgstRate, 6);
+  assert.equal(resultZero.cgstRate, 2.5);
+  assert.equal(resultZero.sgstRate, 2.5);
 });
 
 test('decryptSensitiveField returns null gracefully on tampered ciphertext or wrong auth tag', () => {

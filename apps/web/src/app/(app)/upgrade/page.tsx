@@ -35,7 +35,7 @@ export default async function UpgradePage({
       <PageHeader
         title="Subscription Plans & Editions"
         eyebrow="Tier Management"
-        description="Choose the right edition for your property: from small homestays & boutique B&Bs to luxury hotel chains like Taj, Oberoi, and ITC."
+        description="Choose the right edition for your property: from small homestays & boutique B&Bs to multi-property luxury resort chains."
       />
 
       {lockedFeatureName && (

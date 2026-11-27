@@ -202,14 +202,14 @@ export function ComplianceView({
           </button>
         </div>
 
-        {/* Legal & Taj/ITC Standards Toggle Button */}
+        {/* Legal & Industry Standards Toggle Button */}
         <button
           type="button"
           onClick={() => setShowLegalGuide(!showLegalGuide)}
           className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#141417] px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-2xs hover:bg-slate-50 dark:hover:bg-white/5 cursor-pointer"
         >
           <span>⚖️</span>
-          <span>{showLegalGuide ? 'Hide Statutory Standards' : 'How Taj, ITC & Radisson Handle This (Legal SOP)'}</span>
+          <span>{showLegalGuide ? 'Hide Statutory Standards' : 'How 5-Star Luxury Chains Handle This (Legal SOP)'}</span>
         </button>
       </div>
 
@@ -247,7 +247,7 @@ export function ComplianceView({
 
                 <div className="space-y-2 rounded-2xl bg-white/80 dark:bg-white/[0.03] p-4 border border-blue-100 dark:border-white/10">
                   <h4 className="font-bold text-blue-900 dark:text-blue-300 uppercase tracking-wider text-[11px]">
-                    2. How Taj (IHCL), ITC, Radisson &amp; Marriott Handle This
+                    2. How 5-Star Luxury Chains Handle This
                   </h4>
                   <ul className="space-y-1.5 list-disc list-inside leading-relaxed text-slate-600 dark:text-slate-300">
                     <li>

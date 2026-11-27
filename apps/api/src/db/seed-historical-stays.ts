@@ -4,8 +4,8 @@ import { calculateGstTax } from '../hotel/tax-calculator';
 import { encryptSensitiveField } from '../common/field-encryption';
 
 async function main() {
-  const adminUrl = process.env.DATABASE_ADMIN_URL;
-  if (!adminUrl) throw new Error('DATABASE_ADMIN_URL is required');
+  const adminUrl = process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL_UNPOOLED;
+  if (!adminUrl) throw new Error('DATABASE_ADMIN_URL or DATABASE_URL_UNPOOLED is required');
 
   const client = new Client({ connectionString: adminUrl });
   await client.connect();

@@ -4,7 +4,9 @@ import { Client } from 'pg';
 
 /** Creates a demo hotel on the Plus plan. Safe to re-run. Uses the OWNER connection. */
 async function main() {
-  const client = new Client({ connectionString: process.env.DATABASE_ADMIN_URL });
+  const adminUrl = process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL_UNPOOLED;
+  if (!adminUrl) throw new Error('DATABASE_ADMIN_URL or DATABASE_URL_UNPOOLED is required');
+  const client = new Client({ connectionString: adminUrl });
   await client.connect();
   try {
     await client.query('begin');

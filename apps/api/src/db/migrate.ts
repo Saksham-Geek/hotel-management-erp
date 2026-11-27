@@ -8,13 +8,18 @@ import { Client } from 'pg';
  * Also creates the restricted `erp_app` role that the API uses at runtime.
  */
 async function main() {
-  const adminUrl = process.env.DATABASE_ADMIN_URL;
+  const adminUrl = process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL_UNPOOLED;
   const appPassword = process.env.APP_DB_PASSWORD;
-  if (!adminUrl || !appPassword) throw new Error('DATABASE_ADMIN_URL and APP_DB_PASSWORD are required');
+  if (!adminUrl || !appPassword) {
+    throw new Error('DATABASE_ADMIN_URL (or DATABASE_URL_UNPOOLED) and APP_DB_PASSWORD are required');
+  }
 
   const client = new Client({ connectionString: adminUrl });
   await client.connect();
   try {
+    const ownerRole = await client.query("select 1 from pg_roles where rolname = 'erp_owner'");
+    if (ownerRole.rowCount === 0) await client.query('create role erp_owner');
+
     const role = await client.query("select 1 from pg_roles where rolname = 'erp_app'");
     const pw = appPassword.replace(/'/g, "''");
     if (role.rowCount === 0) await client.query(`create role erp_app login password '${pw}' nosuperuser nobypassrls`);

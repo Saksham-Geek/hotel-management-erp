@@ -4,5 +4,6 @@ dist
 .env
 .env.*
 *.tsbuildinfo
+.neon
 .tunnel-url
 scratch/

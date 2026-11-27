@@ -15,8 +15,8 @@ import { Client } from 'pg';
  * 9. Platform Cloud HQ: Antigravity ERP Cloud Headquarters (Founder & Employee Console)
  */
 async function main() {
-  const adminUrl = process.env.DATABASE_ADMIN_URL;
-  if (!adminUrl) throw new Error('DATABASE_ADMIN_URL is required');
+  const adminUrl = process.env.DATABASE_ADMIN_URL || process.env.DATABASE_URL_UNPOOLED;
+  if (!adminUrl) throw new Error('DATABASE_ADMIN_URL or DATABASE_URL_UNPOOLED is required');
 
   const client = new Client({ connectionString: adminUrl });
   await client.connect();

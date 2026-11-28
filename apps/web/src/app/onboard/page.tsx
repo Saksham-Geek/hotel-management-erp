@@ -70,7 +70,7 @@ export default async function OnboardPage(props: OnboardPageProps) {
             🔒 Bank-grade SSL encryption · Multi-tenant PostgreSQL RLS isolation · 99.99% Uptime Guarantee
           </p>
           <p>
-            Looking to explore luxury chain prototypes like Taj &amp; ITC?{' '}
+            Looking to explore multi-property luxury resort prototypes?{' '}
             <Link href="/showcase" className="font-bold text-indigo-600 hover:underline">
               Explore Demo Portfolio Hub →
             </Link>

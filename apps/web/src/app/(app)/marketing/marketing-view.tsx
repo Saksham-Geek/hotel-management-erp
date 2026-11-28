@@ -143,7 +143,7 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
       case 'kohinoor':
         return { label: '👑 Kohinoor (Imperial)', bg: 'bg-amber-100 text-amber-950 border-amber-300 font-black' };
       case 'platinum':
-        return { label: '💎 Taj Platinum', bg: 'bg-purple-100 text-purple-950 border-purple-300 font-bold' };
+        return { label: '💎 Platinum VIP', bg: 'bg-purple-100 text-purple-950 border-purple-300 font-bold' };
       case 'gold':
         return { label: '🥇 Gold Tier', bg: 'bg-yellow-100 text-yellow-900 border-yellow-300 font-bold' };
       case 'silver':
@@ -416,7 +416,7 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
                 options={[
                   { value: 'all', label: 'All Loyalty Tiers' },
                   { value: 'kohinoor', label: 'Kohinoor (Imperial)' },
-                  { value: 'platinum', label: 'Taj Platinum' },
+                  { value: 'platinum', label: 'Platinum VIP' },
                   { value: 'gold', label: 'Gold Member' },
                   { value: 'silver', label: 'Silver Member' },
                 ]}
@@ -758,7 +758,7 @@ export function MarketingView({ initialData }: { initialData: MarketingData }) {
                   size="sm"
                   options={[
                     { value: 'kohinoor', label: '👑 Kohinoor (Imperial VIP)' },
-                    { value: 'platinum', label: '💎 Taj Platinum' },
+                    { value: 'platinum', label: '💎 Platinum VIP' },
                     { value: 'gold', label: '🥇 Gold Tier' },
                     { value: 'silver', label: '🥈 Silver Member' },
                     { value: 'bronze', label: '🥉 Bronze Standard' },

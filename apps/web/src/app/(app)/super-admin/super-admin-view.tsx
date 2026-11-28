@@ -317,7 +317,7 @@ export function SuperAdminView({
                             : 'bg-teal-100 text-teal-950 border border-teal-300'
                         }`}
                       >
-                        {prop.planKey === 'enterprise' ? '👑 Taj Chain' : '⚡ Growth'}
+                        {prop.planKey === 'enterprise' ? '👑 Enterprise' : '⚡ Growth'}
                       </span>
                     </div>
 
@@ -572,7 +572,7 @@ export function SuperAdminView({
               Enterprise Hotel ERP Architecture: How Roles &amp; Responsibilities Work
             </h3>
             <p className="mt-1 text-xs text-muted max-w-2xl leading-relaxed">
-              In world-class hospitality systems (Taj, Oberoi, Marriott, Opera PMS), there is a clean
+              In world-class hospitality systems (leading hotel brands and enterprise PMS platforms), there is a clean
               division between <strong>Corporate Super Admin (Chain Governance)</strong> and{' '}
               <strong>Local Hotel General Managers (Operational Autonomy)</strong>.
             </p>
@@ -654,7 +654,7 @@ export function SuperAdminView({
                 <input
                   name="name"
                   required
-                  placeholder="e.g. Taj Lake Palace, Udaipur"
+                  placeholder="e.g. Lake Palace Heritage Resort, Udaipur"
                   className={`${inputCls} mt-1`}
                 />
               </label>
@@ -669,7 +669,7 @@ export function SuperAdminView({
                     options={[
                       { value: 'starter', label: '🌱 Starter (Boutique & Small)' },
                       { value: 'growth', label: '⚡ Growth Edition (Mid-Scale & Resort)' },
-                      { value: 'enterprise', label: '👑 Taj Chain Edition (Luxury & Multi-Property)' },
+                      { value: 'enterprise', label: '👑 Enterprise Edition (Luxury & Multi-Property)' },
                     ]}
                     aria-label="Subscription Tier Edition"
                   />

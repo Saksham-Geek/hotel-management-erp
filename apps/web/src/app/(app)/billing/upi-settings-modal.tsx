@@ -107,7 +107,7 @@ export function UpiSettingsModal({
               <input
                 name="upiId"
                 required
-                placeholder="e.g. tajmumbai@hdfcbank or 9876543210@paytm"
+                placeholder="e.g. grandazure@hdfcbank or 9876543210@paytm"
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
                 className={`${inputCls} mt-1.5 font-mono text-sm`}

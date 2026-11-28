@@ -186,35 +186,47 @@ export class NightAuditController {
         const rate = res.unitRate > 0 ? res.unitRate : 1000;
         const tax = calculateGstTax('ACCOMMODATION', rate, 1, false);
 
-        await c.query(
-          `INSERT INTO folio_items (
-             tenant_id, folio_id, description, quantity, unit_price, tax_rate, line_total,
-             tax_category_code, hsn_sac, cgst_amount, sgst_amount, igst_amount
-           )
-           VALUES ($1, $2, $3, 1, $4, $5, $6, 'ACCOMMODATION', '996311', $7, $8, $9)`,
-          [
-            user.tenantId,
-            targetFolioId,
-            `Daily room charge (${businessDate})`,
-            rate,
-            tax.cgstRate + tax.sgstRate,
-            tax.lineTotal,
-            tax.cgstAmount,
-            tax.sgstAmount,
-            tax.igstAmount,
-          ],
-        );
+        // Idempotent insertion using compound key (folio_id, business_date, charge_type)
+        const insertedItem = (
+          await c.query(
+            `INSERT INTO folio_items (
+               tenant_id, property_id, folio_id, reservation_id, business_date, charge_type,
+               description, quantity, unit_price, tax_rate, line_total,
+               tax_category_code, hsn_sac, cgst_amount, sgst_amount, igst_amount
+             )
+             VALUES ($1, $2, $3, $4, $5::date, 'ROOM_NIGHTLY', $6, 1, $7, $8, $9, 'ACCOMMODATION', '996311', $10, $11, $12)
+             ON CONFLICT (folio_id, business_date, charge_type) WHERE business_date IS NOT NULL AND charge_type IS NOT NULL
+             DO NOTHING
+             RETURNING id`,
+            [
+              user.tenantId,
+              user.propertyId,
+              targetFolioId,
+              res.id,
+              businessDate,
+              `Daily room charge (${businessDate})`,
+              rate,
+              tax.cgstRate + tax.sgstRate,
+              tax.lineTotal,
+              tax.cgstAmount,
+              tax.sgstAmount,
+              tax.igstAmount,
+            ],
+          )
+        ).rows[0];
 
-        // Update folio total
-        await c.query(
-          `UPDATE reservation_folios
-           SET subtotal = subtotal + $2, tax_total = tax_total + $3, total = total + $4, updated_at = now()
-           WHERE id = $1`,
-          [targetFolioId, rate, tax.taxTotal, tax.lineTotal],
-        );
+        // Idempotency guard: Only update folio total and revenue counters if the charge was freshly posted
+        if (insertedItem) {
+          await c.query(
+            `UPDATE reservation_folios
+             SET subtotal = subtotal + $2, tax_total = tax_total + $3, total = total + $4, updated_at = now()
+             WHERE id = $1`,
+            [targetFolioId, rate, tax.taxTotal, tax.lineTotal],
+          );
 
-        roomRevenuePosted += rate;
-        taxPosted += tax.taxTotal;
+          roomRevenuePosted += rate;
+          taxPosted += tax.taxTotal;
+        }
       }
 
       // 1.5 Automated No-Show Auto-Release: Room Lifecycle Guard

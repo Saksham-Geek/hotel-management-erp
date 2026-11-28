@@ -170,7 +170,7 @@ export function GuideView({
       badge: 'Marketing & CRM',
       minRole: 'frontdesk',
       rolesAllowed: ['frontdesk', 'manager', 'owner', 'founder'],
-      desc: 'Luxury hotel marketing automation. Sends automated post-checkout WhatsApp review requests (Google Reviews & TripAdvisor), manages Taj InnerCircle loyalty tiers, tracks VIP preferences, and dispatches repeat booking campaigns.',
+      desc: 'Luxury hotel marketing automation. Sends automated post-checkout WhatsApp review requests (Google Reviews & TripAdvisor), manages guest loyalty tiers, tracks VIP preferences, and dispatches repeat booking campaigns.',
       actions: ['1-click WhatsApp Google review outreach', 'Track lifetime guest spend & nights', 'Log guest preferences (pillows, floor, dietary)', 'Broadcast targeted seasonal promotions'],
       icon: '💬',
     },

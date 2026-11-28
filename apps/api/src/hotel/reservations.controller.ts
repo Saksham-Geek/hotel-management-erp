@@ -87,11 +87,11 @@ export class ReservationsController {
       ).rows[0];
       if (!roomLock) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Room not found' });
 
-      // Check for overlapping confirmed or checked-in reservations
+      // Check for overlapping reserved or checked-in reservations
       const overlap = (
         await c.query(
           `SELECT id FROM reservations
-           WHERE room_id = $1 AND status IN ('confirmed', 'checked_in')
+           WHERE room_id = $1 AND status IN ('reserved', 'checked_in')
              AND check_in < $3::date AND check_out > $2::date
            LIMIT 1`,
           [b.roomId, b.checkIn, b.checkOut],
@@ -104,39 +104,50 @@ export class ReservationsController {
         });
       }
 
-      const row = (await c.query(
-        `with room_rate as (
-           select r.id, coalesce(r.hourly_rate, rt.hourly_rate) as hourly_rate,
-                  coalesce(r.base_rate, rt.base_rate) as base_rate, prop.timezone
-           from rooms r
-           join room_types rt on rt.id = r.room_type_id
-           join properties prop on prop.id = $13 and prop.tenant_id = r.tenant_id
-           where r.id = $3
-         ), price as (
-           select id,
-             case when $7 = 'hourly'
-                    then coalesce($14::numeric, $12::numeric, hourly_rate, base_rate / 24.0)
-                    else coalesce($14::numeric, base_rate)
-             end as unit_rate,
-             (case when $7 = 'hourly' then
-                    coalesce($14::numeric, $12::numeric, hourly_rate, base_rate / 24.0) *
-                    greatest(2, ceil((extract(epoch from (
-                      (($5::date + $9::time) at time zone timezone) -
-                      (($4::date + $8::time) at time zone timezone)
-                    )) / 60.0 - 30.0) / 60.0))
-                  else coalesce($14::numeric, base_rate) * greatest(1, ($5::date - $4::date)) end) as calculated
-           from room_rate
-         )
-         insert into reservations (tenant_id, guest_id, room_id, check_in, check_out, check_in_at, check_out_at, rate_mode, unit_rate, price_override, override_reason, total_amount, created_by)
-         select $1, $2, p.id, $4::date, $5::date,
-                (($4::date + $8::time) at time zone rr.timezone),
-                (($5::date + $9::time) at time zone rr.timezone), $7,
-                p.unit_rate,
-                $10, $11, coalesce($10, p.calculated), $6
-         from price p join room_rate rr on rr.id = p.id
-         returning id, status, check_in::text as "checkIn", check_out::text as "checkOut", check_in_at as "checkInAt", check_out_at as "checkOutAt", rate_mode as "rateMode", unit_rate::float8 as "unitRate", total_amount::float8 as "totalAmount"`,
-        [user.tenantId, guestId, b.roomId, b.checkIn, b.checkOut, user.id, b.rateMode, checkInTime, checkOutTime, b.priceOverride ?? null, b.overrideReason?.trim() || null, b.hourlyRateOverride ?? null, user.propertyId, b.unitRateOverride ?? null],
-      )).rows[0];
+      let row;
+      try {
+        row = (await c.query(
+          `with room_rate as (
+             select r.id, coalesce(r.hourly_rate, rt.hourly_rate) as hourly_rate,
+                    coalesce(r.base_rate, rt.base_rate) as base_rate, prop.timezone
+             from rooms r
+             join room_types rt on rt.id = r.room_type_id
+             join properties prop on prop.id = $13 and prop.tenant_id = r.tenant_id
+             where r.id = $3
+           ), price as (
+             select id,
+               case when $7 = 'hourly'
+                      then coalesce($14::numeric, $12::numeric, hourly_rate, base_rate / 24.0)
+                      else coalesce($14::numeric, base_rate)
+               end as unit_rate,
+               (case when $7 = 'hourly' then
+                      coalesce($14::numeric, $12::numeric, hourly_rate, base_rate / 24.0) *
+                      greatest(2, ceil((extract(epoch from (
+                        (($5::date + $9::time) at time zone timezone) -
+                        (($4::date + $8::time) at time zone timezone)
+                      )) / 60.0 - 30.0) / 60.0))
+                    else coalesce($14::numeric, base_rate) * greatest(1, ($5::date - $4::date)) end) as calculated
+             from room_rate
+           )
+           insert into reservations (tenant_id, guest_id, room_id, check_in, check_out, check_in_at, check_out_at, rate_mode, unit_rate, price_override, override_reason, total_amount, created_by)
+           select $1, $2, p.id, $4::date, $5::date,
+                  (($4::date + $8::time) at time zone rr.timezone),
+                  (($5::date + $9::time) at time zone rr.timezone), $7,
+                  p.unit_rate,
+                  $10, $11, coalesce($10, p.calculated), $6
+           from price p join room_rate rr on rr.id = p.id
+           returning id, status, check_in::text as "checkIn", check_out::text as "checkOut", check_in_at as "checkInAt", check_out_at as "checkOutAt", rate_mode as "rateMode", unit_rate::float8 as "unitRate", total_amount::float8 as "totalAmount"`,
+          [user.tenantId, guestId, b.roomId, b.checkIn, b.checkOut, user.id, b.rateMode, checkInTime, checkOutTime, b.priceOverride ?? null, b.overrideReason?.trim() || null, b.hourlyRateOverride ?? null, user.propertyId, b.unitRateOverride ?? null],
+        )).rows[0];
+      } catch (err: any) {
+        if (err?.code === '23P01') {
+          throw new ConflictException({
+            code: 'ROOM_OVERBOOKING_PREVENTED',
+            message: `Room ${roomLock.number} is already booked for these dates (concurrency conflict prevented by database).`,
+          });
+        }
+        throw err;
+      }
       if (!row) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Room not found' });
 
       const newCompanionIds: string[] = [];

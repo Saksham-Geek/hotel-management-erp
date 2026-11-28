@@ -76,7 +76,7 @@ export function IncomeDashboardView({
             </span>
             <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Taj / ITC Luxury Protocol</span>
+              <span>Five-Star Hospitality Protocol</span>
             </span>
           </div>
 
@@ -278,7 +278,7 @@ export function IncomeDashboardView({
         )}
       </div>
 
-      {/* 3. Executive KPI Cards (Taj / ITC Standard) */}
+      {/* 3. Executive KPI Cards (USALI Standard) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3.5 sm:gap-4">
         {/* Gross Revenue */}
         <div className="rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xs relative overflow-hidden flex flex-col justify-between">
@@ -780,7 +780,7 @@ export function IncomeDashboardView({
         </div>
       </div>
 
-      {/* 5. USALI Departmental Breakdown (Taj & ITC Hospitality Standard) */}
+      {/* 5. USALI Departmental Breakdown (USALI Hospitality Standard) */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Rooms Department */}
         <div className="rounded-2xl border border-indigo-100 bg-gradient-to-br from-indigo-50/60 to-white p-5 shadow-xs">

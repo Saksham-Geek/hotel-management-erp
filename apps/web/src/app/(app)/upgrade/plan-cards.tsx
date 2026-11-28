@@ -378,7 +378,7 @@ export function PlanCards({
             Detailed Hospitality Comparison: Small Hotels vs. Luxury Hotel Chains
           </h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            See how features and regulatory controls differ between homestays/budget properties and luxury enterprise chains like Taj, Oberoi, and ITC.
+            See how features and regulatory controls differ between homestays/budget properties and luxury enterprise chains &amp; multi-property resorts.
           </p>
         </div>
 
@@ -389,7 +389,7 @@ export function PlanCards({
                 <th className="py-3 pr-4 font-semibold">Features & Statutory Controls</th>
                 <th className="px-4 py-3 font-semibold text-center w-36">Starter (Small Hotel)</th>
                 <th className="px-4 py-3 font-semibold text-center w-36">Growth (Resort)</th>
-                <th className="px-4 py-3 font-semibold text-center w-40 text-amber-600 dark:text-amber-400">Enterprise (Taj Chain)</th>
+                <th className="px-4 py-3 font-semibold text-center w-40 text-amber-600 dark:text-amber-400">Enterprise (Multi-Property)</th>
               </tr>
             </thead>
             <tbody>

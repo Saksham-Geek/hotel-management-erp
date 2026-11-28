@@ -213,7 +213,7 @@ export function ComplianceView({
         </button>
       </div>
 
-      {/* Explanatory Statutory Retention & Taj/ITC/Radisson SOP Card */}
+      {/* Explanatory Statutory Retention & Luxury Five-Star Standard SOP Card */}
       {showLegalGuide && (
         <div className="rounded-3xl border border-blue-200 dark:border-blue-900/50 bg-blue-50/70 dark:bg-blue-950/20 p-6 sm:p-7 shadow-xs animate-in fade-in-50 duration-200">
           <div className="flex items-start justify-between gap-4">

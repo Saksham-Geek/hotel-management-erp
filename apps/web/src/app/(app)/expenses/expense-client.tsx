@@ -421,7 +421,7 @@ export function ExpenseClient({
           />
         </div>
 
-        <div className="flex items-center gap-2 min-w-[220px]">
+        <div className="flex items-center gap-2 min-w-[280px] sm:min-w-[320px]">
           <span className="text-xs font-semibold text-muted-foreground shrink-0">Category:</span>
           <div className="flex-1">
             <CustomDropdown

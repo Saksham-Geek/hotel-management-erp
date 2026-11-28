@@ -244,7 +244,7 @@ export function BanquetClient({
 
       {/* Available Venues Overview Cards */}
       <div>
-        <h2 className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider mb-3">
+        <h2 className="text-sm font-bold text-foreground uppercase tracking-wider mb-3">
           Available Venues &amp; Facilities
         </h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -344,18 +344,18 @@ export function BanquetClient({
               <tbody className="divide-y divide-border text-xs">
                 {filteredBookings.map((b) => (
                   <tr key={b.id} className="hover:bg-muted/40 transition-colors">
-                    <td className="px-4 py-3 font-mono font-bold text-slate-900 dark:text-white">
+                    <td className="px-4 py-3 font-mono font-bold text-foreground">
                       {b.bookingNumber}
                     </td>
-                    <td className="px-4 py-3 font-medium text-slate-900 dark:text-white">
+                    <td className="px-4 py-3 font-medium text-foreground">
                       <div>{b.eventName}</div>
-                      <div className="text-[11px] text-slate-500 font-normal">🏛️ {b.venueName}</div>
+                      <div className="text-[11px] text-muted-foreground font-normal">🏛️ {b.venueName}</div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-semibold text-slate-900 dark:text-white">{b.clientName}</div>
-                      <div className="text-[11px] text-slate-500 font-mono">{b.clientPhone}</div>
+                      <div className="font-semibold text-foreground">{b.clientName}</div>
+                      <div className="text-[11px] text-muted-foreground font-mono">{b.clientPhone}</div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-foreground">
                       <div>
                         {new Date(b.eventDate).toLocaleDateString('en-IN', {
                           day: 'numeric',
@@ -363,14 +363,14 @@ export function BanquetClient({
                           year: 'numeric',
                         })}
                       </div>
-                      <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-bold text-slate-600 dark:text-slate-300">
+                      <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground border border-border">
                         {b.slot}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-200">
+                    <td className="px-4 py-3 font-bold text-foreground">
                       {b.paxCount}
                     </td>
-                    <td className="px-4 py-3 text-right font-mono font-bold text-slate-950 dark:text-white">
+                    <td className="px-4 py-3 text-right font-mono font-bold text-foreground">
                       ₹{b.totalAmount.toLocaleString('en-IN')}
                     </td>
                     <td className="px-4 py-3 text-right font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
@@ -394,7 +394,7 @@ export function BanquetClient({
                       <button
                         type="button"
                         onClick={() => handleOpenFp(b.id)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1 text-xs font-bold text-slate-800 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition"
+                        className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-bold text-foreground hover:bg-muted/50 transition cursor-pointer shadow-2xs"
                       >
                         📋 Print BEO
                       </button>
@@ -403,7 +403,7 @@ export function BanquetClient({
                 ))}
                 {filteredBookings.length === 0 && (
                   <tr>
-                    <td colSpan={10} className="py-12 text-center text-xs text-slate-500">
+                    <td colSpan={10} className="py-12 text-center text-xs text-muted-foreground">
                       No banquet event bookings match your search.
                     </td>
                   </tr>

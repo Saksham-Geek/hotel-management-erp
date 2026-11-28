@@ -316,14 +316,129 @@ export function resolveTaxRule(
   return candidates[0];
 }
 
+const GSTIN_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+/**
+ * Validates an Indian Goods and Services Tax Identification Number (GSTIN).
+ * Verifies standard 15-character format and Mod-36 Luhn-style statutory checksum.
+ * e.g. '27AAACG1234F1Z8'
+ */
+export function validateGstin(gstin: string): { valid: boolean; error?: string } {
+  if (!gstin || typeof gstin !== 'string') {
+    return { valid: false, error: 'GSTIN must be a non-empty string' };
+  }
+  const clean = gstin.trim().toUpperCase();
+  if (clean.length !== 15) {
+    return { valid: false, error: `GSTIN must be exactly 15 characters (received ${clean.length})` };
+  }
+
+  // Format: 2 digits (State), 5 letters (PAN), 4 digits, 1 letter, 1 alphanumeric (entity #), 'Z', 1 checksum
+  const regex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+  if (!regex.test(clean)) {
+    return { valid: false, error: 'GSTIN does not match statutory pattern (State + PAN + Entity + Z + Checksum)' };
+  }
+
+  // Mod-36 Checksum verification
+  let sum = 0;
+  for (let i = 0; i < 14; i++) {
+    const char = clean[i];
+    const codePoint = GSTIN_CHARS.indexOf(char);
+    if (codePoint === -1) return { valid: false, error: `Invalid character '${char}' in GSTIN` };
+
+    const factor = codePoint * (i % 2 === 0 ? 1 : 2);
+    const quotient = Math.floor(factor / 36);
+    const remainder = factor % 36;
+    sum += quotient + remainder;
+  }
+
+  const remainder = sum % 36;
+  const checkCodePoint = (36 - remainder) % 36;
+  const expectedCheckChar = GSTIN_CHARS[checkCodePoint];
+
+  if (clean[14] !== expectedCheckChar) {
+    return {
+      valid: false,
+      error: `GSTIN checksum mismatch: character 15 is '${clean[14]}', expected '${expectedCheckChar}'`,
+    };
+  }
+
+  return { valid: true };
+}
+
+/**
+ * Robust decimal-to-integer conversion from rupees to integer paise.
+ * Avoids IEEE 754 64-bit float multiplication errors.
+ *
+ * Rules:
+ * - Throws TypeError on invalid, NaN, non-finite, null, or undefined input.
+ * - Throws RangeError on negative amounts unless allowNegative = true.
+ * - Throws RangeError if string representation has > 2 decimal places (no silent truncation).
+ */
+export function toPaise(amount: number | string, allowNegative = false): number {
+  if (amount === null || amount === undefined) {
+    throw new TypeError('Monetary amount cannot be null or undefined');
+  }
+
+  let str: string;
+  if (typeof amount === 'number') {
+    if (!Number.isFinite(amount) || Number.isNaN(amount)) {
+      throw new TypeError(`Invalid monetary amount: ${amount}`);
+    }
+    if (amount < 0 && !allowNegative) {
+      throw new RangeError(`Monetary amount cannot be negative: ${amount}`);
+    }
+    str = Math.abs(amount) < 1e-9 ? '0.00' : (Math.abs(amount) + Number.EPSILON).toFixed(2);
+  } else if (typeof amount === 'string') {
+    str = amount.trim();
+    if (!str || !/^-?\d+(?:\.\d+)?$/.test(str)) {
+      throw new TypeError(`Invalid monetary string format: "${amount}"`);
+    }
+  } else {
+    throw new TypeError(`Expected number or string for monetary amount, got ${typeof amount}`);
+  }
+
+  const isNegative = typeof amount === 'number' ? amount < 0 : str.startsWith('-');
+  if (isNegative && !allowNegative) {
+    throw new RangeError(`Monetary amount cannot be negative: "${amount}"`);
+  }
+
+  const cleanStr = str.replace(/^-/, '');
+  const parts = cleanStr.split('.');
+
+  if (parts[1] && parts[1].length > 2) {
+    throw new RangeError(`Monetary amounts cannot have more than 2 decimal places: "${amount}"`);
+  }
+
+  const rupees = parseInt(parts[0], 10) || 0;
+  let paise = 0;
+  if (parts[1]) {
+    const paiseStr = parts[1].padEnd(2, '0').slice(0, 2);
+    paise = parseInt(paiseStr, 10) || 0;
+  }
+  const totalPaise = rupees * 100 + paise;
+  return isNegative ? -totalPaise : totalPaise;
+}
+
+export function toSignedPaise(amount: number | string): number {
+  return toPaise(amount, true);
+}
+
+export function fromPaise(paise: number): number {
+  return Math.round(paise) / 100;
+}
+
 /**
  * Versioned, effective-dated Indian GST Tax Calculation.
  * Correctly evaluates:
  * - 56th GST Council room rates: 5% without ITC under Rs 7,500; 18% with ITC above.
  * - Slab applies to declared tariff per unit per day, NOT invoice total.
  * - F&B specified premises: 18% with ITC vs 5% without ITC.
- * - Intra-state (CGST + SGST) vs Inter-state (IGST).
- * - Exact paise rounding (Math.round(val * 100) / 100).
+ * - Place of Supply (Section 12(3)(b) & Section 12(4) IGST Act): Hotel accommodation
+ *   and restaurant services are statutorily located at the immovable property,
+ *   meaning supplies by a hotel registered in the property state are intra-state (CGST + SGST).
+ * - Exact integer paise calculations end-to-end to eliminate float representation drift.
+ * - Engineering Design Choice for odd-paisa allocation: CGST = floor(total/2), SGST = remainder
+ *   ensuring CGST + SGST === Total Tax with 0.00% drift. Invoice total round-off follows Section 170.
  */
 export function calculateVersionedGstTax(input: TaxCalculationInput): TaxCalculationResult {
   const safeTariff = Number.isFinite(input.declaredDailyTariff) && input.declaredDailyTariff >= 0 ? input.declaredDailyTariff : 0;
@@ -340,7 +455,9 @@ export function calculateVersionedGstTax(input: TaxCalculationInput): TaxCalcula
     input.customRules,
   );
 
-  const taxableAmount = Math.round(safeTariff * safeQty * 100) / 100;
+  // 1. Integer paise calculations (1 INR = 100 paise)
+  const tariffPaise = toPaise(safeTariff);
+  const taxableAmountPaise = Math.round(tariffPaise * safeQty);
   const totalRate = rule.totalRate;
   const halfRate = totalRate / 2;
 
@@ -348,25 +465,38 @@ export function calculateVersionedGstTax(input: TaxCalculationInput): TaxCalcula
   const sgstRate = isInterstate ? 0 : halfRate;
   const igstRate = isInterstate ? totalRate : 0;
 
-  const cgstAmount = isInterstate ? 0 : Math.round(((taxableAmount * cgstRate) / 100) * 100) / 100;
-  const sgstAmount = isInterstate ? 0 : Math.round(((taxableAmount * sgstRate) / 100) * 100) / 100;
-  const igstAmount = isInterstate ? Math.round(((taxableAmount * igstRate) / 100) * 100) / 100 : 0;
+  // 2. Tax in integer paise: Math.round((taxableAmountPaise * totalRate) / 100)
+  const totalTaxPaise = Math.round((taxableAmountPaise * totalRate) / 100);
 
-  const taxTotal = Math.round((cgstAmount + sgstAmount + igstAmount) * 100) / 100;
-  const lineTotal = Math.round((taxableAmount + taxTotal) * 100) / 100;
+  // 3. Engineering Design Choice for odd paisa:
+  // CGST gets Math.floor(totalTaxPaise / 2), and SGST gets remainder (totalTaxPaise - cgstPaise).
+  // This guarantees CGST + SGST === Total Tax with 0.00% drift.
+  // Final invoice grand total rounding follows Section 170 (nearest whole rupee).
+  let cgstPaise = 0;
+  let sgstPaise = 0;
+  let igstPaise = 0;
+
+  if (isInterstate) {
+    igstPaise = totalTaxPaise;
+  } else {
+    cgstPaise = Math.floor(totalTaxPaise / 2);
+    sgstPaise = totalTaxPaise - cgstPaise;
+  }
+
+  const lineTotalPaise = taxableAmountPaise + totalTaxPaise;
 
   return {
     categoryCode: input.categoryCode,
     hsnSac: rule.sacCode,
-    taxableAmount,
+    taxableAmount: fromPaise(taxableAmountPaise),
     cgstRate,
     sgstRate,
     igstRate,
-    cgstAmount,
-    sgstAmount,
-    igstAmount,
-    taxTotal,
-    lineTotal,
+    cgstAmount: fromPaise(cgstPaise),
+    sgstAmount: fromPaise(sgstPaise),
+    igstAmount: fromPaise(igstPaise),
+    taxTotal: fromPaise(totalTaxPaise),
+    lineTotal: fromPaise(lineTotalPaise),
     itcAllowed: rule.itcAllowed,
     isSpecifiedPremises: isSpecified,
     appliedRuleDescription: rule.description,

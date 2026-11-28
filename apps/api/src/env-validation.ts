@@ -8,6 +8,7 @@ export interface ApiEnv {
   resendApiKey: string;
   emailFrom: string;
   appBaseUrl: string;
+  sentryDsn?: string;
 }
 
 function required(source: NodeJS.ProcessEnv, name: string): string {
@@ -61,5 +62,6 @@ export function parseApiEnv(source: NodeJS.ProcessEnv): ApiEnv {
     resendApiKey: source.RESEND_API_KEY?.trim() ?? '',
     emailFrom: source.EMAIL_FROM?.trim() ?? '',
     appBaseUrl: parsedAppBaseUrl.origin,
+    sentryDsn: source.SENTRY_DSN?.trim(),
   };
 }

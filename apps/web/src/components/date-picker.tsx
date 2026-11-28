@@ -432,9 +432,11 @@ export function CustomDatePicker({
 
         <span
           aria-hidden="true"
-          className="shrink-0 text-[10px] font-bold text-slate-400 group-hover:text-slate-600 transition-colors uppercase"
+          className="shrink-0 text-muted-foreground group-hover:text-foreground transition-colors ml-2"
         >
-          {internalValue ? 'Pick' : 'Date'}
+          <svg className="h-3.5 w-3.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+          </svg>
         </span>
       </button>
 

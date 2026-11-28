@@ -35,8 +35,9 @@ import { ZodPipe } from '../common/zod.pipe';
 import { DbService } from '../db/db.service';
 import { EntitlementsService } from '../entitlements/entitlements.service';
 import { RequireFeature } from '../entitlements/require-feature';
-import { calculateGstTax } from './tax-calculator';
+import { calculateGstTax, validateGstin } from './tax-calculator';
 import { createHash } from 'node:crypto';
+import { InvoiceSequenceService } from './invoice-sequence.service';
 
 interface PaymentEvent {
   tenantId: string;
@@ -59,6 +60,7 @@ export class BillingController {
     private readonly db: DbService,
     private readonly audit: AuditService,
     private readonly entitlements: EntitlementsService,
+    private readonly invoiceSequence: InvoiceSequenceService,
   ) {}
 
   @Get('folios/reservation/:reservationId')
@@ -350,6 +352,186 @@ export class BillingController {
       });
 
       return item;
+    });
+  }
+
+  @Post('folios/:folioId/items/:itemId/reverse-and-repost')
+  @RequirePermission(PERMISSIONS.BILLING_CHARGE_POST)
+  async reverseAndRepostItem(
+    @CurrentUser() user: AuthUser,
+    @Param('folioId', ParseUUIDPipe) folioId: string,
+    @Param('itemId', ParseUUIDPipe) itemId: string,
+    @Body() body: { reason: string; correctedUnitPrice?: number; correctedDescription?: string },
+  ) {
+    if (!body?.reason?.trim()) {
+      throw new BadRequestException({ code: 'REASON_REQUIRED', message: 'A valid audit reason is required for a charge reversal' });
+    }
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const folio = (
+        await c.query(`SELECT id, reservation_id, status FROM reservation_folios WHERE id = $1 FOR UPDATE`, [folioId])
+      ).rows[0];
+
+      if (!folio) throw new NotFoundException({ code: 'NOT_FOUND', message: 'Folio not found' });
+      if (folio.status === 'void') {
+        throw new BadRequestException({ code: 'FOLIO_VOID', message: 'Cannot modify a void folio' });
+      }
+
+      // Statutory Integrity: Once a tax invoice is issued, folio items cannot be silently mutated.
+      // Any price reduction or reversal MUST be processed via a formal Credit Note (Section 34 CGST Act).
+      const issuedInvoice = (
+        await c.query(
+          `SELECT id, invoice_number AS "invoiceNumber" FROM tax_invoices WHERE tenant_id = $1 AND property_id = $2 AND folio_id = $3 AND invoice_type IN ('B2C', 'B2B')`,
+          [user.tenantId, user.propertyId, folioId],
+        )
+      ).rows[0];
+      if (issuedInvoice) {
+        throw new BadRequestException({
+          code: 'INVOICE_ALREADY_ISSUED',
+          message: `Tax Invoice ${issuedInvoice.invoiceNumber} has already been issued for this folio. Under Section 34 of the CGST Act, post-issuance corrections cannot mutate folio history directly; an official Credit Note must be issued.`,
+        });
+      }
+
+      const origItem = (
+        await c.query(
+          `SELECT id, tenant_id, property_id, folio_id, reservation_id, room_id, business_date, charge_type, status,
+                  description, quantity, unit_price, tax_rate, line_total, tax_category_code, hsn_sac,
+                  cgst_amount, sgst_amount, igst_amount, is_interstate
+           FROM folio_items
+           WHERE id = $1 AND folio_id = $2 FOR UPDATE`,
+          [itemId, folioId],
+        )
+      ).rows[0];
+
+      if (!origItem) {
+        throw new NotFoundException({ code: 'ITEM_NOT_FOUND', message: 'Folio line item not found' });
+      }
+      if (origItem.status !== 'posted') {
+        throw new BadRequestException({ code: 'ALREADY_REVERSED', message: 'Item has already been reversed or is a reversal entry' });
+      }
+
+      // 1. Mark original item as reversed
+      await c.query(`UPDATE folio_items SET status = 'reversed' WHERE id = $1`, [origItem.id]);
+
+      // 2. Insert explicit offsetting reversal entry (negative line total)
+      const reversalItem = (
+        await c.query(
+          `INSERT INTO folio_items (
+             tenant_id, property_id, folio_id, reservation_id, room_id, business_date, charge_type, status, source_line_id,
+             description, quantity, unit_price, tax_rate, line_total, tax_category_code, hsn_sac,
+             cgst_amount, sgst_amount, igst_amount, is_interstate
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $7, 'reversal', $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+           RETURNING id, description, line_total::float8 AS "lineTotal"`,
+          [
+            user.tenantId,
+            user.propertyId,
+            folioId,
+            origItem.reservation_id,
+            origItem.room_id,
+            origItem.business_date,
+            origItem.charge_type,
+            origItem.id,
+            `Reversal: ${origItem.description} (Reason: ${body.reason.trim()})`,
+            origItem.quantity,
+            -Number(origItem.unit_price),
+            origItem.tax_rate,
+            -Number(origItem.line_total),
+            origItem.tax_category_code,
+            origItem.hsn_sac,
+            -Number(origItem.cgst_amount),
+            -Number(origItem.sgst_amount),
+            -Number(origItem.igst_amount),
+            origItem.is_interstate,
+          ],
+        )
+      ).rows[0];
+
+      // 3. If a corrected unit price is provided, insert new active posted item
+      let repostedItem = null;
+      if (body.correctedUnitPrice !== undefined && body.correctedUnitPrice >= 0) {
+        const newRate = Number(body.correctedUnitPrice);
+        const tax = calculateGstTax(
+          origItem.tax_category_code || 'ACCOMMODATION',
+          newRate,
+          Number(origItem.quantity) || 1,
+          origItem.is_interstate,
+        );
+
+        repostedItem = (
+          await c.query(
+            `INSERT INTO folio_items (
+               tenant_id, property_id, folio_id, reservation_id, room_id, business_date, charge_type, status, source_line_id,
+               description, quantity, unit_price, tax_rate, line_total, tax_category_code, hsn_sac,
+               cgst_amount, sgst_amount, igst_amount, is_interstate
+             )
+             VALUES ($1, $2, $3, $4, $5, $6, $7, 'posted', $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+             RETURNING id, description, unit_price::float8 AS "unitPrice", line_total::float8 AS "lineTotal"`,
+            [
+              user.tenantId,
+              user.propertyId,
+              folioId,
+              origItem.reservation_id,
+              origItem.room_id,
+              origItem.business_date,
+              origItem.charge_type,
+              origItem.id,
+              body.correctedDescription?.trim() || `${origItem.description} (Corrected)`,
+              origItem.quantity,
+              newRate,
+              tax.cgstRate + tax.sgstRate + tax.igstRate,
+              tax.lineTotal,
+              tax.categoryCode,
+              tax.hsnSac,
+              tax.cgstAmount,
+              tax.sgstAmount,
+              tax.igstAmount,
+              origItem.is_interstate,
+            ],
+          )
+        ).rows[0];
+      }
+
+      // 4. Update folio summary totals
+      const totals = (
+        await c.query(
+          `SELECT coalesce(sum(quantity * unit_price), 0)::numeric(12,2) AS subtotal,
+                  coalesce(sum(cgst_amount + sgst_amount + igst_amount), 0)::numeric(12,2) AS tax_total,
+                  coalesce(sum(line_total), 0)::numeric(12,2) AS total
+           FROM folio_items WHERE folio_id = $1`,
+          [folioId],
+        )
+      ).rows[0];
+
+      await c.query(
+        `UPDATE reservation_folios
+         SET subtotal = $2, tax_total = $3, total = $4, updated_at = now()
+         WHERE id = $1`,
+        [folioId, totals.subtotal, totals.tax_total, totals.total],
+      );
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'folio.charge.reversal_repost',
+        entity: 'folio',
+        entityId: folioId,
+        meta: {
+          originalItemId: itemId,
+          reversalItemId: reversalItem.id,
+          repostedItemId: repostedItem?.id || null,
+          reason: body.reason,
+          originalAmount: Number(origItem.line_total),
+          correctedAmount: repostedItem ? repostedItem.lineTotal : 0,
+        },
+      });
+
+      return {
+        success: true,
+        reversal: reversalItem,
+        repost: repostedItem,
+        newFolioTotals: totals,
+      };
     });
   }
 
@@ -669,23 +851,16 @@ export class BillingController {
         });
       }
 
-      // Determine current Indian Financial Year (April 1 to March 31)
       const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1; // 1 to 12
-      const startYear = currentMonth >= 4 ? currentYear : currentYear - 1;
-      const fyCode = `${String(startYear).slice(2)}${String(startYear + 1).slice(2)}`; // e.g. '2627'
-      const fyFull = `${startYear}-${startYear + 1}`;
 
-      // Generate next 16-character consecutive invoice number per property
-      const seqRow = (
-        await c.query(
-          `SELECT count(*)::int AS count FROM tax_invoices WHERE tenant_id = $1 AND property_id = $2 AND financial_year = $3`,
-          [user.tenantId, user.propertyId, fyFull],
-        )
-      ).rows[0];
-      const seq = String(Number(seqRow.count) + 1).padStart(6, '0');
-      const invoiceNumber = `GA/${fyCode}/${seq}`; // exactly 14-16 chars
+      // Generate next 16-character gapless sequential invoice number via row-level locking
+      const { invoiceNumber, financialYear: fyFull } = await this.invoiceSequence.getNextInvoiceNumber(c, {
+        tenantId: user.tenantId,
+        propertyId: user.propertyId,
+        seriesType: 'TAX_INVOICE',
+        propertyCode: 'GA',
+        date: now,
+      });
 
       // Sum tax breakdowns from folio items
       const taxes = (
@@ -750,6 +925,124 @@ export class BillingController {
       });
 
       return invoice;
+    });
+  }
+
+  @Post('folios/:folioId/credit-note')
+  @RequirePermission(PERMISSIONS.BILLING_REFUND)
+  async issueCreditNote(
+    @CurrentUser() user: AuthUser,
+    @Param('folioId', ParseUUIDPipe) folioId: string,
+    @Body() b: { reason: string; amount: number; description?: string },
+  ) {
+    if (!b.reason?.trim()) {
+      throw new BadRequestException({ code: 'REASON_REQUIRED', message: 'A statutory reason is required to issue a Credit Note under Section 34 CGST Act' });
+    }
+    if (!b.amount || b.amount <= 0) {
+      throw new BadRequestException({ code: 'INVALID_AMOUNT', message: 'Credit Note amount must be greater than zero' });
+    }
+
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      const origInv = (
+        await c.query(
+          `SELECT id, invoice_number AS "invoiceNumber", financial_year AS "financialYear",
+                  hotel_gstin AS "hotelGstin", guest_gstin AS "guestGstin",
+                  guest_company_name AS "guestCompanyName", guest_name AS "guestName",
+                  place_of_supply_state_code AS "placeOfSupplyStateCode", is_interstate AS "isInterstate",
+                  reservation_id AS "reservationId", grand_total AS "grandTotal"
+           FROM tax_invoices
+           WHERE tenant_id = $1 AND property_id = $2 AND folio_id = $3 AND invoice_type IN ('B2C', 'B2B')
+           ORDER BY issued_at DESC LIMIT 1`,
+          [user.tenantId, user.propertyId, folioId],
+        )
+      ).rows[0];
+
+      if (!origInv) {
+        throw new BadRequestException({
+          code: 'NO_ISSUED_INVOICE',
+          message: 'A Credit Note can only be issued against an existing issued Tax Invoice under Section 34 CGST Act.',
+        });
+      }
+
+      const now = new Date();
+      // Generate next 16-character gapless sequential credit note number (Rule 46(b) / Section 34)
+      const { invoiceNumber: cnNumber, financialYear: fyFull } = await this.invoiceSequence.getNextInvoiceNumber(c, {
+        tenantId: user.tenantId,
+        propertyId: user.propertyId,
+        seriesType: 'CREDIT_NOTE',
+        gstin: origInv.hotelGstin,
+        propertyCode: 'GA',
+        date: now,
+      });
+
+      // Compute base and tax (assume standard tax rate proportion)
+      const rate = 18; // default standard slab
+      const taxable = Math.round((b.amount / (1 + rate / 100)) * 100) / 100;
+      const taxTotal = Math.round((b.amount - taxable) * 100) / 100;
+      const cgst = origInv.isInterstate ? 0 : Math.round((taxTotal / 2) * 100) / 100;
+      const sgst = origInv.isInterstate ? 0 : taxTotal - cgst;
+      const igst = origInv.isInterstate ? taxTotal : 0;
+
+      const irnPayload = `${cnNumber}:${b.amount}:${origInv.invoiceNumber}:${now.toISOString()}`;
+      const irnHash = createHash('sha256').update(irnPayload).digest('hex');
+      const signedQrCode = `CN:${cnNumber}|ORIG_INV:${origInv.invoiceNumber}|VAL:${b.amount}`;
+
+      const creditNote = (
+        await c.query(
+          `INSERT INTO tax_invoices (
+             tenant_id, property_id, folio_id, reservation_id, invoice_number, financial_year, invoice_type,
+             hotel_gstin, guest_gstin, guest_company_name, guest_name, place_of_supply_state_code,
+             is_interstate, total_taxable_amount, cgst_amount, sgst_amount, igst_amount, grand_total,
+             irn_hash, signed_qr_code, irn_status, issued_by
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, 'CREDIT_NOTE', $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, 'generated', $19)
+           RETURNING id, invoice_number AS "invoiceNumber", financial_year AS "financialYear", invoice_type AS "invoiceType",
+                     grand_total::float8 AS "grandTotal", issued_at AS "issuedAt"`,
+          [
+            user.tenantId,
+            user.propertyId,
+            folioId,
+            origInv.reservationId,
+            cnNumber,
+            fyFull,
+            origInv.hotelGstin,
+            origInv.guestGstin,
+            origInv.guestCompanyName,
+            origInv.guestName,
+            origInv.placeOfSupplyStateCode,
+            origInv.isInterstate,
+            taxable,
+            cgst,
+            sgst,
+            igst,
+            b.amount,
+            irnHash,
+            signedQrCode,
+            user.id,
+          ],
+        )
+      ).rows[0];
+
+      await this.audit.log(c, {
+        tenantId: user.tenantId,
+        userId: user.id,
+        action: 'folio.credit_note.issue',
+        entity: 'tax_invoice',
+        entityId: creditNote.id,
+        meta: {
+          creditNoteNumber: cnNumber,
+          originalInvoiceNumber: origInv.invoiceNumber,
+          amount: b.amount,
+          reason: b.reason.trim(),
+        },
+      });
+
+      return {
+        success: true,
+        creditNote,
+        originalInvoiceNumber: origInv.invoiceNumber,
+        message: `Statutory Credit Note ${cnNumber} successfully issued against Invoice ${origInv.invoiceNumber}.`,
+      };
     });
   }
 

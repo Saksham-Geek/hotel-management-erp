@@ -6,9 +6,11 @@ import compression from 'compression';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { env } from './config';
+import { SentryExceptionFilter } from './filters/sentry-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
+  app.useGlobalFilters(new SentryExceptionFilter());
   app.useBodyParser('json', { limit: '56mb' });
   app.use(compression({ threshold: 1024 })); // compress payloads > 1KB with gzip/deflate
   app.use(helmet());

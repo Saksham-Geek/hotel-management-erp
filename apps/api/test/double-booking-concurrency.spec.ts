@@ -186,4 +186,231 @@ describe('Concurrency & Double-Booking Exclusion Constraint Test (50 Simultaneou
       client.release();
     }
   });
+
+  it('hourly and day-use stays are protected against double-booking via no_double_booking_time (tstzrange)', async () => {
+    const client = await pool.connect();
+    try {
+      await client.query(
+        "SELECT set_config('app.tenant_id', $1, false), set_config('app.property_id', $2, false)",
+        [tenantId, propertyId],
+      );
+
+      // Setup room for hourly test
+      const rtRes = await client.query(
+        `INSERT INTO room_types (tenant_id, property_id, name, base_rate, capacity) 
+         VALUES ($1, $2, 'Hourly Suite', 3000, 2) 
+         RETURNING id`,
+        [tenantId, propertyId],
+      );
+      const roomRes = await client.query(
+        `INSERT INTO rooms (tenant_id, property_id, room_type_id, number, floor) 
+         VALUES ($1, $2, $3, '888-HOURLY', 8) 
+         RETURNING id`,
+        [tenantId, propertyId, rtRes.rows[0].id],
+      );
+      const hourlyRoomId = roomRes.rows[0].id;
+
+      // Booking 1: 14:00 to 18:00
+      await client.query(
+        `INSERT INTO reservations (
+           tenant_id, property_id, guest_id, room_id,
+           check_in, check_out, check_in_at, check_out_at,
+           rate_mode, unit_rate, total_amount, status
+         ) VALUES (
+           $1, $2, $3, $4,
+           '2027-12-01'::date, '2027-12-01'::date,
+           '2027-12-01 14:00:00+05:30'::timestamptz, '2027-12-01 18:00:00+05:30'::timestamptz,
+           'hourly', 1000, 4000, 'reserved'
+         )`,
+        [tenantId, propertyId, guestId, hourlyRoomId],
+      );
+
+      // Booking 2: Overlapping hourly stay (16:00 to 20:00) on same room
+      await assert.rejects(
+        async () => {
+          await client.query(
+            `INSERT INTO reservations (
+               tenant_id, property_id, guest_id, room_id,
+               check_in, check_out, check_in_at, check_out_at,
+               rate_mode, unit_rate, total_amount, status
+             ) VALUES (
+               $1, $2, $3, $4,
+               '2027-12-01'::date, '2027-12-01'::date,
+               '2027-12-01 16:00:00+05:30'::timestamptz, '2027-12-01 20:00:00+05:30'::timestamptz,
+               'hourly', 1000, 4000, 'reserved'
+             )`,
+            [tenantId, propertyId, guestId, hourlyRoomId],
+          );
+        },
+        (err: any) => {
+          assert.equal(err.code, '23P01', 'Hourly collision must be blocked by exclusion constraint');
+          return true;
+        },
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  it('moving room (tape chart drag-and-drop) into an occupied room fails, but moving to a free room succeeds', async () => {
+    const client = await pool.connect();
+    try {
+      await client.query(
+        "SELECT set_config('app.tenant_id', $1, false), set_config('app.property_id', $2, false)",
+        [tenantId, propertyId],
+      );
+
+      // Setup two rooms
+      const rtRes = await client.query(
+        `INSERT INTO room_types (tenant_id, property_id, name, base_rate, capacity) 
+         VALUES ($1, $2, 'Drag Suite', 5000, 2) 
+         RETURNING id`,
+        [tenantId, propertyId],
+      );
+      const rA = (await client.query(`INSERT INTO rooms (tenant_id, property_id, room_type_id, number, floor) VALUES ($1, $2, $3, '501-A', 5) RETURNING id`, [tenantId, propertyId, rtRes.rows[0].id])).rows[0].id;
+      const rB = (await client.query(`INSERT INTO rooms (tenant_id, property_id, room_type_id, number, floor) VALUES ($1, $2, $3, '502-B', 5) RETURNING id`, [tenantId, propertyId, rtRes.rows[0].id])).rows[0].id;
+      const rFree = (await client.query(`INSERT INTO rooms (tenant_id, property_id, room_type_id, number, floor) VALUES ($1, $2, $3, '503-FREE', 5) RETURNING id`, [tenantId, propertyId, rtRes.rows[0].id])).rows[0].id;
+
+      // Booking on Room A: Nov 1 to Nov 5
+      const resA = (await client.query(
+        `INSERT INTO reservations (
+           tenant_id, property_id, guest_id, room_id,
+           check_in, check_out, check_in_at, check_out_at,
+           rate_mode, unit_rate, total_amount, status
+         ) VALUES ($1, $2, $3, $4, '2028-01-01'::date, '2028-01-05'::date, '2028-01-01 12:00'::timestamptz, '2028-01-05 11:00'::timestamptz, 'nightly', 5000, 20000, 'reserved') RETURNING id`,
+        [tenantId, propertyId, guestId, rA],
+      )).rows[0].id;
+
+      // Booking on Room B: Nov 3 to Nov 8 (overlaps with A)
+      const resB = (await client.query(
+        `INSERT INTO reservations (
+           tenant_id, property_id, guest_id, room_id,
+           check_in, check_out, check_in_at, check_out_at,
+           rate_mode, unit_rate, total_amount, status
+         ) VALUES ($1, $2, $3, $4, '2028-01-03'::date, '2028-01-08'::date, '2028-01-03 12:00'::timestamptz, '2028-01-08 11:00'::timestamptz, 'nightly', 5000, 25000, 'reserved') RETURNING id`,
+        [tenantId, propertyId, guestId, rB],
+      )).rows[0].id;
+
+      // Try drag-and-drop: Move resB from Room B to Room A -> must fail because Room A is already booked until Jan 5!
+      await assert.rejects(
+        async () => {
+          await client.query(`UPDATE reservations SET room_id = $1 WHERE id = $2`, [rA, resB]);
+        },
+        (err: any) => {
+          assert.equal(err.code, '23P01', 'Drag-and-drop to occupied room must be rejected by exclusion constraint');
+          return true;
+        },
+      );
+
+      // Drag-and-drop to rFree (Room 503-FREE) -> must succeed!
+      await client.query(`UPDATE reservations SET room_id = $1 WHERE id = $2`, [rFree, resB]);
+      const updated = await client.query(`SELECT room_id FROM reservations WHERE id = $1`, [resB]);
+      assert.equal(updated.rows[0].room_id, rFree, 'Move to vacant room must succeed');
+    } finally {
+      client.release();
+    }
+  });
+
+  it('cancelling a reservation releases the room, allowing immediate rebooking on exact same dates', async () => {
+    const client = await pool.connect();
+    try {
+      await client.query(
+        "SELECT set_config('app.tenant_id', $1, false), set_config('app.property_id', $2, false)",
+        [tenantId, propertyId],
+      );
+
+      const rtRes = await client.query(
+        `INSERT INTO room_types (tenant_id, property_id, name, base_rate, capacity) 
+         VALUES ($1, $2, 'Cancel Test Suite', 4000, 2) 
+         RETURNING id`,
+        [tenantId, propertyId],
+      );
+      const roomCancelId = (await client.query(`INSERT INTO rooms (tenant_id, property_id, room_type_id, number, floor) VALUES ($1, $2, $3, '701-CANCEL', 7) RETURNING id`, [tenantId, propertyId, rtRes.rows[0].id])).rows[0].id;
+
+      // Initial booking
+      const origRes = (await client.query(
+        `INSERT INTO reservations (
+           tenant_id, property_id, guest_id, room_id,
+           check_in, check_out, check_in_at, check_out_at,
+           rate_mode, unit_rate, total_amount, status
+         ) VALUES ($1, $2, $3, $4, '2028-03-10'::date, '2028-03-15'::date, '2028-03-10 12:00'::timestamptz, '2028-03-15 11:00'::timestamptz, 'nightly', 4000, 20000, 'reserved') RETURNING id`,
+        [tenantId, propertyId, guestId, roomCancelId],
+      )).rows[0].id;
+
+      // Cancel the original booking
+      await client.query(`UPDATE reservations SET status = 'cancelled' WHERE id = $1`, [origRes]);
+
+      // Rebook exact same room on exact same dates -> must succeed!
+      const newBooking = await client.query(
+        `INSERT INTO reservations (
+           tenant_id, property_id, guest_id, room_id,
+           check_in, check_out, check_in_at, check_out_at,
+           rate_mode, unit_rate, total_amount, status
+         ) VALUES ($1, $2, $3, $4, '2028-03-10'::date, '2028-03-15'::date, '2028-03-10 12:00'::timestamptz, '2028-03-15 11:00'::timestamptz, 'nightly', 4000, 20000, 'reserved') RETURNING id`,
+        [tenantId, propertyId, guestId, roomCancelId],
+      );
+
+      assert.ok(newBooking.rows[0].id, 'Rebooking cancelled slot must succeed immediately');
+    } finally {
+      client.release();
+    }
+  });
+
+  it('out-of-order and maintenance blocks physically block new bookings via no_double_booking_date constraint', async () => {
+    const client = await pool.connect();
+    try {
+      await client.query(
+        "SELECT set_config('app.tenant_id', $1, false), set_config('app.property_id', $2, false)",
+        [tenantId, propertyId],
+      );
+
+      const rtRes = await client.query(
+        `INSERT INTO room_types (tenant_id, property_id, name, base_rate, capacity) 
+         VALUES ($1, $2, 'Maintenance Test Suite', 4000, 2) 
+         RETURNING id`,
+        [tenantId, propertyId],
+      );
+      const roomMaintId = (
+        await client.query(
+          `INSERT INTO rooms (tenant_id, property_id, room_type_id, number, floor) VALUES ($1, $2, $3, '801-MAINT', 8) RETURNING id`,
+          [tenantId, propertyId, rtRes.rows[0].id],
+        )
+      ).rows[0].id;
+
+      // 1. Put room into maintenance for Dec 10 to Dec 15
+      const maintBlock = (
+        await client.query(
+          `INSERT INTO reservations (
+             tenant_id, property_id, guest_id, room_id,
+             check_in, check_out, check_in_at, check_out_at,
+             rate_mode, unit_rate, total_amount, status
+           ) VALUES ($1, $2, $3, $4, '2028-12-10'::date, '2028-12-15'::date, '2028-12-10 12:00'::timestamptz, '2028-12-15 11:00'::timestamptz, 'nightly', 0, 0, 'maintenance') RETURNING id`,
+          [tenantId, propertyId, guestId, roomMaintId],
+        )
+      ).rows[0].id;
+
+      assert.ok(maintBlock, 'Maintenance block created');
+
+      // 2. Attempt to book the room while under maintenance (Dec 12 to Dec 14) -> must fail with 23P01!
+      await assert.rejects(
+        async () => {
+          await client.query(
+            `INSERT INTO reservations (
+               tenant_id, property_id, guest_id, room_id,
+               check_in, check_out, check_in_at, check_out_at,
+               rate_mode, unit_rate, total_amount, status
+             ) VALUES ($1, $2, $3, $4, '2028-12-12'::date, '2028-12-14'::date, '2028-12-12 14:00'::timestamptz, '2028-12-14 11:00'::timestamptz, 'nightly', 4000, 8000, 'reserved')`,
+            [tenantId, propertyId, guestId, roomMaintId],
+          );
+        },
+        (err: any) => {
+          assert.equal(err.code, '23P01', 'Booking overlapping with maintenance block must be rejected by exclusion constraint');
+          assert.match(err.message, /no_double_booking_date|no_double_booking_time/);
+          return true;
+        },
+      );
+    } finally {
+      client.release();
+    }
+  });
 });

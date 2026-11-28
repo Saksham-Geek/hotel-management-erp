@@ -446,14 +446,14 @@ export function InventoryClient({
       </div>
 
       {/* Tabs Switcher: Current Stock vs Movement Ledger vs Recipe BOM */}
-      <div className="flex items-center gap-3 border-b border-slate-200 dark:border-slate-800">
+      <div className="flex items-center gap-3 border-b border-border">
         <button
           type="button"
           onClick={() => setActiveTab('ledger')}
-          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${activeTab === 'ledger' ? 'border-slate-900 text-slate-900 dark:border-white dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer ${activeTab === 'ledger' ? 'border-primary text-primary font-bold' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
         >
           <span>📦 Current Store Inventory</span>
-          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+          <span className="rounded-full bg-muted border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground">
             {filtered.length}
           </span>
         </button>
@@ -461,10 +461,10 @@ export function InventoryClient({
         <button
           type="button"
           onClick={() => setActiveTab('movements')}
-          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${activeTab === 'movements' ? 'border-slate-900 text-slate-900 dark:border-white dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer ${activeTab === 'movements' ? 'border-primary text-primary font-bold' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
         >
           <span>📋 Goods Receipts (GRN) &amp; Movements Audit Trail</span>
-          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+          <span className="rounded-full bg-muted border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground">
             {movements.length} Logs
           </span>
         </button>
@@ -472,10 +472,10 @@ export function InventoryClient({
         <button
           type="button"
           onClick={() => setActiveTab('recipes')}
-          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${activeTab === 'recipes' ? 'border-slate-900 text-slate-900 dark:border-white dark:text-white' : 'border-transparent text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer ${activeTab === 'recipes' ? 'border-primary text-primary font-bold' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
         >
           <span>🥗 Dish Recipe BOM &amp; Kitchen Depletion</span>
-          <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:text-slate-400">
+          <span className="rounded-full bg-muted border border-border px-2 py-0.5 text-[10px] font-semibold text-foreground">
             {recipes.length} Dishes
           </span>
         </button>
@@ -967,7 +967,7 @@ export function InventoryClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-slate-900 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-slate-800 dark:bg-teal-500 dark:text-slate-950 dark:hover:bg-teal-400 disabled:opacity-50"
+                  className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? 'Adding…' : '+ Add SKU'}
                 </button>
@@ -1053,7 +1053,7 @@ export function InventoryClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-indigo-600 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-indigo-700 disabled:opacity-50"
+                  className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? 'Linking…' : 'Save Recipe Link'}
                 </button>
@@ -1156,7 +1156,7 @@ export function InventoryClient({
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-xl bg-emerald-600 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-emerald-700 disabled:opacity-50"
+                  className="rounded-xl bg-primary px-5 py-2 text-xs font-bold text-primary-foreground shadow-sm hover:opacity-90 disabled:opacity-50 cursor-pointer"
                 >
                   {loading ? 'Recording…' : 'Record GRN Stock In'}
                 </button>

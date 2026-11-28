@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { EntitlementsModule } from '../entitlements/entitlements.module';
 import { CustomFieldsService } from '../custom-fields/custom-fields.service';
+import { InvoiceSequenceService } from './invoice-sequence.service';
 import { BillingController } from './billing.controller';
 import { ChannelManagerController } from './channel-manager.controller';
 import { ComplianceController } from './compliance.controller';
@@ -44,6 +45,7 @@ import { AccountingController } from './accounting.controller';
     BanquetsController,
     AccountingController,
   ],
-  providers: [CustomFieldsService],
+  providers: [CustomFieldsService, InvoiceSequenceService],
+  exports: [InvoiceSequenceService],
 })
 export class HotelModule {}

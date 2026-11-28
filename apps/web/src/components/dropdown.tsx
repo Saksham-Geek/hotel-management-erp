@@ -361,7 +361,7 @@ export function CustomDropdown({
             align === 'right' ? 'right-0' : 'left-0'
           } ${
             opensUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
-          } z-[100] max-h-64 min-w-full w-max max-w-[min(28rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-xl text-card-foreground backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150`}
+          } z-[100] max-h-72 min-w-full sm:min-w-[280px] w-max max-w-[min(36rem,calc(100vw-2rem))] overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-xl text-card-foreground backdrop-blur-md animate-in fade-in-50 zoom-in-95 duration-150`}
         >
           <div className="flex flex-col gap-0.5" role="presentation">
             {options.map((opt, idx) => {
@@ -392,9 +392,9 @@ export function CustomDropdown({
                       : 'text-foreground hover:bg-muted/60 hover:text-foreground'
                   }`}
                 >
-                  <div className="flex min-w-0 items-center gap-2 truncate">
+                  <div className="flex min-w-0 items-center gap-2">
                     {opt.icon && <span className="shrink-0">{opt.icon}</span>}
-                    <span className="truncate whitespace-nowrap" title={opt.label}>{opt.label}</span>
+                    <span className="whitespace-nowrap font-medium" title={opt.label}>{opt.label}</span>
                     {opt.badge && (
                       <span
                         className={`ml-1 shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${

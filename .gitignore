@@ -7,3 +7,5 @@ dist
 .neon
 .tunnel-url
 scratch/
+backups/
+*.dump

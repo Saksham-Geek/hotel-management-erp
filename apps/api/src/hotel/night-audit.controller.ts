@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Body,
   Controller,
   Get,
@@ -119,10 +120,111 @@ export class NightAuditController {
     });
   }
 
+  @Get('gate-check')
+  @RequirePermission(PERMISSIONS.NIGHT_AUDIT_EXECUTE)
+  async getAuditGateCheck(@CurrentUser() user: AuthUser) {
+    return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      let bDateRow = (
+        await c.query(
+          `SELECT current_business_date::text AS "currentBusinessDate"
+           FROM hotel_business_dates WHERE tenant_id = $1 AND property_id = $2`,
+          [user.tenantId, user.propertyId],
+        )
+      ).rows[0];
+      const businessDate = bDateRow?.currentBusinessDate || new Date().toISOString().slice(0, 10);
+
+      const unassignedArrivals = (
+        await c.query(
+          `SELECT r.id, r.check_in::text AS "checkIn", p.full_name AS "guestName", p.phone AS "guestPhone",
+                  r.room_id AS "roomId", r.total_amount::float8 AS "totalAmount"
+           FROM reservations r
+           JOIN guests g ON g.id = r.guest_id
+           JOIN parties p ON p.id = g.party_id
+           WHERE r.tenant_id = $1 AND r.property_id = $2
+             AND r.status = 'reserved'
+             AND r.check_in <= $3::date`,
+          [user.tenantId, user.propertyId, businessDate],
+        )
+      ).rows;
+
+      const openKots = (
+        await c.query(
+          `SELECT k.id, k.kot_number AS "kotNumber", k.total_amount::float8 AS "totalAmount",
+                  ro.name AS "outletName", rt.table_number AS "tableNumber"
+           FROM kot_orders k
+           JOIN restaurant_outlets ro ON ro.id = k.outlet_id
+           LEFT JOIN restaurant_tables rt ON rt.id = k.table_id
+           WHERE k.tenant_id = $1 AND k.property_id = $2
+             AND k.status IN ('pending', 'preparing', 'ready', 'served')
+             AND k.payment_status = 'unpaid'`,
+          [user.tenantId, user.propertyId],
+        )
+      ).rows;
+
+      const pendingDepartures = (
+        await c.query(
+          `SELECT r.id, r.check_out::text AS "checkOut", rm.number AS "roomNumber",
+                  p.full_name AS "guestName"
+           FROM reservations r
+           JOIN rooms rm ON rm.id = r.room_id
+           JOIN guests g ON g.id = r.guest_id
+           JOIN parties p ON p.id = g.party_id
+           WHERE r.tenant_id = $1 AND r.property_id = $2
+             AND r.status = 'checked_in'
+             AND r.check_out <= $3::date`,
+          [user.tenantId, user.propertyId, businessDate],
+        )
+      ).rows;
+
+      const canRollForward = unassignedArrivals.length === 0 && openKots.length === 0 && pendingDepartures.length === 0;
+
+      return {
+        businessDate,
+        canRollForward,
+        unassignedArrivalsCount: unassignedArrivals.length,
+        unassignedArrivals,
+        openKotsCount: openKots.length,
+        openKots,
+        pendingDeparturesCount: pendingDepartures.length,
+        pendingDepartures,
+      };
+    });
+  }
+
   @Post('execute')
   @RequirePermission(PERMISSIONS.NIGHT_AUDIT_EXECUTE)
-  async executeAudit(@CurrentUser() user: AuthUser) {
+  async executeAudit(
+    @CurrentUser() user: AuthUser,
+    @Body() body?: {
+      force?: boolean;
+      autoReleaseNoShows?: boolean;
+      allowPendingDepartures?: boolean;
+      departureOverrideReason?: string;
+    },
+  ) {
     return this.db.withTenant(user.tenantId, user.propertyId, async (c) => {
+      // 0. PostgreSQL Per-Property Advisory Lock: Preclude concurrent audit runs
+      const lockRes = (
+        await c.query(`SELECT pg_try_advisory_xact_lock(hashtext('night_audit_' || $1::text)) AS acquired`, [
+          user.propertyId,
+        ])
+      ).rows[0];
+      if (!lockRes?.acquired) {
+        throw new ConflictException({
+          code: 'AUDIT_LOCK_HELD',
+          message: 'Night audit is already executing for this property in another active session.',
+        });
+      }
+
+      // Fetch property timezone
+      const propInfo = (
+        await c.query(`SELECT timezone FROM properties WHERE tenant_id = $1 AND id = $2`, [
+          user.tenantId,
+          user.propertyId,
+        ])
+      ).rows[0];
+      const propertyTimezone = propInfo?.timezone || 'Asia/Kolkata';
+
       let bDateRow = (
         await c.query(
           `SELECT current_business_date::text AS "currentBusinessDate", is_audit_in_progress AS "isAuditInProgress"
@@ -150,15 +252,114 @@ export class NightAuditController {
       }
 
       const businessDate = bDateRow.currentBusinessDate;
+      let departureOverrideApplied = false;
+      let departureOverrideReason: string | null = null;
+
+      // =========================================================================
+      // STATUTORY AUDIT GATE (Pre-Roll Validation)
+      // Block audit rollover if unassigned arrivals, open KOTs, or departures remain
+      // unless force is explicitly set or late departures have manager override.
+      // =========================================================================
+      if (!body?.force) {
+        const unassignedArrivals = (
+          await c.query(
+            `SELECT r.id, r.check_in::text AS "checkIn", p.full_name AS "guestName", p.phone AS "guestPhone",
+                    r.room_id AS "roomId", r.total_amount::float8 AS "totalAmount"
+             FROM reservations r
+             JOIN guests g ON g.id = r.guest_id
+             JOIN parties p ON p.id = g.party_id
+             WHERE r.tenant_id = $1 AND r.property_id = $2
+               AND r.status = 'reserved'
+               AND r.check_in <= $3::date`,
+            [user.tenantId, user.propertyId, businessDate],
+          )
+        ).rows;
+
+        const openKots = (
+          await c.query(
+            `SELECT k.id, k.kot_number AS "kotNumber", k.total_amount::float8 AS "totalAmount",
+                    ro.name AS "outletName", rt.table_number AS "tableNumber"
+             FROM kot_orders k
+             JOIN restaurant_outlets ro ON ro.id = k.outlet_id
+             LEFT JOIN restaurant_tables rt ON rt.id = k.table_id
+             WHERE k.tenant_id = $1 AND k.property_id = $2
+               AND k.status IN ('pending', 'preparing', 'ready', 'served')
+               AND k.payment_status = 'unpaid'`,
+            [user.tenantId, user.propertyId],
+          )
+        ).rows;
+
+        const pendingDepartures = (
+          await c.query(
+            `SELECT r.id, r.check_out::text AS "checkOut", rm.number AS "roomNumber",
+                    p.full_name AS "guestName"
+             FROM reservations r
+             JOIN rooms rm ON rm.id = r.room_id
+             JOIN guests g ON g.id = r.guest_id
+             JOIN parties p ON p.id = g.party_id
+             WHERE r.tenant_id = $1 AND r.property_id = $2
+               AND r.status = 'checked_in'
+               AND r.check_out <= $3::date`,
+            [user.tenantId, user.propertyId, businessDate],
+          )
+        ).rows;
+
+        if (unassignedArrivals.length > 0 || openKots.length > 0) {
+          throw new BadRequestException({
+            code: 'AUDIT_GATE_BLOCKED',
+            message: `Night audit gate blocked by pending front-desk or restaurant operations for business date ${businessDate}. Roll forward is blocked until pending items are settled or explicit override is authorized.`,
+            blockers: {
+              unassignedArrivalsCount: unassignedArrivals.length,
+              unassignedArrivals: unassignedArrivals.slice(0, 5),
+              openKotsCount: openKots.length,
+              openKots: openKots.slice(0, 5),
+              pendingDeparturesCount: pendingDepartures.length,
+              pendingDepartures: pendingDepartures.slice(0, 5),
+            },
+          });
+        }
+
+        if (pendingDepartures.length > 0) {
+          if (body?.allowPendingDepartures && body?.departureOverrideReason?.trim()) {
+            departureOverrideApplied = true;
+            departureOverrideReason = body.departureOverrideReason.trim();
+          } else {
+            throw new BadRequestException({
+              code: 'AUDIT_GATE_BLOCKED',
+              message: `Night audit has ${pendingDepartures.length} pending late departure(s). Late checkouts are permitted with a manager override reason (pass allowPendingDepartures: true and departureOverrideReason).`,
+              blockers: {
+                unassignedArrivalsCount: 0,
+                openKotsCount: 0,
+                pendingDeparturesCount: pendingDepartures.length,
+                pendingDepartures: pendingDepartures.slice(0, 5),
+              },
+            });
+          }
+        }
+      }
+
       await c.query(`UPDATE hotel_business_dates SET is_audit_in_progress = true, audit_started_at = now() WHERE tenant_id = $1 AND property_id = $2`, [
         user.tenantId,
         user.propertyId,
       ]);
 
-      // 1. Find all in-house checked_in reservations
+      let nextDate: string;
+      let log: any;
+      let overdueReservations: any[] = [];
+      let releasedRooms: string[] = [];
+      let totalRooms = 0;
+      let roomsOccupied = 0;
+      let occupancyRate = 0;
+      let roomRevenuePosted = 0;
+      let taxPosted = 0;
+      let adr = 0;
+      let revpar = 0;
+
+      try {
+        // 1. Find all in-house checked_in reservations
       const checkedInReservations = (
         await c.query(
-          `SELECT r.id, coalesce(r.unit_rate, ro.base_rate, 1000)::float8 AS "unitRate", r.rate_mode AS "rateMode", f.id AS "folioId"
+          `SELECT r.id, r.room_id AS "roomId", coalesce(r.unit_rate, ro.base_rate, 1000)::float8 AS "unitRate", r.rate_mode AS "rateMode", f.id AS "folioId"
            FROM reservations r
            JOIN rooms ro ON ro.id = r.room_id
            LEFT JOIN reservation_folios f ON f.reservation_id = r.id
@@ -166,9 +367,6 @@ export class NightAuditController {
           [user.tenantId, user.propertyId],
         )
       ).rows;
-
-      let roomRevenuePosted = 0;
-      let taxPosted = 0;
 
       for (const res of checkedInReservations) {
         let targetFolioId = res.folioId;
@@ -186,16 +384,19 @@ export class NightAuditController {
         const rate = res.unitRate > 0 ? res.unitRate : 1000;
         const tax = calculateGstTax('ACCOMMODATION', rate, 1, false);
 
-        // Idempotent insertion using compound key (folio_id, business_date, charge_type)
+        // Precise idempotent insertion keyed on (folio_id, reservation_id, room_id, business_date, charge_type)
+        // Multi-room folios have distinct room_ids and post without collision.
+        // Status 'posted' ensures only active charges are unique, allowing explicit reversals.
         const insertedItem = (
           await c.query(
             `INSERT INTO folio_items (
-               tenant_id, property_id, folio_id, reservation_id, business_date, charge_type,
+               tenant_id, property_id, folio_id, reservation_id, room_id, business_date, charge_type, status,
                description, quantity, unit_price, tax_rate, line_total,
                tax_category_code, hsn_sac, cgst_amount, sgst_amount, igst_amount
              )
-             VALUES ($1, $2, $3, $4, $5::date, 'ROOM_NIGHTLY', $6, 1, $7, $8, $9, 'ACCOMMODATION', '996311', $10, $11, $12)
-             ON CONFLICT (folio_id, business_date, charge_type) WHERE business_date IS NOT NULL AND charge_type IS NOT NULL
+             VALUES ($1, $2, $3, $4, $5, $6::date, 'ROOM_NIGHTLY', 'posted', $7, 1, $8, $9, $10, 'ACCOMMODATION', '996311', $11, $12, $13)
+             ON CONFLICT (folio_id, reservation_id, room_id, business_date, charge_type)
+             WHERE charge_type = 'ROOM_NIGHTLY' AND status = 'posted'
              DO NOTHING
              RETURNING id`,
             [
@@ -203,6 +404,7 @@ export class NightAuditController {
               user.propertyId,
               targetFolioId,
               res.id,
+              res.roomId,
               businessDate,
               `Daily room charge (${businessDate})`,
               rate,
@@ -378,23 +580,26 @@ export class NightAuditController {
       }
 
       // 2. Compute summary KPIs
-      const totalRooms = Number((await c.query(`SELECT count(*)::int AS n FROM rooms WHERE tenant_id = $1 AND property_id = $2`, [user.tenantId, user.propertyId])).rows[0]?.n ?? 0);
-      const roomsOccupied = checkedInReservations.length;
-      const occupancyRate = totalRooms > 0 ? Math.round((roomsOccupied / totalRooms) * 10000) / 100 : 0;
-      const adr = roomsOccupied > 0 ? Math.round((roomRevenuePosted / roomsOccupied) * 100) / 100 : 0;
-      const revpar = totalRooms > 0 ? Math.round((roomRevenuePosted / totalRooms) * 100) / 100 : 0;
+      totalRooms = Number((await c.query(`SELECT count(*)::int AS n FROM rooms WHERE tenant_id = $1 AND property_id = $2`, [user.tenantId, user.propertyId])).rows[0]?.n ?? 0);
+      roomsOccupied = checkedInReservations.length;
+      occupancyRate = totalRooms > 0 ? Math.round((roomsOccupied / totalRooms) * 10000) / 100 : 0;
+      adr = roomsOccupied > 0 ? Math.round((roomRevenuePosted / roomsOccupied) * 100) / 100 : 0;
+      revpar = totalRooms > 0 ? Math.round((roomRevenuePosted / totalRooms) * 100) / 100 : 0;
 
       // 3. Insert into night_audit_logs
-      const log = (
+      log = (
         await c.query(
           `INSERT INTO night_audit_logs (
              tenant_id, property_id, business_date, rooms_total, rooms_occupied, occupancy_rate,
-             total_room_revenue, total_fnb_revenue, total_tax_collected, adr, revpar, executed_by
+             total_room_revenue, total_fnb_revenue, total_tax_collected, adr, revpar, executed_by,
+             departure_override, departure_override_reason
            )
-           VALUES ($1, $2, $3::date, $4, $5, $6, $7, 0, $8, $9, $10, $11)
+           VALUES ($1, $2, $3::date, $4, $5, $6, $7, 0, $8, $9, $10, $11, $12, $13)
            ON CONFLICT (tenant_id, property_id, business_date) DO UPDATE
            SET rooms_occupied = excluded.rooms_occupied, total_room_revenue = excluded.total_room_revenue,
-               adr = excluded.adr, revpar = excluded.revpar
+               adr = excluded.adr, revpar = excluded.revpar,
+               departure_override = excluded.departure_override,
+               departure_override_reason = excluded.departure_override_reason
            RETURNING id, business_date::text AS "businessDate", rooms_occupied AS "roomsOccupied",
                      total_room_revenue::float8 AS "totalRoomRevenue", adr::float8, revpar::float8`,
           [
@@ -409,23 +614,34 @@ export class NightAuditController {
             adr,
             revpar,
             user.id,
+            departureOverrideApplied,
+            departureOverrideReason,
           ],
         )
       ).rows[0];
 
-      // 4. Roll current business date to next day
-      const nextDate = (
+        // 4. Roll current business date to next day strictly upon successful close
+        nextDate = (
+          await c.query(
+            `UPDATE hotel_business_dates
+             SET current_business_date = current_business_date + interval '1 day',
+                 is_audit_in_progress = false,
+                 last_audited_by = $3,
+                 last_audited_at = now()
+             WHERE tenant_id = $1 AND property_id = $2
+             RETURNING current_business_date::text AS "newBusinessDate"`,
+            [user.tenantId, user.propertyId, user.id],
+          )
+        ).rows[0].newBusinessDate;
+      } catch (err) {
         await c.query(
           `UPDATE hotel_business_dates
-           SET current_business_date = current_business_date + interval '1 day',
-               is_audit_in_progress = false,
-               last_audited_by = $3,
-               last_audited_at = now()
-           WHERE tenant_id = $1 AND property_id = $2
-           RETURNING current_business_date::text AS "newBusinessDate"`,
-          [user.tenantId, user.propertyId, user.id],
-        )
-      ).rows[0].newBusinessDate;
+           SET is_audit_in_progress = false
+           WHERE tenant_id = $1 AND property_id = $2`,
+          [user.tenantId, user.propertyId],
+        );
+        throw err;
+      }
 
       await this.audit.log(c, {
         tenantId: user.tenantId,

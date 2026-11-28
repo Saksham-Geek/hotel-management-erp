@@ -226,13 +226,13 @@ export function StatCard({
   icon?: ReactNode;
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 dark:border-white/10 bg-white dark:bg-slate-900/90 p-5 sm:p-6 shadow-sm transition-all duration-200 hover:border-slate-300 dark:hover:border-white/20 hover:shadow-md min-w-0">
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-2xs transition-all duration-200 hover:border-primary/40 hover:shadow-sm min-w-0 text-card-foreground">
       <div className="flex items-center justify-between gap-3 min-w-0">
-        <p className="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-400 truncate">
+        <p className="text-xs sm:text-[13px] font-extrabold uppercase tracking-wider text-slate-600 dark:text-slate-300 truncate">
           {label}
         </p>
         {icon && (
-          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-slate-100 dark:bg-white/10 text-slate-800 dark:text-slate-200">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted/60 text-slate-800 dark:text-slate-200 border border-border">
             {icon}
           </span>
         )}

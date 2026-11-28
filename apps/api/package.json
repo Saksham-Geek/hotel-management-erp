@@ -7,7 +7,7 @@
     "build": "nest build",
     "start": "node dist/main.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "tsx --test test/foundation.spec.ts test/tax-engine.spec.ts test/double-booking-concurrency.spec.ts test/night-audit-idempotency.spec.ts",
+    "test": "tsx --test test/foundation.spec.ts test/tax-engine.spec.ts test/double-booking-concurrency.spec.ts test/night-audit-idempotency.spec.ts test/gapless-invoicing-concurrency.spec.ts test/cross-tenant-rls-security.spec.ts",
     "migrate": "tsx src/db/migrate.ts",
     "seed": "tsx src/db/seed.ts",
     "seed:variations": "tsx src/db/seed-comprehensive-variations.ts"

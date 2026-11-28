@@ -599,28 +599,28 @@ export function TapeChartView({
             <span className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight tabular-nums">
               {metrics.upcoming}
             </span>
-            <span className="text-xs font-semibold text-purple-600 dark:text-purple-400 shrink-0">
+            <span className="text-xs font-semibold text-muted-foreground shrink-0">
               Confirmed Stays
             </span>
           </div>
         </div>
 
         <div className="rounded-2xl border border-border bg-card p-5 shadow-xs relative overflow-hidden min-w-0">
-          <span className="h-1.5 w-6 rounded-full bg-amber-500 block mb-3" />
+          <span className="h-1.5 w-6 rounded-full bg-primary block mb-3" />
           <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground truncate">
             Distribution Channels
           </p>
           <div className="mt-2.5 flex items-center gap-2 flex-wrap">
-            <span className="rounded-lg border border-red-500/30 bg-red-500/10 px-2.5 py-1 text-xs font-extrabold text-red-600 dark:text-red-400 shadow-2xs">
+            <span className="rounded-lg border border-border bg-muted/60 px-2.5 py-1 text-xs font-bold text-foreground shadow-2xs">
               MMT
             </span>
-            <span className="rounded-lg border border-blue-500/30 bg-blue-500/10 px-2.5 py-1 text-xs font-extrabold text-blue-600 dark:text-blue-400 shadow-2xs">
+            <span className="rounded-lg border border-border bg-muted/60 px-2.5 py-1 text-xs font-bold text-foreground shadow-2xs">
               Booking.com
             </span>
-            <span className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs font-extrabold text-emerald-600 dark:text-emerald-400 shadow-2xs">
+            <span className="rounded-lg border border-border bg-muted/60 px-2.5 py-1 text-xs font-bold text-foreground shadow-2xs">
               Agoda
             </span>
-            <span className="rounded-lg border border-purple-500/30 bg-purple-500/10 px-2.5 py-1 text-xs font-extrabold text-purple-600 dark:text-purple-400 shadow-2xs">
+            <span className="rounded-lg border border-border bg-muted/60 px-2.5 py-1 text-xs font-bold text-foreground shadow-2xs">
               Corporate
             </span>
           </div>
@@ -1345,7 +1345,7 @@ export function TapeChartView({
               setDragAnchor(null);
               setIsDragging(false);
             }}
-            className="rounded-full bg-slate-800 hover:bg-rose-600/90 text-slate-200 hover:text-white px-3.5 py-1.5 text-xs font-bold transition-all border border-slate-700 active:scale-95 flex items-center gap-1.5 shadow-2xs"
+            className="rounded-full bg-muted hover:bg-muted/80 text-foreground px-3.5 py-1.5 text-xs font-bold transition-all border border-border active:scale-95 flex items-center gap-1.5 shadow-2xs cursor-pointer"
             title="Deselect stay range (or press Esc)"
           >
             <span aria-hidden>✕</span>

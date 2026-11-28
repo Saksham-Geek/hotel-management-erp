@@ -70,11 +70,11 @@ export function IncomeDashboardView({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/80 pb-5">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-100 border border-purple-300 px-3 py-0.5 text-xs font-black text-purple-950 uppercase tracking-wider shadow-2xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-purple-500/10 border border-purple-500/20 px-3 py-0.5 text-xs font-bold text-purple-700 dark:text-purple-300 uppercase tracking-wider shadow-2xs">
               <span>👑</span>
               <span>Owner &amp; Board Confidential</span>
             </span>
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
               <span>Five-Star Hospitality Protocol</span>
             </span>
@@ -93,13 +93,13 @@ export function IncomeDashboardView({
           <button
             type="button"
             onClick={() => window.print()}
-            className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-border bg-card text-foreground px-4 py-2 text-xs sm:text-sm font-bold shadow-2xs hover:bg-muted/40 transition-all active:scale-95 cursor-pointer"
+            className="inline-flex min-h-[42px] items-center gap-2 rounded-xl border border-border bg-card text-slate-900 dark:text-white px-4 py-2 text-xs sm:text-sm font-bold shadow-2xs hover:bg-muted/50 transition-all active:scale-95 cursor-pointer"
             title="Generate print-ready Executive Board Pack & P&L Statement"
           >
-            <svg className="h-4 w-4 text-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="h-4 w-4 text-slate-700 dark:text-slate-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4H9v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
-            <span>Print Board Pack</span>
+            <span className="font-bold text-slate-900 dark:text-white">Print Board Pack</span>
           </button>
 
           <button
@@ -120,10 +120,10 @@ export function IncomeDashboardView({
         <button
           type="button"
           onClick={() => setActiveTab('analytics')}
-          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${
+          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer ${
             activeTab === 'analytics'
-              ? 'border-purple-600 text-purple-900 font-extrabold'
-              : 'border-transparent text-muted-foreground hover:text-slate-800'
+              ? 'border-primary text-primary font-extrabold'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           <span>📈 USALI Yield &amp; Operational Revenue</span>
@@ -132,14 +132,14 @@ export function IncomeDashboardView({
         <button
           type="button"
           onClick={() => setActiveTab('general_ledger')}
-          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 ${
+          className={`pb-3 text-xs font-bold transition border-b-2 flex items-center gap-2 cursor-pointer ${
             activeTab === 'general_ledger'
-              ? 'border-purple-600 text-purple-900 font-extrabold'
-              : 'border-transparent text-muted-foreground hover:text-slate-800'
+              ? 'border-primary text-primary font-extrabold'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           <span>⚖️ Double-Entry General Ledger, P&amp;L &amp; Balance Sheet</span>
-          <span className="rounded-full bg-emerald-100 text-emerald-800 px-2 py-0.5 text-[10px] font-bold">
+          <span className="rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 px-2 py-0.5 text-[10px] font-bold">
             Live COA
           </span>
         </button>

@@ -269,27 +269,27 @@ export function ChannelView({
 
               <div className="mt-5 space-y-2 border-t border-border pt-4 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-medium">Channel Property ID:</span>
-                  <span className="font-mono font-bold text-foreground">
-                    {channel.hotelCode || <span className="text-muted-foreground/70 italic">Unconfigured</span>}
+                  <span className="text-slate-600 dark:text-slate-300 font-semibold">Channel Property ID:</span>
+                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                    {channel.hotelCode || <span className="text-slate-500 dark:text-slate-400 italic font-medium">Unconfigured</span>}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-medium">Standard Commission:</span>
-                  <span className="font-mono font-black text-foreground">
+                  <span className="text-slate-600 dark:text-slate-300 font-semibold">Standard Commission:</span>
+                  <span className="font-mono font-black text-slate-900 dark:text-white">
                     {channel.commissionRate}%
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground font-medium">Sync Mode:</span>
-                  <span className="font-bold capitalize text-foreground">
+                  <span className="text-slate-600 dark:text-slate-300 font-semibold">Sync Mode:</span>
+                  <span className="font-bold capitalize text-slate-900 dark:text-white">
                     {channel.syncMode.replace('_', ' ')}
                   </span>
                 </div>
                 {channel.lastSyncAt && (
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-muted-foreground font-medium">Last Synchronized:</span>
-                    <span className="font-semibold text-foreground">
+                    <span className="text-slate-600 dark:text-slate-300 font-semibold">Last Synchronized:</span>
+                    <span className="font-bold text-slate-900 dark:text-white">
                       {formatDeterministicTime(channel.lastSyncAt)}
                     </span>
                   </div>

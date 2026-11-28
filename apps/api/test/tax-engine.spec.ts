@@ -4,6 +4,7 @@ import {
   calculateVersionedGstTax,
   calculateGstTax,
   resolveTaxRule,
+  toPaise,
 } from '../src/hotel/tax-calculator';
 
 describe('Versioned Indian Hotel GST Tax Engine (56th GST Council Compliant)', () => {
@@ -152,6 +153,60 @@ describe('Versioned Indian Hotel GST Tax Engine (56th GST Council Compliant)', (
       assert.equal(res.igstAmount, 1800.0);
       assert.equal(res.taxTotal, 1800.0);
       assert.equal(res.itcAllowed, true);
+    });
+  });
+
+  describe('Integer Paise Precision & Odd Paisa Split (Zero-Drift Engineering Design)', () => {
+    it('accurately parses decimal edge cases like 1.005 without IEEE 754 float multiplication errors', () => {
+      const res = calculateVersionedGstTax({
+        categoryCode: 'ACCOMMODATION',
+        declaredDailyTariff: 1.005,
+        quantity: 1,
+        effectiveDate: '2026-01-01',
+      });
+
+      assert.equal(res.taxableAmount, 1.01);
+    });
+
+    it('guarantees CGST + SGST strictly equals Total Tax on odd paisa splits', () => {
+      // 333.33 * 5% = 16.6665 => totalTax = 1667 paise (Rs 16.67)
+      // CGST: 833 paise (Rs 8.33), SGST: 834 paise (Rs 8.34)
+      const res = calculateVersionedGstTax({
+        categoryCode: 'ACCOMMODATION',
+        declaredDailyTariff: 333.33,
+        quantity: 1,
+        effectiveDate: '2026-01-01',
+      });
+
+      assert.equal(res.taxTotal, 16.67);
+      assert.equal(res.cgstAmount, 8.33);
+      assert.equal(res.sgstAmount, 8.34);
+      assert.equal(
+        Math.round((res.cgstAmount + res.sgstAmount) * 100) / 100,
+        res.taxTotal,
+        'CGST + SGST must equal Tax Total exactly with zero drift',
+      );
+      assert.equal(
+        Math.round((res.taxableAmount + res.taxTotal) * 100) / 100,
+        res.lineTotal,
+        'Taxable Amount + Tax Total must equal Line Total exactly',
+      );
+    });
+
+    it('property-based fuzz test: 200,000 random rupee amounts match decimal reference without single float error', () => {
+      for (let i = 0; i < 200_000; i++) {
+        const randRupees = Math.floor(Math.random() * 100_000);
+        const randPaise = Math.floor(Math.random() * 100);
+        const decimalStr = `${randRupees}.${String(randPaise).padStart(2, '0')}`;
+        const floatVal = parseFloat(decimalStr);
+
+        const paiseFromStr = toPaise(decimalStr);
+        const paiseFromFloat = toPaise(floatVal);
+        const expectedPaise = randRupees * 100 + randPaise;
+
+        assert.equal(paiseFromStr, expectedPaise, `String toPaise failed on ${decimalStr}`);
+        assert.equal(paiseFromFloat, expectedPaise, `Float toPaise failed on ${floatVal}`);
+      }
     });
   });
 });

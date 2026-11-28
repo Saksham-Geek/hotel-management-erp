@@ -1565,10 +1565,9 @@ export function RestaurantPosView({
 
         <Link
           href="/restaurant/captain"
-          className="flex items-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/15 text-amber-700 dark:text-amber-300 px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-2xs"
+          className="flex items-center gap-1.5 rounded-xl border border-border bg-card hover:bg-muted/40 text-foreground px-4 py-2.5 text-xs sm:text-sm font-bold transition-all shadow-2xs"
         >
-          <span>📱</span>
-          <span>Captain Handheld Mode</span>
+          <span>📱 Captain Handheld Mode</span>
         </Link>
       </div>
 
